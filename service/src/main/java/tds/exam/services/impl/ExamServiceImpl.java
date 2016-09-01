@@ -1,9 +1,10 @@
-package tds.exam.services;
+package tds.exam.services.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import tds.exam.Exam;
 import tds.exam.repository.ExamRepository;
+import tds.exam.services.ExamService;
 
 import java.util.UUID;
 
