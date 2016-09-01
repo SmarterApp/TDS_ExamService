@@ -1,7 +1,8 @@
-package tds.exam.repository;
+package tds.exam.repository.impl;
 
 import org.springframework.stereotype.Repository;
 import tds.exam.Exam;
+import tds.exam.repository.ExamRepository;
 
 import java.util.UUID;
 
