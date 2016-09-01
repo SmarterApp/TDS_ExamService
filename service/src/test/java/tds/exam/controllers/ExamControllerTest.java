@@ -1,5 +1,6 @@
 package tds.exam.controllers;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import tds.exam.Exam;
@@ -19,6 +20,9 @@ public class ExamControllerTest {
         examService = mock(ExamService.class);
         controller = new ExamController(examService);
     }
+
+    @After
+    public void tearDown() {}
 
     @Test
     public void anExamCanBeReturnedForWithValidId() {
