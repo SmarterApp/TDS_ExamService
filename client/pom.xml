@@ -1,21 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-	<artifactId>tds-exam-client</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<packaging>jar</packaging>
+    <artifactId>tds-exam-client</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>jar</packaging>
 
-	<name>tds-exam-client</name>
-	<description>The client classes to interact with exam service</description>
+    <name>tds-exam-client</name>
+    <description>The client classes to interact with exam service</description>
 
-	<parent>
-		<groupId>org.opentestsystem.exam</groupId>
-		<artifactId>tds-exam</artifactId>
+    <parent>
+        <groupId>org.opentestsystem.exam</groupId>
+        <artifactId>tds-exam</artifactId>
         <version>0.0.1-SNAPSHOT</version>
-	</parent>
+    </parent>
 
-	<dependencies>
+    <dependencies>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>

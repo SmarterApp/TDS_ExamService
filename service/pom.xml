@@ -28,7 +28,7 @@
         <rest-assured.version>2.9.0</rest-assured.version>
     </properties>
 
-	<dependencies>
+    <dependencies>
         <dependency>
             <groupId>org.opentestsystem.exam</groupId>
             <artifactId>tds-exam-client</artifactId>
@@ -91,13 +91,13 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-	
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
 
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -127,8 +127,8 @@
                     </execution>
                 </executions>
             </plugin>
-		</plugins>
-	</build>
+        </plugins>
+    </build>
 
     <repositories>
         <repository>
