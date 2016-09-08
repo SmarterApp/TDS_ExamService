@@ -7,7 +7,7 @@ import java.util.UUID;
 /**
  * Data access for exams
  */
-public interface ExamRepository {
+public interface ExamQueryRepository {
     /**
      * Retrieves the exam by id
      * @param id exam id

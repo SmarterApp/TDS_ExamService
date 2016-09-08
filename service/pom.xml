@@ -26,15 +26,24 @@
         <assertj.version>3.4.1</assertj.version>
         <mockito.version>1.10.19</mockito.version>
         <rest-assured.version>2.9.0</rest-assured.version>
+        <tds-common.version>0.0.1-SNAPSHOT</tds-common.version>
+        <tds-client.version>0.0.1-SNAPSHOT</tds-client.version>
     </properties>
 
     <dependencies>
+        <!-- TDS -->
         <dependency>
             <groupId>org.opentestsystem.exam</groupId>
             <artifactId>tds-exam-client</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>${tds-client.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.opentestsystem.common</groupId>
+            <artifactId>tds-common</artifactId>
+            <version>${tds-common.version}</version>
         </dependency>
 
+        <!-- Spring -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
@@ -57,9 +66,32 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
         </dependency>
+
+        <!-- Database/data access dependencies -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <scope>runtime</scope>
+            <version>5.1.39</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>2.3.9</version>
+        </dependency>
+
+        <!--<dependency>-->
+            <!--<groupId>org.flywaydb</groupId>-->
+            <!--<artifactId>flyway-core</artifactId>-->
+            <!--<version>4.0.3</version>-->
+        <!--</dependency>-->
+
+        <!-- Test -->
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -76,14 +108,12 @@
             <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
             <version>${assertj.version}</version>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-all</artifactId>
@@ -104,7 +134,7 @@
                 <configuration>
                     <skipTests>${unit-tests.skip}</skipTests>
                     <excludes>
-                        <exclude>**/*IntegrationTest.java</exclude>
+                        <exclude>**/*IntegrationTests.java</exclude>
                     </excludes>
                 </configuration>
             </plugin>
@@ -121,7 +151,7 @@
                         <configuration>
                             <skipTests>${integration-tests.skip}</skipTests>
                             <includes>
-                                <include>**/*IntegrationTest.java</include>
+                                <include>**/*IntegrationTests.java</include>
                             </includes>
                         </configuration>
                     </execution>
