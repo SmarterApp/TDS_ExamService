@@ -5,6 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 import tds.exam.Exam;
 import tds.exam.services.ExamService;
+import tds.exam.web.endpoints.ExamController;
 
 import java.util.UUID;
 
