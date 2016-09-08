@@ -2,6 +2,7 @@ package tds.exam.services;
 
 import tds.exam.Exam;
 
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -15,5 +16,5 @@ public interface ExamService {
      * @param uuid id for the exam
      * @return {@link Exam} otherwise null
      */
-    Exam getExam(UUID uuid);
+    Optional<Exam> getExam(UUID uuid);
 }

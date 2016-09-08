@@ -2,6 +2,7 @@ package tds.exam.repository;
 
 import tds.exam.Exam;
 
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -9,9 +10,9 @@ import java.util.UUID;
  */
 public interface ExamQueryRepository {
     /**
-     * Retrieves the exam by id
-     * @param id exam id
+     * Retrieves the exam by uniqueKey
+     * @param uniqueKey exam uniqueKey
      * @return the {@link Exam} if found otherwise null
      */
-    Exam getExamById(UUID id);
+    Optional<Exam> getExamByUniqueKey(UUID uniqueKey);
 }

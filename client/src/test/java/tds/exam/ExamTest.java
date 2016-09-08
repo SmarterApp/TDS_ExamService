@@ -8,8 +8,9 @@ public class ExamTest {
     @Test
     public void anExamCanBeCreated() {
         UUID examId = UUID.randomUUID();
-        Exam exam = new Exam(examId);
+        Exam exam = new Exam();
+        exam.setUniqueKey(examId);
 
-        assertThat(exam.getId()).isEqualTo(examId);
+        assertThat(exam.getUniqueKey()).isEqualTo(examId);
     }
 }

@@ -3,10 +3,19 @@ package tds.exam.controllers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import javax.servlet.http.HttpServletRequest;
+
 import tds.exam.Exam;
 import tds.exam.services.ExamService;
 import tds.exam.web.endpoints.ExamController;
+import tds.exam.web.resources.ExamResource;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.mockito.Mockito.*;
@@ -18,6 +27,10 @@ public class ExamControllerTest {
 
     @Before
     public void setUp() {
+        HttpServletRequest request = new MockHttpServletRequest();
+        ServletRequestAttributes requestAttributes = new ServletRequestAttributes(request);
+        RequestContextHolder.setRequestAttributes(requestAttributes);
+
         examService = mock(ExamService.class);
         controller = new ExamController(examService);
     }
@@ -28,12 +41,15 @@ public class ExamControllerTest {
     @Test
     public void anExamCanBeReturnedForWithValidId() {
         UUID uuid = UUID.randomUUID();
-        when(examService.getExam(uuid)).thenReturn(new Exam(uuid));
+        Exam exam = new Exam();
+        exam.setUniqueKey(uuid);
+        when(examService.getExam(uuid)).thenReturn(Optional.of(exam));
 
-        Exam exam = controller.getExamById(uuid);
-
-        assertThat(exam.getId()).isEqualTo(uuid);
-
+        ResponseEntity<ExamResource> response = controller.getExamById(uuid);
         verify(examService).getExam(uuid);
+
+        assertThat(response.getBody().getExam().getUniqueKey()).isEqualTo(uuid);
+        assertThat(response.getBody().getId().getHref()).isEqualTo("http://localhost/exam/" + uuid.toString());
+
     }
 }

@@ -2,13 +2,18 @@ package tds.exam.web.endpoints;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+
+import tds.common.web.exceptions.NotFoundException;
 import tds.exam.Exam;
 import tds.exam.services.ExamService;
+import tds.exam.web.resources.ExamResource;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -21,8 +26,11 @@ public class ExamController {
         this.examService = examService;
     }
 
-    @RequestMapping(value = "/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Exam getExamById(@PathVariable UUID id) {
-        return examService.getExam(id);
+    @RequestMapping(value = "/{uniqueKey}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<ExamResource> getExamById(@PathVariable UUID uniqueKey) {
+        final Exam exam = examService.getExam(uniqueKey)
+            .orElseThrow(() -> new NotFoundException("Could not find exam for %s", uniqueKey));
+
+        return ResponseEntity.ok(new ExamResource(exam));
     }
 }

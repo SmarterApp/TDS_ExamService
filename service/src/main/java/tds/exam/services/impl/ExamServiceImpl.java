@@ -6,6 +6,7 @@ import tds.exam.Exam;
 import tds.exam.repository.ExamQueryRepository;
 import tds.exam.services.ExamService;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -18,7 +19,7 @@ public class ExamServiceImpl implements ExamService {
     }
 
     @Override
-    public Exam getExam(UUID id) {
-        return examQueryRepository.getExamById(id);
+    public Optional<Exam> getExam(UUID id) {
+        return examQueryRepository.getExamByUniqueKey(id);
     }
 }
