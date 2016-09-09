@@ -18,5 +18,6 @@ CREATE TABLE IF NOT EXISTS exam(
   date_started DATETIME(3) DEFAULT NULL,
   date_changed DATETIME(3) DEFAULT NULL,
   date_deleted DATETIME(3) DEFAULT NULL,
-  PRIMARY KEY (id)
+  PRIMARY KEY (id),
+  UNIQUE (unique_key)
 );
