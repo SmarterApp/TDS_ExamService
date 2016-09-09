@@ -1,7 +1,7 @@
 /***********************************************************************************************************************
-  File: V1473371684__exam_populate_test_record.sql
+  File: retrieveExamBefore.sql
 
-  Desc: Creates a test record in the database for integration tests
+  Desc: Creates a test record in the database for integration test
 
 ***********************************************************************************************************************/
 USE exam;
