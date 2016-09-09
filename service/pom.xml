@@ -29,6 +29,7 @@
         <tds-common.version>0.0.1-SNAPSHOT</tds-common.version>
         <tds-client.version>0.0.1-SNAPSHOT</tds-client.version>
         <h2-database.version>1.4.191</h2-database.version>
+        <mysql.version>5.1.39</mysql.version>
     </properties>
 
     <dependencies>
@@ -73,7 +74,7 @@
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <scope>runtime</scope>
-            <version>5.1.39</version>
+            <version>${mysql.version}</version>
         </dependency>
 
         <dependency>
@@ -149,7 +150,7 @@
                             <dependency>
                                 <groupId>mysql</groupId>
                                 <artifactId>mysql-connector-java</artifactId>
-                                <version>5.1.39</version>
+                                <version>${mysql.version}</version>
                             </dependency>
                         </dependencies>
                     </plugin>
