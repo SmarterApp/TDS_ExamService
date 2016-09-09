@@ -28,14 +28,14 @@ public class ExamQueryRepositoryImplIntegrationTests {
     @Test
     public void shouldRetrieveExamForUniqueKey() {
         UUID examUniqueKey = UUID.fromString("af880054-d1d2-4c24-805c-0dfdb45a0d24");
-        Optional<Exam> sessionOptional = examQueryRepository.getExamByUniqueKey(examUniqueKey);
+        Optional<Exam> sessionOptional = examQueryRepository.getExamById(examUniqueKey);
         assertThat(sessionOptional.isPresent()).isTrue();
     }
 
     @Test
     public void shouldReturnEmptyOptionalForNotFoundUniqueKey() {
         UUID examUniqueKey = UUID.fromString("12345678-d1d2-4c24-805c-0dfdb45a0d24");
-        Optional<Exam> sessionOptional = examQueryRepository.getExamByUniqueKey(examUniqueKey);
+        Optional<Exam> sessionOptional = examQueryRepository.getExamById(examUniqueKey);
         assertThat(sessionOptional.isPresent()).isFalse();
     }
 }

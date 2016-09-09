@@ -12,7 +12,6 @@ import javax.servlet.http.HttpServletRequest;
 
 import tds.exam.Exam;
 import tds.exam.services.ExamService;
-import tds.exam.web.endpoints.ExamController;
 import tds.exam.web.resources.ExamResource;
 
 import java.util.Optional;
@@ -42,14 +41,13 @@ public class ExamControllerTest {
     public void anExamCanBeReturnedForWithValidId() {
         UUID uuid = UUID.randomUUID();
         Exam exam = new Exam();
-        exam.setUniqueKey(uuid);
+        exam.setId(uuid);
         when(examService.getExam(uuid)).thenReturn(Optional.of(exam));
 
         ResponseEntity<ExamResource> response = controller.getExamById(uuid);
         verify(examService).getExam(uuid);
 
-        assertThat(response.getBody().getExam().getUniqueKey()).isEqualTo(uuid);
+        assertThat(response.getBody().getExam().getId()).isEqualTo(uuid);
         assertThat(response.getBody().getId().getHref()).isEqualTo("http://localhost/exam/" + uuid.toString());
-
     }
 }

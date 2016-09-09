@@ -15,7 +15,7 @@ public class ExamResource extends ResourceSupport {
         this.exam = exam;
         this.add(linkTo(
             methodOn(ExamController.class)
-                .getExamById(exam.getUniqueKey()))
+                .getExamById(exam.getId()))
             .withSelfRel());
     }
 

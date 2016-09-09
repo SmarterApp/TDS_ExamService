@@ -20,6 +20,6 @@ public class ExamServiceImpl implements ExamService {
 
     @Override
     public Optional<Exam> getExam(UUID id) {
-        return examQueryRepository.getExamByUniqueKey(id);
+        return examQueryRepository.getExamById(id);
     }
 }

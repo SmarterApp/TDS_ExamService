@@ -8,8 +8,7 @@ import java.util.UUID;
  * Class representing an exam
  */
 public class Exam {
-    private int id;
-    private UUID uniqueKey;
+    private UUID id;
     private UUID sessionId;
     private String assessmentId;
     private BigInteger studentId;
@@ -20,20 +19,12 @@ public class Exam {
     private LocalDateTime dateChanged;
     private LocalDateTime dateDeleted;
 
-    public int getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(UUID id) {
         this.id = id;
-    }
-
-    public UUID getUniqueKey() {
-        return uniqueKey;
-    }
-
-    public void setUniqueKey(UUID uniqueKey) {
-        this.uniqueKey = uniqueKey;
     }
 
     public UUID getSessionId() {

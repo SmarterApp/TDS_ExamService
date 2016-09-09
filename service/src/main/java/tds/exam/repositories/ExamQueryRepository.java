@@ -11,8 +11,8 @@ import java.util.UUID;
 public interface ExamQueryRepository {
     /**
      * Retrieves the exam by uniqueKey
-     * @param uniqueKey exam uniqueKey
+     * @param examId exam id
      * @return the {@link Exam} if found otherwise null
      */
-    Optional<Exam> getExamByUniqueKey(UUID uniqueKey);
+    Optional<Exam> getExamById(UUID examId);
 }

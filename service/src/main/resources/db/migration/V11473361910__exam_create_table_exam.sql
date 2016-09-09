@@ -7,8 +7,7 @@
 USE exam;
 
 CREATE TABLE IF NOT EXISTS exam(
-  id INT NOT NULL AUTO_INCREMENT,
-  unique_key VARBINARY(16) NOT NULL,
+  id VARBINARY(16) NOT NULL,
   session_id VARBINARY(16) NOT NULL,
   assessment_id VARCHAR(255) NOT NULL,
   student_id BIGINT(20) NOT NULL,
@@ -18,6 +17,5 @@ CREATE TABLE IF NOT EXISTS exam(
   date_started DATETIME(3) DEFAULT NULL,
   date_changed DATETIME(3) DEFAULT NULL,
   date_deleted DATETIME(3) DEFAULT NULL,
-  PRIMARY KEY (id),
-  UNIQUE (unique_key)
+  PRIMARY KEY (id)
 );

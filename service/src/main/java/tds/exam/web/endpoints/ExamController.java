@@ -26,10 +26,10 @@ public class ExamController {
         this.examService = examService;
     }
 
-    @RequestMapping(value = "/{uniqueKey}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ExamResource> getExamById(@PathVariable UUID uniqueKey) {
-        final Exam exam = examService.getExam(uniqueKey)
-            .orElseThrow(() -> new NotFoundException("Could not find exam for %s", uniqueKey));
+    @RequestMapping(value = "/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<ExamResource> getExamById(@PathVariable UUID id) {
+        final Exam exam = examService.getExam(id)
+            .orElseThrow(() -> new NotFoundException("Could not find exam for %s", id));
 
         return ResponseEntity.ok(new ExamResource(exam));
     }

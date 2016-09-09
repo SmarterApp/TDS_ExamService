@@ -30,10 +30,10 @@ public class ExamQueryServiceTest {
     @Test
     public void itShouldReturnAExam() {
         Exam exam = new Exam();
-        UUID uniqueKey = UUID.randomUUID();
-        exam.setUniqueKey(uniqueKey);
-        when(repository.getExamByUniqueKey(uniqueKey)).thenReturn(Optional.of(exam));
+        UUID examId = UUID.randomUUID();
+        exam.setId(examId);
+        when(repository.getExamById(examId)).thenReturn(Optional.of(exam));
 
-        assertThat(examService.getExam(uniqueKey).get().getUniqueKey()).isEqualTo(uniqueKey);
+        assertThat(examService.getExam(examId).get().getId()).isEqualTo(examId);
     }
 }

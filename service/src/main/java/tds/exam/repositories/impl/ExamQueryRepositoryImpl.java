@@ -28,12 +28,12 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
     }
 
     @Override
-    public Optional<Exam> getExamByUniqueKey(UUID uniqueKey) {
-        final SqlParameterSource parameters = new MapSqlParameterSource("uniqueKey", UuidAdapter.getBytesFromUUID(uniqueKey));
+    public Optional<Exam> getExamById(UUID id) {
+        final SqlParameterSource parameters = new MapSqlParameterSource("id", UuidAdapter.getBytesFromUUID(id));
 
-        String query = "SELECT unique_key \n" +
+        String query = "SELECT id \n" +
             "FROM exam.exam \n" +
-            "WHERE unique_key = :uniqueKey";
+            "WHERE id = :id";
 
         Optional<Exam> examOptional;
         try {

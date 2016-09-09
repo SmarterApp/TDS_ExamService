@@ -6,4 +6,4 @@
 ***********************************************************************************************************************/
 USE exam;
 
-DELETE FROM exam where unique_key = X'af880054d1d24c24805c0dfdb45a0d24';
+DELETE FROM exam where id = X'af880054d1d24c24805c0dfdb45a0d24';
