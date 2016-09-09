@@ -14,7 +14,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>1.3.5.RELEASE</version>
+        <version>1.4.0.RELEASE</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
@@ -208,39 +208,39 @@
                 </executions>
             </plugin>
 
-            <plugin>
-                <groupId>org.flywaydb</groupId>
-                <artifactId>flyway-maven-plugin</artifactId>
-                <version>4.0.3</version>
-                <executions>
-                    <execution>
-                        <id>flyway_test_migrations</id>
-                        <phase>test</phase>
-                        <goals>
-                            <goal>migrate</goal>
-                        </goals>
-                        <configuration>
+            <!--<plugin>-->
+                <!--<groupId>org.flywaydb</groupId>-->
+                <!--<artifactId>flyway-maven-plugin</artifactId>-->
+                <!--<version>4.0.3</version>-->
+                <!--<executions>-->
+                    <!--<execution>-->
+                        <!--<id>flyway_test_migrations</id>-->
+                        <!--<phase>test</phase>-->
+                        <!--<goals>-->
+                            <!--<goal>migrate</goal>-->
+                        <!--</goals>-->
+                        <!--<configuration>-->
                             <!--<locations>-->
-                            <!--<location>filesystem:src/test/resources/db/migration</location>-->
+                            <!--<location>filesystem:src/main/resources/db/migration</location>-->
                             <!--</locations>-->
-                            <!-- no point in running migrations if integration tests are skipped -->
-                            <skip>${integration-tests.skip}</skip>
-                            <url>jdbc:h2:mem:exam;MODE=MySQL;DB_CLOSE_DELAY=-1;INIT=CREATE SCHEMA IF NOT EXISTS
-                                "public";
-                            </url>
-                            <user>sa</user>
-                        </configuration>
-                    </execution>
-                </executions>
+                            <!--&lt;!&ndash; no point in running migrations if integration tests are skipped &ndash;&gt;-->
+                            <!--<skip>${integration-tests.skip}</skip>-->
+                            <!--<url>jdbc:h2:mem:exam;MODE=MySQL;DB_CLOSE_DELAY=-1;INIT=CREATE SCHEMA IF NOT EXISTS-->
+                                <!--"public";-->
+                            <!--</url>-->
+                            <!--<user>sa</user>-->
+                        <!--</configuration>-->
+                    <!--</execution>-->
+                <!--</executions>-->
 
-                <dependencies>
-                    <dependency>
-                        <groupId>com.h2database</groupId>
-                        <artifactId>h2</artifactId>
-                        <version>${h2-database.version}</version>
-                    </dependency>
-                </dependencies>
-            </plugin>
+                <!--<dependencies>-->
+                    <!--<dependency>-->
+                        <!--<groupId>com.h2database</groupId>-->
+                        <!--<artifactId>h2</artifactId>-->
+                        <!--<version>${h2-database.version}</version>-->
+                    <!--</dependency>-->
+                <!--</dependencies>-->
+            <!--</plugin>-->
         </plugins>
     </build>
 
