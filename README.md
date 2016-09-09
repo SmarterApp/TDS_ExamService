@@ -18,7 +18,7 @@ This service is responsible for the exam portion of the the TDS system.
 	* Runs any integration tests that have *IntegrationTests* in the class name
 
 #### Database migrations
-This project uses [flyway](https://flywaydb.org/) to do database migrations.  To run those during a build you will need to run the following command:
+The service (/service) project uses [flyway](https://flywaydb.org/) to do database migrations.  To run those during a build you will need to run the following command in the service directory:
   
 **mvn install -Pdb-migration -Dflyway.url=[url] -Dflyway.user=[user] -Dflyway.password=[password]**
 
