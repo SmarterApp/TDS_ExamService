@@ -125,13 +125,9 @@
 
     <profiles>
         <profile>
-            <id>db-migration</id>
+            <id>migrate-db</id>
             <activation>
                 <activeByDefault>false</activeByDefault>
-                <property>
-                    <name>db-migrate</name>
-                    <value>true</value>
-                </property>
             </activation>
             <build>
                 <plugins>
@@ -146,15 +142,6 @@
                                 <goals>
                                     <goal>migrate</goal>
                                 </goals>
-                                <configuration>
-                                    <!--<locations>-->
-                                    <!--<location>filesystem:src/test/resources/db/migration</location>-->
-                                    <!--</locations>-->
-                                    <!-- no point in running migrations if integration tests are skipped -->
-                                    <url>jdbc:mysql://127.0.0.1:3306/exam</url>
-                                    <user>root</user>
-                                    <password>hambone</password>
-                                </configuration>
                             </execution>
                         </executions>
 
