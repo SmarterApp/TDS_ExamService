@@ -1,4 +1,4 @@
-package tds.exam.repository;
+package tds.exam.repositories;
 
 import tds.exam.Exam;
 

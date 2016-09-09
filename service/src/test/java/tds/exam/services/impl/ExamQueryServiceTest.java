@@ -8,7 +8,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import tds.exam.Exam;
-import tds.exam.repository.ExamQueryRepository;
+import tds.exam.repositories.ExamQueryRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;

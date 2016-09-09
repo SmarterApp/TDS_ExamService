@@ -1,4 +1,4 @@
-package tds.exam.repository.impl;
+package tds.exam.repositories.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -13,7 +13,7 @@ import javax.sql.DataSource;
 import tds.common.data.mysql.UuidAdapter;
 import tds.common.data.mysql.spring.UuidBeanPropertyRowMapper;
 import tds.exam.Exam;
-import tds.exam.repository.ExamQueryRepository;
+import tds.exam.repositories.ExamQueryRepository;
 
 import java.util.Optional;
 import java.util.UUID;
