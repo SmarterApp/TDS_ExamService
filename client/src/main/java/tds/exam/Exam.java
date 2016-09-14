@@ -2,6 +2,7 @@ package tds.exam;
 
 import java.math.BigInteger;
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -91,8 +92,8 @@ public class Exam {
         this.dateChanged = dateChanged;
     }
 
-    public LocalDateTime getDateDeleted() {
-        return dateDeleted;
+    public Optional<LocalDateTime> getDateDeleted() {
+        return Optional.of(dateDeleted);
     }
 
     public void setDateDeleted(LocalDateTime dateDeleted) {
