@@ -1,5 +1,5 @@
 /***********************************************************************************************************************
-  File: V11473361910_exam_create_table_exam.sql
+  File: V1473361910_exam_create_table_exam.sql
 
   Desc: Creates the initial exam database table
 
