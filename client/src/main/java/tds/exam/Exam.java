@@ -1,6 +1,7 @@
 package tds.exam;
 
 import java.math.BigInteger;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -16,9 +17,10 @@ public class Exam {
     private int timesTaken;
     private String status;
     private String clientName;
-    private LocalDateTime dateStarted;
-    private LocalDateTime dateChanged;
-    private LocalDateTime dateDeleted;
+    private Instant dateStarted;
+    private Instant dateChanged;
+    private Instant dateDeleted;
+    private Instant createdAt;
 
     public UUID getId() {
         return id;
@@ -76,27 +78,35 @@ public class Exam {
         this.clientName = clientName;
     }
 
-    public LocalDateTime getDateStarted() {
+    public Instant getDateStarted() {
         return dateStarted;
     }
 
-    public void setDateStarted(LocalDateTime dateStarted) {
+    public void setDateStarted(Instant dateStarted) {
         this.dateStarted = dateStarted;
     }
 
-    public LocalDateTime getDateChanged() {
+    public Instant getDateChanged() {
         return dateChanged;
     }
 
-    public void setDateChanged(LocalDateTime dateChanged) {
+    public void setDateChanged(Instant dateChanged) {
         this.dateChanged = dateChanged;
     }
 
-    public Optional<LocalDateTime> getDateDeleted() {
-        return Optional.of(dateDeleted);
+    public Instant getDateDeleted() {
+        return dateDeleted;
     }
 
-    public void setDateDeleted(LocalDateTime dateDeleted) {
+    public void setDateDeleted(Instant dateDeleted) {
         this.dateDeleted = dateDeleted;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
     }
 }

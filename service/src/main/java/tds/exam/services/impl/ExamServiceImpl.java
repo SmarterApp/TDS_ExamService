@@ -7,6 +7,7 @@ import tds.common.Error;
 import tds.common.Response;
 import tds.exam.Exam;
 import tds.exam.OpenExam;
+import tds.exam.error.ErrorCode;
 import tds.exam.repositories.ExamQueryRepository;
 import tds.exam.services.ExamService;
 import tds.exam.services.SessionService;
@@ -39,20 +40,33 @@ class ExamServiceImpl implements ExamService {
 
     @Override
     public Response<Exam> openExam(OpenExam openExam) {
-        Optional<Session> session = sessionService.getSession(openExam.getSessionId());
-        Optional<Student> student = studentService.getStudentById(openExam.getStudentId());
+        //TODO - Should be async
+        Optional<Session> sessionOptional = sessionService.getSession(openExam.getSessionId());
+        Optional<Student> studentOptional = studentService.getStudentById(openExam.getStudentId());
 
-        if (!session.isPresent() || !student.isPresent()) {
+        if (!sessionOptional.isPresent() || !studentOptional.isPresent()) {
             Set<Error> errors = new HashSet<>();
-            if(!session.isPresent()) {
-                errors.add(new Error("SNF", String.format("Session could not be found for %s", openExam.getSessionId())));
+            if(!sessionOptional.isPresent()) {
+                errors.add(new Error(ErrorCode.SESSION_NOT_FOUND, String.format("Session could not be found for %s", openExam.getSessionId())));
             }
-            if(!student.isPresent()) {
-                errors.add(new Error("STNF", String.format("Student could not be found for %d", openExam.getStudentId())));
+            if(!studentOptional.isPresent()) {
+                errors.add(new Error(ErrorCode.STUDENT_NOT_FOUND, String.format("Student could not be found for %d", openExam.getStudentId())));
             }
             return new Response<>(errors);
         }
 
-        return new Response<>(new Exam());
+        Session currentSession = sessionOptional.get();
+        Student currentStudent = studentOptional.get();
+
+
+
+        Exam exam = new Exam();
+        exam.setId(UUID.randomUUID());
+
+        return new Response<>(exam);
+    }
+
+    private boolean canOpenExam() {
+        return false;
     }
 }

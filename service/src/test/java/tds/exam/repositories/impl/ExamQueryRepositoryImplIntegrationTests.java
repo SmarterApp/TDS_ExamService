@@ -19,17 +19,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest
 @SqlConfig(dataSource = "queryDataSource")
+@Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = "classpath:integration/sql/ExamQueryRepositoryIntegrationTest/retrieveExamBefore.sql")
+@Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = "classpath:integration/sql/ExamQueryRepositoryIntegrationTest/retrieveExamAfter.sql")
 public class ExamQueryRepositoryImplIntegrationTests {
     @Autowired
     private ExamQueryRepository examQueryRepository;
 
-    @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = "classpath:integration/sql/ExamQueryRepositoryIntegrationTest/retrieveExamBefore.sql")
-    @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = "classpath:integration/sql/ExamQueryRepositoryIntegrationTest/retrieveExamAfter.sql")
     @Test
     public void shouldRetrieveExamForUniqueKey() {
         UUID examUniqueKey = UUID.fromString("af880054-d1d2-4c24-805c-0dfdb45a0d24");
-        Optional<Exam> sessionOptional = examQueryRepository.getExamById(examUniqueKey);
-        assertThat(sessionOptional.isPresent()).isTrue();
+        Optional<Exam> examOptional = examQueryRepository.getExamById(examUniqueKey);
+        assertThat(examOptional.isPresent()).isTrue();
     }
 
     @Test
@@ -37,5 +37,17 @@ public class ExamQueryRepositoryImplIntegrationTests {
         UUID examUniqueKey = UUID.fromString("12345678-d1d2-4c24-805c-0dfdb45a0d24");
         Optional<Exam> sessionOptional = examQueryRepository.getExamById(examUniqueKey);
         assertThat(sessionOptional.isPresent()).isFalse();
+    }
+
+    @Test
+    public void shouldRetrieveLatestExam() {
+        Optional<Exam> examOptional = examQueryRepository.getLastAvailableExam(1, "assessmentId", "clientName");
+        assertThat(examOptional.isPresent()).isTrue();
+    }
+
+    @Test
+    public void shouldNotReturnLatestExamWithNonNullDeletedDate() {
+        Optional<Exam> examOptional = examQueryRepository.getLastAvailableExam(1, "assessmentId2", "clientName");
+        assertThat(examOptional.isPresent()).isFalse();
     }
 }

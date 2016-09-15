@@ -15,4 +15,6 @@ public interface ExamQueryRepository {
      * @return the {@link Exam} if found otherwise null
      */
     Optional<Exam> getExamById(UUID examId);
+
+    Optional<Exam> getLastAvailableExam(int studentId, String assessmentId, String clientName);
 }

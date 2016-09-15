@@ -1,9 +1,10 @@
 /***********************************************************************************************************************
-  File: retreiveExamAfter.sql
+  File: V1473883090__exam_add_created_at_column.sql
 
-  Desc: Runs at the end of the test removing the data
+  Desc: Adds a created_at field for audit
 
 ***********************************************************************************************************************/
 USE exam;
 
-DELETE FROM exam;
+ALTER TABLE exam
+    ADD COLUMN created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
