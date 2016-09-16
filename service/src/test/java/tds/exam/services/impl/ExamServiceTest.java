@@ -39,10 +39,8 @@ public class ExamServiceTest {
 
     @Test
     public void itShouldReturnAExam() {
-        Exam exam = new Exam();
         UUID examId = UUID.randomUUID();
-        exam.setId(examId);
-        when(repository.getExamById(examId)).thenReturn(Optional.of(exam));
+        when(repository.getExamById(examId)).thenReturn(Optional.of(new Exam.Builder().withId(examId).build()));
 
         assertThat(examService.getExam(examId).get().getId()).isEqualTo(examId);
     }

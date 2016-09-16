@@ -40,9 +40,7 @@ public class ExamControllerTest {
     @Test
     public void anExamCanBeReturnedForWithValidId() {
         UUID uuid = UUID.randomUUID();
-        Exam exam = new Exam();
-        exam.setId(uuid);
-        when(examService.getExam(uuid)).thenReturn(Optional.of(exam));
+        when(examService.getExam(uuid)).thenReturn(Optional.of(new Exam.Builder().withId(uuid).build()));
 
         ResponseEntity<ExamResource> response = controller.getExamById(uuid);
         verify(examService).getExam(uuid);

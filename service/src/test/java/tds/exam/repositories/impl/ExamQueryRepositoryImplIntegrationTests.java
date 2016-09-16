@@ -43,6 +43,9 @@ public class ExamQueryRepositoryImplIntegrationTests {
     public void shouldRetrieveLatestExam() {
         Optional<Exam> examOptional = examQueryRepository.getLastAvailableExam(1, "assessmentId", "clientName");
         assertThat(examOptional.isPresent()).isTrue();
+        Exam exam = examOptional.get();
+        assertThat(exam.getId()).isNotNull();
+        assertThat(exam.getStatus()).isNotNull();
     }
 
     @Test

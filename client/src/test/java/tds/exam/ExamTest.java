@@ -10,9 +10,7 @@ public class ExamTest {
     @Test
     public void anExamCanBeCreated() {
         UUID examId = UUID.randomUUID();
-        Exam exam = new Exam();
-        exam.setId(examId);
-
+        Exam exam = new Exam.Builder().withId(examId).build();
         assertThat(exam.getId()).isEqualTo(examId);
     }
 }

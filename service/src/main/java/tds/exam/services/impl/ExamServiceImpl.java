@@ -58,12 +58,7 @@ class ExamServiceImpl implements ExamService {
         Session currentSession = sessionOptional.get();
         Student currentStudent = studentOptional.get();
 
-
-
-        Exam exam = new Exam();
-        exam.setId(UUID.randomUUID());
-
-        return new Response<>(exam);
+        return new Response<>(new Exam.Builder().withId(UUID.randomUUID()).build());
     }
 
     private boolean canOpenExam() {
