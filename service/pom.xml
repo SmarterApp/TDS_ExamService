@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.opentestsystem.exam</groupId>
+    <artifactId>tds-exam-service</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>tds-exam-service</name>
+    <description>The microservice for exams</description>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>1.4.0.RELEASE</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <java.version>1.8</java.version>
+        <unit-tests.skip>false</unit-tests.skip>
+        <integration-tests.skip>true</integration-tests.skip>
+        <assertj.version>3.4.1</assertj.version>
+        <mockito.version>1.10.19</mockito.version>
+        <rest-assured.version>2.9.0</rest-assured.version>
+        <tds-common.version>0.0.1-SNAPSHOT</tds-common.version>
+        <tds-exam-client.version>0.0.1-SNAPSHOT</tds-exam-client.version>
+        <tds-session.version>0.0.1-SNAPSHOT</tds-session.version>
+        <tds-student-service-client.version>0.0.1-SNAPSHOT</tds-student-service-client.version>
+        <h2-database.version>1.4.191</h2-database.version>
+        <mysql.version>5.1.39</mysql.version>
+    </properties>
+
+    <dependencies>
+        <!-- TDS -->
+        <dependency>
+            <groupId>org.opentestsystem.exam</groupId>
+            <artifactId>tds-exam-client</artifactId>
+            <version>${tds-exam-client.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.opentestsystem.common</groupId>
+            <artifactId>tds-common</artifactId>
+            <version>${tds-common.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.opentestsystem.session</groupId>
+            <artifactId>tds-session-client</artifactId>
+            <version>${tds-session.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.opentestsystem.student</groupId>
+            <artifactId>tds-student-service-client</artifactId>
+            <version>${tds-student-service-client.version}</version>
+        </dependency>
+
+        <!-- Spring -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-hateoas</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-tomcat</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-undertow</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Validation -->
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-validator</artifactId>
+        </dependency>
+
+        <!-- Database/data access dependencies -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <scope>runtime</scope>
+            <version>${mysql.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>2.3.9</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+            <version>4.0.3</version>
+        </dependency>
+
+        <!-- Test -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.jayway.jsonpath</groupId>
+            <artifactId>json-path</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${assertj.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.jayway.restassured</groupId>
+            <artifactId>rest-assured</artifactId>
+            <version>${rest-assured.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>migrate-db</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.flywaydb</groupId>
+                        <artifactId>flyway-maven-plugin</artifactId>
+                        <version>4.0.3</version>
+                        <executions>
+                            <execution>
+                                <id>flyway_migrations</id>
+                                <phase>test</phase>
+                                <goals>
+                                    <goal>migrate</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+
+                        <dependencies>
+                            <dependency>
+                                <groupId>mysql</groupId>
+                                <artifactId>mysql-connector-java</artifactId>
+                                <version>${mysql.version}</version>
+                            </dependency>
+                        </dependencies>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+    </profiles>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <skipTests>${unit-tests.skip}</skipTests>
+                    <excludes>
+                        <exclude>**/*IntegrationTests.java</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>integration-test</id>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                        <configuration>
+                            <skipTests>${integration-tests.skip}</skipTests>
+                            <includes>
+                                <include>**/*IntegrationTests.java</include>
+                            </includes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!--<plugin>-->
+                <!--<groupId>org.flywaydb</groupId>-->
+                <!--<artifactId>flyway-maven-plugin</artifactId>-->
+                <!--<version>4.0.3</version>-->
+                <!--<executions>-->
+                    <!--<execution>-->
+                        <!--<id>flyway_test_migrations</id>-->
+                        <!--<phase>test</phase>-->
+                        <!--<goals>-->
+                            <!--<goal>migrate</goal>-->
+                        <!--</goals>-->
+                        <!--<configuration>-->
+                            <!--<locations>-->
+                            <!--<location>filesystem:src/main/resources/db/migration</location>-->
+                            <!--</locations>-->
+                            <!--&lt;!&ndash; no point in running migrations if integration tests are skipped &ndash;&gt;-->
+                            <!--<skip>${integration-tests.skip}</skip>-->
+                            <!--<url>jdbc:h2:mem:exam;MODE=MySQL;DB_CLOSE_DELAY=-1;INIT=CREATE SCHEMA IF NOT EXISTS-->
+                                <!--"public";-->
+                            <!--</url>-->
+                            <!--<user>sa</user>-->
+                        <!--</configuration>-->
+                    <!--</execution>-->
+                <!--</executions>-->
+
+                <!--<dependencies>-->
+                    <!--<dependency>-->
+                        <!--<groupId>com.h2database</groupId>-->
+                        <!--<artifactId>h2</artifactId>-->
+                        <!--<version>${h2-database.version}</version>-->
+                    <!--</dependency>-->
+                <!--</dependencies>-->
+            <!--</plugin>-->
+        </plugins>
+    </build>
+
+    <repositories>
+        <repository>
+            <id>spring-releases</id>
+            <url>https://repo.spring.io/libs-release</url>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>spring-releases</id>
+            <url>https://repo.spring.io/libs-release</url>
+        </pluginRepository>
+    </pluginRepositories>
+</project>
