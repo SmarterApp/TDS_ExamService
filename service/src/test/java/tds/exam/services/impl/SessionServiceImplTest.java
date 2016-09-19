@@ -11,10 +11,13 @@ import java.util.UUID;
 
 import tds.exam.configuration.ExamServiceProperties;
 import tds.exam.services.SessionService;
+import tds.session.Extern;
 import tds.session.Session;
 
-import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class SessionServiceImplTest {
     private SessionService sessionService;
@@ -33,7 +36,7 @@ public class SessionServiceImplTest {
     }
 
     @Test
-    public void itShouldReturnSession() {
+    public void shouldReturnSession() {
         UUID sessionUUID = UUID.randomUUID();
         Session session = new Session();
         session.setId(sessionUUID);
@@ -48,7 +51,7 @@ public class SessionServiceImplTest {
     }
 
     @Test
-    public void itShouldReturnEmptyWhenResponseExceptionOccurs() {
+    public void shouldReturnEmptySessionWhenResponseExceptionOccurs() {
         UUID sessionUUID = UUID.randomUUID();
         String url = String.format("http://localhost:8080/session/%s", sessionUUID);
         when(restTemplate.getForObject(url, Session.class)).thenThrow(new RestClientException("Fail"));
@@ -56,5 +59,14 @@ public class SessionServiceImplTest {
         verify(restTemplate).getForObject(url, Session.class);
 
         assertThat(sessionOptional.isPresent()).isFalse();
+    }
+
+    @Test
+    public void shouldReturnExternForClientName() {
+        String url = "http://localhost:8080/session/externs/SBAC";
+        Extern extern = new Extern.Builder().withClientName("SBAC").build();
+        when(restTemplate.getForObject(url, Extern.class)).thenReturn(extern);
+        Optional<Extern> externOptional = sessionService.getExternByClientName("SBAC");
+        verify(restTemplate).getForObject(url, Extern.class);
     }
 }
