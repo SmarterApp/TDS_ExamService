@@ -10,7 +10,6 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
-import javax.xml.transform.Result;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -56,7 +55,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
     }
 
     @Override
-    public Optional<Exam> getLastAvailableExam(int studentId, String assessmentId, String clientName) {
+    public Optional<Exam> getLastAvailableExam(long studentId, String assessmentId, String clientName) {
         Map<String, Object> queryParameters = new HashMap<>();
         queryParameters.put("studentId", studentId);
         queryParameters.put("assessmentId", assessmentId);
@@ -69,7 +68,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
             "AND student_id = :studentId \n" +
             "AND assessment_id = :assessmentId \n" +
             "AND client_name = :clientName \n" +
-            "ORDER BY exam.created_at \n" +
+            "ORDER BY exam.created_at DESC \n" +
             "LIMIT 1";
 
         Optional<Exam> examOptional;
