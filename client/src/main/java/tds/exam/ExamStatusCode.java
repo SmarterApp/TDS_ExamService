@@ -1,6 +1,11 @@
 package tds.exam;
 
 public class ExamStatusCode {
+    public static final String STAGE_CLOSED = "closed";
+    public static final String STAGE_INACTIVE = "inactive";
+    public static final String STAGE_INUSE = "inuse";
+    public static final String STAGE_OPEN = "open";
+
     private String status;
     private String stage;
     private String description;
