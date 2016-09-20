@@ -37,10 +37,26 @@ class ExceptionAdvice {
 
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseStatus(value = HttpStatus.BAD_REQUEST)
     @ResponseBody
     ResponseEntity<ExceptionMessageResource> handleArgumentMismatchException(final MethodArgumentTypeMismatchException ex) {
         return new ResponseEntity<>(
             new ExceptionMessageResource(HttpStatus.BAD_REQUEST.toString(), String.format("Invalid value: %s", ex.getName())), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseBody
+    ResponseEntity<ExceptionMessageResource> handleIllegalStateException(final IllegalStateException ex) {
+        return new ResponseEntity<>(
+            new ExceptionMessageResource(HttpStatus.INTERNAL_SERVER_ERROR.toString(), ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(value = HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    ResponseEntity<ExceptionMessageResource> handleInvalidParametersException(final IllegalArgumentException ex) {
+        return new ResponseEntity<>(
+            new ExceptionMessageResource(HttpStatus.BAD_REQUEST.toString(), ex.getMessage()), HttpStatus.BAD_REQUEST);
     }
 }
