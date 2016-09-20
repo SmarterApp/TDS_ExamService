@@ -14,6 +14,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -89,12 +90,13 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 .withSessionId(UuidAdapter.getUUIDFromBytes(rs.getBytes("session_id")))
                 .withAssessmentId(rs.getString("assessment_id"))
                 .withStudentId(rs.getLong("student_id"))
-                .withTimesTaken(rs.getInt("times_taken"))
+                .withTimeTaken(rs.getInt("times_taken"))
                 .withClientName(rs.getString("client_name"))
-                .withDateStarted(map(rs, "date_started"))
-                .withDateChanged(map(rs, "date_changed"))
-                .withDateDeleted(map(rs, "date_deleted"))
-                .withCreatedAt(rs.getTimestamp("created_at").toInstant())
+                .withDateStarted(mapTimezoneToInstant(rs, "date_started"))
+                .withDateChanged(mapTimezoneToInstant(rs, "date_changed"))
+                .withDateDeleted(mapTimezoneToInstant(rs, "date_deleted"))
+                .withDateCompleted(mapTimezoneToInstant(rs, "date_completed"))
+                .withCreatedAt(mapTimezoneToInstant(rs, "created_at"))
                 .withStatus(new ExamStatusCode.Builder()
                     .withStatus(rs.getString("status"))
                     .withDescription(rs.getString("description"))
@@ -103,9 +105,9 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 .build();
         }
 
-        private Instant map(ResultSet rs, String columnLabel) throws SQLException {
+        private Instant mapTimezoneToInstant(ResultSet rs, String columnLabel) throws SQLException {
             Timestamp t = rs.getTimestamp(columnLabel);
-            return t != null ? t.toInstant() : null;
+            return t != null ? t.toLocalDateTime().toInstant(ZoneOffset.UTC) : null;
         }
     }
 }
