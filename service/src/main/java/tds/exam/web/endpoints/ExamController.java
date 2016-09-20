@@ -11,14 +11,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.UUID;
+
 import tds.common.Response;
 import tds.common.web.exceptions.NotFoundException;
 import tds.exam.Exam;
 import tds.exam.OpenExam;
 import tds.exam.services.ExamService;
 import tds.exam.web.resources.ExamResource;
-
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/exam")
@@ -39,19 +39,18 @@ public class ExamController {
     }
 
     @RequestMapping(method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> openExam(@RequestBody final OpenExam openExam) {
-        Response<Exam> examOptional = examService.openExam(openExam);
+    public ResponseEntity<ExamResource> openExam(@RequestBody final OpenExam openExam) {
+        Response<Exam> exam = examService.openExam(openExam);
 
-        if (!examOptional.getData().isPresent()) {
-            //TODO - Determine best practice
-            return ResponseEntity.badRequest().build();
+        ExamResource resource = new ExamResource(exam);
+
+        if(exam.getData().isPresent()) {
+            return new ResponseEntity<>(new ExamResource(exam), HttpStatus.UNPROCESSABLE_ENTITY);
         }
 
-        ExamResource resource = new ExamResource(examOptional.getData().get());
         final HttpHeaders headers = new HttpHeaders();
         headers.add("Location", resource.getLink("self").getHref());
-
-        return new ResponseEntity<>(null, headers, HttpStatus.CREATED);
+        return new ResponseEntity<>(resource, headers, HttpStatus.OK);
     }
 }
 
