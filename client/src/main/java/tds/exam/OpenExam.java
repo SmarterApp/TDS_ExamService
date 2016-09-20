@@ -16,7 +16,7 @@ public class OpenExam {
     private long studentId;
 
     @NotNull
-    private String assessmentKey;
+    private String assessmentId;
 
     @NotNull
     @Min(1)
@@ -24,6 +24,10 @@ public class OpenExam {
 
     @NotNull
     private UUID sessionId;
+
+    @NotNull
+    @Min(0)
+    private int numberOfDaysToDelay;
 
     /**
      * @return unique client name
@@ -56,15 +60,15 @@ public class OpenExam {
     /**
      * @return identifier for the assessment
      */
-    public String getAssessmentKey() {
-        return assessmentKey;
+    public String getAssessmentId() {
+        return assessmentId;
     }
 
     /**
-     * @param assessmentKey identifier for the assessment
+     * @param assessmentId identifier for the assessment
      */
-    public void setAssessmentKey(String assessmentKey) {
-        this.assessmentKey = assessmentKey;
+    public void setAssessmentId(String assessmentId) {
+        this.assessmentId = assessmentId;
     }
 
     /**
@@ -93,5 +97,19 @@ public class OpenExam {
      */
     public void setSessionId(UUID sessionId) {
         this.sessionId = sessionId;
+    }
+
+    /**
+     * @return the number of days to delay retaking an exam
+     */
+    public int getNumberOfDaysToDelay() {
+        return numberOfDaysToDelay;
+    }
+
+    /**
+     * @param numberOfDaysToDelay the number of days to delay retaking an exam
+     */
+    public void setNumberOfDaysToDelay(int numberOfDaysToDelay) {
+        this.numberOfDaysToDelay = numberOfDaysToDelay;
     }
 }
