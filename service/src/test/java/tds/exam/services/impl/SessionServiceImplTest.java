@@ -64,7 +64,7 @@ public class SessionServiceImplTest {
     @Test
     public void shouldReturnExternForClientName() {
         String url = "http://localhost:8080/session/externs/SBAC";
-        Extern extern = new Extern.Builder().withClientName("SBAC").build();
+        Extern extern = new Extern("SBAC", "SIMULATION");
         when(restTemplate.getForObject(url, Extern.class)).thenReturn(extern);
         Optional<Extern> externOptional = sessionService.getExternByClientName("SBAC");
         verify(restTemplate).getForObject(url, Extern.class);
