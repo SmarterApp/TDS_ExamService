@@ -16,6 +16,7 @@ import tds.exam.error.ValidationErrorCode;
 import tds.exam.repositories.ExamQueryRepository;
 import tds.exam.services.SessionService;
 import tds.exam.services.StudentService;
+import tds.session.Extern;
 import tds.session.Session;
 import tds.student.Student;
 
@@ -139,17 +140,38 @@ public class ExamServiceImplTest {
         examService.openExam(openExam);
     }
 
-//    @Test
-//    public void itShouldOpenAnExam() {
-//        OpenExam openExam = new OpenExam();
-//        openExam.setSessionId(UUID.randomUUID());
-//        openExam.setStudentId(1);
-//
-//        when(sessionService.getSession(openExam.getSessionId())).thenReturn(Optional.of(new Session()));
-//        when(studentService.getStudentById(openExam.getStudentId())).thenReturn(Optional.of(new Student()));
-//
-//        Exam exam = examService.openExam(openExam);
-//
-//        assertThat(exam).isNotNull();
-//    }
+    @Test
+    public void shouldReturnErrorWhenMaxOpportunitiesLessThanZeroAndEnvironmentNotSimulation() {
+        UUID sessionId = UUID.randomUUID();
+        OpenExam openExam = new OpenExam();
+        openExam.setStudentId(1);
+        openExam.setSessionId(sessionId);
+        openExam.setAssessmentId("assessmentId");
+        openExam.setClientName("SBAC-PT");
+        openExam.setMaxOpportunities(-1);
+
+        Session currentSession = new Session();
+        currentSession.setType(2);
+
+        Session previousSession = new Session();
+        previousSession.setId(UUID.randomUUID());
+        previousSession.setType(2);
+
+        Student student = new Student();
+        student.setId(1);
+
+        when(sessionService.getSession(sessionId)).thenReturn(Optional.of(currentSession));
+        when(studentService.getStudentById(1)).thenReturn(Optional.of(student));
+        when(repository.getLastAvailableExam(1, "assessmentId", "SBAC-PT")).thenReturn(Optional.empty());
+        when(sessionService.getSession(previousSession.getId())).thenReturn(Optional.of(previousSession));
+        when(sessionService.getExternByClientName("SBAC-PT")).thenReturn(Optional.of(new Extern("SBAC-PT", "Development")));
+
+        Response<Exam> examResponse = examService.openExam(openExam);
+
+        assertThat(examResponse.getData()).isNotPresent();
+        assertThat(examResponse.getErrors().get()).hasSize(1);
+
+        ValidationError validationError = examResponse.getErrors().get()[0];
+        assertThat(validationError.getCode()).isEqualTo(ValidationErrorCode.SIMULATION_ENVIRONMENT_REQUIRED);
+    }
 }
