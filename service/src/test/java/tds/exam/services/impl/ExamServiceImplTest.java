@@ -48,7 +48,7 @@ public class ExamServiceImplTest {
         assertThat(examService.getExam(examId).get().getId()).isEqualTo(examId);
     }
 
-    @Test
+    @Test (expected = IllegalArgumentException.class)
     public void shouldReturnErrorWhenSessionCannotBeFound() {
         UUID sessionId = UUID.randomUUID();
         OpenExam openExam = new OpenExam();
@@ -58,16 +58,10 @@ public class ExamServiceImplTest {
         when(sessionService.getSession(sessionId)).thenReturn(Optional.empty());
         when(studentService.getStudentById(1)).thenReturn(Optional.of(new Student()));
 
-        Response<Exam> examResponse = examService.openExam(openExam);
-
-        assertThat(examResponse.getData()).isNotPresent();
-        assertThat(examResponse.getErrors().get()).hasSize(1);
-
-        ValidationError validationError = examResponse.getErrors().get()[0];
-        assertThat(validationError.getCode()).isEqualTo(ValidationErrorCode.SESSION_NOT_FOUND);
+        examService.openExam(openExam);
     }
 
-    @Test
+    @Test (expected = IllegalArgumentException.class)
     public void shouldReturnErrorWhenStudentCannotBeFound() {
         UUID sessionId = UUID.randomUUID();
         OpenExam openExam = new OpenExam();
@@ -77,13 +71,7 @@ public class ExamServiceImplTest {
         when(sessionService.getSession(sessionId)).thenReturn(Optional.of(new Session()));
         when(studentService.getStudentById(1)).thenReturn(Optional.empty());
 
-        Response<Exam> examResponse = examService.openExam(openExam);
-
-        assertThat(examResponse.getData()).isNotPresent();
-        assertThat(examResponse.getErrors().get()).hasSize(1);
-
-        ValidationError validationError = examResponse.getErrors().get()[0];
-        assertThat(validationError.getCode()).isEqualTo(ValidationErrorCode.STUDENT_NOT_FOUND);
+        examService.openExam(openExam);
     }
 
     @Test
@@ -123,6 +111,32 @@ public class ExamServiceImplTest {
 
         ValidationError validationError = examResponse.getErrors().get()[0];
         assertThat(validationError.getCode()).isEqualTo(ValidationErrorCode.SESSION_TYPE_MISMATCH);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldThrowIllegalStateIfExternCannotBeFound() {
+        UUID sessionId = UUID.randomUUID();
+        OpenExam openExam = new OpenExam();
+        openExam.setStudentId(1);
+        openExam.setSessionId(sessionId);
+        openExam.setAssessmentId("assessmentId");
+        openExam.setClientName("SBAC-PT");
+
+        Session currentSession = new Session();
+        currentSession.setType(2);
+
+        Session previousSession = new Session();
+        previousSession.setId(UUID.randomUUID());
+        previousSession.setType(33);
+
+        Student student = new Student();
+        student.setId(1);
+
+        when(sessionService.getSession(sessionId)).thenReturn(Optional.of(currentSession));
+        when(studentService.getStudentById(1)).thenReturn(Optional.of(student));
+        when(repository.getLastAvailableExam(1, "assessmentId", "SBAC-PT")).thenReturn(Optional.empty());
+        when(sessionService.getExternByClientName("SBAC-PT")).thenReturn(Optional.empty());
+        examService.openExam(openExam);
     }
 
 //    @Test

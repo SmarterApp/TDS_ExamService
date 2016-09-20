@@ -9,9 +9,7 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.HashSet;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 import tds.common.Response;
@@ -53,17 +51,13 @@ class ExamServiceImpl implements ExamService {
     public Response<Exam> openExam(OpenExam openExam) {
         //TODO - Should be async
         Optional<Session> sessionOptional = sessionService.getSession(openExam.getSessionId());
-        Optional<Student> studentOptional = studentService.getStudentById(openExam.getStudentId());
+        if(!sessionOptional.isPresent()) {
+            throw new IllegalArgumentException(String.format("Could not find session for %s", openExam.getSessionId()));
+        }
 
-        if (!sessionOptional.isPresent() || !studentOptional.isPresent()) {
-            Set<ValidationError> errors = new HashSet<>();
-            if (!sessionOptional.isPresent()) {
-                errors.add(new ValidationError(ValidationErrorCode.SESSION_NOT_FOUND, String.format("Session could not be found for %s", openExam.getSessionId())));
-            }
-            if (!studentOptional.isPresent()) {
-                errors.add(new ValidationError(ValidationErrorCode.STUDENT_NOT_FOUND, String.format("Student could not be found for %d", openExam.getStudentId())));
-            }
-            return new Response<>(errors.toArray(new ValidationError[errors.size()]));
+        Optional<Student> studentOptional = studentService.getStudentById(openExam.getStudentId());
+        if(!studentOptional.isPresent()) {
+            throw new IllegalArgumentException(String.format("Could not find student for %s", openExam.getStudentId()));
         }
 
         Session currentSession = sessionOptional.get();
@@ -136,7 +130,7 @@ class ExamServiceImpl implements ExamService {
         Optional<Extern> externOptional = sessionService.getExternByClientName(openExam.getClientName());
 
         if (!externOptional.isPresent()) {
-            throw new RuntimeException("Extern could not be found for client name " + openExam.getClientName());
+            throw new IllegalStateException("Extern could not be found for client name " + openExam.getClientName());
         }
 
         Extern extern = externOptional.get();
