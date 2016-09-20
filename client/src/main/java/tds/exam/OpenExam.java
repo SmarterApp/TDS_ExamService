@@ -19,7 +19,6 @@ public class OpenExam {
     private String assessmentId;
 
     @NotNull
-    @Min(1)
     private int maxOpportunities;
 
     @NotNull
