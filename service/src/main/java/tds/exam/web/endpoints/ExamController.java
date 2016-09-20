@@ -44,7 +44,7 @@ public class ExamController {
 
         ExamResource resource = new ExamResource(exam);
 
-        if(exam.getData().isPresent()) {
+        if(!exam.getData().isPresent()) {
             return new ResponseEntity<>(new ExamResource(exam), HttpStatus.UNPROCESSABLE_ENTITY);
         }
 
