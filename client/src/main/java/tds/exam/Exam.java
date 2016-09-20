@@ -11,12 +11,13 @@ public class Exam {
     private UUID sessionId;
     private String assessmentId;
     private long studentId;
-    private int timesTaken;
+    private int timeTaken;
     private ExamStatusCode status;
     private String clientName;
     private Instant dateStarted;
     private Instant dateChanged;
     private Instant dateDeleted;
+    private Instant dateCompleted;
     private Instant createdAt;
 
     public static class Builder {
@@ -24,13 +25,14 @@ public class Exam {
         private UUID sessionId;
         private String assessmentId;
         private long studentId;
-        private int timesTaken;
+        private int timeTaken;
         private ExamStatusCode status = new ExamStatusCode.Builder().build();
         private String clientName;
         private Instant dateStarted;
         private Instant dateChanged;
         private Instant dateDeleted;
         private Instant createdAt;
+        private Instant dateCompleted;
 
         public Builder withId(UUID newId) {
             id = newId;
@@ -52,8 +54,8 @@ public class Exam {
             return this;
         }
 
-        public Builder withTimesTaken(int newTimesTaken) {
-            timesTaken = newTimesTaken;
+        public Builder withTimeTaken(int newTimeTaken) {
+            timeTaken = newTimeTaken;
             return this;
         }
 
@@ -87,6 +89,11 @@ public class Exam {
             return this;
         }
 
+        public Builder withDateCompleted(Instant dateCompleted) {
+            this.dateCompleted = dateCompleted;
+            return this;
+        }
+
         public Exam build() {
             return new Exam(this);
         }
@@ -97,13 +104,14 @@ public class Exam {
         sessionId = builder.sessionId;
         assessmentId = builder.assessmentId;
         studentId = builder.studentId;
-        timesTaken = builder.timesTaken;
+        timeTaken = builder.timeTaken;
         status = builder.status;
         clientName = builder.clientName;
         dateStarted = builder.dateStarted;
         dateChanged = builder.dateChanged;
         dateDeleted = builder.dateDeleted;
         createdAt = builder.createdAt;
+        dateCompleted = builder.dateCompleted;
     }
 
     public UUID getId() {
@@ -122,8 +130,8 @@ public class Exam {
         return studentId;
     }
 
-    public int getTimesTaken() {
-        return timesTaken;
+    public int getTimeTaken() {
+        return timeTaken;
     }
 
     public ExamStatusCode getStatus() {
@@ -152,5 +160,9 @@ public class Exam {
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    public Instant getDateCompleted() {
+        return dateCompleted;
     }
 }
