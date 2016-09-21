@@ -16,7 +16,7 @@ import java.util.UUID;
 import tds.common.Response;
 import tds.common.web.exceptions.NotFoundException;
 import tds.exam.Exam;
-import tds.exam.OpenExam;
+import tds.exam.OpenExamRequest;
 import tds.exam.services.ExamService;
 import tds.exam.web.resources.ExamResource;
 
@@ -39,8 +39,8 @@ public class ExamController {
     }
 
     @RequestMapping(method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ExamResource> openExam(@RequestBody final OpenExam openExam) {
-        Response<Exam> exam = examService.openExam(openExam);
+    public ResponseEntity<ExamResource> openExam(@RequestBody final OpenExamRequest openExamRequest) {
+        Response<Exam> exam = examService.openExam(openExamRequest);
 
         ExamResource resource = new ExamResource(exam);
 

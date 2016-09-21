@@ -19,7 +19,7 @@ import tds.common.Response;
 import tds.common.ValidationError;
 import tds.common.web.exceptions.NotFoundException;
 import tds.exam.Exam;
-import tds.exam.OpenExam;
+import tds.exam.OpenExamRequest;
 import tds.exam.error.ValidationErrorCode;
 import tds.exam.services.ExamService;
 import tds.exam.web.resources.ExamResource;
@@ -68,14 +68,14 @@ public class ExamControllerTest {
 
     @Test
     public void shouldCreateErrorResponseWhenOpenExamFailsWithValidationError() {
-        OpenExam openExam = new OpenExam();
-        openExam.setClientName("SBAC-PT");
-        openExam.setSessionId(UUID.randomUUID());
-        openExam.setStudentId(1);
+        OpenExamRequest openExamRequest = new OpenExamRequest();
+        openExamRequest.setClientName("SBAC-PT");
+        openExamRequest.setSessionId(UUID.randomUUID());
+        openExamRequest.setStudentId(1);
 
-        when(examService.openExam(openExam)).thenReturn(new Response<Exam>(new ValidationError(ValidationErrorCode.SESSION_TYPE_MISMATCH, "Session mismatch")));
+        when(examService.openExam(openExamRequest)).thenReturn(new Response<Exam>(new ValidationError(ValidationErrorCode.SESSION_TYPE_MISMATCH, "Session mismatch")));
 
-        ResponseEntity<ExamResource> response = controller.openExam(openExam);
+        ResponseEntity<ExamResource> response = controller.openExam(openExamRequest);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
         assertThat(response.getBody().getErrors()).hasSize(1);
@@ -84,15 +84,15 @@ public class ExamControllerTest {
 
     @Test
     public void shouldOpenExam() throws URISyntaxException {
-        OpenExam openExam = new OpenExam();
-        openExam.setClientName("SBAC-PT");
-        openExam.setSessionId(UUID.randomUUID());
-        openExam.setStudentId(1);
+        OpenExamRequest openExamRequest = new OpenExamRequest();
+        openExamRequest.setClientName("SBAC-PT");
+        openExamRequest.setSessionId(UUID.randomUUID());
+        openExamRequest.setStudentId(1);
 
         UUID examId = UUID.randomUUID();
-        when(examService.openExam(openExam)).thenReturn(new Response<Exam>(new Exam.Builder().withId(examId).build()));
+        when(examService.openExam(openExamRequest)).thenReturn(new Response<Exam>(new Exam.Builder().withId(examId).build()));
 
-        ResponseEntity<ExamResource> response = controller.openExam(openExam);
+        ResponseEntity<ExamResource> response = controller.openExam(openExamRequest);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getHeaders().getLocation()).isEqualTo(new URI("http://localhost/exam/" + examId));

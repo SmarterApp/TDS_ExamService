@@ -18,7 +18,7 @@ import tds.common.ValidationError;
 import tds.common.data.legacy.LegacyComparer;
 import tds.exam.Exam;
 import tds.exam.ExamStatusCode;
-import tds.exam.OpenExam;
+import tds.exam.OpenExamRequest;
 import tds.exam.error.ValidationErrorCode;
 import tds.exam.repositories.ExamQueryRepository;
 import tds.exam.services.ExamService;
@@ -49,24 +49,23 @@ class ExamServiceImpl implements ExamService {
     }
 
     @Override
-    public Response<Exam> openExam(OpenExam openExam) {
-        //TODO - Should be async
-        Optional<Session> sessionOptional = sessionService.getSession(openExam.getSessionId());
+    public Response<Exam> openExam(OpenExamRequest openExamRequest) {
+        Optional<Session> sessionOptional = sessionService.getSession(openExamRequest.getSessionId());
         if (!sessionOptional.isPresent()) {
-            throw new IllegalArgumentException(String.format("Could not find session for %s", openExam.getSessionId()));
+            throw new IllegalArgumentException(String.format("Could not find session for %s", openExamRequest.getSessionId()));
         }
 
-        if(!openExam.isGuestStudent()) {
-            Optional<Student> studentOptional = studentService.getStudentById(openExam.getStudentId());
+        if(!openExamRequest.isGuestStudent()) {
+            Optional<Student> studentOptional = studentService.getStudentById(openExamRequest.getStudentId());
             if (!studentOptional.isPresent()) {
-                throw new IllegalArgumentException(String.format("Could not find student for %s", openExam.getStudentId()));
+                throw new IllegalArgumentException(String.format("Could not find student for %s", openExamRequest.getStudentId()));
             }
         }
 
         Session currentSession = sessionOptional.get();
 
         //Previous exam is retrieved in lines 5492 - 5530 and 5605 - 5645 in StudentDLL
-        Optional<Exam> previousExamOptional = examQueryRepository.getLastAvailableExam(openExam.getStudentId(), openExam.getAssessmentId(), openExam.getClientName());
+        Optional<Exam> previousExamOptional = examQueryRepository.getLastAvailableExam(openExamRequest.getStudentId(), openExamRequest.getAssessmentId(), openExamRequest.getClientName());
 
         boolean canOpenPreviousExam = false;
         if (previousExamOptional.isPresent()) {
@@ -84,7 +83,7 @@ class ExamServiceImpl implements ExamService {
             //Open previous exam
             LOG.debug("Can open previous exam");
         } else {
-            Optional<ValidationError> openNewExamOptional = canCreateNewExam(openExam, previousExamOptional.isPresent() ? previousExamOptional.get() : null);
+            Optional<ValidationError> openNewExamOptional = canCreateNewExam(openExamRequest, previousExamOptional.isPresent() ? previousExamOptional.get() : null);
             if (openNewExamOptional.isPresent()) {
                 return new Response<Exam>(openNewExamOptional.get());
             }
@@ -95,15 +94,15 @@ class ExamServiceImpl implements ExamService {
         return new Response<>(new Exam.Builder().withId(UUID.randomUUID()).build());
     }
 
-    private Response<Exam> createExam(OpenExam openExam, Student student, Session session) {
+    private Response<Exam> createExam(OpenExamRequest openExamRequest, Student student, Session session) {
         String examStatus;
-        if (openExam.getProctorId() == null) {
+        if (openExamRequest.getProctorId() == null) {
             examStatus = "approved";
         } else {
             examStatus = "pending";
         }
 
-        if(StringUtils.isNotBlank(openExam.getGuestAccomodations())) {
+        if(StringUtils.isNotBlank(openExamRequest.getGuestAccomodations())) {
 
         }
 
@@ -154,19 +153,19 @@ class ExamServiceImpl implements ExamService {
         return Pair.of(false, Optional.of(new ValidationError(ValidationErrorCode.CURRENT_EXAM_OPEN, "Current exam is active")));
     }
 
-    private Optional<ValidationError> canCreateNewExam(OpenExam openExam, Exam previousExam) {
+    private Optional<ValidationError> canCreateNewExam(OpenExamRequest openExamRequest, Exam previousExam) {
         //Line 5602 in StudentDLL
-        Optional<Extern> externOptional = sessionService.getExternByClientName(openExam.getClientName());
+        Optional<Extern> externOptional = sessionService.getExternByClientName(openExamRequest.getClientName());
 
         if (!externOptional.isPresent()) {
-            throw new IllegalStateException("Extern could not be found for client name " + openExam.getClientName());
+            throw new IllegalStateException("Extern could not be found for client name " + openExamRequest.getClientName());
         }
 
         Extern extern = externOptional.get();
 
         //Lines 5612 - 5618 in StudentDLL
         if (previousExam == null) {
-            if (openExam.getMaxOpportunities() < 0 && LegacyComparer.notEqual("SIMULATION", extern.getEnvironment())) {
+            if (openExamRequest.getMaxOpportunities() < 0 && LegacyComparer.notEqual("SIMULATION", extern.getEnvironment())) {
                 return Optional.of(new ValidationError(ValidationErrorCode.SIMULATION_ENVIRONMENT_REQUIRED, "Environment must be simulation when max opportunities less than zero"));
             }
 
@@ -181,13 +180,13 @@ class ExamServiceImpl implements ExamService {
 
             if (previousExam.getDateCompleted() != null) {
                 Duration duration = Duration.between(previousExam.getDateChanged(), Instant.now());
-                if (LegacyComparer.lessThan(previousExam.getTimeTaken(), openExam.getMaxOpportunities()) &&
-                    LegacyComparer.greaterThan(duration.get(ChronoUnit.DAYS), openExam.getNumberOfDaysToDelay())) {
+                if (LegacyComparer.lessThan(previousExam.getTimeTaken(), openExamRequest.getMaxOpportunities()) &&
+                    LegacyComparer.greaterThan(duration.get(ChronoUnit.DAYS), openExamRequest.getNumberOfDaysToDelay())) {
                     return Optional.empty();
-                } else if (LegacyComparer.greaterOrEqual(previousExam.getTimeTaken(), openExam.getMaxOpportunities())) {
+                } else if (LegacyComparer.greaterOrEqual(previousExam.getTimeTaken(), openExamRequest.getMaxOpportunities())) {
                     return Optional.of(new ValidationError(ValidationErrorCode.MAX_OPPORTUNITY_EXCEEDED, "Max number of opportunities for exam exceeded"));
                 } else {
-                    return Optional.of(new ValidationError(ValidationErrorCode.NOT_ENOUGH_DAYS_PASSED, String.format("Next exam cannot be started until %s days pass since last exam", openExam.getNumberOfDaysToDelay())));
+                    return Optional.of(new ValidationError(ValidationErrorCode.NOT_ENOUGH_DAYS_PASSED, String.format("Next exam cannot be started until %s days pass since last exam", openExamRequest.getNumberOfDaysToDelay())));
                 }
             }
         }

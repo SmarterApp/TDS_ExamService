@@ -7,12 +7,11 @@ import java.util.UUID;
 /**
  * Information required to open an exam
  */
-public class OpenExam {
+public class OpenExamRequest {
     @NotNull
     private String clientName;
 
     @NotNull
-    @Min(1)
     private long studentId;
 
     @NotNull

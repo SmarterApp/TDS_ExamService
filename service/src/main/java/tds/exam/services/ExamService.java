@@ -1,11 +1,11 @@
 package tds.exam.services;
 
-import tds.common.Response;
-import tds.exam.Exam;
-import tds.exam.OpenExam;
-
 import java.util.Optional;
 import java.util.UUID;
+
+import tds.common.Response;
+import tds.exam.Exam;
+import tds.exam.OpenExamRequest;
 
 /**
  * Main entry point for interacting with {@link Exam}
@@ -20,5 +20,5 @@ public interface ExamService {
      */
     Optional<Exam> getExam(UUID uuid);
 
-    Response<Exam> openExam(OpenExam openExam);
+    Response<Exam> openExam(OpenExamRequest openExamRequest);
 }

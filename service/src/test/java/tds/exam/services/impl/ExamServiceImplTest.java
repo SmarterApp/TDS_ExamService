@@ -11,7 +11,7 @@ import tds.common.Response;
 import tds.common.ValidationError;
 import tds.exam.Exam;
 import tds.exam.ExamStatusCode;
-import tds.exam.OpenExam;
+import tds.exam.OpenExamRequest;
 import tds.exam.error.ValidationErrorCode;
 import tds.exam.repositories.ExamQueryRepository;
 import tds.exam.services.SessionService;
@@ -52,37 +52,37 @@ public class ExamServiceImplTest {
     @Test (expected = IllegalArgumentException.class)
     public void shouldReturnErrorWhenSessionCannotBeFound() {
         UUID sessionId = UUID.randomUUID();
-        OpenExam openExam = new OpenExam();
-        openExam.setSessionId(sessionId);
-        openExam.setStudentId(1);
+        OpenExamRequest openExamRequest = new OpenExamRequest();
+        openExamRequest.setSessionId(sessionId);
+        openExamRequest.setStudentId(1);
 
         when(sessionService.getSession(sessionId)).thenReturn(Optional.empty());
         when(studentService.getStudentById(1)).thenReturn(Optional.of(new Student()));
 
-        examService.openExam(openExam);
+        examService.openExam(openExamRequest);
     }
 
     @Test (expected = IllegalArgumentException.class)
     public void shouldReturnErrorWhenStudentCannotBeFound() {
         UUID sessionId = UUID.randomUUID();
-        OpenExam openExam = new OpenExam();
-        openExam.setStudentId(1);
-        openExam.setSessionId(sessionId);
+        OpenExamRequest openExamRequest = new OpenExamRequest();
+        openExamRequest.setStudentId(1);
+        openExamRequest.setSessionId(sessionId);
 
         when(sessionService.getSession(sessionId)).thenReturn(Optional.of(new Session()));
         when(studentService.getStudentById(1)).thenReturn(Optional.empty());
 
-        examService.openExam(openExam);
+        examService.openExam(openExamRequest);
     }
 
     @Test
     public void shouldReturnErrorWhenPreviousSessionTypeDoesNotEqualCurrentSessionType() {
         UUID sessionId = UUID.randomUUID();
-        OpenExam openExam = new OpenExam();
-        openExam.setStudentId(1);
-        openExam.setSessionId(sessionId);
-        openExam.setAssessmentId("assessmentId");
-        openExam.setClientName("SBAC-PT");
+        OpenExamRequest openExamRequest = new OpenExamRequest();
+        openExamRequest.setStudentId(1);
+        openExamRequest.setSessionId(sessionId);
+        openExamRequest.setAssessmentId("assessmentId");
+        openExamRequest.setClientName("SBAC-PT");
 
         Session currentSession = new Session();
         currentSession.setType(2);
@@ -105,7 +105,7 @@ public class ExamServiceImplTest {
         when(repository.getLastAvailableExam(1, "assessmentId", "SBAC-PT")).thenReturn(Optional.of(previousExam));
         when(sessionService.getSession(previousSession.getId())).thenReturn(Optional.of(previousSession));
 
-        Response<Exam> examResponse = examService.openExam(openExam);
+        Response<Exam> examResponse = examService.openExam(openExamRequest);
 
         assertThat(examResponse.getData()).isNotPresent();
         assertThat(examResponse.getErrors().get()).hasSize(1);
@@ -117,11 +117,11 @@ public class ExamServiceImplTest {
     @Test(expected = IllegalStateException.class)
     public void shouldThrowIllegalStateIfExternCannotBeFound() {
         UUID sessionId = UUID.randomUUID();
-        OpenExam openExam = new OpenExam();
-        openExam.setStudentId(1);
-        openExam.setSessionId(sessionId);
-        openExam.setAssessmentId("assessmentId");
-        openExam.setClientName("SBAC-PT");
+        OpenExamRequest openExamRequest = new OpenExamRequest();
+        openExamRequest.setStudentId(1);
+        openExamRequest.setSessionId(sessionId);
+        openExamRequest.setAssessmentId("assessmentId");
+        openExamRequest.setClientName("SBAC-PT");
 
         Session currentSession = new Session();
         currentSession.setType(2);
@@ -137,18 +137,18 @@ public class ExamServiceImplTest {
         when(studentService.getStudentById(1)).thenReturn(Optional.of(student));
         when(repository.getLastAvailableExam(1, "assessmentId", "SBAC-PT")).thenReturn(Optional.empty());
         when(sessionService.getExternByClientName("SBAC-PT")).thenReturn(Optional.empty());
-        examService.openExam(openExam);
+        examService.openExam(openExamRequest);
     }
 
     @Test
     public void shouldReturnErrorWhenMaxOpportunitiesLessThanZeroAndEnvironmentNotSimulation() {
         UUID sessionId = UUID.randomUUID();
-        OpenExam openExam = new OpenExam();
-        openExam.setStudentId(1);
-        openExam.setSessionId(sessionId);
-        openExam.setAssessmentId("assessmentId");
-        openExam.setClientName("SBAC-PT");
-        openExam.setMaxOpportunities(-1);
+        OpenExamRequest openExamRequest = new OpenExamRequest();
+        openExamRequest.setStudentId(1);
+        openExamRequest.setSessionId(sessionId);
+        openExamRequest.setAssessmentId("assessmentId");
+        openExamRequest.setClientName("SBAC-PT");
+        openExamRequest.setMaxOpportunities(-1);
 
         Session currentSession = new Session();
         currentSession.setType(2);
@@ -166,7 +166,7 @@ public class ExamServiceImplTest {
         when(sessionService.getSession(previousSession.getId())).thenReturn(Optional.of(previousSession));
         when(sessionService.getExternByClientName("SBAC-PT")).thenReturn(Optional.of(new Extern("SBAC-PT", "Development")));
 
-        Response<Exam> examResponse = examService.openExam(openExam);
+        Response<Exam> examResponse = examService.openExam(openExamRequest);
 
         assertThat(examResponse.getData()).isNotPresent();
         assertThat(examResponse.getErrors().get()).hasSize(1);
