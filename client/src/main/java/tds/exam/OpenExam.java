@@ -28,6 +28,33 @@ public class OpenExam {
     @Min(0)
     private int numberOfDaysToDelay;
 
+    private Long proctorId;
+
+    private String guestAccomodations;
+
+    //TODO - find what this means
+    public String getGuestAccomodations() {
+        return guestAccomodations;
+    }
+
+    public void setGuestAccomodations(String guestAccomodations) {
+        this.guestAccomodations = guestAccomodations;
+    }
+
+    /**
+     * @return proctor id or null
+     */
+    public Long getProctorId() {
+        return proctorId;
+    }
+
+    /**
+     * @param proctorId proctor id if exam has a proctor
+     */
+    public void setProctorId(Long proctorId) {
+        this.proctorId = proctorId;
+    }
+
     /**
      * @return unique client name
      */
@@ -110,5 +137,12 @@ public class OpenExam {
      */
     public void setNumberOfDaysToDelay(int numberOfDaysToDelay) {
         this.numberOfDaysToDelay = numberOfDaysToDelay;
+    }
+
+    /**
+     * @return {@code true} if the student is a guest
+     */
+    public boolean isGuestStudent() {
+        return studentId <= 0;
     }
 }

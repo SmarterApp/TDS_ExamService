@@ -1,5 +1,6 @@
 package tds.exam.services.impl;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,16 +56,17 @@ class ExamServiceImpl implements ExamService {
             throw new IllegalArgumentException(String.format("Could not find session for %s", openExam.getSessionId()));
         }
 
-        Optional<Student> studentOptional = studentService.getStudentById(openExam.getStudentId());
-        if (!studentOptional.isPresent()) {
-            throw new IllegalArgumentException(String.format("Could not find student for %s", openExam.getStudentId()));
+        if(!openExam.isGuestStudent()) {
+            Optional<Student> studentOptional = studentService.getStudentById(openExam.getStudentId());
+            if (!studentOptional.isPresent()) {
+                throw new IllegalArgumentException(String.format("Could not find student for %s", openExam.getStudentId()));
+            }
         }
 
         Session currentSession = sessionOptional.get();
-        Student currentStudent = studentOptional.get();
 
         //Previous exam is retrieved in lines 5492 - 5530 and 5605 - 5645 in StudentDLL
-        Optional<Exam> previousExamOptional = examQueryRepository.getLastAvailableExam(currentStudent.getId(), openExam.getAssessmentId(), openExam.getClientName());
+        Optional<Exam> previousExamOptional = examQueryRepository.getLastAvailableExam(openExam.getStudentId(), openExam.getAssessmentId(), openExam.getClientName());
 
         boolean canOpenPreviousExam = false;
         if (previousExamOptional.isPresent()) {
@@ -86,9 +88,26 @@ class ExamServiceImpl implements ExamService {
             if (openNewExamOptional.isPresent()) {
                 return new Response<Exam>(openNewExamOptional.get());
             }
+
+
         }
 
         return new Response<>(new Exam.Builder().withId(UUID.randomUUID()).build());
+    }
+
+    private Response<Exam> createExam(OpenExam openExam, Student student, Session session) {
+        String examStatus;
+        if (openExam.getProctorId() == null) {
+            examStatus = "approved";
+        } else {
+            examStatus = "pending";
+        }
+
+        if(StringUtils.isNotBlank(openExam.getGuestAccomodations())) {
+
+        }
+
+        return null;
     }
 
     private Pair<Boolean, Optional<ValidationError>> canOpenPreviousExam(Exam previousExam, Session currentSession) {
