@@ -1,6 +1,5 @@
 package tds.exam.services.impl;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,7 +84,16 @@ class ExamServiceImpl implements ExamService {
             LOG.debug("Can open previous exam");
             exam = new Exam.Builder().withId(previousExamOptional.get().getId()).build();
         } else {
-            Optional<ValidationError> openNewExamOptional = canCreateNewExam(openExamRequest, previousExamOptional.isPresent() ? previousExamOptional.get() : null);
+            //Line 5602 in StudentDLL
+            Optional<Extern> externOptional = sessionService.getExternByClientName(openExamRequest.getClientName());
+
+            if (!externOptional.isPresent()) {
+                throw new IllegalStateException("Extern could not be found for client name " + openExamRequest.getClientName());
+            }
+
+            Extern extern = externOptional.get();
+            Exam previousExam = previousExamOptional.isPresent() ? previousExamOptional.get() : null;
+            Optional<ValidationError> openNewExamOptional = canCreateNewExam(openExamRequest, previousExam, extern);
             if (openNewExamOptional.isPresent()) {
                 return new Response<Exam>(openNewExamOptional.get());
             }
@@ -96,7 +104,8 @@ class ExamServiceImpl implements ExamService {
         return new Response<>(exam);
     }
 
-    private Response<Exam> createExam(OpenExamRequest openExamRequest, Student student, Session session) {
+    private Response<Exam> createExam(OpenExamRequest openExamRequest, Student student, Session session, Extern extern) {
+        //From OpenTestServiceImpl lines 160 -163
         String examStatus;
         if (openExamRequest.getProctorId() == null) {
             examStatus = "approved";
@@ -104,9 +113,9 @@ class ExamServiceImpl implements ExamService {
             examStatus = "pending";
         }
 
-        if(StringUtils.isNotBlank(openExamRequest.getGuestAccomodations())) {
+        Instant startTime = Instant.now();
 
-        }
+
 
         return null;
     }
@@ -154,15 +163,7 @@ class ExamServiceImpl implements ExamService {
         return Pair.of(false, Optional.of(new ValidationError(ValidationErrorCode.CURRENT_EXAM_OPEN, "Current exam is active")));
     }
 
-    private Optional<ValidationError> canCreateNewExam(OpenExamRequest openExamRequest, Exam previousExam) {
-        //Line 5602 in StudentDLL
-        Optional<Extern> externOptional = sessionService.getExternByClientName(openExamRequest.getClientName());
-
-        if (!externOptional.isPresent()) {
-            throw new IllegalStateException("Extern could not be found for client name " + openExamRequest.getClientName());
-        }
-
-        Extern extern = externOptional.get();
+    private Optional<ValidationError> canCreateNewExam(OpenExamRequest openExamRequest, Exam previousExam, Extern extern) {
 
         //Lines 5612 - 5618 in StudentDLL
         if (previousExam == null) {
