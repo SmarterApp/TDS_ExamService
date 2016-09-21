@@ -51,12 +51,12 @@ class ExamServiceImpl implements ExamService {
     public Response<Exam> openExam(OpenExam openExam) {
         //TODO - Should be async
         Optional<Session> sessionOptional = sessionService.getSession(openExam.getSessionId());
-        if(!sessionOptional.isPresent()) {
+        if (!sessionOptional.isPresent()) {
             throw new IllegalArgumentException(String.format("Could not find session for %s", openExam.getSessionId()));
         }
 
         Optional<Student> studentOptional = studentService.getStudentById(openExam.getStudentId());
-        if(!studentOptional.isPresent()) {
+        if (!studentOptional.isPresent()) {
             throw new IllegalArgumentException(String.format("Could not find student for %s", openExam.getStudentId()));
         }
 
@@ -80,9 +80,10 @@ class ExamServiceImpl implements ExamService {
         Exam exam;
         if (canOpenPreviousExam) {
             //Open previous exam
+            LOG.debug("Can open previous exam");
         } else {
             Optional<ValidationError> openNewExamOptional = canCreateNewExam(openExam, previousExamOptional.isPresent() ? previousExamOptional.get() : null);
-            if(openNewExamOptional.isPresent()) {
+            if (openNewExamOptional.isPresent()) {
                 return new Response<Exam>(openNewExamOptional.get());
             }
         }
@@ -91,13 +92,16 @@ class ExamServiceImpl implements ExamService {
     }
 
     private Pair<Boolean, Optional<ValidationError>> canOpenPreviousExam(Exam previousExam, Session currentSession) {
-        if (!ExamStatusCode.STAGE_INACTIVE.equals(previousExam.getStatus().getStage())) {
-            return Pair.of(false, Optional.empty());
+        //Port of Student.DLL lines 5526-5530
+        if (ExamStatusCode.STAGE_CLOSED.equals(previousExam.getStatus().getStage())) {
+            return Pair.of(true, Optional.empty());
         }
 
+        //Port of Student.DLL lines 5531-5551
+        //If either session type is null or if they don't match an error is returned
         Optional<Session> previousSessionOptional = sessionService.getSession(previousExam.getSessionId());
         if (!previousSessionOptional.isPresent()) {
-            return Pair.of(false, Optional.empty());
+            return Pair.of(false, Optional.of(new ValidationError(ValidationErrorCode.SESSION_TYPE_MISMATCH, "current session type and previous session type don't match")));
         }
 
         Session previousSession = previousSessionOptional.get();
@@ -105,9 +109,14 @@ class ExamServiceImpl implements ExamService {
             return Pair.of(false, Optional.of(new ValidationError(ValidationErrorCode.SESSION_TYPE_MISMATCH, "current session type and previous session type don't match")));
         }
 
+        //Port of Student.DLL lines 5555-5560
+        if (ExamStatusCode.STAGE_INACTIVE.equals(previousExam.getStatus().getStage())) {
+            return Pair.of(true, Optional.empty());
+        }
+
         /*
         The below code is a straight port of the legacy StudentDLL._CanOpenExistingOpportunity_SP.  It was a little hard to follow the application
-        reasons for this logic.
+        reasons for this logic. StudentDLL lines 5569 - 5589
          */
         boolean daysSinceLastChange = false;
         if (previousExam.getDateChanged() != null) {
@@ -122,7 +131,8 @@ class ExamServiceImpl implements ExamService {
             return Pair.of(true, Optional.empty());
         }
 
-        return Pair.of(true, Optional.empty());
+        //Port of Student.DLL line 5593
+        return Pair.of(false, Optional.of(new ValidationError(ValidationErrorCode.CURRENT_EXAM_OPEN, "Current exam is active")));
     }
 
     private Optional<ValidationError> canCreateNewExam(OpenExam openExam, Exam previousExam) {
@@ -165,5 +175,4 @@ class ExamServiceImpl implements ExamService {
 
         return Optional.empty();
     }
-
 }
