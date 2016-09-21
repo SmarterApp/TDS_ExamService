@@ -29,15 +29,15 @@ public class OpenExamRequest {
 
     private Long proctorId;
 
-    private String guestAccomodations;
+    private String guestAccommodations;
 
     //TODO - find what this means
-    public String getGuestAccomodations() {
-        return guestAccomodations;
+    public String getGuestAccommodations() {
+        return guestAccommodations;
     }
 
-    public void setGuestAccomodations(String guestAccomodations) {
-        this.guestAccomodations = guestAccomodations;
+    public void setGuestAccommodations(String guestAccommodations) {
+        this.guestAccommodations = guestAccommodations;
     }
 
     /**
