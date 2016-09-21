@@ -138,10 +138,6 @@ public class Exam {
         return status;
     }
 
-    public void setStatus(ExamStatusCode status) {
-        this.status = status;
-    }
-
     public String getClientName() {
         return clientName;
     }
@@ -158,11 +154,11 @@ public class Exam {
         return dateDeleted;
     }
 
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
     public Instant getDateCompleted() {
         return dateCompleted;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
     }
 }
