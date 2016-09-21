@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -27,6 +26,8 @@ import tds.exam.services.StudentService;
 import tds.session.Extern;
 import tds.session.Session;
 import tds.student.Student;
+
+import static java.time.temporal.ChronoUnit.DAYS;
 
 @Service
 class ExamServiceImpl implements ExamService {
@@ -82,16 +83,17 @@ class ExamServiceImpl implements ExamService {
         if (canOpenPreviousExam) {
             //Open previous exam
             LOG.debug("Can open previous exam");
+            exam = new Exam.Builder().withId(previousExamOptional.get().getId()).build();
         } else {
             Optional<ValidationError> openNewExamOptional = canCreateNewExam(openExamRequest, previousExamOptional.isPresent() ? previousExamOptional.get() : null);
             if (openNewExamOptional.isPresent()) {
                 return new Response<Exam>(openNewExamOptional.get());
             }
 
-
+            exam = new Exam.Builder().withId(UUID.randomUUID()).build();
         }
 
-        return new Response<>(new Exam.Builder().withId(UUID.randomUUID()).build());
+        return new Response<>(exam);
     }
 
     private Response<Exam> createExam(OpenExamRequest openExamRequest, Student student, Session session) {
@@ -138,8 +140,7 @@ class ExamServiceImpl implements ExamService {
          */
         boolean daysSinceLastChange = false;
         if (previousExam.getDateChanged() != null) {
-            Duration duration = Duration.between(previousExam.getDateChanged(), Instant.now());
-            daysSinceLastChange = duration.get(ChronoUnit.DAYS) >= 1;
+            daysSinceLastChange = DAYS.between(previousExam.getDateChanged(), Instant.now()) >= 1;
         }
 
         if (daysSinceLastChange ||
@@ -181,7 +182,7 @@ class ExamServiceImpl implements ExamService {
             if (previousExam.getDateCompleted() != null) {
                 Duration duration = Duration.between(previousExam.getDateChanged(), Instant.now());
                 if (LegacyComparer.lessThan(previousExam.getTimeTaken(), openExamRequest.getMaxOpportunities()) &&
-                    LegacyComparer.greaterThan(duration.get(ChronoUnit.DAYS), openExamRequest.getNumberOfDaysToDelay())) {
+                    LegacyComparer.greaterThan(duration.get(DAYS), openExamRequest.getNumberOfDaysToDelay())) {
                     return Optional.empty();
                 } else if (LegacyComparer.greaterOrEqual(previousExam.getTimeTaken(), openExamRequest.getMaxOpportunities())) {
                     return Optional.of(new ValidationError(ValidationErrorCode.MAX_OPPORTUNITY_EXCEEDED, "Max number of opportunities for exam exceeded"));
