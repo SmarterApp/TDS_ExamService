@@ -4,6 +4,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -173,5 +175,245 @@ public class ExamServiceImplTest {
 
         ValidationError validationError = examResponse.getErrors().get()[0];
         assertThat(validationError.getCode()).isEqualTo(ValidationErrorCode.SIMULATION_ENVIRONMENT_REQUIRED);
+    }
+
+    @Test
+    public void shouldNotAllowExamToOpenIfStillActive(){
+        UUID sessionId = UUID.randomUUID();
+        OpenExamRequest openExamRequest = new OpenExamRequest();
+        openExamRequest.setStudentId(1);
+        openExamRequest.setSessionId(sessionId);
+        openExamRequest.setAssessmentId("assessmentId");
+        openExamRequest.setClientName("SBAC-PT");
+        openExamRequest.setMaxOpportunities(5);
+
+        Session currentSession = new Session();
+        currentSession.setType(2);
+
+        Session previousSession = new Session();
+        previousSession.setId(UUID.randomUUID());
+        previousSession.setType(2);
+
+        Student student = new Student();
+        student.setId(1);
+
+        Exam previousExam = new Exam.Builder()
+            .withId(UUID.randomUUID())
+            .withSessionId(previousSession.getId())
+            .withStatus(new ExamStatusCode.Builder().withStage(ExamStatusCode.STAGE_OPEN).build())
+            .build();
+
+        when(sessionService.getSession(sessionId)).thenReturn(Optional.of(currentSession));
+        when(studentService.getStudentById(1)).thenReturn(Optional.of(student));
+        when(repository.getLastAvailableExam(1, "assessmentId", "SBAC-PT")).thenReturn(Optional.of(previousExam));
+        when(sessionService.getSession(previousSession.getId())).thenReturn(Optional.of(previousSession));
+        when(sessionService.getExternByClientName("SBAC-PT")).thenReturn(Optional.of(new Extern("SBAC-PT", "Development")));
+
+        Response<Exam> examResponse = examService.openExam(openExamRequest);
+
+        assertThat(examResponse.getData()).isNotPresent();
+        assertThat(examResponse.getErrors().get()).hasSize(1);
+
+        ValidationError validationError = examResponse.getErrors().get()[0];
+        assertThat(validationError.getCode()).isEqualTo(ValidationErrorCode.CURRENT_EXAM_OPEN);
+    }
+
+    @Test
+    public void shouldAllowPreviousExamToOpenIfDayHasPassed(){
+        UUID sessionId = UUID.randomUUID();
+        OpenExamRequest openExamRequest = new OpenExamRequest();
+        openExamRequest.setStudentId(1);
+        openExamRequest.setSessionId(sessionId);
+        openExamRequest.setAssessmentId("assessmentId");
+        openExamRequest.setClientName("SBAC-PT");
+        openExamRequest.setMaxOpportunities(5);
+
+        Session currentSession = new Session();
+        currentSession.setType(2);
+
+        Session previousSession = new Session();
+        previousSession.setId(UUID.randomUUID());
+        previousSession.setType(2);
+
+        Student student = new Student();
+        student.setId(1);
+
+        Exam previousExam = new Exam.Builder()
+            .withId(UUID.randomUUID())
+            .withSessionId(previousSession.getId())
+            .withStatus(new ExamStatusCode.Builder().withStage(ExamStatusCode.STAGE_OPEN).build())
+            .withDateChanged(Instant.now().minus(2, ChronoUnit.DAYS))
+            .build();
+
+        when(sessionService.getSession(sessionId)).thenReturn(Optional.of(currentSession));
+        when(studentService.getStudentById(1)).thenReturn(Optional.of(student));
+        when(repository.getLastAvailableExam(1, "assessmentId", "SBAC-PT")).thenReturn(Optional.of(previousExam));
+        when(sessionService.getSession(previousSession.getId())).thenReturn(Optional.of(previousSession));
+        when(sessionService.getExternByClientName("SBAC-PT")).thenReturn(Optional.of(new Extern("SBAC-PT", "Development")));
+
+        Response<Exam> examResponse = examService.openExam(openExamRequest);
+
+        assertThat(examResponse.getErrors()).isNotPresent();
+        assertThat(examResponse.getData()).isPresent();
+        assertThat(examResponse.getData().get().getId()).isEqualTo(previousExam.getId());
+    }
+
+    @Test
+    public void shouldAllowPreviousExamToOpenIfPreviousSessionIsClosed(){
+        UUID sessionId = UUID.randomUUID();
+        OpenExamRequest openExamRequest = new OpenExamRequest();
+        openExamRequest.setStudentId(1);
+        openExamRequest.setSessionId(sessionId);
+        openExamRequest.setAssessmentId("assessmentId");
+        openExamRequest.setClientName("SBAC-PT");
+        openExamRequest.setMaxOpportunities(5);
+
+        Session currentSession = new Session();
+        currentSession.setType(2);
+
+        Session previousSession = new Session();
+        previousSession.setId(UUID.randomUUID());
+        previousSession.setType(2);
+        previousSession.setStatus("closed");
+
+        Student student = new Student();
+        student.setId(1);
+
+        Exam previousExam = new Exam.Builder()
+            .withId(UUID.randomUUID())
+            .withSessionId(previousSession.getId())
+            .withStatus(new ExamStatusCode.Builder().withStage(ExamStatusCode.STAGE_OPEN).build())
+            .withDateChanged(Instant.now())
+            .build();
+
+        when(sessionService.getSession(sessionId)).thenReturn(Optional.of(currentSession));
+        when(studentService.getStudentById(1)).thenReturn(Optional.of(student));
+        when(repository.getLastAvailableExam(1, "assessmentId", "SBAC-PT")).thenReturn(Optional.of(previousExam));
+        when(sessionService.getSession(previousSession.getId())).thenReturn(Optional.of(previousSession));
+        when(sessionService.getExternByClientName("SBAC-PT")).thenReturn(Optional.of(new Extern("SBAC-PT", "Development")));
+
+        Response<Exam> examResponse = examService.openExam(openExamRequest);
+
+        assertThat(examResponse.getErrors()).isNotPresent();
+        assertThat(examResponse.getData()).isPresent();
+        assertThat(examResponse.getData().get().getId()).isEqualTo(previousExam.getId());
+    }
+
+    @Test
+    public void shouldOpenPreviousExamIfSessionIdSame(){
+        UUID sessionId = UUID.randomUUID();
+        OpenExamRequest openExamRequest = new OpenExamRequest();
+        openExamRequest.setStudentId(1);
+        openExamRequest.setSessionId(sessionId);
+        openExamRequest.setAssessmentId("assessmentId");
+        openExamRequest.setClientName("SBAC-PT");
+        openExamRequest.setMaxOpportunities(5);
+
+        Session currentSession = new Session();
+        currentSession.setType(2);
+
+        Session previousSession = new Session();
+        previousSession.setId(sessionId);
+        previousSession.setType(2);
+
+        Student student = new Student();
+        student.setId(1);
+
+        Exam previousExam = new Exam.Builder()
+            .withId(UUID.randomUUID())
+            .withSessionId(previousSession.getId())
+            .withStatus(new ExamStatusCode.Builder().withStage(ExamStatusCode.STAGE_OPEN).build())
+            .withDateChanged(Instant.now())
+            .build();
+
+        when(sessionService.getSession(sessionId)).thenReturn(Optional.of(currentSession));
+        when(studentService.getStudentById(1)).thenReturn(Optional.of(student));
+        when(repository.getLastAvailableExam(1, "assessmentId", "SBAC-PT")).thenReturn(Optional.of(previousExam));
+        when(sessionService.getSession(previousSession.getId())).thenReturn(Optional.of(previousSession));
+        when(sessionService.getExternByClientName("SBAC-PT")).thenReturn(Optional.of(new Extern("SBAC-PT", "Development")));
+
+        Response<Exam> examResponse = examService.openExam(openExamRequest);
+
+        assertThat(examResponse.getErrors()).isNotPresent();
+        assertThat(examResponse.getData()).isPresent();
+        assertThat(examResponse.getData().get().getId()).isEqualTo(previousExam.getId());
+    }
+
+    @Test
+    public void shouldOpenPreviousExamIfSessionEndTimeIsBeforeNow(){
+        UUID sessionId = UUID.randomUUID();
+        OpenExamRequest openExamRequest = new OpenExamRequest();
+        openExamRequest.setStudentId(1);
+        openExamRequest.setSessionId(sessionId);
+        openExamRequest.setAssessmentId("assessmentId");
+        openExamRequest.setClientName("SBAC-PT");
+        openExamRequest.setMaxOpportunities(5);
+
+        Session currentSession = new Session();
+        currentSession.setType(2);
+
+        Session previousSession = new Session();
+        previousSession.setId(UUID.randomUUID());
+        previousSession.setType(2);
+        previousSession.setDateEnd(Instant.now().minus(1, ChronoUnit.DAYS));
+
+        Student student = new Student();
+        student.setId(1);
+
+        Exam previousExam = new Exam.Builder()
+            .withId(UUID.randomUUID())
+            .withSessionId(previousSession.getId())
+            .withStatus(new ExamStatusCode.Builder().withStage(ExamStatusCode.STAGE_OPEN).build())
+            .withDateChanged(Instant.now())
+            .build();
+
+        when(sessionService.getSession(sessionId)).thenReturn(Optional.of(currentSession));
+        when(studentService.getStudentById(1)).thenReturn(Optional.of(student));
+        when(repository.getLastAvailableExam(1, "assessmentId", "SBAC-PT")).thenReturn(Optional.of(previousExam));
+        when(sessionService.getSession(previousSession.getId())).thenReturn(Optional.of(previousSession));
+        when(sessionService.getExternByClientName("SBAC-PT")).thenReturn(Optional.of(new Extern("SBAC-PT", "Development")));
+
+        Response<Exam> examResponse = examService.openExam(openExamRequest);
+
+        assertThat(examResponse.getErrors()).isNotPresent();
+        assertThat(examResponse.getData()).isPresent();
+        assertThat(examResponse.getData().get().getId()).isEqualTo(previousExam.getId());
+    }
+
+    @Test
+    public void shouldOpenPreviousExamIfPreviousExamIsInactiveStage() {
+        UUID sessionId = UUID.randomUUID();
+        OpenExamRequest openExamRequest = new OpenExamRequest();
+        openExamRequest.setStudentId(-1);
+        openExamRequest.setSessionId(sessionId);
+        openExamRequest.setAssessmentId("assessmentId");
+        openExamRequest.setClientName("SBAC-PT");
+        openExamRequest.setMaxOpportunities(5);
+
+        Session currentSession = new Session();
+        currentSession.setType(2);
+
+        Session previousSession = new Session();
+        previousSession.setId(UUID.randomUUID());
+        previousSession.setType(2);
+        previousSession.setDateEnd(Instant.now().minus(1, ChronoUnit.DAYS));
+
+        Exam previousExam = new Exam.Builder()
+            .withId(UUID.randomUUID())
+            .withSessionId(previousSession.getId())
+            .withStatus(new ExamStatusCode.Builder().withStage(ExamStatusCode.STAGE_INACTIVE).build())
+            .withDateChanged(Instant.now())
+            .build();
+
+        when(sessionService.getSession(sessionId)).thenReturn(Optional.of(currentSession));
+        when(repository.getLastAvailableExam(-1, "assessmentId", "SBAC-PT")).thenReturn(Optional.of(previousExam));
+        when(sessionService.getSession(previousSession.getId())).thenReturn(Optional.of(previousSession));
+        when(sessionService.getExternByClientName("SBAC-PT")).thenReturn(Optional.of(new Extern("SBAC-PT", "Development")));
+
+        Response<Exam> examResponse = examService.openExam(openExamRequest);
+
+        assertThat(examResponse.getErrors()).isNotPresent();
+        assertThat(examResponse.getData()).isPresent();
+        assertThat(examResponse.getData().get().getId()).isEqualTo(previousExam.getId());
     }
 }
