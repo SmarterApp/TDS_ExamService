@@ -3,8 +3,9 @@ package tds.exam.services.impl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -39,8 +40,10 @@ class SessionServiceImpl implements SessionService {
         try {
             final Session session = restTemplate.getForObject(builder.toUriString(), Session.class);
             sessionOptional = Optional.of(session);
-        } catch (RestClientException rce) {
-            LOG.debug("Exception thrown when retrieving session", rce);
+        } catch (HttpClientErrorException hce) {
+            if(hce.getStatusCode() != HttpStatus.NOT_FOUND) {
+                throw hce;
+            }
         }
 
         return sessionOptional;
@@ -56,8 +59,10 @@ class SessionServiceImpl implements SessionService {
         try {
             final ExternalSessionConfiguration externalSessionConfiguration = restTemplate.getForObject(builder.toUriString(), ExternalSessionConfiguration.class);
             maybeExternalSessionConfig = Optional.of(externalSessionConfiguration);
-        } catch (RestClientException rce) {
-            LOG.debug("Exception thrown when retrieving session", rce);
+        } catch (HttpClientErrorException hce) {
+            if(hce.getStatusCode() != HttpStatus.NOT_FOUND) {
+                throw hce;
+            }
         }
 
         return maybeExternalSessionConfig;

@@ -3,6 +3,8 @@ package tds.exam.services.impl;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -51,22 +53,50 @@ public class SessionServiceImplTest {
     }
 
     @Test
-    public void shouldReturnEmptySessionWhenResponseExceptionOccurs() {
+    public void shouldReturnEmptySessionWhenStatusIsNotFound() {
         UUID sessionUUID = UUID.randomUUID();
         String url = String.format("http://localhost:8080/session/%s", sessionUUID);
-        when(restTemplate.getForObject(url, Session.class)).thenThrow(new RestClientException("Fail"));
+        when(restTemplate.getForObject(url, Session.class)).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
         Optional<Session> maybeSession = sessionService.getSession(sessionUUID);
         verify(restTemplate).getForObject(url, Session.class);
 
         assertThat(maybeSession.isPresent()).isFalse();
     }
 
+    @Test (expected = RestClientException.class)
+    public void shouldThrowWhenSessionErrorIsNotNotFound() {
+        UUID sessionUUID = UUID.randomUUID();
+        String url = String.format("http://localhost:8080/session/%s", sessionUUID);
+        when(restTemplate.getForObject(url, Session.class)).thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
+        sessionService.getSession(sessionUUID);
+    }
+
+
     @Test
-    public void shouldReturnExternForClientName() {
+    public void shouldReturnExternalSessionConfigForClientName() {
         String url = "http://localhost:8080/session/externs/SBAC";
-        ExternalSessionConfiguration extern = new ExternalSessionConfiguration("SBAC", "SIMULATION");
-        when(restTemplate.getForObject(url, ExternalSessionConfiguration.class)).thenReturn(extern);
-        sessionService.getExternalSessionConfigurationByClientName("SBAC");
+        ExternalSessionConfiguration externalSessionConfiguration = new ExternalSessionConfiguration("SBAC", "SIMULATION");
+        when(restTemplate.getForObject(url, ExternalSessionConfiguration.class)).thenReturn(externalSessionConfiguration);
+        Optional<ExternalSessionConfiguration> maybeExternalSessionConfiguration = sessionService.getExternalSessionConfigurationByClientName("SBAC");
         verify(restTemplate).getForObject(url, ExternalSessionConfiguration.class);
+
+        assertThat(maybeExternalSessionConfiguration.get()).isEqualTo(externalSessionConfiguration);
+    }
+
+    @Test
+    public void shouldReturnEmptyExternalSessionConfigForClientNameWhenNotFound() {
+        String url = "http://localhost:8080/session/externs/SBAC";
+        when(restTemplate.getForObject(url, ExternalSessionConfiguration.class)).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
+        Optional<ExternalSessionConfiguration> maybeExternalSessionConfiguration = sessionService.getExternalSessionConfigurationByClientName("SBAC");
+        verify(restTemplate).getForObject(url, ExternalSessionConfiguration.class);
+
+        assertThat(maybeExternalSessionConfiguration).isNotPresent();
+    }
+
+    @Test(expected = RestClientException.class)
+    public void shouldThrowIfStatusNotNotFoundFetchingExternalSessionConfigurationByClientName() {
+        String url = "http://localhost:8080/session/externs/SBAC";
+        when(restTemplate.getForObject(url, ExternalSessionConfiguration.class)).thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
+        sessionService.getExternalSessionConfigurationByClientName("SBAC");
     }
 }
