@@ -3,7 +3,7 @@ package tds.exam.services;
 import java.util.Optional;
 import java.util.UUID;
 
-import tds.session.Extern;
+import tds.session.ExternalSessionConfiguration;
 import tds.session.Session;
 
 /**
@@ -22,7 +22,7 @@ public interface SessionService {
      * Retrieves the extern by client name
      *
      * @param clientName the client name for the exam
-     * @return optional populated with {@link tds.session.Extern extern} if found otherwise empty
+     * @return optional populated with {@link tds.session.ExternalSessionConfiguration} if found otherwise empty
      */
-    Optional<Extern> getExternByClientName(String clientName);
+    Optional<ExternalSessionConfiguration> getExternalSessionConfigurationByClientName(String clientName);
 }

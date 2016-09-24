@@ -18,7 +18,7 @@ import tds.exam.error.ValidationErrorCode;
 import tds.exam.repositories.ExamQueryRepository;
 import tds.exam.services.SessionService;
 import tds.exam.services.StudentService;
-import tds.session.Extern;
+import tds.session.ExternalSessionConfiguration;
 import tds.session.Session;
 import tds.student.Student;
 
@@ -117,7 +117,7 @@ public class ExamServiceImplTest {
     }
 
     @Test(expected = IllegalStateException.class)
-    public void shouldThrowIllegalStateIfExternCannotBeFound() {
+    public void shouldThrowIllegalStateIfExternSessionConfigCannotBeFound() {
         UUID sessionId = UUID.randomUUID();
         OpenExamRequest openExamRequest = new OpenExamRequest();
         openExamRequest.setStudentId(1);
@@ -138,7 +138,7 @@ public class ExamServiceImplTest {
         when(sessionService.getSession(sessionId)).thenReturn(Optional.of(currentSession));
         when(studentService.getStudentById(1)).thenReturn(Optional.of(student));
         when(repository.getLastAvailableExam(1, "assessmentId", "SBAC-PT")).thenReturn(Optional.empty());
-        when(sessionService.getExternByClientName("SBAC-PT")).thenReturn(Optional.empty());
+        when(sessionService.getExternalSessionConfigurationByClientName("SBAC-PT")).thenReturn(Optional.empty());
         examService.openExam(openExamRequest);
     }
 
@@ -166,7 +166,8 @@ public class ExamServiceImplTest {
         when(studentService.getStudentById(1)).thenReturn(Optional.of(student));
         when(repository.getLastAvailableExam(1, "assessmentId", "SBAC-PT")).thenReturn(Optional.empty());
         when(sessionService.getSession(previousSession.getId())).thenReturn(Optional.of(previousSession));
-        when(sessionService.getExternByClientName("SBAC-PT")).thenReturn(Optional.of(new Extern("SBAC-PT", "Development")));
+        ExternalSessionConfiguration extSessionConfig = new ExternalSessionConfiguration("SBAC-PT", "Development");
+        when(sessionService.getExternalSessionConfigurationByClientName("SBAC-PT")).thenReturn(Optional.of(extSessionConfig));
 
         Response<Exam> examResponse = examService.openExam(openExamRequest);
 
@@ -207,7 +208,8 @@ public class ExamServiceImplTest {
         when(studentService.getStudentById(1)).thenReturn(Optional.of(student));
         when(repository.getLastAvailableExam(1, "assessmentId", "SBAC-PT")).thenReturn(Optional.of(previousExam));
         when(sessionService.getSession(previousSession.getId())).thenReturn(Optional.of(previousSession));
-        when(sessionService.getExternByClientName("SBAC-PT")).thenReturn(Optional.of(new Extern("SBAC-PT", "Development")));
+        ExternalSessionConfiguration externalSessionConfiguration = new ExternalSessionConfiguration("SBAC-PT", "Development");
+        when(sessionService.getExternalSessionConfigurationByClientName("SBAC-PT")).thenReturn(Optional.of(externalSessionConfiguration));
 
         Response<Exam> examResponse = examService.openExam(openExamRequest);
 
@@ -249,7 +251,8 @@ public class ExamServiceImplTest {
         when(studentService.getStudentById(1)).thenReturn(Optional.of(student));
         when(repository.getLastAvailableExam(1, "assessmentId", "SBAC-PT")).thenReturn(Optional.of(previousExam));
         when(sessionService.getSession(previousSession.getId())).thenReturn(Optional.of(previousSession));
-        when(sessionService.getExternByClientName("SBAC-PT")).thenReturn(Optional.of(new Extern("SBAC-PT", "Development")));
+        ExternalSessionConfiguration externalSessionConfiguration = new ExternalSessionConfiguration("SBAC-PT", "Development");
+        when(sessionService.getExternalSessionConfigurationByClientName("SBAC-PT")).thenReturn(Optional.of(externalSessionConfiguration));
 
         Response<Exam> examResponse = examService.openExam(openExamRequest);
 
@@ -290,7 +293,8 @@ public class ExamServiceImplTest {
         when(studentService.getStudentById(1)).thenReturn(Optional.of(student));
         when(repository.getLastAvailableExam(1, "assessmentId", "SBAC-PT")).thenReturn(Optional.of(previousExam));
         when(sessionService.getSession(previousSession.getId())).thenReturn(Optional.of(previousSession));
-        when(sessionService.getExternByClientName("SBAC-PT")).thenReturn(Optional.of(new Extern("SBAC-PT", "Development")));
+        ExternalSessionConfiguration externalSessionConfiguration = new ExternalSessionConfiguration("SBAC-PT", "Development");
+        when(sessionService.getExternalSessionConfigurationByClientName("SBAC-PT")).thenReturn(Optional.of(externalSessionConfiguration));
 
         Response<Exam> examResponse = examService.openExam(openExamRequest);
 
@@ -330,7 +334,8 @@ public class ExamServiceImplTest {
         when(studentService.getStudentById(1)).thenReturn(Optional.of(student));
         when(repository.getLastAvailableExam(1, "assessmentId", "SBAC-PT")).thenReturn(Optional.of(previousExam));
         when(sessionService.getSession(previousSession.getId())).thenReturn(Optional.of(previousSession));
-        when(sessionService.getExternByClientName("SBAC-PT")).thenReturn(Optional.of(new Extern("SBAC-PT", "Development")));
+        ExternalSessionConfiguration externalSessionConfiguration = new ExternalSessionConfiguration("SBAC-PT", "Development");
+        when(sessionService.getExternalSessionConfigurationByClientName("SBAC-PT")).thenReturn(Optional.of(externalSessionConfiguration));
 
         Response<Exam> examResponse = examService.openExam(openExamRequest);
 
@@ -371,7 +376,8 @@ public class ExamServiceImplTest {
         when(studentService.getStudentById(1)).thenReturn(Optional.of(student));
         when(repository.getLastAvailableExam(1, "assessmentId", "SBAC-PT")).thenReturn(Optional.of(previousExam));
         when(sessionService.getSession(previousSession.getId())).thenReturn(Optional.of(previousSession));
-        when(sessionService.getExternByClientName("SBAC-PT")).thenReturn(Optional.of(new Extern("SBAC-PT", "Development")));
+        ExternalSessionConfiguration externalSessionConfiguration = new ExternalSessionConfiguration("SBAC-PT", "Development");
+        when(sessionService.getExternalSessionConfigurationByClientName("SBAC-PT")).thenReturn(Optional.of(externalSessionConfiguration));
 
         Response<Exam> examResponse = examService.openExam(openExamRequest);
 
@@ -408,7 +414,8 @@ public class ExamServiceImplTest {
         when(sessionService.getSession(sessionId)).thenReturn(Optional.of(currentSession));
         when(repository.getLastAvailableExam(-1, "assessmentId", "SBAC-PT")).thenReturn(Optional.of(previousExam));
         when(sessionService.getSession(previousSession.getId())).thenReturn(Optional.of(previousSession));
-        when(sessionService.getExternByClientName("SBAC-PT")).thenReturn(Optional.of(new Extern("SBAC-PT", "Development")));
+        ExternalSessionConfiguration externalSessionConfiguration = new ExternalSessionConfiguration("SBAC-PT", "Development");
+        when(sessionService.getExternalSessionConfigurationByClientName("SBAC-PT")).thenReturn(Optional.of(externalSessionConfiguration));
 
         Response<Exam> examResponse = examService.openExam(openExamRequest);
 

@@ -22,7 +22,7 @@ import tds.exam.repositories.ExamQueryRepository;
 import tds.exam.services.ExamService;
 import tds.exam.services.SessionService;
 import tds.exam.services.StudentService;
-import tds.session.Extern;
+import tds.session.ExternalSessionConfiguration;
 import tds.session.Session;
 import tds.student.Student;
 
@@ -85,15 +85,15 @@ class ExamServiceImpl implements ExamService {
             exam = new Exam.Builder().withId(previousExamOptional.get().getId()).build();
         } else {
             //Line 5602 in StudentDLL
-            Optional<Extern> externOptional = sessionService.getExternByClientName(openExamRequest.getClientName());
+            Optional<ExternalSessionConfiguration> maybeExternalSessionConfiguration = sessionService.getExternalSessionConfigurationByClientName(openExamRequest.getClientName());
 
-            if (!externOptional.isPresent()) {
+            if (!maybeExternalSessionConfiguration.isPresent()) {
                 throw new IllegalStateException("Extern could not be found for client name " + openExamRequest.getClientName());
             }
 
-            Extern extern = externOptional.get();
+            ExternalSessionConfiguration externalSessionConfiguration = maybeExternalSessionConfiguration.get();
             Exam previousExam = previousExamOptional.isPresent() ? previousExamOptional.get() : null;
-            Optional<ValidationError> openNewExamOptional = canCreateNewExam(openExamRequest, previousExam, extern);
+            Optional<ValidationError> openNewExamOptional = canCreateNewExam(openExamRequest, previousExam, externalSessionConfiguration);
             if (openNewExamOptional.isPresent()) {
                 return new Response<Exam>(openNewExamOptional.get());
             }
@@ -104,7 +104,7 @@ class ExamServiceImpl implements ExamService {
         return new Response<>(exam);
     }
 
-    private Response<Exam> createExam(OpenExamRequest openExamRequest, Student student, Session session, Extern extern) {
+    private Response<Exam> createExam(OpenExamRequest openExamRequest, Student student, Session session, ExternalSessionConfiguration externalSessionConfiguration) {
         //From OpenTestServiceImpl lines 160 -163
         String examStatus;
         if (openExamRequest.getProctorId() == null) {
@@ -163,11 +163,11 @@ class ExamServiceImpl implements ExamService {
         return Pair.of(false, Optional.of(new ValidationError(ValidationErrorCode.CURRENT_EXAM_OPEN, "Current exam is active")));
     }
 
-    private Optional<ValidationError> canCreateNewExam(OpenExamRequest openExamRequest, Exam previousExam, Extern extern) {
+    private Optional<ValidationError> canCreateNewExam(OpenExamRequest openExamRequest, Exam previousExam, ExternalSessionConfiguration externalSessionConfiguration) {
 
         //Lines 5612 - 5618 in StudentDLL
         if (previousExam == null) {
-            if (openExamRequest.getMaxOpportunities() < 0 && LegacyComparer.notEqual("SIMULATION", extern.getEnvironment())) {
+            if (openExamRequest.getMaxOpportunities() < 0 && LegacyComparer.notEqual("SIMULATION", externalSessionConfiguration.getEnvironment())) {
                 return Optional.of(new ValidationError(ValidationErrorCode.SIMULATION_ENVIRONMENT_REQUIRED, "Environment must be simulation when max opportunities less than zero"));
             }
 
@@ -176,7 +176,7 @@ class ExamServiceImpl implements ExamService {
 
         //Lines 5645 - 5673 in StudentDLL
         if (ExamStatusCode.STAGE_CLOSED.equals(previousExam.getStatus().getStage())) {
-            if (LegacyComparer.isEqual("SIMULATION", extern.getEnvironment())) {
+            if (LegacyComparer.isEqual("SIMULATION", externalSessionConfiguration.getEnvironment())) {
                 return Optional.empty();
             }
 

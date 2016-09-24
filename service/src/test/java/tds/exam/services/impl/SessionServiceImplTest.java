@@ -11,7 +11,7 @@ import java.util.UUID;
 
 import tds.exam.configuration.ExamServiceProperties;
 import tds.exam.services.SessionService;
-import tds.session.Extern;
+import tds.session.ExternalSessionConfiguration;
 import tds.session.Session;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -43,11 +43,11 @@ public class SessionServiceImplTest {
         String url = String.format("http://localhost:8080/session/%s", sessionUUID);
 
         when(restTemplate.getForObject(url, Session.class)).thenReturn(session);
-        Optional<Session> sessionOptional = sessionService.getSession(sessionUUID);
+        Optional<Session> maybeSession = sessionService.getSession(sessionUUID);
         verify(restTemplate).getForObject(url, Session.class);
 
-        assertThat(sessionOptional.isPresent()).isTrue();
-        assertThat(sessionOptional.get().getId()).isEqualTo(sessionUUID);
+        assertThat(maybeSession.isPresent()).isTrue();
+        assertThat(maybeSession.get().getId()).isEqualTo(sessionUUID);
     }
 
     @Test
@@ -55,18 +55,18 @@ public class SessionServiceImplTest {
         UUID sessionUUID = UUID.randomUUID();
         String url = String.format("http://localhost:8080/session/%s", sessionUUID);
         when(restTemplate.getForObject(url, Session.class)).thenThrow(new RestClientException("Fail"));
-        Optional<Session> sessionOptional = sessionService.getSession(sessionUUID);
+        Optional<Session> maybeSession = sessionService.getSession(sessionUUID);
         verify(restTemplate).getForObject(url, Session.class);
 
-        assertThat(sessionOptional.isPresent()).isFalse();
+        assertThat(maybeSession.isPresent()).isFalse();
     }
 
     @Test
     public void shouldReturnExternForClientName() {
         String url = "http://localhost:8080/session/externs/SBAC";
-        Extern extern = new Extern("SBAC", "SIMULATION");
-        when(restTemplate.getForObject(url, Extern.class)).thenReturn(extern);
-        Optional<Extern> externOptional = sessionService.getExternByClientName("SBAC");
-        verify(restTemplate).getForObject(url, Extern.class);
+        ExternalSessionConfiguration extern = new ExternalSessionConfiguration("SBAC", "SIMULATION");
+        when(restTemplate.getForObject(url, ExternalSessionConfiguration.class)).thenReturn(extern);
+        sessionService.getExternalSessionConfigurationByClientName("SBAC");
+        verify(restTemplate).getForObject(url, ExternalSessionConfiguration.class);
     }
 }

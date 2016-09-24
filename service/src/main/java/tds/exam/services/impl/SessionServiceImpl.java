@@ -13,7 +13,7 @@ import java.util.UUID;
 
 import tds.exam.configuration.ExamServiceProperties;
 import tds.exam.services.SessionService;
-import tds.session.Extern;
+import tds.session.ExternalSessionConfiguration;
 import tds.session.Session;
 
 @Service
@@ -47,19 +47,19 @@ class SessionServiceImpl implements SessionService {
     }
 
     @Override
-    public Optional<Extern> getExternByClientName(String clientName) {
+    public Optional<ExternalSessionConfiguration> getExternalSessionConfigurationByClientName(String clientName) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
                 .fromHttpUrl(String.format("%s/externs/%s", examServiceProperties.getSessionUrl(), clientName));
 
-        Optional<Extern> externOptional = Optional.empty();
+        Optional<ExternalSessionConfiguration> maybeExternalSessionConfig = Optional.empty();
         try {
-            final Extern extern = restTemplate.getForObject(builder.toUriString(), Extern.class);
-            externOptional = Optional.of(extern);
+            final ExternalSessionConfiguration externalSessionConfiguration = restTemplate.getForObject(builder.toUriString(), ExternalSessionConfiguration.class);
+            maybeExternalSessionConfig = Optional.of(externalSessionConfiguration);
         } catch (RestClientException rce) {
             LOG.debug("Exception thrown when retrieving session", rce);
         }
 
-        return externOptional;
+        return maybeExternalSessionConfig;
     }
 }
