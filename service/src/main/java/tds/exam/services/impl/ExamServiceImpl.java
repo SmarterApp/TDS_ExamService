@@ -1,6 +1,5 @@
 package tds.exam.services.impl;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,39 +49,39 @@ class ExamServiceImpl implements ExamService {
 
     @Override
     public Response<Exam> openExam(OpenExamRequest openExamRequest) {
-        Optional<Session> sessionOptional = sessionService.getSession(openExamRequest.getSessionId());
-        if (!sessionOptional.isPresent()) {
+        Optional<Session> maybeSession = sessionService.getSession(openExamRequest.getSessionId());
+        if (!maybeSession.isPresent()) {
             throw new IllegalArgumentException(String.format("Could not find session for %s", openExamRequest.getSessionId()));
         }
 
-        if(!openExamRequest.isGuestStudent()) {
-            Optional<Student> studentOptional = studentService.getStudentById(openExamRequest.getStudentId());
-            if (!studentOptional.isPresent()) {
+        if (!openExamRequest.isGuestStudent()) {
+            Optional<Student> maybeStudent = studentService.getStudentById(openExamRequest.getStudentId());
+            if (!maybeStudent.isPresent()) {
                 throw new IllegalArgumentException(String.format("Could not find student for %s", openExamRequest.getStudentId()));
             }
         }
 
-        Session currentSession = sessionOptional.get();
+        Session currentSession = maybeSession.get();
 
         //Previous exam is retrieved in lines 5492 - 5530 and 5605 - 5645 in StudentDLL
-        Optional<Exam> previousExamOptional = examQueryRepository.getLastAvailableExam(openExamRequest.getStudentId(), openExamRequest.getAssessmentId(), openExamRequest.getClientName());
+        Optional<Exam> maybePreviousExam = examQueryRepository.getLastAvailableExam(openExamRequest.getStudentId(), openExamRequest.getAssessmentId(), openExamRequest.getClientName());
 
         boolean canOpenPreviousExam = false;
-        if (previousExamOptional.isPresent()) {
-            Pair<Boolean, Optional<ValidationError>> canOpenPreviousExamPair = canOpenPreviousExam(previousExamOptional.get(), currentSession);
+        if (maybePreviousExam.isPresent()) {
+            Optional<ValidationError> canOpenPreviousExamError = canOpenPreviousExam(maybePreviousExam.get(), currentSession);
 
-            if (canOpenPreviousExamPair.getRight().isPresent()) {
-                return new Response<Exam>(canOpenPreviousExamPair.getRight().get());
+            if (canOpenPreviousExamError.isPresent()) {
+                return new Response<Exam>(canOpenPreviousExamError.get());
             }
 
-            canOpenPreviousExam = canOpenPreviousExamPair.getLeft();
+            canOpenPreviousExam = true;
         }
 
         Exam exam;
         if (canOpenPreviousExam) {
             //Open previous exam
             LOG.debug("Can open previous exam");
-            exam = new Exam.Builder().withId(previousExamOptional.get().getId()).build();
+            exam = new Exam.Builder().withId(maybePreviousExam.get().getId()).build();
         } else {
             //Line 5602 in StudentDLL
             Optional<ExternalSessionConfiguration> maybeExternalSessionConfiguration = sessionService.getExternalSessionConfigurationByClientName(openExamRequest.getClientName());
@@ -92,10 +91,10 @@ class ExamServiceImpl implements ExamService {
             }
 
             ExternalSessionConfiguration externalSessionConfiguration = maybeExternalSessionConfiguration.get();
-            Exam previousExam = previousExamOptional.isPresent() ? previousExamOptional.get() : null;
-            Optional<ValidationError> openNewExamOptional = canCreateNewExam(openExamRequest, previousExam, externalSessionConfiguration);
-            if (openNewExamOptional.isPresent()) {
-                return new Response<Exam>(openNewExamOptional.get());
+            Exam previousExam = maybePreviousExam.isPresent() ? maybePreviousExam.get() : null;
+            Optional<ValidationError> maybeOpenNewExam = canCreateNewExam(openExamRequest, previousExam, externalSessionConfiguration);
+            if (maybeOpenNewExam.isPresent()) {
+                return new Response<Exam>(maybeOpenNewExam.get());
             }
 
             exam = new Exam.Builder().withId(UUID.randomUUID()).build();
@@ -116,31 +115,30 @@ class ExamServiceImpl implements ExamService {
         Instant startTime = Instant.now();
 
 
-
         return null;
     }
 
-    private Pair<Boolean, Optional<ValidationError>> canOpenPreviousExam(Exam previousExam, Session currentSession) {
+    private Optional<ValidationError> canOpenPreviousExam(Exam previousExam, Session currentSession) {
         //Port of Student.DLL lines 5526-5530
         if (ExamStatusCode.STAGE_CLOSED.equals(previousExam.getStatus().getStage())) {
-            return Pair.of(true, Optional.empty());
+            return Optional.empty();
         }
 
         //Port of Student.DLL lines 5531-5551
         //If either session type is null or if they don't match an error is returned
-        Optional<Session> previousSessionOptional = sessionService.getSession(previousExam.getSessionId());
-        if (!previousSessionOptional.isPresent()) {
-            return Pair.of(false, Optional.of(new ValidationError(ValidationErrorCode.SESSION_TYPE_MISMATCH, "current session type and previous session type don't match")));
+        Optional<Session> maybePreviousSession = sessionService.getSession(previousExam.getSessionId());
+        if (!maybePreviousSession.isPresent()) {
+            return Optional.of(new ValidationError(ValidationErrorCode.SESSION_TYPE_MISMATCH, "current session type and previous session type don't match"));
         }
 
-        Session previousSession = previousSessionOptional.get();
+        Session previousSession = maybePreviousSession.get();
         if (previousSession.getType() != currentSession.getType()) {
-            return Pair.of(false, Optional.of(new ValidationError(ValidationErrorCode.SESSION_TYPE_MISMATCH, "current session type and previous session type don't match")));
+            return Optional.of(new ValidationError(ValidationErrorCode.SESSION_TYPE_MISMATCH, "current session type and previous session type don't match"));
         }
 
         //Port of Student.DLL lines 5555-5560
         if (ExamStatusCode.STAGE_INACTIVE.equals(previousExam.getStatus().getStage())) {
-            return Pair.of(true, Optional.empty());
+            return Optional.empty();
         }
 
         /*
@@ -156,11 +154,11 @@ class ExamServiceImpl implements ExamService {
             LegacyComparer.isEqual(previousSession.getId(), currentSession.getId()) ||
             LegacyComparer.isEqual("closed", previousSession.getStatus()) ||
             LegacyComparer.greaterThan(Instant.now(), previousSession.getDateEnd())) {
-            return Pair.of(true, Optional.empty());
+            return Optional.empty();
         }
 
         //Port of Student.DLL line 5593
-        return Pair.of(false, Optional.of(new ValidationError(ValidationErrorCode.CURRENT_EXAM_OPEN, "Current exam is active")));
+        return Optional.of(new ValidationError(ValidationErrorCode.CURRENT_EXAM_OPEN, "Current exam is active"));
     }
 
     private Optional<ValidationError> canCreateNewExam(OpenExamRequest openExamRequest, Exam previousExam, ExternalSessionConfiguration externalSessionConfiguration) {
