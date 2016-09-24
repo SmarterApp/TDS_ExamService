@@ -16,7 +16,7 @@ public interface SessionService {
      * @param sessionId the session id
      * @return optional populated with {@link tds.session.Session session} if found otherwise empty
      */
-    Optional<Session> getSession(UUID sessionId);
+    Optional<Session> findSessionById(UUID sessionId);
 
     /**
      * Retrieves the extern by client name
@@ -24,5 +24,5 @@ public interface SessionService {
      * @param clientName the client name for the exam
      * @return optional populated with {@link tds.session.ExternalSessionConfiguration} if found otherwise empty
      */
-    Optional<ExternalSessionConfiguration> getExternalSessionConfigurationByClientName(String clientName);
+    Optional<ExternalSessionConfiguration> findExternalSessionConfigurationByClientName(String clientName);
 }

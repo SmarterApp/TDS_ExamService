@@ -49,7 +49,7 @@ class ExamServiceImpl implements ExamService {
 
     @Override
     public Response<Exam> openExam(OpenExamRequest openExamRequest) {
-        Optional<Session> maybeSession = sessionService.getSession(openExamRequest.getSessionId());
+        Optional<Session> maybeSession = sessionService.findSessionById(openExamRequest.getSessionId());
         if (!maybeSession.isPresent()) {
             throw new IllegalArgumentException(String.format("Could not find session for %s", openExamRequest.getSessionId()));
         }
@@ -84,7 +84,7 @@ class ExamServiceImpl implements ExamService {
             exam = new Exam.Builder().withId(maybePreviousExam.get().getId()).build();
         } else {
             //Line 5602 in StudentDLL
-            Optional<ExternalSessionConfiguration> maybeExternalSessionConfiguration = sessionService.getExternalSessionConfigurationByClientName(openExamRequest.getClientName());
+            Optional<ExternalSessionConfiguration> maybeExternalSessionConfiguration = sessionService.findExternalSessionConfigurationByClientName(openExamRequest.getClientName());
 
             if (!maybeExternalSessionConfiguration.isPresent()) {
                 throw new IllegalStateException("External Session Configuration could not be found for client name " + openExamRequest.getClientName());
@@ -126,7 +126,7 @@ class ExamServiceImpl implements ExamService {
 
         //Port of Student.DLL lines 5531-5551
         //If either session type is null or if they don't match an error is returned
-        Optional<Session> maybePreviousSession = sessionService.getSession(previousExam.getSessionId());
+        Optional<Session> maybePreviousSession = sessionService.findSessionById(previousExam.getSessionId());
         if (!maybePreviousSession.isPresent()) {
             return Optional.of(new ValidationError(ValidationErrorCode.SESSION_TYPE_MISMATCH, "current session type and previous session type don't match"));
         }

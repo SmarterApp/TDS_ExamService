@@ -31,7 +31,7 @@ class SessionServiceImpl implements SessionService {
     }
 
     @Override
-    public Optional<Session> getSession(UUID sessionId) {
+    public Optional<Session> findSessionById(UUID sessionId) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
                 .fromHttpUrl(String.format("%s/%s", examServiceProperties.getSessionUrl(), sessionId));
@@ -50,7 +50,7 @@ class SessionServiceImpl implements SessionService {
     }
 
     @Override
-    public Optional<ExternalSessionConfiguration> getExternalSessionConfigurationByClientName(String clientName) {
+    public Optional<ExternalSessionConfiguration> findExternalSessionConfigurationByClientName(String clientName) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
                 .fromHttpUrl(String.format("%s/externs/%s", examServiceProperties.getSessionUrl(), clientName));
