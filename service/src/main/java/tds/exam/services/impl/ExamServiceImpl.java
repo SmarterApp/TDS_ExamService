@@ -87,7 +87,7 @@ class ExamServiceImpl implements ExamService {
             Optional<ExternalSessionConfiguration> maybeExternalSessionConfiguration = sessionService.getExternalSessionConfigurationByClientName(openExamRequest.getClientName());
 
             if (!maybeExternalSessionConfiguration.isPresent()) {
-                throw new IllegalStateException("Extern could not be found for client name " + openExamRequest.getClientName());
+                throw new IllegalStateException("External Session Configuration could not be found for client name " + openExamRequest.getClientName());
             }
 
             ExternalSessionConfiguration externalSessionConfiguration = maybeExternalSessionConfiguration.get();
