@@ -18,6 +18,7 @@ import tds.exam.ExamStatusCode;
 import tds.exam.OpenExamRequest;
 import tds.exam.error.ValidationErrorCode;
 import tds.exam.repositories.ExamQueryRepository;
+import tds.exam.services.AssessmentService;
 import tds.exam.services.ExamService;
 import tds.exam.services.SessionService;
 import tds.exam.services.StudentService;
@@ -34,12 +35,17 @@ class ExamServiceImpl implements ExamService {
     private final ExamQueryRepository examQueryRepository;
     private final SessionService sessionService;
     private final StudentService studentService;
+    private final AssessmentService assessmentService;
 
     @Autowired
-    public ExamServiceImpl(ExamQueryRepository examQueryRepository, SessionService sessionService, StudentService studentService) {
+    public ExamServiceImpl(ExamQueryRepository examQueryRepository,
+                           SessionService sessionService,
+                           StudentService studentService,
+                           AssessmentService assessmentService) {
         this.examQueryRepository = examQueryRepository;
         this.sessionService = sessionService;
         this.studentService = studentService;
+        this.assessmentService = assessmentService;
     }
 
     @Override

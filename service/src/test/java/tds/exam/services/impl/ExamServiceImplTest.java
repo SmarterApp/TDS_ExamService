@@ -16,6 +16,7 @@ import tds.exam.ExamStatusCode;
 import tds.exam.OpenExamRequest;
 import tds.exam.error.ValidationErrorCode;
 import tds.exam.repositories.ExamQueryRepository;
+import tds.exam.services.AssessmentService;
 import tds.exam.services.SessionService;
 import tds.exam.services.StudentService;
 import tds.session.ExternalSessionConfiguration;
@@ -31,13 +32,15 @@ public class ExamServiceImplTest {
     private ExamServiceImpl examService;
     private SessionService sessionService;
     private StudentService studentService;
+    private AssessmentService assessmentService;
 
     @Before
     public void setUp() {
         repository = mock(ExamQueryRepository.class);
         sessionService = mock(SessionService.class);
         studentService = mock(StudentService.class);
-        examService = new ExamServiceImpl(repository, sessionService, studentService);
+        assessmentService = mock(AssessmentService.class);
+        examService = new ExamServiceImpl(repository, sessionService, studentService, assessmentService);
     }
 
     @After
