@@ -36,8 +36,13 @@
         </dependency>
         <dependency>
             <groupId>org.opentestsystem.student</groupId>
-            <artifactId>tds-student-service-client</artifactId>
-            <version>${tds-student-service-client.version}</version>
+            <artifactId>tds-student-client</artifactId>
+            <version>${tds-student-client.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.opentestsystem.assessment</groupId>
+            <artifactId>tds-assessment-client</artifactId>
+            <version>${tds-assessment-client.version}</version>
         </dependency>
 
         <!-- Spring -->

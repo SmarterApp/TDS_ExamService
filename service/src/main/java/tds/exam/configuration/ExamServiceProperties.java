@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 public class ExamServiceProperties {
     private String sessionUrl = "";
     private String studentUrl = "";
+    private String assessmentUrl = "";
 
     /**
      * Get the URL for the session microservice.  Will always end with "/" unless blank
@@ -24,7 +25,7 @@ public class ExamServiceProperties {
      * @param sessionUrl not null student url
      */
     public void setSessionUrl(String sessionUrl) {
-        if(sessionUrl == null) throw new IllegalArgumentException("sessionUrl cannot be null");
+        if (sessionUrl == null) throw new IllegalArgumentException("sessionUrl cannot be null");
 
         this.sessionUrl = sessionUrl;
     }
@@ -41,8 +42,22 @@ public class ExamServiceProperties {
     }
 
     public void setStudentUrl(String studentUrl) {
-        if(studentUrl == null) throw new IllegalArgumentException("studentUrl cannot be null");
+        if (studentUrl == null) throw new IllegalArgumentException("studentUrl cannot be null");
 
         this.studentUrl = studentUrl;
+    }
+
+    /**
+     * Get the URL for the assessment microservice.  Will always end with "/" unless blank
+     *
+     * @return assessment microservice URL
+     */
+    public String getAssessmentUrl() {
+        return assessmentUrl;
+    }
+
+    public void setAssessmentUrl(String assessmentUrl) {
+        if (studentUrl == null) throw new IllegalArgumentException("asssessmentUrl cannot be null");
+        this.assessmentUrl = assessmentUrl;
     }
 }
