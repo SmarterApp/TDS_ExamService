@@ -53,7 +53,9 @@ public class ExamServiceProperties {
      * @return assessment microservice URL
      */
     public String getAssessmentUrl() {
-        return assessmentUrl;
+        return assessmentUrl.endsWith("/")
+            ? assessmentUrl
+            : assessmentUrl + "/";
     }
 
     public void setAssessmentUrl(String assessmentUrl) {
