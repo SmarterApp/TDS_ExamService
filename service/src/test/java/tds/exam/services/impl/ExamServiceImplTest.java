@@ -59,7 +59,7 @@ public class ExamServiceImplTest {
         openExamRequest.setStudentId(1);
 
         when(sessionService.findSessionById(sessionId)).thenReturn(Optional.empty());
-        when(studentService.getStudentById(1)).thenReturn(Optional.of(new Student()));
+        when(studentService.getStudentById(1)).thenReturn(Optional.of(new Student(1, "testId", "CA", "clientName")));
 
         examService.openExam(openExamRequest);
     }
@@ -93,8 +93,7 @@ public class ExamServiceImplTest {
         previousSession.setId(UUID.randomUUID());
         previousSession.setType(33);
 
-        Student student = new Student();
-        student.setId(1);
+        Student student = new Student(1, "testId", "CA", "clientName");
 
         Exam previousExam = new Exam.Builder()
             .withId(UUID.randomUUID())
@@ -132,8 +131,7 @@ public class ExamServiceImplTest {
         previousSession.setId(UUID.randomUUID());
         previousSession.setType(33);
 
-        Student student = new Student();
-        student.setId(1);
+        Student student = new Student(1, "testId", "CA", "clientName");
 
         when(sessionService.findSessionById(sessionId)).thenReturn(Optional.of(currentSession));
         when(studentService.getStudentById(1)).thenReturn(Optional.of(student));
@@ -159,8 +157,7 @@ public class ExamServiceImplTest {
         previousSession.setId(UUID.randomUUID());
         previousSession.setType(2);
 
-        Student student = new Student();
-        student.setId(1);
+        Student student = new Student(1, "testId", "CA", "clientName");
 
         when(sessionService.findSessionById(sessionId)).thenReturn(Optional.of(currentSession));
         when(studentService.getStudentById(1)).thenReturn(Optional.of(student));
@@ -195,8 +192,7 @@ public class ExamServiceImplTest {
         previousSession.setId(UUID.randomUUID());
         previousSession.setType(2);
 
-        Student student = new Student();
-        student.setId(1);
+        Student student = new Student(1, "testId", "CA", "clientName");
 
         Exam previousExam = new Exam.Builder()
             .withId(UUID.randomUUID())
@@ -237,8 +233,7 @@ public class ExamServiceImplTest {
         previousSession.setId(UUID.randomUUID());
         previousSession.setType(2);
 
-        Student student = new Student();
-        student.setId(1);
+        Student student = new Student(1, "testId", "CA", "clientName");
 
         Exam previousExam = new Exam.Builder()
             .withId(UUID.randomUUID())
@@ -279,8 +274,7 @@ public class ExamServiceImplTest {
         previousSession.setType(2);
         previousSession.setStatus("closed");
 
-        Student student = new Student();
-        student.setId(1);
+        Student student = new Student(1, "testId", "CA", "clientName");
 
         Exam previousExam = new Exam.Builder()
             .withId(UUID.randomUUID())
@@ -320,8 +314,7 @@ public class ExamServiceImplTest {
         previousSession.setId(sessionId);
         previousSession.setType(2);
 
-        Student student = new Student();
-        student.setId(1);
+        Student student = new Student(1, "testId", "CA", "clientName");
 
         Exam previousExam = new Exam.Builder()
             .withId(UUID.randomUUID())
@@ -362,8 +355,7 @@ public class ExamServiceImplTest {
         previousSession.setType(2);
         previousSession.setDateEnd(Instant.now().minus(1, ChronoUnit.DAYS));
 
-        Student student = new Student();
-        student.setId(1);
+        Student student = new Student(1, "testId", "CA", "clientName");
 
         Exam previousExam = new Exam.Builder()
             .withId(UUID.randomUUID())
