@@ -27,10 +27,6 @@ import tds.exam.repositories.ExamQueryRepository;
 
 @Repository
 public class ExamQueryRepositoryImpl implements ExamQueryRepository {
-    private static final String BASE_SELECT_QUERY = "SELECT exam.id as examId, session_id, assessment_id, student_id, times_taken, exam.status, client_name, date_started, date_deleted, date_changed, created_at, esc.description, esc.stage \n " +
-        "FROM exam.exam exam \n" +
-        "JOIN exam_status_codes esc ON esc.status = exam.status \n";
-
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     @Autowired
@@ -42,7 +38,24 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
     public Optional<Exam> getExamById(UUID id) {
         final SqlParameterSource parameters = new MapSqlParameterSource("id", UuidAdapter.getBytesFromUUID(id));
 
-        String query = BASE_SELECT_QUERY + " WHERE id = :id";
+        String query = "SELECT " +
+            "exam.id as examId, " +
+            "session_id, " +
+            "assessment_id, " +
+            "student_id, " +
+            "times_taken, " +
+            "exam.status, " +
+            "client_name, " +
+            "date_started, " +
+            "date_deleted, " +
+            "date_changed, " +
+            "date_completed, " +
+            "created_at, " +
+            "esc.description, " +
+            "esc.stage \n " +
+            "FROM exam.exam exam \n" +
+            "JOIN exam_status_codes esc ON esc.status = exam.status \n" +
+            " WHERE id = :id";
 
         Optional<Exam> examOptional;
         try {
@@ -64,7 +77,23 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
 
         final SqlParameterSource parameters = new MapSqlParameterSource(queryParameters);
 
-        String query = BASE_SELECT_QUERY +
+        String query = "SELECT " +
+            "exam.id as examId, " +
+            "session_id, " +
+            "assessment_id, " +
+            "student_id, " +
+            "times_taken, " +
+            "exam.status, " +
+            "client_name, " +
+            "date_started, " +
+            "date_deleted, " +
+            "date_changed, " +
+            "date_completed, " +
+            "created_at, " +
+            "esc.description, " +
+            "esc.stage \n " +
+            "FROM exam.exam exam \n" +
+            "JOIN exam_status_codes esc ON esc.status = exam.status \n" +
             "WHERE date_deleted IS NULL \n" +
             "AND student_id = :studentId \n" +
             "AND assessment_id = :assessmentId \n" +
