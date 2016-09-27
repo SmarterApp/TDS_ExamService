@@ -31,7 +31,9 @@ public class OpenExamRequest {
 
     private String guestAccommodations;
 
-    //TODO - find what this means
+    /**
+     * @return accommodations that are needed when a guest is taking the exam
+     */
     public String getGuestAccommodations() {
         return guestAccommodations;
     }
