@@ -90,7 +90,7 @@ public class ExamControllerTest {
         openExamRequest.setStudentId(1);
 
         UUID examId = UUID.randomUUID();
-        when(examService.openExam(openExamRequest)).thenReturn(new Response<Exam>(new Exam.Builder().withId(examId).build()));
+        when(examService.openExam(openExamRequest)).thenReturn(new Response<>(new Exam.Builder().withId(examId).build()));
 
         ResponseEntity<ExamResource> response = controller.openExam(openExamRequest);
 
