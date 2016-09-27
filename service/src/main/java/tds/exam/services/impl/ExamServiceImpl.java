@@ -186,10 +186,10 @@ class ExamServiceImpl implements ExamService {
 
             if (previousExam.getDateCompleted() != null) {
                 Duration duration = Duration.between(previousExam.getDateChanged(), Instant.now());
-                if (LegacyComparer.lessThan(previousExam.getTimeTaken(), openExamRequest.getMaxOpportunities()) &&
+                if (LegacyComparer.lessThan(previousExam.getAttempts(), openExamRequest.getMaxOpportunities()) &&
                     LegacyComparer.greaterThan(duration.get(DAYS), openExamRequest.getNumberOfDaysToDelay())) {
                     return Optional.empty();
-                } else if (LegacyComparer.greaterOrEqual(previousExam.getTimeTaken(), openExamRequest.getMaxOpportunities())) {
+                } else if (LegacyComparer.greaterOrEqual(previousExam.getAttempts(), openExamRequest.getMaxOpportunities())) {
                     return Optional.of(new ValidationError(ValidationErrorCode.MAX_OPPORTUNITY_EXCEEDED, "Max number of opportunities for exam exceeded"));
                 } else {
                     return Optional.of(new ValidationError(ValidationErrorCode.NOT_ENOUGH_DAYS_PASSED, String.format("Next exam cannot be started until %s days pass since last exam", openExamRequest.getNumberOfDaysToDelay())));

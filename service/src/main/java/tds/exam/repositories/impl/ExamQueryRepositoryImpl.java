@@ -90,7 +90,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 .withSessionId(UuidAdapter.getUUIDFromBytes(rs.getBytes("session_id")))
                 .withAssessmentId(rs.getString("assessment_id"))
                 .withStudentId(rs.getLong("student_id"))
-                .withTimeTaken(rs.getInt("times_taken"))
+                .withAttempts(rs.getInt("times_taken"))
                 .withClientName(rs.getString("client_name"))
                 .withDateStarted(mapTimezoneToInstant(rs, "date_started"))
                 .withDateChanged(mapTimezoneToInstant(rs, "date_changed"))

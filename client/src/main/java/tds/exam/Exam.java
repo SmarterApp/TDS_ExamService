@@ -11,7 +11,7 @@ public class Exam {
     private UUID sessionId;
     private String assessmentId;
     private long studentId;
-    private int timeTaken;
+    private int attempts;
     private ExamStatusCode status;
     private String clientName;
     private Instant dateStarted;
@@ -25,7 +25,7 @@ public class Exam {
         private UUID sessionId;
         private String assessmentId;
         private long studentId;
-        private int timeTaken;
+        private int attempts;
         private ExamStatusCode status = new ExamStatusCode.Builder().build();
         private String clientName;
         private Instant dateStarted;
@@ -54,8 +54,8 @@ public class Exam {
             return this;
         }
 
-        public Builder withTimeTaken(int newTimeTaken) {
-            timeTaken = newTimeTaken;
+        public Builder withAttempts(int attempts) {
+            this.attempts = attempts;
             return this;
         }
 
@@ -104,7 +104,7 @@ public class Exam {
         sessionId = builder.sessionId;
         assessmentId = builder.assessmentId;
         studentId = builder.studentId;
-        timeTaken = builder.timeTaken;
+        attempts = builder.attempts;
         status = builder.status;
         clientName = builder.clientName;
         dateStarted = builder.dateStarted;
@@ -130,8 +130,8 @@ public class Exam {
         return studentId;
     }
 
-    public int getTimeTaken() {
-        return timeTaken;
+    public int getAttempts() {
+        return attempts;
     }
 
     public ExamStatusCode getStatus() {
