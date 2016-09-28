@@ -39,11 +39,11 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
         final SqlParameterSource parameters = new MapSqlParameterSource("id", UuidAdapter.getBytesFromUUID(id));
 
         String query = "SELECT " +
-            "exam.id as examId, " +
+            "exam_id, " +
             "session_id, " +
             "assessment_id, " +
             "student_id, " +
-            "times_taken, " +
+            "attempts, " +
             "exam.status, " +
             "client_name, " +
             "date_started, " +
@@ -55,7 +55,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
             "esc.stage \n " +
             "FROM exam.exam exam \n" +
             "JOIN exam_status_codes esc ON esc.status = exam.status \n" +
-            " WHERE id = :id";
+            "WHERE exam_id = :id";
 
         Optional<Exam> examOptional;
         try {
@@ -63,7 +63,6 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
         } catch (EmptyResultDataAccessException e) {
             examOptional = Optional.empty();
         }
-
 
         return examOptional;
     }
@@ -78,11 +77,11 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
         final SqlParameterSource parameters = new MapSqlParameterSource(queryParameters);
 
         String query = "SELECT " +
-            "exam.id as examId, " +
+            "exam_id, " +
             "session_id, " +
             "assessment_id, " +
             "student_id, " +
-            "times_taken, " +
+            "attempts, " +
             "exam.status, " +
             "client_name, " +
             "date_started, " +
@@ -98,7 +97,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
             "AND student_id = :studentId \n" +
             "AND assessment_id = :assessmentId \n" +
             "AND client_name = :clientName \n" +
-            "ORDER BY exam.created_at DESC \n" +
+            "ORDER BY exam_id DESC \n" +
             "LIMIT 1";
 
         Optional<Exam> examOptional;
@@ -115,11 +114,11 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
         @Override
         public Exam mapRow(ResultSet rs, int rowNum) throws SQLException {
             return new Exam.Builder()
-                .withId(UuidAdapter.getUUIDFromBytes(rs.getBytes("examId")))
+                .withId(UuidAdapter.getUUIDFromBytes(rs.getBytes("exam_id")))
                 .withSessionId(UuidAdapter.getUUIDFromBytes(rs.getBytes("session_id")))
                 .withAssessmentId(rs.getString("assessment_id"))
                 .withStudentId(rs.getLong("student_id"))
-                .withAttempts(rs.getInt("times_taken"))
+                .withAttempts(rs.getInt("attempts"))
                 .withClientName(rs.getString("client_name"))
                 .withDateStarted(mapTimezoneToInstant(rs, "date_started"))
                 .withDateChanged(mapTimezoneToInstant(rs, "date_changed"))
