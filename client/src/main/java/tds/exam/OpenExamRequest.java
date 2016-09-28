@@ -18,7 +18,7 @@ public class OpenExamRequest {
     private String assessmentId;
 
     @NotNull
-    private int maxOpportunities;
+    private int maxAttempts;
 
     @NotNull
     private UUID sessionId;
@@ -101,15 +101,15 @@ public class OpenExamRequest {
     /**
      * @return max number of opportunities the student has to take the exam
      */
-    public int getMaxOpportunities() {
-        return maxOpportunities;
+    public int getMaxAttempts() {
+        return maxAttempts;
     }
 
     /**
-     * @param maxOpportunities max number of opportunities the student has to take the exam
+     * @param maxAttempts max number of opportunities the student has to take the exam
      */
-    public void setMaxOpportunities(int maxOpportunities) {
-        this.maxOpportunities = maxOpportunities;
+    public void setMaxAttempts(int maxAttempts) {
+        this.maxAttempts = maxAttempts;
     }
 
     /**

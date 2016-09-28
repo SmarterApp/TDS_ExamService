@@ -171,7 +171,7 @@ class ExamServiceImpl implements ExamService {
 
         //Lines 5612 - 5618 in StudentDLL
         if (previousExam == null) {
-            if (openExamRequest.getMaxOpportunities() < 0 && LegacyComparer.notEqual("SIMULATION", externalSessionConfiguration.getEnvironment())) {
+            if (openExamRequest.getMaxAttempts() < 0 && LegacyComparer.notEqual("SIMULATION", externalSessionConfiguration.getEnvironment())) {
                 return Optional.of(new ValidationError(ValidationErrorCode.SIMULATION_ENVIRONMENT_REQUIRED, "Environment must be simulation when max opportunities less than zero"));
             }
 
@@ -186,10 +186,10 @@ class ExamServiceImpl implements ExamService {
 
             if (previousExam.getDateCompleted() != null) {
                 Duration duration = Duration.between(previousExam.getDateChanged(), Instant.now());
-                if (LegacyComparer.lessThan(previousExam.getAttempts(), openExamRequest.getMaxOpportunities()) &&
+                if (LegacyComparer.lessThan(previousExam.getAttempts(), openExamRequest.getMaxAttempts()) &&
                     LegacyComparer.greaterThan(duration.get(DAYS), openExamRequest.getNumberOfDaysToDelay())) {
                     return Optional.empty();
-                } else if (LegacyComparer.greaterOrEqual(previousExam.getAttempts(), openExamRequest.getMaxOpportunities())) {
+                } else if (LegacyComparer.greaterOrEqual(previousExam.getAttempts(), openExamRequest.getMaxAttempts())) {
                     return Optional.of(new ValidationError(ValidationErrorCode.MAX_OPPORTUNITY_EXCEEDED, "Max number of opportunities for exam exceeded"));
                 } else {
                     return Optional.of(new ValidationError(ValidationErrorCode.NOT_ENOUGH_DAYS_PASSED, String.format("Next exam cannot be started until %s days pass since last exam", openExamRequest.getNumberOfDaysToDelay())));

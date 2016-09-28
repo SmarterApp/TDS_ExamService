@@ -151,7 +151,7 @@ public class ExamServiceImplTest {
         openExamRequest.setSessionId(sessionId);
         openExamRequest.setAssessmentId("assessmentId");
         openExamRequest.setClientName("SBAC-PT");
-        openExamRequest.setMaxOpportunities(-1);
+        openExamRequest.setMaxAttempts(-1);
 
         Session currentSession = new Session();
         currentSession.setType(2);
@@ -186,7 +186,7 @@ public class ExamServiceImplTest {
         openExamRequest.setSessionId(sessionId);
         openExamRequest.setAssessmentId("assessmentId");
         openExamRequest.setClientName("SBAC-PT");
-        openExamRequest.setMaxOpportunities(5);
+        openExamRequest.setMaxAttempts(5);
 
         Session currentSession = new Session();
         currentSession.setType(2);
@@ -227,7 +227,7 @@ public class ExamServiceImplTest {
         openExamRequest.setSessionId(sessionId);
         openExamRequest.setAssessmentId("assessmentId");
         openExamRequest.setClientName("SBAC-PT");
-        openExamRequest.setMaxOpportunities(5);
+        openExamRequest.setMaxAttempts(5);
 
         Session currentSession = new Session();
         currentSession.setType(2);
@@ -267,7 +267,7 @@ public class ExamServiceImplTest {
         openExamRequest.setSessionId(sessionId);
         openExamRequest.setAssessmentId("assessmentId");
         openExamRequest.setClientName("SBAC-PT");
-        openExamRequest.setMaxOpportunities(5);
+        openExamRequest.setMaxAttempts(5);
 
         Session currentSession = new Session();
         currentSession.setType(2);
@@ -308,7 +308,7 @@ public class ExamServiceImplTest {
         openExamRequest.setSessionId(sessionId);
         openExamRequest.setAssessmentId("assessmentId");
         openExamRequest.setClientName("SBAC-PT");
-        openExamRequest.setMaxOpportunities(5);
+        openExamRequest.setMaxAttempts(5);
 
         Session currentSession = new Session();
         currentSession.setType(2);
@@ -348,7 +348,7 @@ public class ExamServiceImplTest {
         openExamRequest.setSessionId(sessionId);
         openExamRequest.setAssessmentId("assessmentId");
         openExamRequest.setClientName("SBAC-PT");
-        openExamRequest.setMaxOpportunities(5);
+        openExamRequest.setMaxAttempts(5);
 
         Session currentSession = new Session();
         currentSession.setType(2);
@@ -389,7 +389,7 @@ public class ExamServiceImplTest {
         openExamRequest.setSessionId(sessionId);
         openExamRequest.setAssessmentId("assessmentId");
         openExamRequest.setClientName("SBAC-PT");
-        openExamRequest.setMaxOpportunities(5);
+        openExamRequest.setMaxAttempts(5);
 
         Session currentSession = new Session();
         currentSession.setType(2);
