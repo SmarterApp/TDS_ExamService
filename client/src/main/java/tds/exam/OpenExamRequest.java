@@ -99,14 +99,14 @@ public class OpenExamRequest {
     }
 
     /**
-     * @return max number of opportunities the student has to take the exam
+     * @return max number of attempts the student has to take the exam
      */
     public int getMaxAttempts() {
         return maxAttempts;
     }
 
     /**
-     * @param maxAttempts max number of opportunities the student has to take the exam
+     * @param maxAttempts max number of attempts the student has to take the exam
      */
     public void setMaxAttempts(int maxAttempts) {
         this.maxAttempts = maxAttempts;
