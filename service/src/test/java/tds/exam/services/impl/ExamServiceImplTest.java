@@ -74,7 +74,7 @@ public class ExamServiceImplTest {
         openExamRequest.setStudentId(1);
         openExamRequest.setSessionId(sessionId);
 
-        when(sessionService.findSessionById(sessionId)).thenReturn(Optional.of(new Session()));
+        when(sessionService.findSessionById(sessionId)).thenReturn(Optional.of(new Session.Builder().build()));
         when(studentService.getStudentById(1)).thenReturn(Optional.empty());
 
         examService.openExam(openExamRequest);
@@ -89,12 +89,14 @@ public class ExamServiceImplTest {
         openExamRequest.setAssessmentId("assessmentId");
         openExamRequest.setClientName("SBAC-PT");
 
-        Session currentSession = new Session();
-        currentSession.setType(2);
+        Session currentSession = new Session.Builder()
+            .withType(2)
+            .build();
 
-        Session previousSession = new Session();
-        previousSession.setId(UUID.randomUUID());
-        previousSession.setType(33);
+        Session previousSession = new Session.Builder()
+            .withId(UUID.randomUUID())
+            .withType(33)
+            .build();
 
         Student student = new Student(1, "testId", "CA", "clientName");
 
@@ -127,12 +129,9 @@ public class ExamServiceImplTest {
         openExamRequest.setAssessmentId("assessmentId");
         openExamRequest.setClientName("SBAC-PT");
 
-        Session currentSession = new Session();
-        currentSession.setType(2);
-
-        Session previousSession = new Session();
-        previousSession.setId(UUID.randomUUID());
-        previousSession.setType(33);
+        Session currentSession = new Session.Builder()
+            .withType(2)
+            .build();
 
         Student student = new Student(1, "testId", "CA", "clientName");
 
@@ -153,12 +152,14 @@ public class ExamServiceImplTest {
         openExamRequest.setClientName("SBAC-PT");
         openExamRequest.setMaxAttempts(-1);
 
-        Session currentSession = new Session();
-        currentSession.setType(2);
+        Session currentSession = new Session.Builder()
+            .withType(2)
+            .build();
 
-        Session previousSession = new Session();
-        previousSession.setId(UUID.randomUUID());
-        previousSession.setType(2);
+        Session previousSession = new Session.Builder()
+            .withId(UUID.randomUUID())
+            .withType(2)
+            .build();
 
         Student student = new Student(1, "testId", "CA", "clientName");
 
@@ -188,12 +189,14 @@ public class ExamServiceImplTest {
         openExamRequest.setClientName("SBAC-PT");
         openExamRequest.setMaxAttempts(5);
 
-        Session currentSession = new Session();
-        currentSession.setType(2);
+        Session currentSession = new Session.Builder()
+            .withType(2)
+            .build();
 
-        Session previousSession = new Session();
-        previousSession.setId(UUID.randomUUID());
-        previousSession.setType(2);
+        Session previousSession = new Session.Builder()
+            .withId(UUID.randomUUID())
+            .withType(2)
+            .build();
 
         Student student = new Student(1, "testId", "CA", "clientName");
 
@@ -229,12 +232,14 @@ public class ExamServiceImplTest {
         openExamRequest.setClientName("SBAC-PT");
         openExamRequest.setMaxAttempts(5);
 
-        Session currentSession = new Session();
-        currentSession.setType(2);
+        Session currentSession = new Session.Builder()
+            .withType(2)
+            .build();
 
-        Session previousSession = new Session();
-        previousSession.setId(UUID.randomUUID());
-        previousSession.setType(2);
+        Session previousSession = new Session.Builder()
+            .withId(UUID.randomUUID())
+            .withType(2)
+            .build();
 
         Student student = new Student(1, "testId", "CA", "clientName");
 
@@ -269,13 +274,15 @@ public class ExamServiceImplTest {
         openExamRequest.setClientName("SBAC-PT");
         openExamRequest.setMaxAttempts(5);
 
-        Session currentSession = new Session();
-        currentSession.setType(2);
+        Session currentSession = new Session.Builder()
+            .withType(2)
+            .build();
 
-        Session previousSession = new Session();
-        previousSession.setId(UUID.randomUUID());
-        previousSession.setType(2);
-        previousSession.setStatus("closed");
+        Session previousSession = new Session.Builder()
+            .withId(UUID.randomUUID())
+            .withType(2)
+            .withStatus("closed")
+            .build();
 
         Student student = new Student(1, "testId", "CA", "clientName");
 
@@ -310,12 +317,14 @@ public class ExamServiceImplTest {
         openExamRequest.setClientName("SBAC-PT");
         openExamRequest.setMaxAttempts(5);
 
-        Session currentSession = new Session();
-        currentSession.setType(2);
+        Session currentSession = new Session.Builder()
+            .withType(2)
+            .build();
 
-        Session previousSession = new Session();
-        previousSession.setId(sessionId);
-        previousSession.setType(2);
+        Session previousSession = new Session.Builder()
+            .withId(sessionId)
+            .withType(2)
+            .build();
 
         Student student = new Student(1, "testId", "CA", "clientName");
 
@@ -350,13 +359,15 @@ public class ExamServiceImplTest {
         openExamRequest.setClientName("SBAC-PT");
         openExamRequest.setMaxAttempts(5);
 
-        Session currentSession = new Session();
-        currentSession.setType(2);
+        Session currentSession = new Session.Builder()
+            .withType(2)
+            .build();
 
-        Session previousSession = new Session();
-        previousSession.setId(UUID.randomUUID());
-        previousSession.setType(2);
-        previousSession.setDateEnd(Instant.now().minus(1, ChronoUnit.DAYS));
+        Session previousSession = new Session.Builder()
+            .withId(UUID.randomUUID())
+            .withType(2)
+            .withDateEnd(Instant.now().minus(1, ChronoUnit.DAYS))
+            .build();
 
         Student student = new Student(1, "testId", "CA", "clientName");
 
@@ -391,13 +402,15 @@ public class ExamServiceImplTest {
         openExamRequest.setClientName("SBAC-PT");
         openExamRequest.setMaxAttempts(5);
 
-        Session currentSession = new Session();
-        currentSession.setType(2);
+        Session currentSession = new Session.Builder()
+            .withType(2)
+            .build();
 
-        Session previousSession = new Session();
-        previousSession.setId(UUID.randomUUID());
-        previousSession.setType(2);
-        previousSession.setDateEnd(Instant.now().minus(1, ChronoUnit.DAYS));
+        Session previousSession = new Session.Builder()
+            .withId(UUID.randomUUID())
+            .withType(2)
+            .withDateEnd(Instant.now().minus(1, ChronoUnit.DAYS))
+            .build();
 
         Exam previousExam = new Exam.Builder()
             .withId(UUID.randomUUID())

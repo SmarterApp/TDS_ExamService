@@ -40,8 +40,9 @@ public class SessionServiceImplTest {
     @Test
     public void shouldReturnSession() {
         UUID sessionUUID = UUID.randomUUID();
-        Session session = new Session();
-        session.setId(sessionUUID);
+        Session session = new Session.Builder()
+            .withId(sessionUUID)
+            .build();
         String url = String.format("http://localhost:8080/session/%s", sessionUUID);
 
         when(restTemplate.getForObject(url, Session.class)).thenReturn(session);
@@ -74,7 +75,7 @@ public class SessionServiceImplTest {
 
     @Test
     public void shouldReturnExternalSessionConfigForClientName() {
-        String url = "http://localhost:8080/session/externs/SBAC";
+        String url = "http://localhost:8080/session/external-config/SBAC";
         ExternalSessionConfiguration externalSessionConfiguration = new ExternalSessionConfiguration("SBAC", "SIMULATION");
         when(restTemplate.getForObject(url, ExternalSessionConfiguration.class)).thenReturn(externalSessionConfiguration);
         Optional<ExternalSessionConfiguration> maybeExternalSessionConfiguration = sessionService.findExternalSessionConfigurationByClientName("SBAC");
@@ -85,7 +86,7 @@ public class SessionServiceImplTest {
 
     @Test
     public void shouldReturnEmptyExternalSessionConfigForClientNameWhenNotFound() {
-        String url = "http://localhost:8080/session/externs/SBAC";
+        String url = "http://localhost:8080/session/external-config/SBAC";
         when(restTemplate.getForObject(url, ExternalSessionConfiguration.class)).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
         Optional<ExternalSessionConfiguration> maybeExternalSessionConfiguration = sessionService.findExternalSessionConfigurationByClientName("SBAC");
         verify(restTemplate).getForObject(url, ExternalSessionConfiguration.class);
@@ -95,7 +96,7 @@ public class SessionServiceImplTest {
 
     @Test(expected = RestClientException.class)
     public void shouldThrowIfStatusNotNotFoundFetchingExternalSessionConfigurationByClientName() {
-        String url = "http://localhost:8080/session/externs/SBAC";
+        String url = "http://localhost:8080/session/external-config/SBAC";
         when(restTemplate.getForObject(url, ExternalSessionConfiguration.class)).thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
         sessionService.findExternalSessionConfigurationByClientName("SBAC");
     }
