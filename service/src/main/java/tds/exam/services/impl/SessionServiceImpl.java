@@ -36,17 +36,17 @@ class SessionServiceImpl implements SessionService {
             UriComponentsBuilder
                 .fromHttpUrl(String.format("%s/%s", examServiceProperties.getSessionUrl(), sessionId));
 
-        Optional<Session> sessionOptional = Optional.empty();
+        Optional<Session> maybeSession = Optional.empty();
         try {
             final Session session = restTemplate.getForObject(builder.toUriString(), Session.class);
-            sessionOptional = Optional.of(session);
+            maybeSession = Optional.of(session);
         } catch (HttpClientErrorException hce) {
             if(hce.getStatusCode() != HttpStatus.NOT_FOUND) {
                 throw hce;
             }
         }
 
-        return sessionOptional;
+        return maybeSession;
     }
 
     @Override

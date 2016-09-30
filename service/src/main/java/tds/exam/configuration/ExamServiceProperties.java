@@ -9,6 +9,7 @@ public class ExamServiceProperties {
     private String sessionUrl = "";
     private String studentUrl = "";
     private String assessmentUrl = "";
+    private String configUrl = "";
 
     /**
      * Get the URL for the session microservice.  Will always end with "/" unless blank
@@ -26,7 +27,6 @@ public class ExamServiceProperties {
      */
     public void setSessionUrl(String sessionUrl) {
         if (sessionUrl == null) throw new IllegalArgumentException("sessionUrl cannot be null");
-
         this.sessionUrl = sessionUrl;
     }
 
@@ -43,7 +43,6 @@ public class ExamServiceProperties {
 
     public void setStudentUrl(String studentUrl) {
         if (studentUrl == null) throw new IllegalArgumentException("studentUrl cannot be null");
-
         this.studentUrl = studentUrl;
     }
 
@@ -59,7 +58,23 @@ public class ExamServiceProperties {
     }
 
     public void setAssessmentUrl(String assessmentUrl) {
-        if (studentUrl == null) throw new IllegalArgumentException("asssessmentUrl cannot be null");
+        if (assessmentUrl == null) throw new IllegalArgumentException("asssessmentUrl cannot be null");
         this.assessmentUrl = assessmentUrl;
+    }
+
+    /**
+     * Get the URL for the config microservice.  Will always end with a "/" unless blank.
+     *
+     * @return config microservice URL
+     */
+    public String getConfigUrl() {
+        return configUrl.endsWith("/")
+                ? configUrl
+                : configUrl + "/";
+    }
+
+    public void setConfigUrl(String configUrl) {
+        if (configUrl == null) throw new IllegalArgumentException("configUrl cannot be null");
+        this.configUrl = configUrl;
     }
 }

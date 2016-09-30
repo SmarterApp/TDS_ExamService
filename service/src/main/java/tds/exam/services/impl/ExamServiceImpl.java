@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.security.cert.PKIXRevocationChecker;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
@@ -13,15 +14,11 @@ import java.util.UUID;
 import tds.common.Response;
 import tds.common.ValidationError;
 import tds.common.data.legacy.LegacyComparer;
-import tds.exam.Exam;
-import tds.exam.ExamStatusCode;
-import tds.exam.OpenExamRequest;
+import tds.config.TimeLimitConfiguration;
+import tds.exam.*;
 import tds.exam.error.ValidationErrorCode;
 import tds.exam.repositories.ExamQueryRepository;
-import tds.exam.services.AssessmentService;
-import tds.exam.services.ExamService;
-import tds.exam.services.SessionService;
-import tds.exam.services.StudentService;
+import tds.exam.services.*;
 import tds.session.ExternalSessionConfiguration;
 import tds.session.Session;
 import tds.student.Student;
@@ -36,16 +33,19 @@ class ExamServiceImpl implements ExamService {
     private final SessionService sessionService;
     private final StudentService studentService;
     private final AssessmentService assessmentService;
+    private final TimeLimitConfigurationService timeLimitConfigurationService;
 
     @Autowired
     public ExamServiceImpl(ExamQueryRepository examQueryRepository,
                            SessionService sessionService,
                            StudentService studentService,
-                           AssessmentService assessmentService) {
+                           AssessmentService assessmentService,
+                           TimeLimitConfigurationService timeLimitConfigurationService) {
         this.examQueryRepository = examQueryRepository;
         this.sessionService = sessionService;
         this.studentService = studentService;
         this.assessmentService = assessmentService;
+        this.timeLimitConfigurationService = timeLimitConfigurationService;
     }
 
     @Override
@@ -57,13 +57,13 @@ class ExamServiceImpl implements ExamService {
     public Response<Exam> openExam(OpenExamRequest openExamRequest) {
         Optional<Session> maybeSession = sessionService.findSessionById(openExamRequest.getSessionId());
         if (!maybeSession.isPresent()) {
-            throw new IllegalArgumentException(String.format("Could not find session for %s", openExamRequest.getSessionId()));
+            throw new IllegalArgumentException(String.format("Could not find session for id %s", openExamRequest.getSessionId()));
         }
 
         if (!openExamRequest.isGuestStudent()) {
             Optional<Student> maybeStudent = studentService.getStudentById(openExamRequest.getStudentId());
             if (!maybeStudent.isPresent()) {
-                throw new IllegalArgumentException(String.format("Could not find student for %s", openExamRequest.getStudentId()));
+                throw new IllegalArgumentException(String.format("Could not find student for id %s", openExamRequest.getStudentId()));
             }
         }
 
@@ -107,6 +107,18 @@ class ExamServiceImpl implements ExamService {
         }
 
         return new Response<>(exam);
+    }
+
+    @Override
+    public Response<ExamApproval> getApproval(ExamApprovalRequest examApprovalRequest) {
+        final ExamApproval examApproval = new ExamApproval();
+
+        Optional<ValidationError> maybeValidationErrors = verifyExamApprovalRules(examApprovalRequest);
+        if (maybeValidationErrors.isPresent()) {
+            // TODO:  handle validation errors.
+        }
+
+        return new Response<>(examApproval);
     }
 
     private Response<Exam> createExam(OpenExamRequest openExamRequest, Student student, Session session, ExternalSessionConfiguration externalSessionConfiguration) {
@@ -196,6 +208,51 @@ class ExamServiceImpl implements ExamService {
                 }
             }
         }
+
+        return Optional.empty();
+    }
+
+    private Optional<ValidationError> verifyExamApprovalRules(ExamApprovalRequest examApprovalRequest) {
+        final String SIMULATION_ENVIRONMENT = "simulation";
+        final String DEVELOPMENT_ENVIRONMENT = "development";
+
+        Optional<Exam> maybeExam = examQueryRepository.getExamById(examApprovalRequest.getExamId());
+        if (!maybeExam.isPresent()) {
+            throw new IllegalArgumentException("Exam could not be found for id " + examApprovalRequest.getExamId());
+        }
+
+        Exam exam = maybeExam.get();
+        // TODO:  Compare browser keys.
+        if (!exam.getSessionId().equals(examApprovalRequest.getSessionId())) {
+            return Optional.of(new ValidationError(ValidationErrorCode.SESSION_ID_MISMATCH, "The session keys do not match; please consult your test administrator"));
+        }
+
+        Optional<ExternalSessionConfiguration> maybeExternalSessionConfig =
+                sessionService.findExternalSessionConfigurationByClientName(examApprovalRequest.getClientName());
+        if (!maybeExternalSessionConfig.isPresent()) {
+            throw new IllegalStateException("External Session Configuration could not be found for client name " + examApprovalRequest.getClientName());
+        }
+
+        ExternalSessionConfiguration externalSessionConfiguration = maybeExternalSessionConfig.get();
+        boolean checkSession =
+                (!externalSessionConfiguration.getEnvironment().toLowerCase().equals(SIMULATION_ENVIRONMENT)
+                        && !externalSessionConfiguration.getEnvironment().toLowerCase().equals(DEVELOPMENT_ENVIRONMENT));
+
+        if (checkSession) {
+            Optional<Session> maybeSession = sessionService.findSessionById(examApprovalRequest.getSessionId());
+            if (!maybeSession.isPresent()) {
+                throw new IllegalArgumentException(String.format("Could not find session for id %s", examApprovalRequest.getSessionId()));
+            }
+
+            Session session = maybeSession.get();
+            if (!session.isOpen()) {
+                // TODO: pause session
+                return Optional.of(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_DENIED, "The session is not available for testing, please check with your test administrator."));
+            }
+        }
+
+        // TODO: Validate ta check-in time
+        Optional<TimeLimitConfiguration> maybeTimeLimitConfig = timeLimitConfigurationService.findTimeLimitConfiguration(examApprovalRequest.getClientName())
 
         return Optional.empty();
     }

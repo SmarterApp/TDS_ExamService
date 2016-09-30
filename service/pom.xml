@@ -44,6 +44,11 @@
             <artifactId>tds-assessment-client</artifactId>
             <version>${tds-assessment-client.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.opentestsystem.config</groupId>
+            <artifactId>tds-config-client</artifactId>
+            <version>${tds-config-client.version}</version>
+        </dependency>
 
         <!-- Spring -->
         <dependency>
