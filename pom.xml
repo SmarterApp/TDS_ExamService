@@ -33,6 +33,7 @@
         <tds-session.version>0.0.1-SNAPSHOT</tds-session.version>
         <tds-assessment-client.version>0.0.1-SNAPSHOT</tds-assessment-client.version>
         <tds-student-client.version>0.0.1-SNAPSHOT</tds-student-client.version>
+        <tds-config-client.version>0.0.1-SNAPSHOT</tds-config-client.version>
         <h2-database.version>1.4.191</h2-database.version>
         <mysql.version>5.1.39</mysql.version>
         <hibernate.version>5.2.4.Final</hibernate.version>
