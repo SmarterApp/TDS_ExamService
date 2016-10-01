@@ -15,6 +15,7 @@ import java.util.UUID;
 import tds.exam.configuration.ExamServiceProperties;
 import tds.exam.services.SessionService;
 import tds.session.ExternalSessionConfiguration;
+import tds.session.PauseSessionResponse;
 import tds.session.Session;
 
 @Service
@@ -66,5 +67,10 @@ class SessionServiceImpl implements SessionService {
         }
 
         return maybeExternalSessionConfig;
+    }
+
+    @Override
+    public Optional<PauseSessionResponse> pause(final UUID sessionId, final String newStatus) {
+        return Optional.empty();
     }
 }

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import java.security.cert.PKIXRevocationChecker;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -115,9 +116,10 @@ class ExamServiceImpl implements ExamService {
 
         Optional<ValidationError> maybeValidationErrors = verifyExamApprovalRules(examApprovalRequest);
         if (maybeValidationErrors.isPresent()) {
-            // TODO:  handle validation errors.
+            return new Response<ExamApproval>(maybeValidationErrors.get());
         }
 
+        examApproval.setExamApprovalStatus(ExamApprovalStatus.APPROVED);
         return new Response<>(examApproval);
     }
 
@@ -216,43 +218,52 @@ class ExamServiceImpl implements ExamService {
         final String SIMULATION_ENVIRONMENT = "simulation";
         final String DEVELOPMENT_ENVIRONMENT = "development";
 
-        Optional<Exam> maybeExam = examQueryRepository.getExamById(examApprovalRequest.getExamId());
-        if (!maybeExam.isPresent()) {
-            throw new IllegalArgumentException("Exam could not be found for id " + examApprovalRequest.getExamId());
+        Exam exam = examQueryRepository.getExamById(examApprovalRequest.getExamId())
+                .orElseThrow(() -> new IllegalArgumentException("Exam could not be found for id " + examApprovalRequest.getExamId()));
+
+        // RULE:  The browser key for the approval request must match the browser key of the exam.
+        if (!exam.getBrowserKey().equals(examApprovalRequest.getBrowserKey())) {
+            return Optional.of(new ValidationError(ValidationErrorCode.BROWSER_KEY_MISMATCH, "Access violation: System access denied"));
         }
 
-        Exam exam = maybeExam.get();
-        // TODO:  Compare browser keys.
+        // RULE:  Session id for the approval request must match the session id of the exam.
         if (!exam.getSessionId().equals(examApprovalRequest.getSessionId())) {
             return Optional.of(new ValidationError(ValidationErrorCode.SESSION_ID_MISMATCH, "The session keys do not match; please consult your test administrator"));
         }
 
-        Optional<ExternalSessionConfiguration> maybeExternalSessionConfig =
-                sessionService.findExternalSessionConfigurationByClientName(examApprovalRequest.getClientName());
-        if (!maybeExternalSessionConfig.isPresent()) {
-            throw new IllegalStateException("External Session Configuration could not be found for client name " + examApprovalRequest.getClientName());
-        }
+        Session session = sessionService.findSessionById(examApprovalRequest.getSessionId())
+                .orElseThrow(() -> new IllegalArgumentException("Could not find session for id " + examApprovalRequest.getSessionId()));
 
-        ExternalSessionConfiguration externalSessionConfiguration = maybeExternalSessionConfig.get();
-        boolean checkSession =
-                (!externalSessionConfiguration.getEnvironment().toLowerCase().equals(SIMULATION_ENVIRONMENT)
-                        && !externalSessionConfiguration.getEnvironment().toLowerCase().equals(DEVELOPMENT_ENVIRONMENT));
+        // RULE:  Unless the environment is set to "simulation" or "development", the exam's session must be open.
+        ExternalSessionConfiguration externalSessionConfig =
+                sessionService.findExternalSessionConfigurationByClientName(examApprovalRequest.getClientName())
+                        .orElseThrow(() -> new IllegalStateException("External Session Configuration could not be found for client name " + examApprovalRequest.getClientName()));
 
+        boolean checkSession = (!externalSessionConfig.getEnvironment().toLowerCase().equals(SIMULATION_ENVIRONMENT)
+                        && !externalSessionConfig.getEnvironment().toLowerCase().equals(DEVELOPMENT_ENVIRONMENT));
         if (checkSession) {
-            Optional<Session> maybeSession = sessionService.findSessionById(examApprovalRequest.getSessionId());
-            if (!maybeSession.isPresent()) {
-                throw new IllegalArgumentException(String.format("Could not find session for id %s", examApprovalRequest.getSessionId()));
-            }
-
-            Session session = maybeSession.get();
             if (!session.isOpen()) {
-                // TODO: pause session
                 return Optional.of(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_DENIED, "The session is not available for testing, please check with your test administrator."));
             }
         }
 
-        // TODO: Validate ta check-in time
-        Optional<TimeLimitConfiguration> maybeTimeLimitConfig = timeLimitConfigurationService.findTimeLimitConfiguration(examApprovalRequest.getClientName())
+        // RULE:  If the session has no proctor, there is nothing to approve.  This is either a guest session or an
+        // otherwise proctorless session.
+        if (session.getProctorId() == null) {
+            return Optional.empty();
+        }
+
+        // RULE:  Student should not be able to start an exam if the TA check-in window has expired.
+        TimeLimitConfiguration timeLimitConfig =
+                timeLimitConfigurationService.findTimeLimitConfiguration(examApprovalRequest.getClientName(), exam.getAssessmentId())
+                .orElseThrow(() -> new IllegalArgumentException(String.format("Could not find time limit configuration for client name %s and assessment id %s", examApprovalRequest.getClientName(), exam.getAssessmentId())));
+
+        if (Instant.now().isAfter(session.getDateVisited().plus(timeLimitConfig.getTaCheckinTimeMinutes(), ChronoUnit.MINUTES))) {
+            // TODO: Create session audit record
+            // TODO: determine correct status to set
+            sessionService.pause(session.getId(), "closed");
+            return Optional.of(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_SESSION_TIMEOUT, "The session is not available for testing, please check with your test administrator."));
+        }
 
         return Optional.empty();
     }

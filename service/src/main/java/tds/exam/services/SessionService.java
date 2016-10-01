@@ -4,6 +4,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import tds.session.ExternalSessionConfiguration;
+import tds.session.PauseSessionResponse;
 import tds.session.Session;
 
 /**
@@ -25,4 +26,13 @@ public interface SessionService {
      * @return optional populated with {@link tds.session.ExternalSessionConfiguration} if found otherwise empty
      */
     Optional<ExternalSessionConfiguration> findExternalSessionConfigurationByClientName(String clientName);
+
+    /**
+     * Pause a {@link Session}
+     *
+     * @param sessionId The id of the {@link Session} to pause.
+     * @param newStatus The new status of the {@link Session}.
+     * @return A {@link PauseSessionResponse} indicating the {@link Session} has been paused; otherwise empty.
+     */
+    Optional<PauseSessionResponse> pause(UUID sessionId, String newStatus);
 }

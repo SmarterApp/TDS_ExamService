@@ -9,6 +9,7 @@ import java.util.UUID;
 public class Exam {
     private UUID id;
     private UUID sessionId;
+    private UUID browserKey;
     private String assessmentId;
     private long studentId;
     private int attempts;
@@ -23,6 +24,7 @@ public class Exam {
     public static class Builder {
         private UUID id;
         private UUID sessionId;
+        private UUID browserKey;
         private String assessmentId;
         private long studentId;
         private int attempts;
@@ -41,6 +43,11 @@ public class Exam {
 
         public Builder withSessionId(UUID newSessionId) {
             sessionId = newSessionId;
+            return this;
+        }
+
+        public Builder withBrowserKey(UUID newBrowserKey) {
+            browserKey = newBrowserKey;
             return this;
         }
 
@@ -102,6 +109,7 @@ public class Exam {
     private Exam(Builder builder) {
         id = builder.id;
         sessionId = builder.sessionId;
+        browserKey = builder.browserKey;
         assessmentId = builder.assessmentId;
         studentId = builder.studentId;
         attempts = builder.attempts;
@@ -114,50 +122,96 @@ public class Exam {
         dateCompleted = builder.dateCompleted;
     }
 
+    /**
+     * @return The unique identifier of the exam
+     */
     public UUID getId() {
         return id;
     }
 
+    /**
+     * @return The identifier of the session that hosts the exam
+     */
     public UUID getSessionId() {
         return sessionId;
     }
 
+    /**
+     * @return The identifier of the browser of the browser information for thie eaxm
+     * <p>
+     *     "Browser information" refers to IP address, user-agent etc, from another table.
+     * </p>
+     */
+    public UUID getBrowserKey() {
+        return browserKey;
+    }
+
+    /**
+     * @return The id of the assessment this exam represents
+     */
     public String getAssessmentId() {
         return assessmentId;
     }
 
+    /**
+     * @return The identifier of the student taking the exam
+     */
     public long getStudentId() {
         return studentId;
     }
 
+    /**
+     * @return The number of times this exam has been attempted
+     */
     public int getAttempts() {
         return attempts;
     }
 
+    /**
+     * @return The current status of the exam
+     */
     public ExamStatusCode getStatus() {
         return status;
     }
 
+    /**
+     * @return The client name that owns the exam
+     */
     public String getClientName() {
         return clientName;
     }
 
+    /**
+     * @return The date and time when the exam was started
+     */
     public Instant getDateStarted() {
         return dateStarted;
     }
 
+    /**
+     * @return The most recent date and time at which the exam was changed
+     */
     public Instant getDateChanged() {
         return dateChanged;
     }
 
+    /**
+     * @return The date and time when the exam was deleted
+     */
     public Instant getDateDeleted() {
         return dateDeleted;
     }
 
+    /**
+     * @return The date and time when the exam was completed
+     */
     public Instant getDateCompleted() {
         return dateCompleted;
     }
 
+    /**
+     * @return The date and time when the exam record was created
+     */
     public Instant getCreatedAt() {
         return createdAt;
     }

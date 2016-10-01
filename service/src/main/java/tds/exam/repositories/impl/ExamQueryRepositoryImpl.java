@@ -41,6 +41,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
         String query = "SELECT " +
             "exam_id, " +
             "session_id, " +
+            "browser_id, " +
             "assessment_id, " +
             "student_id, " +
             "attempts, " +
@@ -79,6 +80,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
         String query = "SELECT " +
             "exam_id, " +
             "session_id, " +
+            "browser_id, " +
             "assessment_id, " +
             "student_id, " +
             "attempts, " +
@@ -116,6 +118,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
             return new Exam.Builder()
                 .withId(UuidAdapter.getUUIDFromBytes(rs.getBytes("exam_id")))
                 .withSessionId(UuidAdapter.getUUIDFromBytes(rs.getBytes("session_id")))
+                .withBrowserKey(UuidAdapter.getUUIDFromBytes(rs.getBytes("browser_key")))
                 .withAssessmentId(rs.getString("assessment_id"))
                 .withStudentId(rs.getLong("student_id"))
                 .withAttempts(rs.getInt("attempts"))
