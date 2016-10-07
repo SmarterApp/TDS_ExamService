@@ -673,7 +673,7 @@ public class ExamServiceImplTest {
 
         assertThat(result.getErrors()).isPresent();
         assertThat(result.getErrors().get().length).isEqualTo(1);
-        assertThat(result.getErrors().get()[0].getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_BROWSER_KEY_MISMATCH);
+        assertThat(result.getErrors().get()[0].getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_BROWSER_ID_MISMATCH);
     }
 
     @Test

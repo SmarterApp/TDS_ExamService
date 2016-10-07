@@ -237,7 +237,7 @@ class ExamServiceImpl implements ExamService {
 
         // RULE:  The browser key for the approval request must match the browser key of the exam.
         if (!exam.getBrowserId().equals(examApprovalRequest.getBrowserId())) {
-            return Optional.of(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_BROWSER_KEY_MISMATCH, "Access violation: System access denied"));
+            return Optional.of(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_BROWSER_ID_MISMATCH, "Access violation: System access denied"));
         }
 
         // RULE:  Session id for the approval request must match the session id of the exam.

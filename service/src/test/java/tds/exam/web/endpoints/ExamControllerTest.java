@@ -208,7 +208,7 @@ public class ExamControllerTest {
         String clientName = "UNIT_TEST";
         ExamApprovalRequest examApprovalRequest = new ExamApprovalRequest(examId, sessionId, browserId, clientName);
 
-        Response<ExamApproval> errorResponse = new Response<ExamApproval>(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_BROWSER_KEY_MISMATCH, "foo"));
+        Response<ExamApproval> errorResponse = new Response<ExamApproval>(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_BROWSER_ID_MISMATCH, "foo"));
         when(examService.getApproval(Matchers.isA(ExamApprovalRequest.class))).thenReturn(errorResponse);
 
         ResponseEntity<ExamApprovalResource> response = controller.getApproval(
@@ -221,7 +221,7 @@ public class ExamControllerTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
         assertThat(response.getBody().getErrors()).isNotNull();
         assertThat(response.getBody().getErrors()).hasSize(1);
-        assertThat(response.getBody().getErrors()[0].getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_BROWSER_KEY_MISMATCH);
+        assertThat(response.getBody().getErrors()[0].getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_BROWSER_ID_MISMATCH);
         assertThat(response.getBody().getErrors()[0].getMessage()).isEqualTo("foo");
         assertThat(response.getBody().getExamApproval()).isNull();
     }
