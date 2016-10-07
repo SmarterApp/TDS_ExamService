@@ -3,6 +3,7 @@ package tds.exam.web.endpoints;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Matchers;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -18,10 +19,10 @@ import java.util.UUID;
 import tds.common.Response;
 import tds.common.ValidationError;
 import tds.common.web.exceptions.NotFoundException;
-import tds.exam.Exam;
-import tds.exam.OpenExamRequest;
+import tds.exam.*;
 import tds.exam.error.ValidationErrorCode;
 import tds.exam.services.ExamService;
+import tds.exam.web.resources.ExamApprovalResource;
 import tds.exam.web.resources.ExamResource;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -96,5 +97,132 @@ public class ExamControllerTest {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getHeaders().getLocation()).isEqualTo(new URI("http://localhost/exam/" + examId));
+    }
+
+    @Test
+    public void shouldGetAnExamApprovalRequestThatIsApproved() {
+        UUID examId = UUID.randomUUID();
+        UUID sessionId = UUID.randomUUID();
+        UUID browserId = UUID.randomUUID();
+        String clientName = "UNIT_TEST";
+        ExamApprovalRequest examApprovalRequest = new ExamApprovalRequest(examId, sessionId, browserId, clientName);
+
+        ExamApproval mockExamApproval =
+                new ExamApproval(examId, new ExamStatusCode.Builder().withStatus("approved").build(), null);
+        when(examService.getApproval(Matchers.isA(ExamApprovalRequest.class))).thenReturn(new Response<>(mockExamApproval));
+
+        ResponseEntity<ExamApprovalResource> response = controller.getApproval(
+                examApprovalRequest.getExamId(),
+                examApprovalRequest.getSessionId(),
+                examApprovalRequest.getBrowserId(),
+                examApprovalRequest.getClientName());
+        verify(examService).getApproval(Matchers.isA(ExamApprovalRequest.class));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody().getErrors()).isNull();
+        assertThat(response.getBody().getExamApproval()).isNotNull();
+        assertThat(response.getBody().getExamApproval().getExamApprovalStatus()).isEqualTo(ExamApprovalStatus.APPROVED);
+        assertThat(response.getBody().getLink("exam").getHref()).isEqualTo("http://localhost/exam/" + examId.toString());
+    }
+
+    @Test
+    public void shouldGetAnExamApprovalRequestThatIsWaiting() {
+        UUID examId = UUID.randomUUID();
+        UUID sessionId = UUID.randomUUID();
+        UUID browserId = UUID.randomUUID();
+        String clientName = "UNIT_TEST";
+        ExamApprovalRequest examApprovalRequest = new ExamApprovalRequest(examId, sessionId, browserId, clientName);
+
+        when(examService.getApproval(Matchers.isA(ExamApprovalRequest.class))).thenReturn(
+                new Response<>(new ExamApproval(examId, new ExamStatusCode.Builder().withStatus("pending").build(), null)));
+
+        ResponseEntity<ExamApprovalResource> response = controller.getApproval(
+                examApprovalRequest.getExamId(),
+                examApprovalRequest.getSessionId(),
+                examApprovalRequest.getBrowserId(),
+                examApprovalRequest.getClientName());
+        verify(examService).getApproval(Matchers.isA(ExamApprovalRequest.class));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody().getErrors()).isNull();
+        assertThat(response.getBody().getExamApproval()).isNotNull();
+        assertThat(response.getBody().getExamApproval().getExamApprovalStatus()).isEqualTo(ExamApprovalStatus.WAITING);
+        assertThat(response.getBody().getLink("exam").getHref()).isEqualTo("http://localhost/exam/" + examId.toString());
+    }
+
+    @Test
+    public void shouldGetAnExamApprovalRequestThatIsLogout() {
+        UUID examId = UUID.randomUUID();
+        UUID sessionId = UUID.randomUUID();
+        UUID browserId = UUID.randomUUID();
+        String clientName = "UNIT_TEST";
+        ExamApprovalRequest examApprovalRequest = new ExamApprovalRequest(examId, sessionId, browserId, clientName);
+
+        when(examService.getApproval(Matchers.isA(ExamApprovalRequest.class))).thenReturn(
+                new Response<>(new ExamApproval(examId, new ExamStatusCode.Builder().withStatus("paused").build(), null)));
+
+        ResponseEntity<ExamApprovalResource> response = controller.getApproval(
+                examApprovalRequest.getExamId(),
+                examApprovalRequest.getSessionId(),
+                examApprovalRequest.getBrowserId(),
+                examApprovalRequest.getClientName());
+        verify(examService).getApproval(Matchers.isA(ExamApprovalRequest.class));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody().getErrors()).isNull();
+        assertThat(response.getBody().getExamApproval()).isNotNull();
+        assertThat(response.getBody().getExamApproval().getExamApprovalStatus()).isEqualTo(ExamApprovalStatus.LOGOUT);
+        assertThat(response.getBody().getLink("exam").getHref()).isEqualTo("http://localhost/exam/" + examId.toString());
+    }
+
+    @Test
+    public void shouldGetAnExamApprovalRequestThatIsDenied() {
+        UUID examId = UUID.randomUUID();
+        UUID sessionId = UUID.randomUUID();
+        UUID browserId = UUID.randomUUID();
+        String clientName = "UNIT_TEST";
+        ExamApprovalRequest examApprovalRequest = new ExamApprovalRequest(examId, sessionId, browserId, clientName);
+
+        when(examService.getApproval(Matchers.isA(ExamApprovalRequest.class))).thenReturn(
+                new Response<>(new ExamApproval(examId, new ExamStatusCode.Builder().withStatus("denied").build(), null)));
+
+        ResponseEntity<ExamApprovalResource> response = controller.getApproval(
+                examApprovalRequest.getExamId(),
+                examApprovalRequest.getSessionId(),
+                examApprovalRequest.getBrowserId(),
+                examApprovalRequest.getClientName());
+        verify(examService).getApproval(Matchers.isA(ExamApprovalRequest.class));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody().getErrors()).isNull();
+        assertThat(response.getBody().getExamApproval()).isNotNull();
+        assertThat(response.getBody().getExamApproval().getExamApprovalStatus()).isEqualTo(ExamApprovalStatus.DENIED);
+        assertThat(response.getBody().getLink("exam").getHref()).isEqualTo("http://localhost/exam/" + examId.toString());
+    }
+
+    @Test
+    public void shouldGetAValidationErrorWhenBrowserIdsDoNotMatch() {
+        UUID examId = UUID.randomUUID();
+        UUID sessionId = UUID.randomUUID();
+        UUID browserId = UUID.randomUUID();
+        String clientName = "UNIT_TEST";
+        ExamApprovalRequest examApprovalRequest = new ExamApprovalRequest(examId, sessionId, browserId, clientName);
+
+        Response<ExamApproval> errorResponse = new Response<ExamApproval>(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_BROWSER_KEY_MISMATCH, "foo"));
+        when(examService.getApproval(Matchers.isA(ExamApprovalRequest.class))).thenReturn(errorResponse);
+
+        ResponseEntity<ExamApprovalResource> response = controller.getApproval(
+                examApprovalRequest.getExamId(),
+                examApprovalRequest.getSessionId(),
+                examApprovalRequest.getBrowserId(),
+                examApprovalRequest.getClientName());
+        verify(examService).getApproval(Matchers.isA(ExamApprovalRequest.class));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        assertThat(response.getBody().getErrors()).isNotNull();
+        assertThat(response.getBody().getErrors()).hasSize(1);
+        assertThat(response.getBody().getErrors()[0].getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_BROWSER_KEY_MISMATCH);
+        assertThat(response.getBody().getErrors()[0].getMessage()).isEqualTo("foo");
+        assertThat(response.getBody().getExamApproval()).isNull();
     }
 }

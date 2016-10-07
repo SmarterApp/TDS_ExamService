@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.security.cert.PKIXRevocationChecker;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -112,15 +111,14 @@ class ExamServiceImpl implements ExamService {
 
     @Override
     public Response<ExamApproval> getApproval(ExamApprovalRequest examApprovalRequest) {
-        final ExamApproval examApproval = new ExamApproval();
+        Exam exam = examQueryRepository.getExamById(examApprovalRequest.getExamId())
+                .orElseThrow(() -> new IllegalArgumentException("Exam could not be found for id " + examApprovalRequest.getExamId()));
 
-        Optional<ValidationError> maybeValidationErrors = verifyExamApprovalRules(examApprovalRequest);
-        if (maybeValidationErrors.isPresent()) {
-            return new Response<ExamApproval>(maybeValidationErrors.get());
-        }
+        Optional<ValidationError> maybeValidationError = verifyExamApprovalRules(examApprovalRequest, exam);
 
-        examApproval.setExamApprovalStatus(ExamApprovalStatus.APPROVED);
-        return new Response<>(examApproval);
+        return maybeValidationError.isPresent()
+                ? new Response<ExamApproval>(maybeValidationError.get())
+                : new Response<>(new ExamApproval(examApprovalRequest.getExamId(), exam.getStatus(), exam.getStatusChangeReason()));
     }
 
     private Response<Exam> createExam(OpenExamRequest openExamRequest, Student student, Session session, ExternalSessionConfiguration externalSessionConfiguration) {
@@ -214,21 +212,37 @@ class ExamServiceImpl implements ExamService {
         return Optional.empty();
     }
 
-    private Optional<ValidationError> verifyExamApprovalRules(ExamApprovalRequest examApprovalRequest) {
+    /**
+     * Verify all the rules for approving a request to start an {@link Exam} are satisfied.
+     * <p>
+     *     The rules are:
+     *     <ul>
+     *         <li>The browser key of the approval request must match the browser key of the {@link Exam}.</li>
+     *         <li>The session id of the approval request must match the session id of the {@link Exam}.</li>
+     *         <li>The {@link Session} must be open (unless the environment is set to "simulation" or "development")</li>
+     *         <li>The TA Check-In time window cannot be passed</li>
+     *     </ul>
+     *     <strong>NOTE:</strong>  If the {@link Session} has no Proctor (because the {@link Session} is a guest session
+     *     or is otherwise proctor-less), approval is granted as long as the {@link Session} is open.
+     * </p>
+     *
+     * @param examApprovalRequest The {@link ExamApprovalRequest} being evaluated
+*      @param exam The {@link Exam} for which approval is being requested
+     * @return An empty optional if the approval rules are satisfied; otherwise an optional containing a
+     * {@link ValidationError} describing the rule that was not satisfied
+     */
+    private Optional<ValidationError> verifyExamApprovalRules(ExamApprovalRequest examApprovalRequest, Exam exam) {
         final String SIMULATION_ENVIRONMENT = "simulation";
         final String DEVELOPMENT_ENVIRONMENT = "development";
 
-        Exam exam = examQueryRepository.getExamById(examApprovalRequest.getExamId())
-                .orElseThrow(() -> new IllegalArgumentException("Exam could not be found for id " + examApprovalRequest.getExamId()));
-
         // RULE:  The browser key for the approval request must match the browser key of the exam.
-        if (!exam.getBrowserKey().equals(examApprovalRequest.getBrowserKey())) {
-            return Optional.of(new ValidationError(ValidationErrorCode.BROWSER_KEY_MISMATCH, "Access violation: System access denied"));
+        if (!exam.getBrowserId().equals(examApprovalRequest.getBrowserId())) {
+            return Optional.of(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_BROWSER_KEY_MISMATCH, "Access violation: System access denied"));
         }
 
         // RULE:  Session id for the approval request must match the session id of the exam.
         if (!exam.getSessionId().equals(examApprovalRequest.getSessionId())) {
-            return Optional.of(new ValidationError(ValidationErrorCode.SESSION_ID_MISMATCH, "The session keys do not match; please consult your test administrator"));
+            return Optional.of(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_SESSION_ID_MISMATCH, "The session keys do not match; please consult your test administrator"));
         }
 
         Session session = sessionService.findSessionById(examApprovalRequest.getSessionId())
@@ -243,12 +257,12 @@ class ExamServiceImpl implements ExamService {
                         && !externalSessionConfig.getEnvironment().toLowerCase().equals(DEVELOPMENT_ENVIRONMENT));
         if (checkSession) {
             if (!session.isOpen()) {
-                return Optional.of(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_DENIED, "The session is not available for testing, please check with your test administrator."));
+                return Optional.of(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_SESSION_CLOSED, "The session is not available for testing, please check with your test administrator."));
             }
         }
 
         // RULE:  If the session has no proctor, there is nothing to approve.  This is either a guest session or an
-        // otherwise proctorless session.
+        // otherwise proctor-less session.
         if (session.getProctorId() == null) {
             return Optional.empty();
         }
@@ -262,7 +276,7 @@ class ExamServiceImpl implements ExamService {
             // TODO: Create session audit record
             // TODO: determine correct status to set
             sessionService.pause(session.getId(), "closed");
-            return Optional.of(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_SESSION_TIMEOUT, "The session is not available for testing, please check with your test administrator."));
+            return Optional.of(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_TA_CHECKIN_TIMEOUT, "The session is not available for testing, please check with your test administrator."));
         }
 
         return Optional.empty();

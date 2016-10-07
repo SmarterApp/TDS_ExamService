@@ -38,25 +38,34 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
     public Optional<Exam> getExamById(UUID id) {
         final SqlParameterSource parameters = new MapSqlParameterSource("id", UuidAdapter.getBytesFromUUID(id));
 
-        String query = "SELECT " +
-            "exam_id, " +
-            "session_id, " +
-            "browser_id, " +
-            "assessment_id, " +
-            "student_id, " +
-            "attempts, " +
-            "exam.status, " +
-            "client_name, " +
-            "date_started, " +
-            "date_deleted, " +
-            "date_changed, " +
-            "date_completed, " +
-            "created_at, " +
-            "esc.description, " +
-            "esc.stage \n " +
-            "FROM exam.exam exam \n" +
-            "JOIN exam_status_codes esc ON esc.status = exam.status \n" +
-            "WHERE exam_id = :id";
+        String query =
+                "SELECT \n" +
+                "   e.exam_id, \n" +
+                "   e.session_id, \n" +
+                "   e.browser_id, \n" +
+                "   e.assessment_id, \n" +
+                "   e.student_id, \n" +
+                "   e.attempts, \n" +
+                "   e.status, \n" +
+                "   e.status_change_reason, \n" +
+                "   e.client_name, \n" +
+                "   e.date_started, \n" +
+                "   e.date_deleted, \n" +
+                "   e.date_changed, \n" +
+                "   e.date_completed, \n" +
+                "   e.created_at, \n" +
+                "   esc.description, \n" +
+                "   esc.stage \n" +
+                "FROM \n" +
+                "   exam e \n" +
+                "JOIN \n" +
+                "   exam_status_codes esc \n" +
+                "   ON esc.status = e.status \n" +
+                "WHERE \n" +
+                "   e.exam_id = :id \n" +
+                "ORDER BY \n" +
+                "   e.id DESC \n" +
+                "LIMIT 1";
 
         Optional<Exam> examOptional;
         try {
@@ -77,30 +86,37 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
 
         final SqlParameterSource parameters = new MapSqlParameterSource(queryParameters);
 
-        String query = "SELECT " +
-            "exam_id, " +
-            "session_id, " +
-            "browser_id, " +
-            "assessment_id, " +
-            "student_id, " +
-            "attempts, " +
-            "exam.status, " +
-            "client_name, " +
-            "date_started, " +
-            "date_deleted, " +
-            "date_changed, " +
-            "date_completed, " +
-            "created_at, " +
-            "esc.description, " +
-            "esc.stage \n " +
-            "FROM exam.exam exam \n" +
-            "JOIN exam_status_codes esc ON esc.status = exam.status \n" +
-            "WHERE date_deleted IS NULL \n" +
-            "AND student_id = :studentId \n" +
-            "AND assessment_id = :assessmentId \n" +
-            "AND client_name = :clientName \n" +
-            "ORDER BY exam_id DESC \n" +
-            "LIMIT 1";
+        String query =
+                "SELECT \n" +
+                "   e.exam_id, \n" +
+                "   e.session_id, \n" +
+                "   e.browser_id, \n" +
+                "   e.assessment_id, \n" +
+                "   e.student_id, \n" +
+                "   e.attempts, \n" +
+                "   e.status, \n" +
+                "   e.status_change_reason, \n" +
+                "   e.client_name, \n" +
+                "   e.date_started, \n" +
+                "   e.date_deleted, \n" +
+                "   e.date_changed, \n" +
+                "   e.date_completed, \n" +
+                "   e.created_at, \n" +
+                "   esc.description, \n" +
+                "   esc.stage \n " +
+                "FROM \n" +
+                "   exam e \n" +
+                "JOIN \n" +
+                "   exam_status_codes esc \n" +
+                "   ON esc.status = e.status \n" +
+                "WHERE \n" +
+                "   e.date_deleted IS NULL \n" +
+                "   AND e.student_id = :studentId \n" +
+                "   AND e.assessment_id = :assessmentId \n" +
+                "   AND e.client_name = :clientName \n" +
+                "ORDER BY \n" +
+                "   e.id DESC \n" +
+                "LIMIT 1";
 
         Optional<Exam> examOptional;
         try {
@@ -118,7 +134,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
             return new Exam.Builder()
                 .withId(UuidAdapter.getUUIDFromBytes(rs.getBytes("exam_id")))
                 .withSessionId(UuidAdapter.getUUIDFromBytes(rs.getBytes("session_id")))
-                .withBrowserKey(UuidAdapter.getUUIDFromBytes(rs.getBytes("browser_key")))
+                .withBrowserId(UuidAdapter.getUUIDFromBytes(rs.getBytes("browser_id")))
                 .withAssessmentId(rs.getString("assessment_id"))
                 .withStudentId(rs.getLong("student_id"))
                 .withAttempts(rs.getInt("attempts"))

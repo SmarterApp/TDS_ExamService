@@ -14,20 +14,23 @@ public class ExamApprovalRequest {
     private UUID sessionId;
 
     @NotNull
-    private UUID browserKey;
+    private UUID browserId;
 
     @NotNull
     private String clientName;
+
+    public ExamApprovalRequest(UUID examId, UUID sessionId, UUID browserId, String clientName) {
+        this.examId = examId;
+        this.sessionId = sessionId;
+        this.browserId = browserId;
+        this.clientName = clientName;
+    }
 
     /**
      * @return The id of the exam for which approval is being requested
      */
     public UUID getExamId() {
         return examId;
-    }
-
-    public void setExamId(UUID examId) {
-        this.examId = examId;
     }
 
     /**
@@ -37,19 +40,11 @@ public class ExamApprovalRequest {
         return sessionId;
     }
 
-    public void setSessionId(UUID sessionId) {
-        this.sessionId = sessionId;
-    }
-
     /**
      * @return The id of the user's browser
      */
-    public UUID getBrowserKey() {
-        return browserKey;
-    }
-
-    public void setBrowserKey(UUID browserKey) {
-        this.browserKey = browserKey;
+    public UUID getBrowserId() {
+        return browserId;
     }
 
     /**
@@ -60,9 +55,5 @@ public class ExamApprovalRequest {
      */
     public String getClientName() {
         return clientName;
-    }
-
-    public void setClientName(String clientName) {
-        this.clientName = clientName;
     }
 }

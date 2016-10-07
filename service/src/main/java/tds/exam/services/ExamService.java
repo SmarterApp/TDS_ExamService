@@ -26,6 +26,10 @@ public interface ExamService {
 
     /**
      * Get approval for the open exam request.
+     * <p>
+     *     This method is called in a loop by the Student application while waiting for the Proctor to approve or deny
+     *     the Student's request to start his/her exam.
+     * </p>
      *
      * @param openExamRequest The {@link ExamApprovalRequest} representing the request to open the specified exam.
      * @return {@link ExamApproval} describing whether the exam is approved to be opened.

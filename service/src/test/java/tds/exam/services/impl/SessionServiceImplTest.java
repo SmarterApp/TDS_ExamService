@@ -40,8 +40,9 @@ public class SessionServiceImplTest {
     @Test
     public void shouldReturnSession() {
         UUID sessionUUID = UUID.randomUUID();
-        Session session = new Session();
-        session.setId(sessionUUID);
+        Session session = new Session.Builder()
+                .withId(sessionUUID)
+                .build();
         String url = String.format("http://localhost:8080/session/%s", sessionUUID);
 
         when(restTemplate.getForObject(url, Session.class)).thenReturn(session);

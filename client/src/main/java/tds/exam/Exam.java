@@ -9,11 +9,12 @@ import java.util.UUID;
 public class Exam {
     private UUID id;
     private UUID sessionId;
-    private UUID browserKey;
+    private UUID browserId;
     private String assessmentId;
     private long studentId;
     private int attempts;
     private ExamStatusCode status;
+    private String statusChangeReason;
     private String clientName;
     private Instant dateStarted;
     private Instant dateChanged;
@@ -24,11 +25,12 @@ public class Exam {
     public static class Builder {
         private UUID id;
         private UUID sessionId;
-        private UUID browserKey;
+        private UUID browserId;
         private String assessmentId;
         private long studentId;
         private int attempts;
         private ExamStatusCode status = new ExamStatusCode.Builder().build();
+        private String statusChangeReason;
         private String clientName;
         private Instant dateStarted;
         private Instant dateChanged;
@@ -46,8 +48,8 @@ public class Exam {
             return this;
         }
 
-        public Builder withBrowserKey(UUID newBrowserKey) {
-            browserKey = newBrowserKey;
+        public Builder withBrowserId(UUID newBrowserId) {
+            browserId = newBrowserId;
             return this;
         }
 
@@ -68,6 +70,11 @@ public class Exam {
 
         public Builder withStatus(ExamStatusCode newStatus){
             status = newStatus;
+            return this;
+        }
+
+        public Builder withStatusChangeReason(String newStatusChangeReason) {
+            statusChangeReason = newStatusChangeReason;
             return this;
         }
 
@@ -109,11 +116,12 @@ public class Exam {
     private Exam(Builder builder) {
         id = builder.id;
         sessionId = builder.sessionId;
-        browserKey = builder.browserKey;
+        browserId = builder.browserId;
         assessmentId = builder.assessmentId;
         studentId = builder.studentId;
         attempts = builder.attempts;
         status = builder.status;
+        statusChangeReason = builder.statusChangeReason;
         clientName = builder.clientName;
         dateStarted = builder.dateStarted;
         dateChanged = builder.dateChanged;
@@ -142,8 +150,8 @@ public class Exam {
      *     "Browser information" refers to IP address, user-agent etc, from another table.
      * </p>
      */
-    public UUID getBrowserKey() {
-        return browserKey;
+    public UUID getBrowserId() {
+        return browserId;
     }
 
     /**
@@ -172,6 +180,16 @@ public class Exam {
      */
     public ExamStatusCode getStatus() {
         return status;
+    }
+
+    /**
+     * @return Text describing the reason for the most recent status change.
+     * <p>
+     *     Sources for this value include restarting an exam or when a Proctor denies approval to start an exam.
+     * </p>
+     */
+    public String getStatusChangeReason() {
+        return statusChangeReason;
     }
 
     /**
