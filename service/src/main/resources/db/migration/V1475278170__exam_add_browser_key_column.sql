@@ -8,4 +8,4 @@
 USE exam;
 
 ALTER TABLE exam
-  ADD COLUMN browser_key VARBINARY(16) NOT NULL;
+  ADD COLUMN browser_key VARBINARY(16) NOT NULL AFTER session_id;

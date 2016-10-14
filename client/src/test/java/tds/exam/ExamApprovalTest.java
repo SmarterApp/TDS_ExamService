@@ -58,4 +58,27 @@ public class ExamApprovalTest {
         assertThat(examApproval.getExamApprovalStatus()).isEqualTo(ExamApprovalStatus.LOGOUT);
         assertThat(examApproval.getStatusChangeReason()).isEqualTo("unit test");
     }
+
+    @Test
+    public void shouldCreateExamApprovalWithWaitingStatusWhenExamStatusIsNotRecognized() {
+        UUID mockExamId = UUID.randomUUID();
+        ExamStatusCode mockExamStatusCode = new ExamStatusCode.Builder()
+                .withStatus("foo")
+                .build();
+        ExamApproval examApproval = new ExamApproval(mockExamId, mockExamStatusCode, "unit test");
+
+        assertThat(examApproval.getExamId()).isEqualTo(mockExamId);
+        assertThat(examApproval.getExamApprovalStatus()).isEqualTo(ExamApprovalStatus.WAITING);
+        assertThat(examApproval.getStatusChangeReason()).isEqualTo("unit test");
+    }
+
+    @Test(expected=IllegalArgumentException.class)
+    public void shouldThrowIllegalArgumentExceptionWhenStatusIsNull() {
+        UUID mockExamId = UUID.randomUUID();
+        ExamStatusCode mockExamStatusCode = new ExamStatusCode.Builder()
+                .withStatus(null)
+                .build();
+
+        new ExamApproval(mockExamId, mockExamStatusCode, "unit test");
+    }
 }

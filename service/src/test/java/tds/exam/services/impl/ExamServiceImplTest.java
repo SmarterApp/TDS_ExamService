@@ -763,7 +763,7 @@ public class ExamServiceImplTest {
     }
 
     @Test
-    public void shouldReturnExamApprovalBecauseEnvironmentIsDevelopment() {
+    public void shouldReturnExamApprovalWithWaitingStatusBecauseEnvironmentIsDevelopment() {
         UUID examId = UUID.randomUUID();
         UUID browserKey = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
@@ -810,7 +810,7 @@ public class ExamServiceImplTest {
     }
 
     @Test
-    public void shouldReturnExamApprovalBecauseEnvironmentIsSimulation() {
+    public void shouldReturnExamApprovalWithApprovedStatusBecauseEnvironmentIsSimulation() {
         UUID examId = UUID.randomUUID();
         UUID browserKey = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
@@ -857,7 +857,7 @@ public class ExamServiceImplTest {
     }
 
     @Test
-    public void shouldReturnExamApprovalBecauseSessionIsProctorless() {
+    public void shouldReturnExamApprovalWithDeniedStatusBecauseSessionIsProctorless() {
         UUID examId = UUID.randomUUID();
         UUID browserKey = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();

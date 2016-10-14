@@ -8,12 +8,15 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import java.security.cert.PKIXRevocationChecker;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
 import tds.exam.configuration.ExamServiceProperties;
 import tds.exam.services.SessionService;
 import tds.session.ExternalSessionConfiguration;
+import tds.session.PauseSessionResponse;
 import tds.session.Session;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -63,6 +66,35 @@ public class SessionServiceImplTest {
         verify(restTemplate).getForObject(url, Session.class);
 
         assertThat(maybeSession.isPresent()).isFalse();
+    }
+
+    @Test
+    public void shouldPauseASession() {
+        String sessionStatus = "closed";
+        Session mockSession = new Session.Builder()
+                .withId(UUID.randomUUID())
+                .withStatus(sessionStatus)
+                .withDateChanged(Instant.now())
+                .withDateEnd(Instant.now())
+                .build();
+        String url = String.format("http://localhost:8080/session/%s/pause", mockSession.getId());
+        when(restTemplate.getForObject(url, PauseSessionResponse.class)).thenReturn(new PauseSessionResponse(mockSession));
+
+        Optional<PauseSessionResponse> maybePauseResponse = sessionService.pause(mockSession.getId(), sessionStatus);
+
+        assertThat(maybePauseResponse).isPresent();
+        assertThat(maybePauseResponse.get().getStatus()).isEqualTo(sessionStatus);
+    }
+
+    @Test
+    public void shouldReturnOptionalEmptyWhenAttemptingToPauseASessionThatIsNotFound() {
+        UUID sessionId = UUID.randomUUID();
+        String url = String.format("http://localhost:8080/session/%s/pause", sessionId);
+        when(restTemplate.getForObject(url, PauseSessionResponse.class)).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
+
+        Optional<PauseSessionResponse> maybePauseResponse = sessionService.pause(sessionId, "closed");
+
+        assertThat(maybePauseResponse).isNotPresent();
     }
 
     @Test(expected = RestClientException.class)

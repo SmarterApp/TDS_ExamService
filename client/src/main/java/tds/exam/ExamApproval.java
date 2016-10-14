@@ -11,29 +11,9 @@ public class ExamApproval {
     private String statusChangeReason;
 
     public ExamApproval(UUID examId, ExamStatusCode examStatusCode, String statusChangeReason) {
-        // From the OpportunityStatusExtensions in tds.student.sql.data package of the legacy Student application
-        final String APPROVED = "approved";
-        final String DENIED = "denied";
-        final String PAUSED = "paused";
-
         this.examId = examId;
         this.statusChangeReason = statusChangeReason;
-
-        // Emulate the ApprovalInfo constructor to get the appropriate approval status
-        switch (examStatusCode.getStatus()) {
-            case APPROVED:
-                this.examApprovalStatus = ExamApprovalStatus.APPROVED;
-                break;
-            case DENIED:
-                this.examApprovalStatus = ExamApprovalStatus.DENIED;
-                break;
-            case PAUSED:
-                this.examApprovalStatus = ExamApprovalStatus.LOGOUT;
-                break;
-            default:
-                this.examApprovalStatus = ExamApprovalStatus.WAITING;
-                break;
-        }
+        this.examApprovalStatus = ExamApprovalStatus.fromExamStatus(examStatusCode.getStatus());
     }
 
     /**

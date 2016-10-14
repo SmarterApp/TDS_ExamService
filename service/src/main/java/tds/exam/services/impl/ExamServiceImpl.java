@@ -351,17 +351,15 @@ class ExamServiceImpl implements ExamService {
         Session session = sessionService.findSessionById(examApprovalRequest.getSessionId())
                 .orElseThrow(() -> new IllegalArgumentException("Could not find session for id " + examApprovalRequest.getSessionId()));
 
-        // RULE:  Unless the environment is set to "simulation" or "development", the exam's session must be open.
         ExternalSessionConfiguration externalSessionConfig =
                 sessionService.findExternalSessionConfigurationByClientName(examApprovalRequest.getClientName())
-                        .orElseThrow(() -> new IllegalStateException("External Session Configuration could not be found for client name " + examApprovalRequest.getClientName()));
+                        .orElseThrow(() -> new IllegalStateException(String.format("External Session Configuration could not be found for client name %s", examApprovalRequest.getClientName())));
 
+        // RULE:  Unless the environment is set to "simulation" or "development", the exam's session must be open.
         boolean checkSession = (!externalSessionConfig.getEnvironment().toLowerCase().equals(SIMULATION_ENVIRONMENT)
                         && !externalSessionConfig.getEnvironment().toLowerCase().equals(DEVELOPMENT_ENVIRONMENT));
-        if (checkSession) {
-            if (!session.isOpen()) {
-                return Optional.of(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_SESSION_CLOSED, "The session is not available for testing, please check with your test administrator."));
-            }
+        if (checkSession && !session.isOpen()) {
+            return Optional.of(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_SESSION_CLOSED, "The session is not available for testing, please check with your test administrator."));
         }
 
         // RULE:  If the session has no proctor, there is nothing to approve.  This is either a guest session or an

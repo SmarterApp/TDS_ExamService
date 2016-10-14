@@ -32,10 +32,10 @@ public interface ExamService {
      *     the Student's request to start his/her exam.
      * </p>
      *
-     * @param openExamRequest The {@link ExamApprovalRequest} representing the request to open the specified exam.
+     * @param examApprovalRequest The {@link ExamApprovalRequest} representing the request to open the specified exam.
      * @return {@link ExamApproval} describing whether the exam is approved to be opened.
      */
-    Response<ExamApproval> getApproval(ExamApprovalRequest openExamRequest);
+    Response<ExamApproval> getApproval(ExamApprovalRequest examApprovalRequest);
 
     /**
      * Retrieves the initial ability value for an {@link Exam}.

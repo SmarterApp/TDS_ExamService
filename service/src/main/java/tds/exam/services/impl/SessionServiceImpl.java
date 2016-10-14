@@ -71,6 +71,20 @@ class SessionServiceImpl implements SessionService {
 
     @Override
     public Optional<PauseSessionResponse> pause(final UUID sessionId, final String newStatus) {
-        return Optional.empty();
+        UriComponentsBuilder builder =
+                UriComponentsBuilder.fromHttpUrl(String.format("%s/%s/pause", examServiceProperties.getSessionUrl(), sessionId));
+
+        Optional<PauseSessionResponse> maybePauseSessionResponse = Optional.empty();
+
+        try {
+            final PauseSessionResponse pauseSessionResponse = restTemplate.getForObject(builder.toUriString(), PauseSessionResponse.class);
+            maybePauseSessionResponse = Optional.of(pauseSessionResponse);
+        } catch (HttpClientErrorException hce) {
+            if(hce.getStatusCode() != HttpStatus.NOT_FOUND) {
+                throw hce;
+            }
+        }
+
+        return maybePauseSessionResponse;
     }
 }
