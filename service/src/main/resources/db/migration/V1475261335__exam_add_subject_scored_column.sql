@@ -1,11 +1,12 @@
 /***********************************************************************************************************************
-  File: V1475278170__exam_add_browser_id_column.sql
+  File: V1475261335__exam_add_subject_scored_column.sql
 
-  Desc: Adds a browser_key column between session_id and assessment_id
+  Desc: Adds a date_scored and subject field for exam
 
 ***********************************************************************************************************************/
-
 USE exam;
 
 ALTER TABLE exam
-  ADD COLUMN browser_key VARBINARY(16) NOT NULL;
+  ADD COLUMN date_scored DATETIME(3) DEFAULT NULL,
+  ADD COLUMN subject VARCHAR(20) NOT NULL,
+  ADD COLUMN login_ssid VARCHAR(128) DEFAULT NULL;

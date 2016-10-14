@@ -32,7 +32,7 @@ public class AssessmentServiceImplTest {
 
     @Test
     public void shouldFindSetOfAdminSubjectsByKey() {
-        SetOfAdminSubject subject = new SetOfAdminSubject("key", "assessmentId", true, "virtual");
+        SetOfAdminSubject subject = new SetOfAdminSubject("key", "assessmentId", true, "virtual", 100F);
 
         when(restTemplate.getForObject("http://localhost:8080/assessments/key", SetOfAdminSubject.class)).thenReturn(subject);
         Optional<SetOfAdminSubject> maybeSetOfSubject = assessmentService.findSetOfAdminSubjectByKey("key");

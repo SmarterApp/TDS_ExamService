@@ -16,9 +16,11 @@ public class Exam {
     private ExamStatusCode status;
     private String statusChangeReason;
     private String clientName;
+    private String subject;
     private Instant dateStarted;
     private Instant dateChanged;
     private Instant dateDeleted;
+    private Instant dateScored;
     private Instant dateCompleted;
     private Instant createdAt;
 
@@ -32,10 +34,12 @@ public class Exam {
         private ExamStatusCode status = new ExamStatusCode.Builder().build();
         private String statusChangeReason;
         private String clientName;
+        private String subject;
         private Instant dateStarted;
         private Instant dateChanged;
         private Instant dateDeleted;
         private Instant createdAt;
+        private Instant dateScored;
         private Instant dateCompleted;
 
         public Builder withId(UUID newId) {
@@ -78,8 +82,18 @@ public class Exam {
             return this;
         }
 
+        public Builder withSubject(String newSubject) {
+            subject = newSubject;
+            return this;
+        }
+
         public Builder withClientName(String newClientName) {
             clientName = newClientName;
+            return this;
+        }
+
+        public Builder withDateScored(Instant newDateScored) {
+            dateScored = newDateScored;
             return this;
         }
 
@@ -122,10 +136,12 @@ public class Exam {
         attempts = builder.attempts;
         status = builder.status;
         statusChangeReason = builder.statusChangeReason;
+        subject = builder.subject;
         clientName = builder.clientName;
         dateStarted = builder.dateStarted;
         dateChanged = builder.dateChanged;
         dateDeleted = builder.dateDeleted;
+        dateScored = builder.dateScored;
         createdAt = builder.createdAt;
         dateCompleted = builder.dateCompleted;
     }
@@ -199,6 +215,14 @@ public class Exam {
         return clientName;
     }
 
+
+    /**
+     * @return The subject of the exam
+     */
+    public String getSubject() {
+        return subject;
+    }
+
     /**
      * @return The date and time when the exam was started
      */
@@ -232,5 +256,12 @@ public class Exam {
      */
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    /**
+     * @return The date and time when the exam was scored
+     */
+    public Instant getDateScored() {
+        return dateScored;
     }
 }

@@ -1,5 +1,6 @@
 package tds.exam.services.impl;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
@@ -17,6 +18,7 @@ class AssessmentServiceImpl implements AssessmentService {
     private final RestTemplate restTemplate;
     private final ExamServiceProperties examServiceProperties;
 
+    @Autowired
     public AssessmentServiceImpl(RestTemplate restTemplate, ExamServiceProperties examServiceProperties) {
         this.restTemplate = restTemplate;
         this.examServiceProperties = examServiceProperties;
@@ -26,7 +28,7 @@ class AssessmentServiceImpl implements AssessmentService {
     public Optional<SetOfAdminSubject> findSetOfAdminSubjectByKey(String key) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
-                .fromHttpUrl(examServiceProperties.getAssessmentUrl() + key);
+                .fromHttpUrl(String.format("%s/%s", examServiceProperties.getAssessmentUrl(), key));
 
         Optional<SetOfAdminSubject> maybeSetOfAdminSubject = Optional.empty();
         try {

@@ -15,14 +15,13 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.ZoneOffset;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
+import tds.common.data.mapping.ResultSetMapperUtility;
 import tds.common.data.mysql.UuidAdapter;
 import tds.exam.Exam;
 import tds.exam.ExamStatusCode;
+import tds.exam.models.Ability;
 import tds.exam.repositories.ExamQueryRepository;
 
 @Repository
@@ -49,13 +48,15 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "   e.status, \n" +
                 "   e.status_change_reason, \n" +
                 "   e.client_name, \n" +
+                "   e.subject, \n" +
                 "   e.date_started, \n" +
                 "   e.date_deleted, \n" +
                 "   e.date_changed, \n" +
                 "   e.date_completed, \n" +
+                "   e.date_scored, \n" +
                 "   e.created_at, \n" +
                 "   esc.description, \n" +
-                "   esc.stage \n" +
+                "   esc.stage \n " +
                 "FROM \n" +
                 "   exam e \n" +
                 "JOIN \n" +
@@ -97,10 +98,12 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "   e.status, \n" +
                 "   e.status_change_reason, \n" +
                 "   e.client_name, \n" +
+                "   e.subject, \n" +
                 "   e.date_started, \n" +
                 "   e.date_deleted, \n" +
                 "   e.date_changed, \n" +
                 "   e.date_completed, \n" +
+                "   e.date_scored, \n" +
                 "   e.created_at, \n" +
                 "   esc.description, \n" +
                 "   esc.stage \n " +
@@ -128,6 +131,56 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
         return examOptional;
     }
 
+    @Override
+    public List<Ability> findAbilities(UUID exam, String clientName, String subject, Long studentId) {
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("examId", UuidAdapter.getBytesFromUUID(exam));
+        parameters.put("clientName", clientName);
+        parameters.put("subject", subject);
+        parameters.put("studentId", studentId);
+
+        final String SQL =
+            "SELECT\n" +
+                "exam.exam_id,\n" +
+                "exam.assessment_id,\n" +
+                "exam.attempts,\n" +
+                "exam.date_scored,\n" +
+                "exam_scores.value AS score\n" +
+            "FROM\n" +
+                "exam \n" +
+            "INNER JOIN \n" +
+                "exam_scores \n" +
+            "ON \n" +
+                "exam.exam_id = exam_scores.fk_scores_examid_exam \n" +
+            "WHERE\n" +
+                "exam.client_name = :clientName AND\n" +
+                "exam.student_id = :studentId AND\n" +
+                "exam.subject = :subject AND\n" +
+                "exam.date_deleted IS NULL AND\n" +
+                "exam.date_scored IS NOT NULL AND\n" +
+                "exam.exam_id <> :examId AND\n" +
+                "exam_scores.use_for_ability = 1 AND\n" +
+                "exam_scores.value IS NOT NULL \n" +
+            "ORDER BY exam.date_scored DESC";
+
+        return jdbcTemplate.query(SQL, parameters, new AbilityRowMapper());
+    }
+
+    private class AbilityRowMapper implements RowMapper<Ability> {
+        @Override
+        public Ability mapRow(ResultSet rs, int rowNum) throws SQLException {
+            Ability ability = new Ability(
+                    UuidAdapter.getUUIDFromBytes(rs.getBytes("exam_id")),
+                    rs.getString("assessment_id"),
+                    rs.getInt("attempts"),
+                    ResultSetMapperUtility.mapTimeStampToInstant(rs, "date_scored"),
+                    rs.getDouble("score")
+
+            );
+            return ability;
+        }
+    }
+
     private class ExamRowMapper implements RowMapper<Exam> {
         @Override
         public Exam mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -139,9 +192,11 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 .withStudentId(rs.getLong("student_id"))
                 .withAttempts(rs.getInt("attempts"))
                 .withClientName(rs.getString("client_name"))
+                .withSubject(rs.getString("subject"))
                 .withDateStarted(mapTimezoneToInstant(rs, "date_started"))
                 .withDateChanged(mapTimezoneToInstant(rs, "date_changed"))
                 .withDateDeleted(mapTimezoneToInstant(rs, "date_deleted"))
+                .withDateScored(mapTimezoneToInstant(rs, "date_scored"))
                 .withDateCompleted(mapTimezoneToInstant(rs, "date_completed"))
                 .withCreatedAt(mapTimezoneToInstant(rs, "created_at"))
                 .withStatus(new ExamStatusCode.Builder()
@@ -149,6 +204,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                     .withDescription(rs.getString("description"))
                     .withStage(rs.getString("stage"))
                     .build())
+                .withStatusChangeReason(rs.getString("status_change_reason"))
                 .build();
         }
 

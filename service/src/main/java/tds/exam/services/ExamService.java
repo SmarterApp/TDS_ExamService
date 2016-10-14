@@ -4,6 +4,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import tds.common.Response;
+import tds.config.ClientTestProperty;
 import tds.exam.Exam;
 import tds.exam.ExamApproval;
 import tds.exam.ExamApprovalRequest;
@@ -35,4 +36,13 @@ public interface ExamService {
      * @return {@link ExamApproval} describing whether the exam is approved to be opened.
      */
     Response<ExamApproval> getApproval(ExamApprovalRequest openExamRequest);
+
+    /**
+     * Retrieves the initial ability value for an {@link Exam}.
+     *
+     * @param exam      the exam to retrieve an ability for.
+     * @param clientTestProperty  properties object for the exam.
+     * @return  the initial ability for an {@link Exam}.
+     */
+    Optional<Double> getInitialAbility(Exam exam, ClientTestProperty clientTestProperty);
 }

@@ -32,7 +32,7 @@ class StudentServiceImpl implements StudentService {
     public Optional<Student> getStudentById(long studentId) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
-                .fromHttpUrl(String.format("%s%s", examServiceProperties.getStudentUrl(), studentId));
+                .fromHttpUrl(String.format("%s/%s", examServiceProperties.getStudentUrl(), studentId));
 
         Optional<Student> maybeStudent = Optional.empty();
         try {

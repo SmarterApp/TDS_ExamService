@@ -22,10 +22,10 @@ public class ExamServicePropertiesTest {
     @Test
     public void itShouldAppendSlashIfNotPresentForSessionUrl(){
         properties.setSessionUrl("http://localhost:8080/sessions");
-        assertThat(properties.getSessionUrl()).isEqualTo("http://localhost:8080/sessions/");
+        assertThat(properties.getSessionUrl()).isEqualTo("http://localhost:8080/sessions");
 
         properties.setSessionUrl("http://localhost:8080/sessions/");
-        assertThat(properties.getSessionUrl()).isEqualTo("http://localhost:8080/sessions/");
+        assertThat(properties.getSessionUrl()).isEqualTo("http://localhost:8080/sessions");
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -36,10 +36,10 @@ public class ExamServicePropertiesTest {
     @Test
     public void itShouldAppendSlashIfNotPresentForStudentUrl() {
         properties.setStudentUrl("http://localhost:8080/students");
-        assertThat(properties.getStudentUrl()).isEqualTo("http://localhost:8080/students/");
+        assertThat(properties.getStudentUrl()).isEqualTo("http://localhost:8080/students");
 
         properties.setSessionUrl("http://localhost:8080/students/");
-        assertThat(properties.getStudentUrl()).isEqualTo("http://localhost:8080/students/");
+        assertThat(properties.getStudentUrl()).isEqualTo("http://localhost:8080/students");
     }
 
     @Test(expected = IllegalArgumentException.class)

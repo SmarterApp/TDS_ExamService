@@ -54,7 +54,7 @@ class SessionServiceImpl implements SessionService {
     public Optional<ExternalSessionConfiguration> findExternalSessionConfigurationByClientName(String clientName) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
-                .fromHttpUrl(String.format("%s/externs/%s", examServiceProperties.getSessionUrl(), clientName));
+                .fromHttpUrl(String.format("%s/external-config/%s", examServiceProperties.getSessionUrl(), clientName));
 
         Optional<ExternalSessionConfiguration> maybeExternalSessionConfig = Optional.empty();
         try {

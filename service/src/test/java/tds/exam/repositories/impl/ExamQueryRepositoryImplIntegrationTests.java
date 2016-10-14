@@ -8,10 +8,13 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlConfig;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import tds.exam.Exam;
+import tds.exam.models.Ability;
 import tds.exam.repositories.ExamQueryRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -52,5 +55,26 @@ public class ExamQueryRepositoryImplIntegrationTests {
     public void shouldNotReturnLatestExamWithNonNullDeletedDate() {
         Optional<Exam> examOptional = examQueryRepository.getLastAvailableExam(1, "assessmentId2", "clientName");
         assertThat(examOptional.isPresent()).isFalse();
+    }
+
+    @Test
+    public void shouldReturnEmptyListOfAbilities() {
+        List<Ability> noAbilities = examQueryRepository.findAbilities(UUID.fromString("12345678-d1d2-4c24-805c-0dfdb45a0999"),
+                "otherclient", "ELA", 9999L);
+        assertThat(noAbilities).isEmpty();
+    }
+
+    @Test
+    public void shouldReturnSingleAbility() {
+        List<Ability> oneAbility = examQueryRepository.findAbilities(UUID.fromString("af880054-d1d2-4c24-805c-1f0dfdb45989"),
+                "clientName", "ELA", 9999L);
+        assertThat(oneAbility).hasSize(1);
+        Ability myAbility = oneAbility.get(0);
+        // Should not be the same exam
+        assertThat(myAbility.getExamId()).isNotEqualTo(UUID.fromString("af880054-d1d2-4c24-805c-1f0dfdb45989"));
+        assertThat(myAbility.getAssessmentId()).isEqualTo("assessmentId3");
+        assertThat(myAbility.getAttempts()).isEqualTo(2);
+        assertThat(myAbility.getDateScored()).isLessThan(Instant.now());
+
     }
 }
