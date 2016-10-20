@@ -109,7 +109,7 @@ class ExamServiceImpl implements ExamService {
             Optional<ExternalSessionConfiguration> maybeExternalSessionConfiguration = sessionService.findExternalSessionConfigurationByClientName(openExamRequest.getClientName());
 
             if (!maybeExternalSessionConfiguration.isPresent()) {
-                throw new IllegalStateException("External Session Configuration could not be found for client name " + openExamRequest.getClientName());
+                throw new IllegalStateException(String.format("External Session Configuration could not be found for client name %s", openExamRequest.getClientName()));
             }
 
             ExternalSessionConfiguration externalSessionConfiguration = maybeExternalSessionConfiguration.get();
@@ -128,7 +128,7 @@ class ExamServiceImpl implements ExamService {
     @Override
     public Response<ExamApproval> getApproval(AccessRequest accessRequest) {
         Exam exam = examQueryRepository.getExamById(accessRequest.getExamId())
-                .orElseThrow(() -> new IllegalArgumentException("Exam could not be found for id " + accessRequest.getExamId()));
+                .orElseThrow(() -> new IllegalArgumentException(String.format("Exam could not be found for id %s", accessRequest.getExamId())));
 
         Optional<ValidationError> maybeAccessViolation = verifyAccess(accessRequest, exam);
 
