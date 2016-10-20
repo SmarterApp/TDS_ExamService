@@ -6,11 +6,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.Optional;
+
 import tds.config.ClientTestProperty;
 import tds.exam.configuration.ExamServiceProperties;
 import tds.exam.services.ConfigService;
-
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -49,7 +50,6 @@ public class ConfigServiceImplTest {
                 .withSortOrder(2)
                 .withRtsFormField("field")
                 .withRequireRtsWindow(false)
-                .withTideId("tideid")
                 .withRtsModeField("mode")
                 .withRequireRtsMode(false)
                 .withRequireRtsModeWindow(false)

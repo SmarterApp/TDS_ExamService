@@ -1,6 +1,8 @@
 package tds.exam.repositories.impl;
 
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -8,10 +10,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.jdbc.SqlConfig;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import tds.exam.repositories.HistoryQueryRepository;
 
 import javax.sql.DataSource;
 import java.util.Optional;
+
+import tds.exam.repositories.HistoryQueryRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -21,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest
 @SqlConfig(dataSource = "queryDataSource")
-public class HistoryQueryRepositoryImplIntegrationTest {
+public class HistoryQueryRepositoryImplIntegrationTests {
     @Autowired
     @Qualifier("commandDataSource")
     private DataSource dataSource;
