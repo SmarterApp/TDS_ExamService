@@ -53,8 +53,8 @@ public interface ExamService {
      * <p>
      *     The rules are:
      *     <ul>
-     *         <li>The browser key of the approval request must match the browser key of the {@link Exam}.</li>
-     *         <li>The session id of the approval request must match the session id of the {@link Exam}.</li>
+     *         <li>The browser key of the access request must match the browser key of the {@link Exam}.</li>
+     *         <li>The session id of the access request must match the session id of the {@link Exam}.</li>
      *         <li>The {@link Session} must be open (unless the environment is set to "simulation" or "development")</li>
      *         <li>The TA Check-In time window cannot be passed</li>
      *     </ul>

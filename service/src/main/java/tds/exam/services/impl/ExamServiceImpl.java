@@ -185,6 +185,60 @@ class ExamServiceImpl implements ExamService {
         return ability;
     }
 
+    @Override
+    public Optional<ValidationError> verifyAccess(AccessRequest accessRequest, Exam exam) {
+        final String SIMULATION_ENVIRONMENT = "simulation";
+        final String DEVELOPMENT_ENVIRONMENT = "development";
+
+        // RULE:  The browser key for the approval request must match the browser key of the exam.
+        if (!exam.getBrowserId().equals(accessRequest.getBrowserId())) {
+            return Optional.of(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_BROWSER_ID_MISMATCH, "Access violation: System access denied"));
+        }
+
+        // RULE:  Session id for the approval request must match the session id of the exam.
+        if (!exam.getSessionId().equals(accessRequest.getSessionId())) {
+            return Optional.of(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_SESSION_ID_MISMATCH, "The session keys do not match; please consult your test administrator"));
+        }
+
+        ExternalSessionConfiguration externalSessionConfig =
+            sessionService.findExternalSessionConfigurationByClientName(accessRequest.getClientName())
+                .orElseThrow(() -> new IllegalStateException(String.format("External Session Configuration could not be found for client name %s", accessRequest.getClientName())));
+
+        // RULE:  If the environment is set to "simulation" or "development", there is no need to check anything else.
+        if (externalSessionConfig.getEnvironment().equalsIgnoreCase(SIMULATION_ENVIRONMENT)
+            || externalSessionConfig.getEnvironment().equalsIgnoreCase(DEVELOPMENT_ENVIRONMENT)) {
+            return Optional.empty();
+        }
+
+        Session session = sessionService.findSessionById(accessRequest.getSessionId())
+            .orElseThrow(() -> new IllegalArgumentException("Could not find session for id " + accessRequest.getSessionId()));
+
+        // RULE:  the exam's session must be open.
+        if (!session.isOpen()) {
+            return Optional.of(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_SESSION_CLOSED, "The session is not available for testing, please check with your test administrator."));
+        }
+
+        // RULE:  If the session has no proctor, there is nothing to approve.  This is either a guest session or an
+        // otherwise proctor-less session.
+        if (session.getProctorId() == null) {
+            return Optional.empty();
+        }
+
+        // RULE:  Student should not be able to start an exam if the TA check-in window has expired.
+        TimeLimitConfiguration timeLimitConfig =
+            timeLimitConfigurationService.findTimeLimitConfiguration(accessRequest.getClientName(), exam.getAssessmentId())
+                .orElseThrow(() -> new IllegalArgumentException(String.format("Could not find time limit configuration for client name %s and assessment id %s", accessRequest.getClientName(), exam.getAssessmentId())));
+
+        if (Instant.now().isAfter(session.getDateVisited().plus(timeLimitConfig.getTaCheckinTimeMinutes(), ChronoUnit.MINUTES))) {
+            // Legacy code creates an audit record here.  Immutability should provide an audit trail; a new session record
+            // will be inserted to represent the change in status.
+            sessionService.pause(session.getId(), "closed");
+            return Optional.of(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_TA_CHECKIN_TIMEOUT, "The session is not available for testing, please check with your test administrator."));
+        }
+
+        return Optional.empty();
+    }
+
     private Response<Exam> createExam(OpenExamRequest openExamRequest, Student student, Session session, ExternalSessionConfiguration externalSessionConfiguration) {
         //From OpenTestServiceImpl lines 160 -163
         String examStatus;
@@ -310,60 +364,6 @@ class ExamServiceImpl implements ExamService {
                     return Optional.of(new ValidationError(ValidationErrorCode.NOT_ENOUGH_DAYS_PASSED, String.format("Next exam cannot be started until %s days pass since last exam", openExamRequest.getNumberOfDaysToDelay())));
                 }
             }
-        }
-
-        return Optional.empty();
-    }
-
-    @Override
-     public Optional<ValidationError> verifyAccess(AccessRequest accessRequest, Exam exam) {
-        final String SIMULATION_ENVIRONMENT = "simulation";
-        final String DEVELOPMENT_ENVIRONMENT = "development";
-
-        // RULE:  The browser key for the approval request must match the browser key of the exam.
-        if (!exam.getBrowserId().equals(accessRequest.getBrowserId())) {
-            return Optional.of(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_BROWSER_ID_MISMATCH, "Access violation: System access denied"));
-        }
-
-        // RULE:  Session id for the approval request must match the session id of the exam.
-        if (!exam.getSessionId().equals(accessRequest.getSessionId())) {
-            return Optional.of(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_SESSION_ID_MISMATCH, "The session keys do not match; please consult your test administrator"));
-        }
-
-        ExternalSessionConfiguration externalSessionConfig =
-                sessionService.findExternalSessionConfigurationByClientName(accessRequest.getClientName())
-                        .orElseThrow(() -> new IllegalStateException(String.format("External Session Configuration could not be found for client name %s", accessRequest.getClientName())));
-
-        // RULE:  If the environment is set to "simulation" or "development", there is no need to check anything else.
-        if (externalSessionConfig.getEnvironment().equalsIgnoreCase(SIMULATION_ENVIRONMENT)
-            || externalSessionConfig.getEnvironment().equalsIgnoreCase(DEVELOPMENT_ENVIRONMENT)) {
-            return Optional.empty();
-        }
-
-        Session session = sessionService.findSessionById(accessRequest.getSessionId())
-            .orElseThrow(() -> new IllegalArgumentException("Could not find session for id " + accessRequest.getSessionId()));
-
-        // RULE:  the exam's session must be open.
-        if (!session.isOpen()) {
-            return Optional.of(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_SESSION_CLOSED, "The session is not available for testing, please check with your test administrator."));
-        }
-
-        // RULE:  If the session has no proctor, there is nothing to approve.  This is either a guest session or an
-        // otherwise proctor-less session.
-        if (session.getProctorId() == null) {
-            return Optional.empty();
-        }
-
-        // RULE:  Student should not be able to start an exam if the TA check-in window has expired.
-        TimeLimitConfiguration timeLimitConfig =
-                timeLimitConfigurationService.findTimeLimitConfiguration(accessRequest.getClientName(), exam.getAssessmentId())
-                .orElseThrow(() -> new IllegalArgumentException(String.format("Could not find time limit configuration for client name %s and assessment id %s", accessRequest.getClientName(), exam.getAssessmentId())));
-
-        if (Instant.now().isAfter(session.getDateVisited().plus(timeLimitConfig.getTaCheckinTimeMinutes(), ChronoUnit.MINUTES))) {
-            // Legacy code creates an audit record here.  Immutability should provide an audit trail; a new session record
-            // will be inserted to represent the change in status.
-            sessionService.pause(session.getId(), "closed");
-            return Optional.of(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_TA_CHECKIN_TIMEOUT, "The session is not available for testing, please check with your test administrator."));
         }
 
         return Optional.empty();
