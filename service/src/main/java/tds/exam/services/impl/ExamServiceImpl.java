@@ -217,7 +217,7 @@ class ExamServiceImpl implements ExamService {
 
         // RULE:  If the session has no proctor, there is nothing to approve.  This is either a guest session or an
         // otherwise proctor-less session.
-        if (session.getProctorId() == null) {
+        if (session.isProctorless()) {
             return Optional.empty();
         }
 
