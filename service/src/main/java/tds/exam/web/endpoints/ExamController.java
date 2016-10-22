@@ -13,7 +13,7 @@ import tds.common.Response;
 import tds.common.web.exceptions.NotFoundException;
 import tds.exam.Exam;
 import tds.exam.ExamApproval;
-import tds.exam.AccessRequest;
+import tds.exam.ApprovalRequest;
 import tds.exam.OpenExamRequest;
 import tds.exam.services.ExamService;
 import tds.exam.web.resources.ExamApprovalResource;
@@ -54,8 +54,8 @@ public class ExamController {
 
     @RequestMapping(value = "/{id}/get-approval", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ExamApprovalResource> getApproval(@PathVariable final UUID examId, @RequestParam final UUID sessionId, @RequestParam final UUID browserId, final String clientName) {
-        AccessRequest accessRequest = new AccessRequest(examId, sessionId, browserId, clientName);
-        Response<ExamApproval> examApproval = examService.getApproval(accessRequest);
+        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserId, clientName);
+        Response<ExamApproval> examApproval = examService.getApproval(approvalRequest);
 
         if (examApproval.getErrors().isPresent()) {
             return new ResponseEntity<>(new ExamApprovalResource(examApproval), HttpStatus.UNPROCESSABLE_ENTITY);

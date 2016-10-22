@@ -17,7 +17,7 @@ import tds.common.ValidationError;
 import tds.config.ClientTestProperty;
 import tds.exam.Exam;
 import tds.exam.ExamApproval;
-import tds.exam.AccessRequest;
+import tds.exam.ApprovalRequest;
 import tds.exam.ExamApprovalStatus;
 import tds.exam.ExamStatusCode;
 import tds.exam.OpenExamRequest;
@@ -752,9 +752,9 @@ public class ExamServiceImplTest {
                         .withTaCheckinTimeMinutes(20)
                         .build()));
 
-        AccessRequest accessRequest = new AccessRequest(examId, sessionId, browserKey, clientName);
+        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey, clientName);
 
-        Response<ExamApproval> result = examService.getApproval(accessRequest);
+        Response<ExamApproval> result = examService.getApproval(approvalRequest);
 
         assertThat(result.getErrors()).isNotPresent();
         assertThat(result.getData()).isPresent();
@@ -799,9 +799,9 @@ public class ExamServiceImplTest {
                         .withTaCheckinTimeMinutes(20)
                         .build()));
 
-        AccessRequest accessRequest = new AccessRequest(examId, sessionId, browserKey, clientName);
+        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey, clientName);
 
-        Response<ExamApproval> result = examService.getApproval(accessRequest);
+        Response<ExamApproval> result = examService.getApproval(approvalRequest);
 
         assertThat(result.getErrors()).isNotPresent();
         assertThat(result.getData()).isPresent();
@@ -846,9 +846,9 @@ public class ExamServiceImplTest {
                         .withTaCheckinTimeMinutes(20)
                         .build()));
 
-        AccessRequest accessRequest = new AccessRequest(examId, sessionId, browserKey, clientName);
+        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey, clientName);
 
-        Response<ExamApproval> result = examService.getApproval(accessRequest);
+        Response<ExamApproval> result = examService.getApproval(approvalRequest);
 
         assertThat(result.getErrors()).isNotPresent();
         assertThat(result.getData()).isPresent();
@@ -857,7 +857,7 @@ public class ExamServiceImplTest {
     }
 
     @Test
-    public void shouldReturnExamApprovalWithDeniedStatusBecauseOfExamStatus() {
+    public void shouldReturnExamApprovalWithCorrectExamStatusBecauseSessionIsProctorless() {
         UUID examId = UUID.randomUUID();
         UUID browserKey = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
@@ -872,7 +872,7 @@ public class ExamServiceImplTest {
                         .withBrowserId(browserKey)
                         .withAssessmentId(mockAssessmentId)
                         .withStatus(new ExamStatusCode.Builder()
-                                .withStatus("denied")
+                                .withStatus("approved")
                                 .build())
                         .build()));
         when(sessionService.findSessionById(sessionId))
@@ -893,14 +893,14 @@ public class ExamServiceImplTest {
                         .withTaCheckinTimeMinutes(20)
                         .build()));
 
-        AccessRequest accessRequest = new AccessRequest(examId, sessionId, browserKey, clientName);
+        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey, clientName);
 
-        Response<ExamApproval> result = examService.getApproval(accessRequest);
+        Response<ExamApproval> result = examService.getApproval(approvalRequest);
 
         assertThat(result.getErrors()).isNotPresent();
         assertThat(result.getData()).isPresent();
         assertThat(result.getData().get().getExamId()).isEqualTo(examId);
-        assertThat(result.getData().get().getExamApprovalStatus()).isEqualTo(ExamApprovalStatus.DENIED);
+        assertThat(result.getData().get().getExamApprovalStatus()).isEqualTo(ExamApprovalStatus.APPROVED);
     }
 
     @Test
@@ -937,9 +937,9 @@ public class ExamServiceImplTest {
                         .withTaCheckinTimeMinutes(20)
                         .build()));
 
-        AccessRequest accessRequest = new AccessRequest(examId, sessionId, browserKey, clientName);
+        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey, clientName);
 
-        Response<ExamApproval> result = examService.getApproval(accessRequest);
+        Response<ExamApproval> result = examService.getApproval(approvalRequest);
 
         assertThat(result.getErrors()).isPresent();
         assertThat(result.getErrors().get().length).isEqualTo(1);
@@ -980,9 +980,9 @@ public class ExamServiceImplTest {
                         .withTaCheckinTimeMinutes(20)
                         .build()));
 
-        AccessRequest accessRequest = new AccessRequest(examId, sessionId, browserKey, clientName);
+        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey, clientName);
 
-        Response<ExamApproval> result = examService.getApproval(accessRequest);
+        Response<ExamApproval> result = examService.getApproval(approvalRequest);
 
         assertThat(result.getErrors()).isPresent();
         assertThat(result.getErrors().get().length).isEqualTo(1);
@@ -1023,9 +1023,9 @@ public class ExamServiceImplTest {
                         .withTaCheckinTimeMinutes(20)
                         .build()));
 
-        AccessRequest accessRequest = new AccessRequest(examId, sessionId, browserKey, clientName);
+        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey, clientName);
 
-        Response<ExamApproval> result = examService.getApproval(accessRequest);
+        Response<ExamApproval> result = examService.getApproval(approvalRequest);
 
         assertThat(result.getErrors()).isPresent();
         assertThat(result.getErrors().get().length).isEqualTo(1);
@@ -1066,9 +1066,9 @@ public class ExamServiceImplTest {
                         .withTaCheckinTimeMinutes(20)
                         .build()));
 
-        AccessRequest accessRequest = new AccessRequest(examId, sessionId, browserKey, clientName);
+        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey, clientName);
 
-        Response<ExamApproval> result = examService.getApproval(accessRequest);
+        Response<ExamApproval> result = examService.getApproval(approvalRequest);
 
         assertThat(result.getErrors()).isPresent();
         assertThat(result.getErrors().get().length).isEqualTo(1);
@@ -1104,9 +1104,9 @@ public class ExamServiceImplTest {
                         .withTaCheckinTimeMinutes(20)
                         .build()));
 
-        AccessRequest accessRequest = new AccessRequest(examId, sessionId, browserKey, clientName);
+        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey, clientName);
 
-        examService.getApproval(accessRequest);
+        examService.getApproval(approvalRequest);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -1136,9 +1136,9 @@ public class ExamServiceImplTest {
                         .withTaCheckinTimeMinutes(20)
                         .build()));
 
-        AccessRequest accessRequest = new AccessRequest(examId, sessionId, browserKey, clientName);
+        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey, clientName);
 
-        examService.getApproval(accessRequest);
+        examService.getApproval(approvalRequest);
     }
 
     @Test(expected = IllegalStateException.class)
@@ -1175,9 +1175,9 @@ public class ExamServiceImplTest {
                         .withTaCheckinTimeMinutes(20)
                         .build()));
 
-        AccessRequest accessRequest = new AccessRequest(examId, sessionId, browserKey, clientName);
+        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey, clientName);
 
-        examService.getApproval(accessRequest);
+        examService.getApproval(approvalRequest);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -1210,9 +1210,9 @@ public class ExamServiceImplTest {
         when(timeLimitConfigurationService.findTimeLimitConfiguration(clientName, mockAssessmentId))
                 .thenReturn(Optional.empty());
 
-        AccessRequest accessRequest = new AccessRequest(examId, sessionId, browserKey, clientName);
+        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey, clientName);
 
-        examService.getApproval(accessRequest);
+        examService.getApproval(approvalRequest);
     }
 
     private Exam createExam(UUID sessionId, UUID thisExamId, String assessmentId, String clientName, long studentId) {
