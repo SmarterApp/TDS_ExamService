@@ -6,6 +6,7 @@ import java.util.UUID;
 import tds.session.ExternalSessionConfiguration;
 import tds.session.PauseSessionResponse;
 import tds.session.Session;
+import tds.session.SessionAssessment;
 
 /**
  * Handles interaction with session properties
@@ -35,4 +36,13 @@ public interface SessionService {
      * @return A {@link PauseSessionResponse} indicating the {@link Session} has been paused; otherwise empty.
      */
     Optional<PauseSessionResponse> pause(UUID sessionId, String newStatus);
+
+    /**
+     * Finds the {@link tds.session.SessionAssessment} for the session id and assessment key
+     *
+     * @param sessionId     session id
+     * @param assessmentKey assessment key
+     * @return {@link tds.session.SessionAssessment} if found otherwise empty
+     */
+    Optional<SessionAssessment> findSessionAssessment(UUID sessionId, String assessmentKey);
 }

@@ -1,7 +1,5 @@
 package tds.exam.services.impl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -17,11 +15,10 @@ import tds.exam.services.SessionService;
 import tds.session.ExternalSessionConfiguration;
 import tds.session.PauseSessionResponse;
 import tds.session.Session;
+import tds.session.SessionAssessment;
 
 @Service
 class SessionServiceImpl implements SessionService {
-    private static final Logger LOG = LoggerFactory.getLogger(SessionServiceImpl.class);
-
     private final RestTemplate restTemplate;
     private final ExamServiceProperties examServiceProperties;
 
@@ -86,5 +83,24 @@ class SessionServiceImpl implements SessionService {
         }
 
         return maybePauseSessionResponse;
+    }
+
+    @Override
+    public Optional<SessionAssessment> findSessionAssessment(UUID sessionId, String assessmentKey) {
+        UriComponentsBuilder builder =
+            UriComponentsBuilder.fromHttpUrl(String.format("%s/%s/assessment/%s", examServiceProperties.getSessionUrl(), sessionId, assessmentKey));
+
+        Optional<SessionAssessment> maybeSessionAssessment = Optional.empty();
+
+        try {
+            final SessionAssessment sessionAssessment = restTemplate.getForObject(builder.toUriString(), SessionAssessment.class);
+            maybeSessionAssessment = Optional.of(sessionAssessment);
+        } catch (HttpClientErrorException hce) {
+            if(hce.getStatusCode() != HttpStatus.NOT_FOUND) {
+                throw hce;
+            }
+        }
+
+        return maybeSessionAssessment;
     }
 }
