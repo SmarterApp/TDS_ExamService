@@ -1,5 +1,6 @@
 package tds.exam.services.impl;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,13 +17,13 @@ import tds.assessment.SetOfAdminSubject;
 import tds.common.Response;
 import tds.common.ValidationError;
 import tds.common.data.legacy.LegacyComparer;
-import tds.config.TimeLimitConfiguration;
 import tds.config.ClientTestProperty;
+import tds.config.TimeLimitConfiguration;
 import tds.exam.Exam;
-import tds.exam.OpenExamRequest;
 import tds.exam.ExamApproval;
 import tds.exam.ExamApprovalRequest;
 import tds.exam.ExamStatusCode;
+import tds.exam.OpenExamRequest;
 import tds.exam.error.ValidationErrorCode;
 import tds.exam.models.Ability;
 import tds.exam.repositories.ExamQueryRepository;
@@ -34,9 +35,14 @@ import tds.exam.services.StudentService;
 import tds.exam.services.TimeLimitConfigurationService;
 import tds.session.ExternalSessionConfiguration;
 import tds.session.Session;
+import tds.session.SessionAssessment;
+import tds.student.RtsStudentPackageAttribute;
 import tds.student.Student;
 
 import static java.time.temporal.ChronoUnit.DAYS;
+import static tds.student.RtsStudentPackageAttribute.ACCOMMODATIONS;
+import static tds.student.RtsStudentPackageAttribute.ENTITY_NAME;
+import static tds.student.RtsStudentPackageAttribute.EXTERNAL_ID;
 
 @Service
 class ExamServiceImpl implements ExamService {
@@ -76,17 +82,23 @@ class ExamServiceImpl implements ExamService {
             throw new IllegalArgumentException(String.format("Could not find session for id %s", openExamRequest.getSessionId()));
         }
 
+        Student currentStudent = null;
         if (!openExamRequest.isGuestStudent()) {
             Optional<Student> maybeStudent = studentService.getStudentById(openExamRequest.getStudentId());
             if (!maybeStudent.isPresent()) {
                 throw new IllegalArgumentException(String.format("Could not find student for id %s", openExamRequest.getStudentId()));
+            } else {
+                currentStudent = maybeStudent.get();
             }
         }
 
         Session currentSession = maybeSession.get();
 
+
+
+
         //Previous exam is retrieved in lines 5492 - 5530 and 5605 - 5645 in StudentDLL
-        Optional<Exam> maybePreviousExam = examQueryRepository.getLastAvailableExam(openExamRequest.getStudentId(), openExamRequest.getAssessmentId(), openExamRequest.getClientName());
+        Optional<Exam> maybePreviousExam = examQueryRepository.getLastAvailableExam(openExamRequest.getStudentId(), openExamRequest.getAssessmentKey(), openExamRequest.getClientName());
 
         boolean canOpenPreviousExam = false;
         if (maybePreviousExam.isPresent()) {
@@ -105,6 +117,8 @@ class ExamServiceImpl implements ExamService {
             LOG.debug("Can open previous exam");
             exam = new Exam.Builder().withId(maybePreviousExam.get().getId()).build();
         } else {
+            //TODO - need to get testee name and testee ID lines StudentServiceImpl 107 - 118
+
             //Line 5602 in StudentDLL
             Optional<ExternalSessionConfiguration> maybeExternalSessionConfiguration = sessionService.findExternalSessionConfigurationByClientName(openExamRequest.getClientName());
 
@@ -114,11 +128,12 @@ class ExamServiceImpl implements ExamService {
 
             ExternalSessionConfiguration externalSessionConfiguration = maybeExternalSessionConfiguration.get();
             Exam previousExam = maybePreviousExam.isPresent() ? maybePreviousExam.get() : null;
-            Optional<ValidationError> maybeOpenNewExam = canCreateNewExam(openExamRequest, previousExam, externalSessionConfiguration);
-            if (maybeOpenNewExam.isPresent()) {
-                return new Response<Exam>(maybeOpenNewExam.get());
+            Optional<ValidationError> maybeOpenNewExamValidationError = canCreateNewExam(openExamRequest, previousExam, externalSessionConfiguration);
+            if (maybeOpenNewExamValidationError.isPresent()) {
+                return new Response<Exam>(maybeOpenNewExamValidationError.get());
             }
 
+            createExam(openExamRequest, currentStudent, currentSession, externalSessionConfiguration);
             exam = new Exam.Builder().withId(UUID.randomUUID()).build();
         }
 
@@ -186,6 +201,8 @@ class ExamServiceImpl implements ExamService {
     }
 
     private Response<Exam> createExam(OpenExamRequest openExamRequest, Student student, Session session, ExternalSessionConfiguration externalSessionConfiguration) {
+        Optional<SessionAssessment> sessionAssessment = sessionService.findSessionAssessment(session.getId(), openExamRequest.getAssessmentKey());
+
         //From OpenTestServiceImpl lines 160 -163
         String examStatus;
         if (openExamRequest.getProctorId() == null) {
@@ -194,7 +211,29 @@ class ExamServiceImpl implements ExamService {
             examStatus = "pending";
         }
 
-        Instant startTime = Instant.now();
+        String testeeId = null, testeeName = null, guestAccommadtions = openExamRequest.getGuestAccommodations();
+        if (openExamRequest.isGuestStudent()) {
+            testeeId = "GUEST";
+            testeeName = "GUEST";
+        } else {
+            List<RtsStudentPackageAttribute> attributes = studentService.findStudentPackageAttributes(openExamRequest.getStudentId(), openExamRequest.getClientName(), EXTERNAL_ID, ENTITY_NAME, ACCOMMODATIONS);
+
+            for(RtsStudentPackageAttribute attribute : attributes) {
+                if (EXTERNAL_ID.equals(attribute.getName())) {
+                    testeeId = attribute.getValue();
+                } else if (ENTITY_NAME.equals(attribute.getName())) {
+                    testeeName = attribute.getValue();
+                } else if (StringUtils.isEmpty(guestAccommadtions) && ACCOMMODATIONS.equals(attribute.getName())) {
+                    guestAccommadtions = attribute.getValue();
+                }
+            }
+        }
+
+        Optional<SetOfAdminSubject> maybeSetOfAdminSubject = assessmentService.findSetOfAdminSubjectByKey(openExamRequest.getAssessmentKey());
+
+
+
+//        List<AssessmentWindow>
 
 
         return null;

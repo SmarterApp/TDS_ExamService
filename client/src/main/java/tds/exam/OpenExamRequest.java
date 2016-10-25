@@ -15,7 +15,7 @@ public class OpenExamRequest {
     private long studentId;
 
     @NotNull
-    private String assessmentId;
+    private String assessmentKey;
 
     @NotNull
     private int maxAttempts;
@@ -87,15 +87,15 @@ public class OpenExamRequest {
     /**
      * @return identifier for the assessment
      */
-    public String getAssessmentId() {
-        return assessmentId;
+    public String getAssessmentKey() {
+        return assessmentKey;
     }
 
     /**
      * @param assessmentId identifier for the assessment
      */
     public void setAssessmentId(String assessmentId) {
-        this.assessmentId = assessmentId;
+        this.assessmentKey = assessmentId;
     }
 
     /**
