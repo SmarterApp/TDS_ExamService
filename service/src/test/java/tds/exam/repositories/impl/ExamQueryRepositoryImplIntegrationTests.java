@@ -1,6 +1,5 @@
 package tds.exam.repositories.impl;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,7 +7,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlConfig;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
@@ -24,14 +22,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest
 @SqlConfig(dataSource = "queryDataSource")
-@Transactional
-// @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = "classpath:integration/sql/ExamQueryRepositoryIntegrationTest/retrieveExamBefore.sql")
-// @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = "classpath:integration/sql/ExamQueryRepositoryIntegrationTest/retrieveExamAfter.sql")
+@Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = "classpath:integration/sql/ExamQueryRepositoryIntegrationTest/retrieveExamBefore.sql")
+@Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = "classpath:integration/sql/ExamQueryRepositoryIntegrationTest/retrieveExamAfter.sql")
 public class ExamQueryRepositoryImplIntegrationTests {
     @Autowired
     private ExamQueryRepository examQueryRepository;
-
-    @Before
 
     @Test
     public void shouldRetrieveExamForUniqueKey() {
