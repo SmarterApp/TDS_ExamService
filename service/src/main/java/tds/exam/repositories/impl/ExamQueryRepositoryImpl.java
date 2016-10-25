@@ -19,6 +19,7 @@ import java.util.*;
 
 import tds.common.data.mapping.ResultSetMapperUtility;
 import tds.common.data.mysql.UuidAdapter;
+import tds.exam.Accommodation;
 import tds.exam.Exam;
 import tds.exam.ExamStatusCode;
 import tds.exam.models.Ability;
@@ -166,6 +167,33 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
         return jdbcTemplate.query(SQL, parameters, new AbilityRowMapper());
     }
 
+    @Override
+    public Optional<Accommodation> findAccommodation(UUID examId, String accommodationType) {
+        final SqlParameterSource parameters = new MapSqlParameterSource("examId", UuidAdapter.getBytesFromUUID(examId))
+            .addValue("accommodationType", accommodationType);
+        final String SQL =
+            "SELECT \n" +
+            "   id, \n" +
+            "   exam_id, \n" +
+            "   segment_id, \n" +
+            "   accommodation_type, \n" +
+            "   accommodation_code \n" +
+            "FROM \n" +
+            "   exam_accommodations \n" +
+            "WHERE \n" +
+            "   exam_id = :examId \n" +
+            "   AND accommodation_type = :accommodationType \n";
+
+        Optional<Accommodation> maybeAccommodation;
+        try {
+            maybeAccommodation = Optional.of(jdbcTemplate.queryForObject(SQL, parameters, new AccommodationRowMapper()));
+        } catch (EmptyResultDataAccessException e) {
+            maybeAccommodation = Optional.empty();
+        }
+
+        return maybeAccommodation;
+    }
+
     private class AbilityRowMapper implements RowMapper<Ability> {
         @Override
         public Ability mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -178,6 +206,17 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
 
             );
             return ability;
+        }
+    }
+
+    private class AccommodationRowMapper implements RowMapper<Accommodation> {
+        @Override
+        public Accommodation mapRow(ResultSet rs, int rowNum) throws SQLException {
+            return new Accommodation(rs.getLong("id"),
+                UuidAdapter.getUUIDFromBytes(rs.getBytes("exam_id")),
+                rs.getInt("segment_id"),
+                rs.getString("accommodation_type"),
+                rs.getString("accommodation_code"));
         }
     }
 
