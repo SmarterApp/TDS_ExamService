@@ -4,11 +4,13 @@ import java.util.Optional;
 import java.util.UUID;
 
 import tds.common.Response;
+import tds.common.ValidationError;
 import tds.config.ClientTestProperty;
 import tds.exam.Exam;
 import tds.exam.ExamApproval;
-import tds.exam.ExamApprovalRequest;
+import tds.exam.ApprovalRequest;
 import tds.exam.OpenExamRequest;
+import tds.session.Session;
 
 /**
  * Main entry point for interacting with {@link Exam}
@@ -32,10 +34,10 @@ public interface ExamService {
      *     the Student's request to start his/her exam.
      * </p>
      *
-     * @param examApprovalRequest The {@link ExamApprovalRequest} representing the request to open the specified exam.
+     * @param approvalRequest The {@link ApprovalRequest} representing the request to open the specified exam.
      * @return {@link ExamApproval} describing whether the exam is approved to be opened.
      */
-    Response<ExamApproval> getApproval(ExamApprovalRequest examApprovalRequest);
+    Response<ExamApproval> getApproval(ApprovalRequest approvalRequest);
 
     /**
      * Retrieves the initial ability value for an {@link Exam}.
@@ -45,4 +47,25 @@ public interface ExamService {
      * @return  the initial ability for an {@link Exam}.
      */
     Optional<Double> getInitialAbility(Exam exam, ClientTestProperty clientTestProperty);
+
+    /**
+     * Verify all the rules for granting approval to an {@link Exam} are satisfied.
+     * <p>
+     *     The rules are:
+     *     <ul>
+     *         <li>The browser key of the approval request must match the browser key of the {@link Exam}.</li>
+     *         <li>The session id of the approval request must match the session id of the {@link Exam}.</li>
+     *         <li>The {@link Session} must be open (unless the environment is set to "simulation" or "development")</li>
+     *         <li>The TA Check-In time window cannot be passed</li>
+     *     </ul>
+     *     <strong>NOTE:</strong>  If the {@link Session} has no Proctor (because the {@link Session} is a guest session
+     *     or is otherwise proctor-less), approval is granted as long as the {@link Session} is open.
+     * </p>
+     *
+     * @param approvalRequest The {@link ApprovalRequest} being evaluated
+     * @param exam The {@link Exam} for which approval is being requested
+     * @return An empty optional if the approval rules are satisfied; otherwise an optional containing a
+     * {@link ValidationError} describing the rule that was not satisfied
+     */
+    Optional<ValidationError> verifyAccess(ApprovalRequest approvalRequest, Exam exam);
 }

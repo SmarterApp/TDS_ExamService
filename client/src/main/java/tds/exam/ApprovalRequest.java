@@ -4,9 +4,9 @@ import javax.validation.constraints.NotNull;
 import java.util.UUID;
 
 /**
- * Request approval to start an {@link Exam}.
+ * Request approval to an {@link Exam}.
  */
-public class ExamApprovalRequest {
+public class ApprovalRequest {
     @NotNull
     private UUID examId;
 
@@ -19,7 +19,7 @@ public class ExamApprovalRequest {
     @NotNull
     private String clientName;
 
-    public ExamApprovalRequest(UUID examId, UUID sessionId, UUID browserId, String clientName) {
+    public ApprovalRequest(UUID examId, UUID sessionId, UUID browserId, String clientName) {
         this.examId = examId;
         this.sessionId = sessionId;
         this.browserId = browserId;
@@ -27,7 +27,7 @@ public class ExamApprovalRequest {
     }
 
     /**
-     * @return The id of the exam for which approval is being requested
+     * @return The id of the exam for which access is being requested
      */
     public UUID getExamId() {
         return examId;

@@ -105,18 +105,18 @@ public class ExamControllerTest {
         UUID sessionId = UUID.randomUUID();
         UUID browserId = UUID.randomUUID();
         String clientName = "UNIT_TEST";
-        ExamApprovalRequest examApprovalRequest = new ExamApprovalRequest(examId, sessionId, browserId, clientName);
+        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserId, clientName);
 
         ExamApproval mockExamApproval =
                 new ExamApproval(examId, new ExamStatusCode.Builder().withStatus("approved").build(), null);
-        when(examService.getApproval(Matchers.isA(ExamApprovalRequest.class))).thenReturn(new Response<>(mockExamApproval));
+        when(examService.getApproval(Matchers.isA(ApprovalRequest.class))).thenReturn(new Response<>(mockExamApproval));
 
         ResponseEntity<ExamApprovalResource> response = controller.getApproval(
-                examApprovalRequest.getExamId(),
-                examApprovalRequest.getSessionId(),
-                examApprovalRequest.getBrowserId(),
-                examApprovalRequest.getClientName());
-        verify(examService).getApproval(Matchers.isA(ExamApprovalRequest.class));
+                approvalRequest.getExamId(),
+                approvalRequest.getSessionId(),
+                approvalRequest.getBrowserId(),
+                approvalRequest.getClientName());
+        verify(examService).getApproval(Matchers.isA(ApprovalRequest.class));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody().getErrors()).isNull();
@@ -131,17 +131,17 @@ public class ExamControllerTest {
         UUID sessionId = UUID.randomUUID();
         UUID browserId = UUID.randomUUID();
         String clientName = "UNIT_TEST";
-        ExamApprovalRequest examApprovalRequest = new ExamApprovalRequest(examId, sessionId, browserId, clientName);
+        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserId, clientName);
 
-        when(examService.getApproval(Matchers.isA(ExamApprovalRequest.class))).thenReturn(
+        when(examService.getApproval(Matchers.isA(ApprovalRequest.class))).thenReturn(
                 new Response<>(new ExamApproval(examId, new ExamStatusCode.Builder().withStatus("pending").build(), null)));
 
         ResponseEntity<ExamApprovalResource> response = controller.getApproval(
-                examApprovalRequest.getExamId(),
-                examApprovalRequest.getSessionId(),
-                examApprovalRequest.getBrowserId(),
-                examApprovalRequest.getClientName());
-        verify(examService).getApproval(Matchers.isA(ExamApprovalRequest.class));
+                approvalRequest.getExamId(),
+                approvalRequest.getSessionId(),
+                approvalRequest.getBrowserId(),
+                approvalRequest.getClientName());
+        verify(examService).getApproval(Matchers.isA(ApprovalRequest.class));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody().getErrors()).isNull();
@@ -156,17 +156,17 @@ public class ExamControllerTest {
         UUID sessionId = UUID.randomUUID();
         UUID browserId = UUID.randomUUID();
         String clientName = "UNIT_TEST";
-        ExamApprovalRequest examApprovalRequest = new ExamApprovalRequest(examId, sessionId, browserId, clientName);
+        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserId, clientName);
 
-        when(examService.getApproval(Matchers.isA(ExamApprovalRequest.class))).thenReturn(
+        when(examService.getApproval(Matchers.isA(ApprovalRequest.class))).thenReturn(
                 new Response<>(new ExamApproval(examId, new ExamStatusCode.Builder().withStatus("paused").build(), null)));
 
         ResponseEntity<ExamApprovalResource> response = controller.getApproval(
-                examApprovalRequest.getExamId(),
-                examApprovalRequest.getSessionId(),
-                examApprovalRequest.getBrowserId(),
-                examApprovalRequest.getClientName());
-        verify(examService).getApproval(Matchers.isA(ExamApprovalRequest.class));
+                approvalRequest.getExamId(),
+                approvalRequest.getSessionId(),
+                approvalRequest.getBrowserId(),
+                approvalRequest.getClientName());
+        verify(examService).getApproval(Matchers.isA(ApprovalRequest.class));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody().getErrors()).isNull();
@@ -181,17 +181,17 @@ public class ExamControllerTest {
         UUID sessionId = UUID.randomUUID();
         UUID browserId = UUID.randomUUID();
         String clientName = "UNIT_TEST";
-        ExamApprovalRequest examApprovalRequest = new ExamApprovalRequest(examId, sessionId, browserId, clientName);
+        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserId, clientName);
 
-        when(examService.getApproval(Matchers.isA(ExamApprovalRequest.class))).thenReturn(
+        when(examService.getApproval(Matchers.isA(ApprovalRequest.class))).thenReturn(
                 new Response<>(new ExamApproval(examId, new ExamStatusCode.Builder().withStatus("denied").build(), null)));
 
         ResponseEntity<ExamApprovalResource> response = controller.getApproval(
-                examApprovalRequest.getExamId(),
-                examApprovalRequest.getSessionId(),
-                examApprovalRequest.getBrowserId(),
-                examApprovalRequest.getClientName());
-        verify(examService).getApproval(Matchers.isA(ExamApprovalRequest.class));
+                approvalRequest.getExamId(),
+                approvalRequest.getSessionId(),
+                approvalRequest.getBrowserId(),
+                approvalRequest.getClientName());
+        verify(examService).getApproval(Matchers.isA(ApprovalRequest.class));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody().getErrors()).isNull();
@@ -206,17 +206,17 @@ public class ExamControllerTest {
         UUID sessionId = UUID.randomUUID();
         UUID browserId = UUID.randomUUID();
         String clientName = "UNIT_TEST";
-        ExamApprovalRequest examApprovalRequest = new ExamApprovalRequest(examId, sessionId, browserId, clientName);
+        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserId, clientName);
 
         Response<ExamApproval> errorResponse = new Response<ExamApproval>(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_BROWSER_ID_MISMATCH, "foo"));
-        when(examService.getApproval(Matchers.isA(ExamApprovalRequest.class))).thenReturn(errorResponse);
+        when(examService.getApproval(Matchers.isA(ApprovalRequest.class))).thenReturn(errorResponse);
 
         ResponseEntity<ExamApprovalResource> response = controller.getApproval(
-                examApprovalRequest.getExamId(),
-                examApprovalRequest.getSessionId(),
-                examApprovalRequest.getBrowserId(),
-                examApprovalRequest.getClientName());
-        verify(examService).getApproval(Matchers.isA(ExamApprovalRequest.class));
+                approvalRequest.getExamId(),
+                approvalRequest.getSessionId(),
+                approvalRequest.getBrowserId(),
+                approvalRequest.getClientName());
+        verify(examService).getApproval(Matchers.isA(ApprovalRequest.class));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
         assertThat(response.getBody().getErrors()).isNotNull();
