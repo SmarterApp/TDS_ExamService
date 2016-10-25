@@ -16,6 +16,7 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
+import tds.exam.builder.ExternalSessionConfigurationBuilder;
 import tds.exam.configuration.ExamServiceProperties;
 import tds.exam.services.SessionService;
 import tds.session.ExternalSessionConfiguration;
@@ -116,7 +117,7 @@ public class SessionServiceImplTest {
     @Test
     public void shouldReturnExternalSessionConfigForClientName() {
         String url = BASE_URL + "/external-config/SBAC";
-        ExternalSessionConfiguration externalSessionConfiguration = new ExternalSessionConfiguration("SBAC", "SIMULATION", 0, 0);
+        ExternalSessionConfiguration externalSessionConfiguration = new ExternalSessionConfigurationBuilder().withClientName("SBAC").build();
         when(restTemplate.getForObject(url, ExternalSessionConfiguration.class)).thenReturn(externalSessionConfiguration);
         Optional<ExternalSessionConfiguration> maybeExternalSessionConfiguration = sessionService.findExternalSessionConfigurationByClientName("SBAC");
         verify(restTemplate).getForObject(url, ExternalSessionConfiguration.class);

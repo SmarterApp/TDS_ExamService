@@ -6,9 +6,9 @@ import java.util.UUID;
 import tds.common.Response;
 import tds.common.ValidationError;
 import tds.config.ClientTestProperty;
+import tds.exam.ApprovalRequest;
 import tds.exam.Exam;
 import tds.exam.ExamApproval;
-import tds.exam.ApprovalRequest;
 import tds.exam.OpenExamRequest;
 import tds.session.Session;
 
