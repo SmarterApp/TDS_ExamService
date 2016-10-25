@@ -43,7 +43,7 @@ class ConfigServiceImpl implements ConfigService {
             final ClientTestProperty clientTestProperty = restTemplate.getForObject(builder.toUriString(), ClientTestProperty.class);
             clientTestPropertyOptional = Optional.of(clientTestProperty);
         } catch (HttpClientErrorException hce) {
-            if(hce.getStatusCode() != HttpStatus.NOT_FOUND) {
+            if (hce.getStatusCode() != HttpStatus.NOT_FOUND) {
                 throw hce;
             }
         }
@@ -67,10 +67,11 @@ class ConfigServiceImpl implements ConfigService {
                     sessionType,
                     studentId));
 
-        if(configuration.getShiftWindowEnd() != 0) {
+        builder.queryParam("shiftWindowStart", configuration.getShiftWindowStart());
+        builder.queryParam("shiftWindowEnd", configuration.getShiftWindowEnd());
+        builder.queryParam("shiftFormStart", configuration.getShiftFormStart());
+        builder.queryParam("shiftFormEnd", configuration.getShiftFormEnd());
 
-        }
-
-        return null;
+        return restTemplate.getForObject(builder.toUriString(), AssessmentWindow[].class);
     }
 }

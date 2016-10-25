@@ -3,8 +3,8 @@ package tds.exam.services;
 import java.util.Optional;
 
 import tds.config.AssessmentWindow;
-import tds.config.AssessmentWindowParameters;
 import tds.config.ClientTestProperty;
+import tds.session.ExternalSessionConfiguration;
 
 /**
  * A service that handles configuration interaction.
@@ -20,11 +20,5 @@ public interface ConfigService {
      */
     Optional<ClientTestProperty> findClientTestProperty(final String clientName, final String assessmentId);
 
-    /**
-     * Finds the associated {@link tds.config.AssessmentWindow} based on the {@link tds.config.AssessmentWindowParameters}
-     *
-     * @param parameters the {@link tds.config.AssessmentWindowParameters} to use to find the windows
-     * @return array of {@link tds.config.AssessmentWindow}
-     */
-    AssessmentWindow[] findAssessmentWindows(AssessmentWindowParameters parameters);
+    AssessmentWindow[] findAssessmentWindows(String clientName, String assessmentId, int sessionType, long studentId, ExternalSessionConfiguration configuration);
 }
