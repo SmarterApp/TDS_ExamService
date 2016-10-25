@@ -15,12 +15,14 @@ import tds.assessment.SetOfAdminSubject;
 import tds.common.Response;
 import tds.common.ValidationError;
 import tds.config.ClientTestProperty;
+import tds.config.TimeLimitConfiguration;
+import tds.exam.ApprovalRequest;
 import tds.exam.Exam;
 import tds.exam.ExamApproval;
-import tds.exam.ApprovalRequest;
 import tds.exam.ExamApprovalStatus;
 import tds.exam.ExamStatusCode;
 import tds.exam.OpenExamRequest;
+import tds.exam.builder.ExternalSessionConfigurationBuilder;
 import tds.exam.error.ValidationErrorCode;
 import tds.exam.models.Ability;
 import tds.exam.repositories.ExamQueryRepository;
@@ -32,7 +34,6 @@ import tds.exam.services.TimeLimitConfigurationService;
 import tds.session.ExternalSessionConfiguration;
 import tds.session.Session;
 import tds.student.Student;
-import tds.config.TimeLimitConfiguration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -190,7 +191,7 @@ public class ExamServiceImplTest {
         when(studentService.getStudentById(1)).thenReturn(Optional.of(student));
         when(repository.getLastAvailableExam(1, "assessmentId", "SBAC-PT")).thenReturn(Optional.empty());
         when(sessionService.findSessionById(previousSession.getId())).thenReturn(Optional.of(previousSession));
-        ExternalSessionConfiguration extSessionConfig = new ExternalSessionConfiguration("SBAC-PT", "Development", 0, 0);
+        ExternalSessionConfiguration extSessionConfig = new ExternalSessionConfigurationBuilder().build();
         when(sessionService.findExternalSessionConfigurationByClientName("SBAC-PT")).thenReturn(Optional.of(extSessionConfig));
 
         Response<Exam> examResponse = examService.openExam(openExamRequest);
@@ -233,7 +234,7 @@ public class ExamServiceImplTest {
         when(studentService.getStudentById(1)).thenReturn(Optional.of(student));
         when(repository.getLastAvailableExam(1, "assessmentId", "SBAC-PT")).thenReturn(Optional.of(previousExam));
         when(sessionService.findSessionById(previousSession.getId())).thenReturn(Optional.of(previousSession));
-        ExternalSessionConfiguration externalSessionConfiguration = new ExternalSessionConfiguration("SBAC-PT", "Development", 0, 0);
+        ExternalSessionConfiguration externalSessionConfiguration = new ExternalSessionConfiguration("SBAC-PT", "Development", 0, 0, 0, 0);
         when(sessionService.findExternalSessionConfigurationByClientName("SBAC-PT")).thenReturn(Optional.of(externalSessionConfiguration));
 
         Response<Exam> examResponse = examService.openExam(openExamRequest);
@@ -277,7 +278,7 @@ public class ExamServiceImplTest {
         when(studentService.getStudentById(1)).thenReturn(Optional.of(student));
         when(repository.getLastAvailableExam(1, "assessmentId", "SBAC-PT")).thenReturn(Optional.of(previousExam));
         when(sessionService.findSessionById(previousSession.getId())).thenReturn(Optional.of(previousSession));
-        ExternalSessionConfiguration externalSessionConfiguration = new ExternalSessionConfiguration("SBAC-PT", "Development", 0, 0);
+        ExternalSessionConfiguration externalSessionConfiguration = new ExternalSessionConfigurationBuilder().build();
         when(sessionService.findExternalSessionConfigurationByClientName("SBAC-PT")).thenReturn(Optional.of(externalSessionConfiguration));
 
         Response<Exam> examResponse = examService.openExam(openExamRequest);
@@ -320,7 +321,7 @@ public class ExamServiceImplTest {
         when(studentService.getStudentById(1)).thenReturn(Optional.of(student));
         when(repository.getLastAvailableExam(1, "assessmentId", "SBAC-PT")).thenReturn(Optional.of(previousExam));
         when(sessionService.findSessionById(previousSession.getId())).thenReturn(Optional.of(previousSession));
-        ExternalSessionConfiguration externalSessionConfiguration = new ExternalSessionConfiguration("SBAC-PT", "Development", 0, 0);
+        ExternalSessionConfiguration externalSessionConfiguration = new ExternalSessionConfigurationBuilder().build();
         when(sessionService.findExternalSessionConfigurationByClientName("SBAC-PT")).thenReturn(Optional.of(externalSessionConfiguration));
 
         Response<Exam> examResponse = examService.openExam(openExamRequest);
@@ -362,7 +363,7 @@ public class ExamServiceImplTest {
         when(studentService.getStudentById(1)).thenReturn(Optional.of(student));
         when(repository.getLastAvailableExam(1, "assessmentId", "SBAC-PT")).thenReturn(Optional.of(previousExam));
         when(sessionService.findSessionById(previousSession.getId())).thenReturn(Optional.of(previousSession));
-        ExternalSessionConfiguration externalSessionConfiguration = new ExternalSessionConfiguration("SBAC-PT", "Development", 0, 0);
+        ExternalSessionConfiguration externalSessionConfiguration = new ExternalSessionConfigurationBuilder().build();
         when(sessionService.findExternalSessionConfigurationByClientName("SBAC-PT")).thenReturn(Optional.of(externalSessionConfiguration));
 
         Response<Exam> examResponse = examService.openExam(openExamRequest);
@@ -405,7 +406,7 @@ public class ExamServiceImplTest {
         when(studentService.getStudentById(1)).thenReturn(Optional.of(student));
         when(repository.getLastAvailableExam(1, "assessmentId", "SBAC-PT")).thenReturn(Optional.of(previousExam));
         when(sessionService.findSessionById(previousSession.getId())).thenReturn(Optional.of(previousSession));
-        ExternalSessionConfiguration externalSessionConfiguration = new ExternalSessionConfiguration("SBAC-PT", "Development", 0, 0);
+        ExternalSessionConfiguration externalSessionConfiguration = new ExternalSessionConfigurationBuilder().build();
         when(sessionService.findExternalSessionConfigurationByClientName("SBAC-PT")).thenReturn(Optional.of(externalSessionConfiguration));
 
         Response<Exam> examResponse = examService.openExam(openExamRequest);
@@ -504,7 +505,6 @@ public class ExamServiceImplTest {
         final String assessmentId = "SBAC ELA 3-ELA-3";
         final String clientName = "SBAC_TEST7";
         final long studentId = 9898L;
-        final double assessmentAbilityVal = 99F;
         final Double slope = 2D;
         final Double intercept = 1D;
 
@@ -705,7 +705,7 @@ public class ExamServiceImplTest {
         when(sessionService.findSessionById(sessionId)).thenReturn(Optional.of(currentSession));
         when(repository.getLastAvailableExam(-1, "assessmentId", "SBAC-PT")).thenReturn(Optional.of(previousExam));
         when(sessionService.findSessionById(previousSession.getId())).thenReturn(Optional.of(previousSession));
-        ExternalSessionConfiguration externalSessionConfiguration = new ExternalSessionConfiguration("SBAC-PT", "Development", 0, 0);
+        ExternalSessionConfiguration externalSessionConfiguration = new ExternalSessionConfigurationBuilder().build();
         when(sessionService.findExternalSessionConfigurationByClientName("SBAC-PT")).thenReturn(Optional.of(externalSessionConfiguration));
 
         Response<Exam> examResponse = examService.openExam(openExamRequest);
@@ -744,7 +744,7 @@ public class ExamServiceImplTest {
                         .withProctorId(42L)
                         .build()));
         when(sessionService.findExternalSessionConfigurationByClientName(clientName))
-                .thenReturn(Optional.of(new ExternalSessionConfiguration(clientName, mockEnvironment, 0, 0)));
+                .thenReturn(Optional.of(new ExternalSessionConfiguration(clientName, mockEnvironment, 0, 0, 0, 0)));
         when(timeLimitConfigurationService.findTimeLimitConfiguration(clientName, mockAssessmentId))
                 .thenReturn(Optional.of(new TimeLimitConfiguration.Builder()
                         .withClientName(clientName)
@@ -791,7 +791,7 @@ public class ExamServiceImplTest {
                         .withProctorId(42L)
                         .build()));
         when(sessionService.findExternalSessionConfigurationByClientName(clientName))
-                .thenReturn(Optional.of(new ExternalSessionConfiguration(clientName, mockEnvironment, 0, 0)));
+                .thenReturn(Optional.of(new ExternalSessionConfigurationBuilder().withEnvironment(mockEnvironment).build()));
         when(timeLimitConfigurationService.findTimeLimitConfiguration(clientName, mockAssessmentId))
                 .thenReturn(Optional.of(new TimeLimitConfiguration.Builder()
                         .withClientName(clientName)
@@ -838,7 +838,7 @@ public class ExamServiceImplTest {
                         .withProctorId(42L)
                         .build()));
         when(sessionService.findExternalSessionConfigurationByClientName(clientName))
-                .thenReturn(Optional.of(new ExternalSessionConfiguration(clientName, mockEnvironment, 0, 0)));
+                .thenReturn(Optional.of(new ExternalSessionConfigurationBuilder().withEnvironment(mockEnvironment).build()));
         when(timeLimitConfigurationService.findTimeLimitConfiguration(clientName, mockAssessmentId))
                 .thenReturn(Optional.of(new TimeLimitConfiguration.Builder()
                         .withClientName(clientName)
@@ -885,7 +885,7 @@ public class ExamServiceImplTest {
                         .withProctorId(null)
                         .build()));
         when(sessionService.findExternalSessionConfigurationByClientName(clientName))
-                .thenReturn(Optional.of(new ExternalSessionConfiguration(clientName, mockEnvironment, 0, 0)));
+                .thenReturn(Optional.of(new ExternalSessionConfigurationBuilder().withEnvironment(mockEnvironment).build()));
         when(timeLimitConfigurationService.findTimeLimitConfiguration(clientName, mockAssessmentId))
                 .thenReturn(Optional.of(new TimeLimitConfiguration.Builder()
                         .withClientName(clientName)
@@ -929,7 +929,7 @@ public class ExamServiceImplTest {
                         .withProctorId(42L)
                         .build()));
         when(sessionService.findExternalSessionConfigurationByClientName(clientName))
-                .thenReturn(Optional.of(new ExternalSessionConfiguration(clientName, mockEnvironment, 0, 0)));
+                .thenReturn(Optional.of(new ExternalSessionConfigurationBuilder().withEnvironment(mockEnvironment).build()));
         when(timeLimitConfigurationService.findTimeLimitConfiguration(clientName, mockAssessmentId))
                 .thenReturn(Optional.of(new TimeLimitConfiguration.Builder()
                         .withClientName(clientName)
@@ -972,7 +972,7 @@ public class ExamServiceImplTest {
                         .withProctorId(42L)
                         .build()));
         when(sessionService.findExternalSessionConfigurationByClientName(clientName))
-                .thenReturn(Optional.of(new ExternalSessionConfiguration(clientName, mockEnvironment, 0, 0)));
+                .thenReturn(Optional.of(new ExternalSessionConfigurationBuilder().withEnvironment(mockEnvironment).build()));
         when(timeLimitConfigurationService.findTimeLimitConfiguration(clientName, mockAssessmentId))
                 .thenReturn(Optional.of(new TimeLimitConfiguration.Builder()
                         .withClientName(clientName)
@@ -1015,7 +1015,7 @@ public class ExamServiceImplTest {
                         .withProctorId(42L)
                         .build()));
         when(sessionService.findExternalSessionConfigurationByClientName(clientName))
-                .thenReturn(Optional.of(new ExternalSessionConfiguration(clientName, mockEnvironment, 0, 0)));
+                .thenReturn(Optional.of(new ExternalSessionConfigurationBuilder().withEnvironment(mockEnvironment).build()));
         when(timeLimitConfigurationService.findTimeLimitConfiguration(clientName, mockAssessmentId))
                 .thenReturn(Optional.of(new TimeLimitConfiguration.Builder()
                         .withClientName(clientName)
@@ -1058,7 +1058,7 @@ public class ExamServiceImplTest {
                         .withProctorId(42L)
                         .build()));
         when(sessionService.findExternalSessionConfigurationByClientName(clientName))
-                .thenReturn(Optional.of(new ExternalSessionConfiguration(clientName, mockEnvironment, 0, 0)));
+                .thenReturn(Optional.of(new ExternalSessionConfigurationBuilder().withEnvironment(mockEnvironment).build()));
         when(timeLimitConfigurationService.findTimeLimitConfiguration(clientName, mockAssessmentId))
                 .thenReturn(Optional.of(new TimeLimitConfiguration.Builder()
                         .withClientName(clientName)
@@ -1096,7 +1096,7 @@ public class ExamServiceImplTest {
                         .withProctorId(42L)
                         .build()));
         when(sessionService.findExternalSessionConfigurationByClientName(clientName))
-                .thenReturn(Optional.of(new ExternalSessionConfiguration(clientName, mockEnvironment, 0, 0)));
+                .thenReturn(Optional.of(new ExternalSessionConfigurationBuilder().withEnvironment(mockEnvironment).build()));
         when(timeLimitConfigurationService.findTimeLimitConfiguration(clientName, mockAssessmentId))
                 .thenReturn(Optional.of(new TimeLimitConfiguration.Builder()
                         .withClientName(clientName)
@@ -1128,7 +1128,7 @@ public class ExamServiceImplTest {
         when(sessionService.findSessionById(sessionId))
                 .thenReturn(Optional.empty());
         when(sessionService.findExternalSessionConfigurationByClientName(clientName))
-                .thenReturn(Optional.of(new ExternalSessionConfiguration(clientName, mockEnvironment, 0, 0)));
+                .thenReturn(Optional.of(new ExternalSessionConfigurationBuilder().withEnvironment(mockEnvironment).build()));
         when(timeLimitConfigurationService.findTimeLimitConfiguration(clientName, mockAssessmentId))
                 .thenReturn(Optional.of(new TimeLimitConfiguration.Builder()
                         .withClientName(clientName)
@@ -1206,7 +1206,7 @@ public class ExamServiceImplTest {
                         .withProctorId(42L)
                         .build()));
         when(sessionService.findExternalSessionConfigurationByClientName(clientName))
-                .thenReturn(Optional.of(new ExternalSessionConfiguration(clientName, mockEnvironment, 0, 0)));
+                .thenReturn(Optional.of(new ExternalSessionConfigurationBuilder().withEnvironment(mockEnvironment).build()));
         when(timeLimitConfigurationService.findTimeLimitConfiguration(clientName, mockAssessmentId))
                 .thenReturn(Optional.empty());
 

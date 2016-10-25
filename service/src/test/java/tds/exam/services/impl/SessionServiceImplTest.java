@@ -8,7 +8,6 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import java.security.cert.PKIXRevocationChecker;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
@@ -109,7 +108,7 @@ public class SessionServiceImplTest {
     @Test
     public void shouldReturnExternalSessionConfigForClientName() {
         String url = "http://localhost:8080/session/external-config/SBAC";
-        ExternalSessionConfiguration externalSessionConfiguration = new ExternalSessionConfiguration("SBAC", "SIMULATION", 0, 0);
+        ExternalSessionConfiguration externalSessionConfiguration = new ExternalSessionConfiguration("SBAC", "SIMULATION", 0, 0, 0, 0);
         when(restTemplate.getForObject(url, ExternalSessionConfiguration.class)).thenReturn(externalSessionConfiguration);
         Optional<ExternalSessionConfiguration> maybeExternalSessionConfiguration = sessionService.findExternalSessionConfigurationByClientName("SBAC");
         verify(restTemplate).getForObject(url, ExternalSessionConfiguration.class);
