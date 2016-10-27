@@ -10,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.jdbc.SqlConfig;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.sql.DataSource;
 import java.util.Optional;
@@ -23,13 +24,13 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest
-@SqlConfig(dataSource = "queryDataSource")
+//@SqlConfig(dataSource = "queryDataSource")
+@Transactional
 public class HistoryQueryRepositoryImplIntegrationTests {
     @Autowired
     @Qualifier("commandDataSource")
     private DataSource dataSource;
 
-    @Autowired
     private HistoryQueryRepository historyQueryRepository;
 
     private JdbcTemplate jdbcTemplate;
@@ -41,6 +42,8 @@ public class HistoryQueryRepositoryImplIntegrationTests {
     @Before
     public void initialize() {
         jdbcTemplate = new JdbcTemplate(dataSource);
+        historyQueryRepository = new HistoryQueryRepositoryImpl(dataSource);
+
         final String SQL1 =
                 "INSERT INTO history (id, client_name, student_id, subject, initial_ability, attempts, assessment_component_id, " +
                     "date_changed, admin_subject, fk_history_examid_exam, tested_grade, login_ssid, item_group_string, initial_ability_delim)\n" +
@@ -68,10 +71,10 @@ public class HistoryQueryRepositoryImplIntegrationTests {
         jdbcTemplate.update(SQL4);
     }
 
-    @After
-    public void cleanUp() {
-        jdbcTemplate.update("DELETE FROM history");
-    }
+//    @After
+//    public void cleanUp() {
+//        jdbcTemplate.update("DELETE FROM history");
+//    }
 
     @Test
     public void shouldRetrieveLargestAbilityValue() {
