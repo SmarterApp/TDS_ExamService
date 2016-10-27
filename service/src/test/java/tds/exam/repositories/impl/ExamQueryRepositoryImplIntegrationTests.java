@@ -54,7 +54,7 @@ public class ExamQueryRepositoryImplIntegrationTests {
         exams.add(new ExamBuilder()
             .withId(UUID.fromString("ab880054-d1d2-4c24-805c-0dfdb45a0d24"))
             .withAssessmentId("assementId2")
-            .withDateDeleted(Instant.now().plus(1, ChronoUnit.MINUTES))
+            .withDateDeleted(Instant.now().minus(5, ChronoUnit.MINUTES))
             .build());
 
         // Build an exam record that is a subsequent attempt of an exam
@@ -64,7 +64,7 @@ public class ExamQueryRepositoryImplIntegrationTests {
             .withAssessmentId("assessmentId3")
             .withStudentId(9999L)
             .withAttempts(2)
-            .withDateScored(Instant.now().plus(1, ChronoUnit.MINUTES))
+            .withDateScored(Instant.now().minus(5, ChronoUnit.MINUTES))
             .build());
 
         exams.forEach(this::insertExamData);
