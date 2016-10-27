@@ -28,6 +28,7 @@ import tds.exam.models.Ability;
 import tds.exam.repositories.ExamQueryRepository;
 import tds.exam.repositories.HistoryQueryRepository;
 import tds.exam.services.AssessmentService;
+import tds.exam.services.ConfigService;
 import tds.exam.services.SessionService;
 import tds.exam.services.StudentService;
 import tds.exam.services.TimeLimitConfigurationService;
@@ -47,6 +48,7 @@ public class ExamServiceImplTest {
     private StudentService studentService;
     private AssessmentService assessmentService;
     private TimeLimitConfigurationService timeLimitConfigurationService;
+    private ConfigService configService;
 
     @Before
     public void setUp() {
@@ -56,6 +58,7 @@ public class ExamServiceImplTest {
         studentService = mock(StudentService.class);
         assessmentService = mock(AssessmentService.class);
         timeLimitConfigurationService = mock(TimeLimitConfigurationService.class);
+        configService = mock(ConfigService.class);
 
         examService = new ExamServiceImpl(
                 repository,
@@ -63,7 +66,8 @@ public class ExamServiceImplTest {
                 sessionService,
                 studentService,
                 assessmentService,
-                timeLimitConfigurationService);
+                timeLimitConfigurationService,
+                configService);
     }
 
     @After

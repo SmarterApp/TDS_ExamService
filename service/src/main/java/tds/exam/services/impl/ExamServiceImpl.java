@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -17,6 +18,7 @@ import tds.assessment.SetOfAdminSubject;
 import tds.common.Response;
 import tds.common.ValidationError;
 import tds.common.data.legacy.LegacyComparer;
+import tds.config.AssessmentWindow;
 import tds.config.ClientTestProperty;
 import tds.config.TimeLimitConfiguration;
 import tds.exam.ApprovalRequest;
@@ -29,6 +31,7 @@ import tds.exam.models.Ability;
 import tds.exam.repositories.ExamQueryRepository;
 import tds.exam.repositories.HistoryQueryRepository;
 import tds.exam.services.AssessmentService;
+import tds.exam.services.ConfigService;
 import tds.exam.services.ExamService;
 import tds.exam.services.SessionService;
 import tds.exam.services.StudentService;
@@ -54,6 +57,7 @@ class ExamServiceImpl implements ExamService {
     private final StudentService studentService;
     private final AssessmentService assessmentService;
     private final TimeLimitConfigurationService timeLimitConfigurationService;
+    private final ConfigService configService;
 
     @Autowired
     public ExamServiceImpl(ExamQueryRepository examQueryRepository,
@@ -61,13 +65,15 @@ class ExamServiceImpl implements ExamService {
                            SessionService sessionService,
                            StudentService studentService,
                            AssessmentService assessmentService,
-                           TimeLimitConfigurationService timeLimitConfigurationService) {
+                           TimeLimitConfigurationService timeLimitConfigurationService,
+                           ConfigService configService) {
         this.examQueryRepository = examQueryRepository;
         this.historyQueryRepository = historyQueryRepository;
         this.sessionService = sessionService;
         this.studentService = studentService;
         this.assessmentService = assessmentService;
         this.timeLimitConfigurationService = timeLimitConfigurationService;
+        this.configService = configService;
     }
 
     @Override
@@ -117,8 +123,6 @@ class ExamServiceImpl implements ExamService {
             LOG.debug("Can open previous exam");
             exam = new Exam.Builder().withId(maybePreviousExam.get().getId()).build();
         } else {
-            //TODO - need to get testee name and testee ID lines StudentServiceImpl 107 - 118
-
             //Line 5602 in StudentDLL
             Optional<ExternalSessionConfiguration> maybeExternalSessionConfiguration = sessionService.findExternalSessionConfigurationByClientName(openExamRequest.getClientName());
 
@@ -262,7 +266,7 @@ class ExamServiceImpl implements ExamService {
             examStatus = "pending";
         }
 
-        String testeeId = null, testeeName = null, guestAccommadtions = openExamRequest.getGuestAccommodations();
+        String testeeId = null, testeeName = null, guestAccommodations = openExamRequest.getGuestAccommodations();
         if (openExamRequest.isGuestStudent()) {
             testeeId = "GUEST";
             testeeName = "GUEST";
@@ -274,17 +278,35 @@ class ExamServiceImpl implements ExamService {
                     testeeId = attribute.getValue();
                 } else if (ENTITY_NAME.equals(attribute.getName())) {
                     testeeName = attribute.getValue();
-                } else if (StringUtils.isEmpty(guestAccommadtions) && ACCOMMODATIONS.equals(attribute.getName())) {
-                    guestAccommadtions = attribute.getValue();
+                } else if (StringUtils.isEmpty(guestAccommodations) && ACCOMMODATIONS.equals(attribute.getName())) {
+                    guestAccommodations = attribute.getValue();
                 }
             }
         }
 
         Optional<SetOfAdminSubject> maybeSetOfAdminSubject = assessmentService.findSetOfAdminSubjectByKey(openExamRequest.getAssessmentKey());
+        if(!maybeSetOfAdminSubject.isPresent()) {
+            throw new IllegalArgumentException(String.format("Assessment information could not be found for assessment key %s", openExamRequest.getAssessmentKey()));
+        }
 
+        String assessmentId = maybeSetOfAdminSubject.get().getAssessmentId();
 
+        AssessmentWindow[] assessmentWindows = configService.findAssessmentWindows(
+            openExamRequest.getClientName(),
+            assessmentId,
+            session.getType(),
+            openExamRequest.getStudentId(),
+            externalSessionConfiguration
+            );
 
-//        List<AssessmentWindow>
+        Optional<AssessmentWindow> maybeWindow = Arrays.stream(assessmentWindows)
+            .filter(assessmentWindow -> assessmentWindow.getAssessmentKey().equals(openExamRequest.getAssessmentKey()))
+            .min((o1, o2) -> o1.getStartTime().compareTo(o2.getStartTime()));
+
+        if (!maybeWindow.isPresent()) {
+            throw new IllegalArgumentException("Unable to find a suitable assessment window for the exam");
+        }
+
 
 
         return null;
