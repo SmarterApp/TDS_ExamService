@@ -1,0 +1,93 @@
+package tds.exam.repositories.impl;
+
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+
+import javax.sql.DataSource;
+
+import tds.exam.Exam;
+import tds.exam.repositories.ExamCommandRepository;
+
+import static tds.common.data.mysql.UuidAdapter.getBytesFromUUID;
+
+public class ExamCommandRepositoryImpl implements ExamCommandRepository {
+    private final NamedParameterJdbcTemplate jdbcTemplate;
+
+    public ExamCommandRepositoryImpl(DataSource dataSource) {
+        jdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+    }
+
+    @Override
+    public void save(Exam exam) {
+        SqlParameterSource parameters = new MapSqlParameterSource("examId", getBytesFromUUID(exam.getId()))
+            .addValue("clientName", exam.getClientName())
+            .addValue("studentId", exam.getStudentId())
+            .addValue("sessionId", getBytesFromUUID(exam.getSessionId()))
+            .addValue("assessmentId", exam.getAssessmentId())
+            .addValue("attempts", exam.getAttempts())
+            .addValue("status", exam.getStatus().getStatus())
+            .addValue("subject", exam.getSubject())
+            .addValue("studentKey", exam.getStudentKey())
+            .addValue("studentName", exam.getStudentName())
+            .addValue("browserId", getBytesFromUUID(exam.getBrowserId()))
+            .addValue("dateChanged", exam.getDateChanged())
+            .addValue("assessmentWindowId", exam.getAssessmentWindowId())
+            .addValue("segmented", exam.isSegmented() ? 1 : 0)
+            .addValue("assessmentAlgorithm", exam.getAssessmentAlgorithm())
+            .addValue("assessmentKey", exam.getAssessmentKey())
+            .addValue("environment", exam.getEnvironment())
+            .addValue("dateJoined", exam.getDateJoined());
+
+
+        String SQL = "INSERT INTO exam\n" +
+            "(\n" +
+            "exam_id,\n" +
+            "client_name,\n" +
+            "student_id,\n" +
+            "session_id,\n" +
+            "assessment_id,\n" +
+            "attempts,\n" +
+            "status,\n" +
+            "subject,\n" +
+            "student_key,\n" +
+            "student_name,\n" +
+            "browser_id,\n" +
+            "date_changed,\n" +
+            "assessment_window_id,\n" +
+            "segmented,\n" +
+            "assessment_algorithm,\n" +
+            "assessment_key,\n" +
+            "environment,\n" +
+            "date_joined\n" +
+            ") " +
+            "VALUES (" +
+            ":examId, " +
+            ":clientName, " +
+            ":studentId, " +
+            ":sessionId, " +
+            ":assessmentId, " +
+            ":attempts, " +
+            ":status, " +
+            ":subject, " +
+            ":studentKey, " +
+            ":studentName, " +
+            ":browserId, " +
+            ":dateChanged, " +
+            ":assessmentWindowId, " +
+            ":segmented, " +
+            ":assessmentAlgorithm, " +
+            ":assessmentKey, " +
+            ":environment, " +
+            ":dateJoined " +
+            ")";
+
+
+        int insertCount = jdbcTemplate.update(SQL, parameters);
+
+        if (insertCount != 1) {
+            //TODO - should decide how to handle this.  If Exception probably should have a named runtime exception for this case
+            throw new RuntimeException(String.format("Failed to insert exam %s", exam));
+        }
+    }
+}

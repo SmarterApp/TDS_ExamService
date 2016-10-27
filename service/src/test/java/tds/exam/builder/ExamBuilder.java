@@ -26,6 +26,14 @@ public class ExamBuilder {
         .withStatus("pending")
         .build();
     private String subject = "ELA";
+    private String studentKey = "ADV001";
+    private String studentName = "Darth";
+    private Instant dateJoined = null;
+    private String assessmentWindowId = "ANNUAL";
+    private String assessmentAlgorithm = "fixedForm";
+    private String assessmentKey = "(SBAC_PT)SBAC-IRP-CAT-ELA-3-Summer-2015-2016";
+    private String environment = "Development";
+    private boolean segmented = false;
 
     public Exam build() {
         return new Exam.Builder()
@@ -43,7 +51,55 @@ public class ExamBuilder {
             .withDateCompleted(dateCompleted)
             .withStatus(status)
             .withSubject(subject)
+            .withStudentKey(studentKey)
+            .withDateJoined(dateJoined)
+            .withAssessmentWindowId(assessmentWindowId)
+            .withStudentName(studentName)
+            .withAssessmentAlgorithm(assessmentAlgorithm)
+            .withAssessmentKey(assessmentKey)
+            .withEnvironment(environment)
+            .withSegmented(segmented)
             .build();
+    }
+
+    public ExamBuilder withStudentKey(String studentKey) {
+        this.studentKey = studentKey;
+        return this;
+    }
+
+    public ExamBuilder withStudentName(String studentName) {
+        this.studentName = studentName;
+        return this;
+    }
+
+    public ExamBuilder withDateJoined(Instant dateJoined) {
+        this.dateJoined = dateJoined;
+        return this;
+    }
+
+    public ExamBuilder withAssessmentWindowId(String assessmentWindowId) {
+        this.assessmentWindowId = assessmentWindowId;
+        return this;
+    }
+
+    public ExamBuilder withAssessmentAlgorithm(String assessmentAlgorithm) {
+        this.assessmentAlgorithm = assessmentAlgorithm;
+        return this;
+    }
+
+    public ExamBuilder withAssessmentKey(String assessmentKey) {
+        this.assessmentKey = assessmentKey;
+        return this;
+    }
+
+    public ExamBuilder withEnvironment(String environment) {
+        this.environment = environment;
+        return this;
+    }
+
+    public ExamBuilder withSegmented(boolean segmented) {
+        this.segmented = segmented;
+        return this;
     }
 
     public ExamBuilder withId(UUID examId) {
