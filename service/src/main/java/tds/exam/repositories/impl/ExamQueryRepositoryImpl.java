@@ -169,15 +169,13 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
     private class AbilityRowMapper implements RowMapper<Ability> {
         @Override
         public Ability mapRow(ResultSet rs, int rowNum) throws SQLException {
-            Ability ability = new Ability(
+            return new Ability(
                     UuidAdapter.getUUIDFromBytes(rs.getBytes("exam_id")),
                     rs.getString("assessment_id"),
                     rs.getInt("attempts"),
                     ResultSetMapperUtility.mapTimeStampToInstant(rs, "date_scored"),
                     rs.getDouble("score")
-
             );
-            return ability;
         }
     }
 
@@ -193,12 +191,12 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 .withAttempts(rs.getInt("attempts"))
                 .withClientName(rs.getString("client_name"))
                 .withSubject(rs.getString("subject"))
-                .withDateStarted(mapTimezoneToInstant(rs, "date_started"))
-                .withDateChanged(mapTimezoneToInstant(rs, "date_changed"))
-                .withDateDeleted(mapTimezoneToInstant(rs, "date_deleted"))
-                .withDateScored(mapTimezoneToInstant(rs, "date_scored"))
-                .withDateCompleted(mapTimezoneToInstant(rs, "date_completed"))
-                .withCreatedAt(mapTimezoneToInstant(rs, "created_at"))
+                .withDateStarted(ResultSetMapperUtility.mapTimeStampToInstant(rs, "date_started"))
+                .withDateChanged(ResultSetMapperUtility.mapTimeStampToInstant(rs, "date_changed"))
+                .withDateDeleted(ResultSetMapperUtility.mapTimeStampToInstant(rs, "date_deleted"))
+                .withDateScored(ResultSetMapperUtility.mapTimeStampToInstant(rs, "date_scored"))
+                .withDateCompleted(ResultSetMapperUtility.mapTimeStampToInstant(rs, "date_completed"))
+                .withCreatedAt(ResultSetMapperUtility.mapTimeStampToInstant(rs, "created_at"))
                 .withStatus(new ExamStatusCode.Builder()
                     .withStatus(rs.getString("status"))
                     .withDescription(rs.getString("description"))
@@ -206,11 +204,6 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                     .build())
                 .withStatusChangeReason(rs.getString("status_change_reason"))
                 .build();
-        }
-
-        private Instant mapTimezoneToInstant(ResultSet rs, String columnLabel) throws SQLException {
-            Timestamp t = rs.getTimestamp(columnLabel);
-            return t != null ? t.toLocalDateTime().toInstant(ZoneOffset.UTC) : null;
         }
     }
 }
