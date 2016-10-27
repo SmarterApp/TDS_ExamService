@@ -73,7 +73,7 @@ public class ConfigServiceImplTest {
 
     @Test
     public void shouldReturnEmptyWhenClientTestPropertyNotFound() {
-        when(restTemplate.getForObject(String.format("%s/%s/%s", CLIENT_NAME, ASSESSMENT_ID), ClientTestProperty.class)).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
+        when(restTemplate.getForObject(String.format("%s/%s/%s", BASE_URL, CLIENT_NAME, ASSESSMENT_ID), ClientTestProperty.class)).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
         Optional<ClientTestProperty> maybeSetOfSubject = configService.findClientTestProperty(CLIENT_NAME, ASSESSMENT_ID);
 
         assertThat(maybeSetOfSubject).isNotPresent();
