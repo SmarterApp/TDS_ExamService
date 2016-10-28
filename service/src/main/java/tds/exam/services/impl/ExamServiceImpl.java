@@ -28,6 +28,7 @@ import tds.exam.ExamStatusCode;
 import tds.exam.OpenExamRequest;
 import tds.exam.error.ValidationErrorCode;
 import tds.exam.models.Ability;
+import tds.exam.repositories.ExamCommandRepository;
 import tds.exam.repositories.ExamQueryRepository;
 import tds.exam.repositories.HistoryQueryRepository;
 import tds.exam.services.AssessmentService;
@@ -38,7 +39,6 @@ import tds.exam.services.StudentService;
 import tds.exam.services.TimeLimitConfigurationService;
 import tds.session.ExternalSessionConfiguration;
 import tds.session.Session;
-import tds.session.SessionAssessment;
 import tds.student.RtsStudentPackageAttribute;
 import tds.student.Student;
 
@@ -52,6 +52,7 @@ class ExamServiceImpl implements ExamService {
     private static final Logger LOG = LoggerFactory.getLogger(ExamServiceImpl.class);
 
     private final ExamQueryRepository examQueryRepository;
+    private final ExamCommandRepository examCommandRepository;
     private final HistoryQueryRepository historyQueryRepository;
     private final SessionService sessionService;
     private final StudentService studentService;
@@ -66,7 +67,8 @@ class ExamServiceImpl implements ExamService {
                            StudentService studentService,
                            AssessmentService assessmentService,
                            TimeLimitConfigurationService timeLimitConfigurationService,
-                           ConfigService configService) {
+                           ConfigService configService,
+                           ExamCommandRepository examCommandRepository) {
         this.examQueryRepository = examQueryRepository;
         this.historyQueryRepository = historyQueryRepository;
         this.sessionService = sessionService;
@@ -74,6 +76,7 @@ class ExamServiceImpl implements ExamService {
         this.assessmentService = assessmentService;
         this.timeLimitConfigurationService = timeLimitConfigurationService;
         this.configService = configService;
+        this.examCommandRepository = examCommandRepository;
     }
 
     @Override
@@ -99,9 +102,6 @@ class ExamServiceImpl implements ExamService {
         }
 
         Session currentSession = maybeSession.get();
-
-
-
 
         //Previous exam is retrieved in lines 5492 - 5530 and 5605 - 5645 in StudentDLL
         Optional<Exam> maybePreviousExam = examQueryRepository.getLastAvailableExam(openExamRequest.getStudentId(), openExamRequest.getAssessmentKey(), openExamRequest.getClientName());
@@ -256,28 +256,27 @@ class ExamServiceImpl implements ExamService {
     }
 
     private Response<Exam> createExam(OpenExamRequest openExamRequest, Student student, Session session, ExternalSessionConfiguration externalSessionConfiguration) {
-        Optional<SessionAssessment> sessionAssessment = sessionService.findSessionAssessment(session.getId(), openExamRequest.getAssessmentKey());
+        Exam.Builder examBuilder = new Exam.Builder();
 
         //From OpenTestServiceImpl lines 160 -163
-        String examStatus;
         if (openExamRequest.getProctorId() == null) {
-            examStatus = "approved";
+            examBuilder.withStatus(new ExamStatusCode.Builder().withStatus(ExamStatusCode.STATUS_APPROVED).build());
         } else {
-            examStatus = "pending";
+            examBuilder.withStatus(new ExamStatusCode.Builder().withStatus(ExamStatusCode.STATUS_PENDING).build());
         }
 
-        String testeeId = null, testeeName = null, guestAccommodations = openExamRequest.getGuestAccommodations();
+        String guestAccommodations = openExamRequest.getGuestAccommodations();
         if (openExamRequest.isGuestStudent()) {
-            testeeId = "GUEST";
-            testeeName = "GUEST";
+            examBuilder.withStudentName("GUEST");
+            examBuilder.withStudentKey("GUEST");
         } else {
             List<RtsStudentPackageAttribute> attributes = studentService.findStudentPackageAttributes(openExamRequest.getStudentId(), openExamRequest.getClientName(), EXTERNAL_ID, ENTITY_NAME, ACCOMMODATIONS);
 
             for(RtsStudentPackageAttribute attribute : attributes) {
                 if (EXTERNAL_ID.equals(attribute.getName())) {
-                    testeeId = attribute.getValue();
+                    examBuilder.withStudentKey(attribute.getValue());
                 } else if (ENTITY_NAME.equals(attribute.getName())) {
-                    testeeName = attribute.getValue();
+                    examBuilder.withStudentName(attribute.getValue());
                 } else if (StringUtils.isEmpty(guestAccommodations) && ACCOMMODATIONS.equals(attribute.getName())) {
                     guestAccommodations = attribute.getValue();
                 }
@@ -289,11 +288,11 @@ class ExamServiceImpl implements ExamService {
             throw new IllegalArgumentException(String.format("Assessment information could not be found for assessment key %s", openExamRequest.getAssessmentKey()));
         }
 
-        String assessmentId = maybeSetOfAdminSubject.get().getAssessmentId();
+        SetOfAdminSubject assessment = maybeSetOfAdminSubject.get();
 
         AssessmentWindow[] assessmentWindows = configService.findAssessmentWindows(
             openExamRequest.getClientName(),
-            assessmentId,
+            assessment.getAssessmentId(),
             session.getType(),
             openExamRequest.getStudentId(),
             externalSessionConfiguration
@@ -307,9 +306,24 @@ class ExamServiceImpl implements ExamService {
             throw new IllegalArgumentException("Unable to find a suitable assessment window for the exam");
         }
 
+        Exam exam = examBuilder
+            .withId(UUID.randomUUID())
+            .withClientName(externalSessionConfiguration.getClientName())
+            .withStudentId(openExamRequest.getStudentId())
+            .withSessionId(session.getId())
+            .withBrowserId(openExamRequest.getBrowserId())
+            .withAssessmentId(assessment.getAssessmentId())
+            .withAttempts(0)
+            .withAssessmentAlgorithm(assessment.getSelectionAlgorithm())
+            .withSegmented(assessment.isSegmented())
+            .withDateJoined(Instant.now())
+            .withAssessmentWindowId(maybeWindow.get().getWindowId())
+            .withEnvironment(externalSessionConfiguration.getEnvironment())
+            .build();
 
+        examCommandRepository.save(exam);
 
-        return null;
+        return new Response<>(exam);
     }
 
     /**
