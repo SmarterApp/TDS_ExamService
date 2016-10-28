@@ -43,6 +43,7 @@ import tds.student.RtsStudentPackageAttribute;
 import tds.student.Student;
 
 import static java.time.temporal.ChronoUnit.DAYS;
+import static tds.exam.error.ValidationErrorCode.NO_OPEN_ASSESSMENT_WINDOW;
 import static tds.student.RtsStudentPackageAttribute.ACCOMMODATIONS;
 import static tds.student.RtsStudentPackageAttribute.ENTITY_NAME;
 import static tds.student.RtsStudentPackageAttribute.EXTERNAL_ID;
@@ -103,8 +104,15 @@ class ExamServiceImpl implements ExamService {
 
         Session currentSession = maybeSession.get();
 
+        Optional<SetOfAdminSubject> maybeSetOfAdminSubject = assessmentService.findSetOfAdminSubjectByKey(openExamRequest.getAssessmentKey());
+        if (!maybeSetOfAdminSubject.isPresent()) {
+            throw new IllegalArgumentException(String.format("Assessment information could not be found for assessment key %s", openExamRequest.getAssessmentKey()));
+        }
+
+        SetOfAdminSubject assessment = maybeSetOfAdminSubject.get();
+
         //Previous exam is retrieved in lines 5492 - 5530 and 5605 - 5645 in StudentDLL
-        Optional<Exam> maybePreviousExam = examQueryRepository.getLastAvailableExam(openExamRequest.getStudentId(), openExamRequest.getAssessmentKey(), openExamRequest.getClientName());
+        Optional<Exam> maybePreviousExam = examQueryRepository.getLastAvailableExam(openExamRequest.getStudentId(), assessment.getAssessmentId(), openExamRequest.getClientName());
 
         boolean canOpenPreviousExam = false;
         if (maybePreviousExam.isPresent()) {
@@ -121,39 +129,36 @@ class ExamServiceImpl implements ExamService {
         if (canOpenPreviousExam) {
             //Open previous exam
             LOG.debug("Can open previous exam");
-            exam = new Exam.Builder().withId(maybePreviousExam.get().getId()).build();
-        } else {
-            //Line 5602 in StudentDLL
-            Optional<ExternalSessionConfiguration> maybeExternalSessionConfiguration = sessionService.findExternalSessionConfigurationByClientName(openExamRequest.getClientName());
-
-            if (!maybeExternalSessionConfiguration.isPresent()) {
-                throw new IllegalStateException(String.format("External Session Configuration could not be found for client name %s", openExamRequest.getClientName()));
-            }
-
-            ExternalSessionConfiguration externalSessionConfiguration = maybeExternalSessionConfiguration.get();
-            Exam previousExam = maybePreviousExam.isPresent() ? maybePreviousExam.get() : null;
-            Optional<ValidationError> maybeOpenNewExamValidationError = canCreateNewExam(openExamRequest, previousExam, externalSessionConfiguration);
-            if (maybeOpenNewExamValidationError.isPresent()) {
-                return new Response<Exam>(maybeOpenNewExamValidationError.get());
-            }
-
-            createExam(openExamRequest, currentStudent, currentSession, externalSessionConfiguration);
-            exam = new Exam.Builder().withId(UUID.randomUUID()).build();
+            return new Response<>(new Exam.Builder().withId(maybePreviousExam.get().getId()).build());
         }
 
-        return new Response<>(exam);
+        //Line 5602 in StudentDLL
+        Optional<ExternalSessionConfiguration> maybeExternalSessionConfiguration = sessionService.findExternalSessionConfigurationByClientName(openExamRequest.getClientName());
+
+        if (!maybeExternalSessionConfiguration.isPresent()) {
+            throw new IllegalStateException(String.format("External Session Configuration could not be found for client name %s", openExamRequest.getClientName()));
+        }
+
+        ExternalSessionConfiguration externalSessionConfiguration = maybeExternalSessionConfiguration.get();
+        Exam previousExam = maybePreviousExam.isPresent() ? maybePreviousExam.get() : null;
+        Optional<ValidationError> maybeOpenNewExamValidationError = canCreateNewExam(openExamRequest, previousExam, externalSessionConfiguration);
+        if (maybeOpenNewExamValidationError.isPresent()) {
+            return new Response<Exam>(maybeOpenNewExamValidationError.get());
+        }
+
+        return createExam(openExamRequest, currentSession, assessment, externalSessionConfiguration);
     }
 
     @Override
     public Response<ExamApproval> getApproval(ApprovalRequest approvalRequest) {
         Exam exam = examQueryRepository.getExamById(approvalRequest.getExamId())
-                .orElseThrow(() -> new IllegalArgumentException(String.format("Exam could not be found for id %s", approvalRequest.getExamId())));
+            .orElseThrow(() -> new IllegalArgumentException(String.format("Exam could not be found for id %s", approvalRequest.getExamId())));
 
         Optional<ValidationError> maybeAccessViolation = verifyAccess(approvalRequest, exam);
 
         return maybeAccessViolation.isPresent()
-                ? new Response<ExamApproval>(maybeAccessViolation.get())
-                : new Response<>(new ExamApproval(approvalRequest.getExamId(), exam.getStatus(), exam.getStatusChangeReason()));
+            ? new Response<ExamApproval>(maybeAccessViolation.get())
+            : new Response<>(new ExamApproval(approvalRequest.getExamId(), exam.getStatus(), exam.getStatusChangeReason()));
     }
 
     /**
@@ -165,7 +170,7 @@ class ExamServiceImpl implements ExamService {
         Double slope = property.getAbilitySlope();
         Double intercept = property.getAbilityIntercept();
         List<Ability> testAbilities = examQueryRepository.findAbilities(exam.getId(), exam.getClientName(),
-                property.getSubjectName(), exam.getStudentId());
+            property.getSubjectName(), exam.getStudentId());
 
         // Attempt to retrieve the most recent ability for the current subject and assessment
         Optional<Ability> initialAbility = getMostRecentTestAbilityForSameAssessment(testAbilities, exam.getAssessmentId());
@@ -180,7 +185,7 @@ class ExamServiceImpl implements ExamService {
             } else {
                 // if no value was returned from the previous call, get the initial ability from the previous year
                 Optional<Double> initialAbilityFromHistory = historyQueryRepository.findAbilityFromHistoryForSubjectAndStudent(
-                        exam.getClientName(), exam.getSubject(), exam.getStudentId());
+                    exam.getClientName(), exam.getSubject(), exam.getStudentId());
 
                 if (initialAbilityFromHistory.isPresent() && slope != null && intercept != null) {
                     ability = Optional.of(initialAbilityFromHistory.get() * slope + intercept);
@@ -255,7 +260,7 @@ class ExamServiceImpl implements ExamService {
         return Optional.empty();
     }
 
-    private Response<Exam> createExam(OpenExamRequest openExamRequest, Student student, Session session, ExternalSessionConfiguration externalSessionConfiguration) {
+    private Response<Exam> createExam(OpenExamRequest openExamRequest, Session session, SetOfAdminSubject assessment, ExternalSessionConfiguration externalSessionConfiguration) {
         Exam.Builder examBuilder = new Exam.Builder();
 
         //From OpenTestServiceImpl lines 160 -163
@@ -272,7 +277,7 @@ class ExamServiceImpl implements ExamService {
         } else {
             List<RtsStudentPackageAttribute> attributes = studentService.findStudentPackageAttributes(openExamRequest.getStudentId(), openExamRequest.getClientName(), EXTERNAL_ID, ENTITY_NAME, ACCOMMODATIONS);
 
-            for(RtsStudentPackageAttribute attribute : attributes) {
+            for (RtsStudentPackageAttribute attribute : attributes) {
                 if (EXTERNAL_ID.equals(attribute.getName())) {
                     examBuilder.withStudentKey(attribute.getValue());
                 } else if (ENTITY_NAME.equals(attribute.getName())) {
@@ -283,27 +288,22 @@ class ExamServiceImpl implements ExamService {
             }
         }
 
-        Optional<SetOfAdminSubject> maybeSetOfAdminSubject = assessmentService.findSetOfAdminSubjectByKey(openExamRequest.getAssessmentKey());
-        if(!maybeSetOfAdminSubject.isPresent()) {
-            throw new IllegalArgumentException(String.format("Assessment information could not be found for assessment key %s", openExamRequest.getAssessmentKey()));
-        }
-
-        SetOfAdminSubject assessment = maybeSetOfAdminSubject.get();
-
+        //OpenTestServiceImpl lines 317 - 341
         AssessmentWindow[] assessmentWindows = configService.findAssessmentWindows(
             openExamRequest.getClientName(),
             assessment.getAssessmentId(),
             session.getType(),
             openExamRequest.getStudentId(),
             externalSessionConfiguration
-            );
+        );
 
+        //OpenTestServiceImpl lines 344 - 365
         Optional<AssessmentWindow> maybeWindow = Arrays.stream(assessmentWindows)
             .filter(assessmentWindow -> assessmentWindow.getAssessmentKey().equals(openExamRequest.getAssessmentKey()))
             .min((o1, o2) -> o1.getStartTime().compareTo(o2.getStartTime()));
 
         if (!maybeWindow.isPresent()) {
-            throw new IllegalArgumentException("Unable to find a suitable assessment window for the exam");
+            return new Response<Exam>(new ValidationError(NO_OPEN_ASSESSMENT_WINDOW, "Could not find an open assessment window"));
         }
 
         Exam exam = examBuilder
@@ -313,12 +313,14 @@ class ExamServiceImpl implements ExamService {
             .withSessionId(session.getId())
             .withBrowserId(openExamRequest.getBrowserId())
             .withAssessmentId(assessment.getAssessmentId())
+            .withAssessmentKey(assessment.getKey())
             .withAttempts(0)
             .withAssessmentAlgorithm(assessment.getSelectionAlgorithm())
             .withSegmented(assessment.isSegmented())
             .withDateJoined(Instant.now())
             .withAssessmentWindowId(maybeWindow.get().getWindowId())
             .withEnvironment(externalSessionConfiguration.getEnvironment())
+            .withSubject(assessment.getSubjectName())
             .build();
 
         examCommandRepository.save(exam);
@@ -329,8 +331,8 @@ class ExamServiceImpl implements ExamService {
     /**
      * Gets the most recent {@link Ability} based on the dateScored value for the same assessment.
      *
-     * @param abilityList the list of {@link Ability}s to iterate through
-     * @param assessmentId  The test key
+     * @param abilityList  the list of {@link Ability}s to iterate through
+     * @param assessmentId The test key
      * @return
      */
     private Optional<Ability> getMostRecentTestAbilityForSameAssessment(List<Ability> abilityList, String assessmentId) {
@@ -348,8 +350,8 @@ class ExamServiceImpl implements ExamService {
     /**
      * Gets the most recent {@link Ability} based on the dateScored value for a different assessment.
      *
-     * @param abilityList the list of {@link Ability}s to iterate through
-     * @param assessmentId  The test key
+     * @param abilityList  the list of {@link Ability}s to iterate through
+     * @param assessmentId The test key
      * @return
      */
     private Optional<Ability> getMostRecentTestAbilityForDifferentAssessment(List<Ability> abilityList, String assessmentId) {

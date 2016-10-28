@@ -25,6 +25,7 @@ import tds.exam.ExamApproval;
 import tds.exam.ExamApprovalStatus;
 import tds.exam.ExamStatusCode;
 import tds.exam.OpenExamRequest;
+import tds.exam.builder.OpenExamRequestBuilder;
 import tds.exam.error.ValidationErrorCode;
 import tds.exam.services.ExamService;
 import tds.exam.web.resources.ExamApprovalResource;
@@ -74,10 +75,7 @@ public class ExamControllerTest {
 
     @Test
     public void shouldCreateErrorResponseWhenOpenExamFailsWithValidationError() {
-        OpenExamRequest openExamRequest = new OpenExamRequest();
-        openExamRequest.setClientName("SBAC-PT");
-        openExamRequest.setSessionId(UUID.randomUUID());
-        openExamRequest.setStudentId(1);
+        OpenExamRequest openExamRequest = new OpenExamRequestBuilder().build();
 
         when(examService.openExam(openExamRequest)).thenReturn(new Response<Exam>(new ValidationError(ValidationErrorCode.SESSION_TYPE_MISMATCH, "Session mismatch")));
 
@@ -90,10 +88,7 @@ public class ExamControllerTest {
 
     @Test
     public void shouldOpenExam() throws URISyntaxException {
-        OpenExamRequest openExamRequest = new OpenExamRequest();
-        openExamRequest.setClientName("SBAC-PT");
-        openExamRequest.setSessionId(UUID.randomUUID());
-        openExamRequest.setStudentId(1);
+        OpenExamRequest openExamRequest = new OpenExamRequestBuilder().build();
 
         UUID examId = UUID.randomUUID();
         when(examService.openExam(openExamRequest)).thenReturn(new Response<>(new Exam.Builder().withId(examId).build()));
