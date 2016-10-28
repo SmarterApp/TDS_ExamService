@@ -40,13 +40,4 @@ public interface ExamQueryRepository {
      * @return  a list of {@link Ability} objects for past exams
      */
     List<Ability> findAbilities(UUID exam, String clientName, String subject, Long studentId);
-
-    /**
-     * Retrieve an {@link Accommodation} for the specified exam id and accommodation type.
-     *
-     * @param examId The id of the {@link Exam} that owns the {@link Accommodation}
-     * @param accommodationType the type of {@link Accommodation} to find
-     * @return The {@link Accommodation} if one is found; otherwise empty
-     */
-    Optional<Accommodation> findAccommodation(UUID examId, String accommodationType);
 }

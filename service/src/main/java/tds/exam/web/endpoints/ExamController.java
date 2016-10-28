@@ -7,14 +7,13 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 import tds.common.Response;
 import tds.common.web.exceptions.NotFoundException;
-import tds.exam.Exam;
-import tds.exam.ExamApproval;
-import tds.exam.ApprovalRequest;
-import tds.exam.OpenExamRequest;
+import tds.exam.*;
+import tds.exam.services.AccommodationService;
 import tds.exam.services.ExamService;
 import tds.exam.web.resources.ExamApprovalResource;
 import tds.exam.web.resources.ExamResource;
@@ -23,10 +22,12 @@ import tds.exam.web.resources.ExamResource;
 @RequestMapping("/exam")
 public class ExamController {
     private final ExamService examService;
+    private final AccommodationService accommodationService;
 
     @Autowired
-    public ExamController(ExamService examService) {
+    public ExamController(ExamService examService, AccommodationService accommodationService) {
         this.examService = examService;
+        this.accommodationService = accommodationService;
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -62,6 +63,16 @@ public class ExamController {
         }
 
         return ResponseEntity.ok(new ExamApprovalResource(examApproval));
+    }
+
+    @RequestMapping(value = "/{id}/accommodations/{accommodationTypes}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<Accommodation>> getAccommodation(@PathVariable final UUID id,
+                                                                @MatrixVariable(required = false) final String[] accommodationTypes) {
+        if (accommodationTypes == null || accommodationTypes.length == 0) {
+            throw new IllegalArgumentException("accommodation types with values are required");
+        }
+
+        return ResponseEntity.ok(accommodationService.findAccommodations(id, accommodationTypes));
     }
 }
 

@@ -14,7 +14,7 @@ import tds.exam.services.TimeLimitConfigurationService;
 import java.util.Optional;
 
 @Service
-public class TimeLimitConfigurationServiceImpl implements TimeLimitConfigurationService {
+class TimeLimitConfigurationServiceImpl implements TimeLimitConfigurationService {
     private static final Logger LOG = LoggerFactory.getLogger(SessionServiceImpl.class);
 
     private final RestTemplate restTemplate;

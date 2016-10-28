@@ -1,46 +1,110 @@
 package tds.exam;
 
+import java.time.Instant;
 import java.util.UUID;
 
 /**
  * An accommodation that is approved for use during an {@link Exam}.
  */
 public class Accommodation {
-    private Long id;
+    private long id;
     private UUID examId;
-    // TODO: Change to whatever type the segment id is.  Maybe the object?
-    private int segmentId;
+    private String segmentId;
     private String type;
     private String code;
+    private String description;
+    private Instant deniedAt;
+    private Instant createdAt;
 
-    public Accommodation(Long id, UUID examId, int segmentId, String type, String code) {
-        if (id == null) {
-            throw new IllegalArgumentException("id cannot be null");
+    public static class Builder {
+        private long id;
+        private UUID examId;
+        private String segmentId;
+        private String type;
+        private String code;
+        private String description;
+        private Instant deniedAt;
+        private Instant createdAt;
+
+        public Builder withId(long id) {
+            this.id = id;
+            return this;
         }
 
-        if (examId == null) {
-            throw new IllegalArgumentException("examId cannot be null");
+        public Builder withExamId(UUID examId) {
+            if (examId == null) {
+                throw new IllegalArgumentException("examId cannot be null");
+            }
+
+            this.examId = examId;
+            return this;
         }
 
-        if (type == null) {
-            throw new IllegalArgumentException("type cannot be null");
+        public Builder withSegmentId(String segmentId) {
+            if (segmentId == null) {
+                throw new IllegalArgumentException("segmentId cannot be null");
+            }
+
+            this.segmentId = segmentId;
+            return this;
         }
 
-        if (code == null) {
-            throw new IllegalArgumentException("code cannot be null");
+        public Builder withType(String type) {
+            if (type == null) {
+                throw new IllegalArgumentException("type cannot be null");
+            }
+
+            this.type = type;
+            return this;
         }
 
-        this.id = id;
-        this.examId = examId;
-        this.segmentId = segmentId;
-        this.type = type;
-        this.code = code;
+        public Builder withCode(String code) {
+            if (code == null) {
+                throw new IllegalArgumentException("code cannot be null");
+            }
+
+            this.code = code;
+            return this;
+        }
+
+        public Builder withDescription(String description) {
+            this.description = description;
+            return this;
+        }
+
+        public Builder withDeniedAt(Instant deniedAt) {
+            this.deniedAt = deniedAt;
+            return this;
+        }
+
+        public Builder withCreatedAt(Instant createdAt) {
+            if (createdAt == null) {
+                throw new IllegalArgumentException("createdAt cannot be null");
+            }
+            this.createdAt = createdAt;
+            return this;
+        }
+
+        public Accommodation build() {
+            return new Accommodation(this);
+        }
+    }
+
+    private Accommodation(Builder builder) {
+        id = builder.id;
+        examId = builder.examId;
+        segmentId = builder.segmentId;
+        type = builder.type;
+        code = builder.code;
+        description = builder.description;
+        deniedAt = builder.deniedAt;
+        createdAt = builder.createdAt;
     }
 
     /**
      * @return The unique identifier of the {@link Accommodation} record
      */
-    public Long getId() {
+    public long getId() {
         return id;
     }
 
@@ -54,7 +118,7 @@ public class Accommodation {
     /**
      * @return The segment of the Assessment in which this {@link Accommodation} can be used
      */
-    public int getSegmentId() {
+    public String getSegmentId() {
         return segmentId;
     }
 
@@ -70,5 +134,35 @@ public class Accommodation {
      */
     public String getCode() {
         return code;
+    }
+
+    /**
+     * @return A description of what feature the {@link Accommodation} provides
+     */
+    public String getDescription() {
+        return description;
+    }
+
+    /**
+     * @return The time at which this {@link Accommodation} was denied (e.g. by a Proctor)
+     */
+    public Instant getDeniedAt() {
+        return deniedAt;
+    }
+
+    /**
+     * @return The time at which this {@link Accommodation} was created
+     */
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    /**
+     * Determine if this {@link Accommodation} is approved or not.
+     *
+     * @return True if this {@link Accommodation} is approved; otherwise false
+     */
+    public boolean isApproved() {
+        return deniedAt == null;
     }
 }

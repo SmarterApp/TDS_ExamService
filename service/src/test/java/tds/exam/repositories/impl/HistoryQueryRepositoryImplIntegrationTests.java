@@ -1,6 +1,5 @@
 package tds.exam.repositories.impl;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -8,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.jdbc.SqlConfig;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,7 +22,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest
-//@SqlConfig(dataSource = "queryDataSource")
 @Transactional
 public class HistoryQueryRepositoryImplIntegrationTests {
     @Autowired
@@ -70,11 +67,6 @@ public class HistoryQueryRepositoryImplIntegrationTests {
         jdbcTemplate.update(SQL3);
         jdbcTemplate.update(SQL4);
     }
-
-//    @After
-//    public void cleanUp() {
-//        jdbcTemplate.update("DELETE FROM history");
-//    }
 
     @Test
     public void shouldRetrieveLargestAbilityValue() {
