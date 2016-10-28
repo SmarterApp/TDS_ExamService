@@ -6,6 +6,10 @@ public class ExamStatusCode {
     public static final String STAGE_INUSE = "inuse";
     public static final String STAGE_OPEN = "open";
 
+    public static final String STATUS_PAUSED = "paused";
+    public static final String STATUS_PENDING = "pending";
+    public static final String STATUS_APPROVED = "approved";
+
     private String status;
     private String stage;
     private String description;
