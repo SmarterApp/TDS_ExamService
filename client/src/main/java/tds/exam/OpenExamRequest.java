@@ -30,6 +30,7 @@ public class OpenExamRequest {
     private Long proctorId;
 
     private String guestAccommodations;
+    private UUID browserId;
 
     /**
      * @return accommodations that are needed when a guest is taking the exam
@@ -145,5 +146,17 @@ public class OpenExamRequest {
      */
     public boolean isGuestStudent() {
         return studentId <= 0;
+    }
+
+    public void setAssessmentKey(String assessmentKey) {
+        this.assessmentKey = assessmentKey;
+    }
+
+    public UUID getBrowserId() {
+        return browserId;
+    }
+
+    public void setBrowserId(UUID browserId) {
+        this.browserId = browserId;
     }
 }
