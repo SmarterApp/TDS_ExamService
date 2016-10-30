@@ -125,7 +125,6 @@ class ExamServiceImpl implements ExamService {
             canOpenPreviousExam = true;
         }
 
-        Exam exam;
         if (canOpenPreviousExam) {
             //Open previous exam
             LOG.debug("Can open previous exam");
@@ -414,7 +413,7 @@ class ExamServiceImpl implements ExamService {
 
         //Lines 5612 - 5618 in StudentDLL
         if (previousExam == null) {
-            if (openExamRequest.getMaxAttempts() < 0 && LegacyComparer.notEqual("SIMULATION", externalSessionConfiguration.getEnvironment())) {
+            if (openExamRequest.getMaxAttempts() < 0 && !externalSessionConfiguration.isInSimulationEnvironment()) {
                 return Optional.of(new ValidationError(ValidationErrorCode.SIMULATION_ENVIRONMENT_REQUIRED, "Environment must be simulation when max attempts less than zero"));
             }
 
@@ -423,7 +422,7 @@ class ExamServiceImpl implements ExamService {
 
         //Lines 5645 - 5673 in StudentDLL
         if (ExamStatusCode.STAGE_CLOSED.equals(previousExam.getStatus().getStage())) {
-            if (LegacyComparer.isEqual("SIMULATION", externalSessionConfiguration.getEnvironment())) {
+            if (externalSessionConfiguration.isInSimulationEnvironment()) {
                 return Optional.empty();
             }
 
