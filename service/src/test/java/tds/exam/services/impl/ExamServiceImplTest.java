@@ -50,7 +50,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static tds.config.ClientSystemFlag.ANONYMOUS_STUDENT_AUDIT_OBJECT;
+import static tds.config.ClientSystemFlag.ALLOW_ANONYMOUS_STUDENT_FLAG_TYPE;
 import static tds.session.ExternalSessionConfiguration.DEVELOPMENT_ENVIRONMENT;
 import static tds.session.ExternalSessionConfiguration.SIMULATION_ENVIRONMENT;
 import static tds.student.RtsStudentPackageAttribute.ACCOMMODATIONS;
@@ -284,7 +284,7 @@ public class ExamServiceImplTest {
         ClientSystemFlag clientSystemFlag = new ClientSystemFlag.Builder().withEnabled(true).build();
 
         when(mockSessionService.findExternalSessionConfigurationByClientName(openExamRequest.getClientName())).thenReturn(Optional.of(extSessionConfig));
-        when(mockConfigService.findClientSystemFlag(openExamRequest.getClientName(), ANONYMOUS_STUDENT_AUDIT_OBJECT)).thenReturn(Optional.of(clientSystemFlag));
+        when(mockConfigService.findClientSystemFlag(openExamRequest.getClientName(), ALLOW_ANONYMOUS_STUDENT_FLAG_TYPE)).thenReturn(Optional.of(clientSystemFlag));
         when(mockSessionService.findSessionById(openExamRequest.getSessionId())).thenReturn(Optional.of(currentSession));
         when(mockStudentService.getStudentById(openExamRequest.getStudentId())).thenReturn(Optional.empty());
         when(mockAssessmentService.findSetOfAdminSubjectByKey(openExamRequest.getAssessmentKey())).thenReturn(Optional.of(assessment));
@@ -339,7 +339,7 @@ public class ExamServiceImplTest {
             .build();
 
         when(mockSessionService.findExternalSessionConfigurationByClientName(openExamRequest.getClientName())).thenReturn(Optional.of(extSessionConfig));
-        when(mockConfigService.findClientSystemFlag(openExamRequest.getClientName(), ANONYMOUS_STUDENT_AUDIT_OBJECT)).thenReturn(Optional.of(clientSystemFlag));
+        when(mockConfigService.findClientSystemFlag(openExamRequest.getClientName(), ALLOW_ANONYMOUS_STUDENT_FLAG_TYPE)).thenReturn(Optional.of(clientSystemFlag));
         when(mockSessionService.findSessionById(openExamRequest.getSessionId())).thenReturn(Optional.of(currentSession));
         when(mockStudentService.getStudentById(openExamRequest.getStudentId())).thenReturn(Optional.empty());
         when(mockAssessmentService.findSetOfAdminSubjectByKey(openExamRequest.getAssessmentKey())).thenReturn(Optional.of(assessment));
