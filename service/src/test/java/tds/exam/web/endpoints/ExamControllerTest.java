@@ -3,7 +3,6 @@ package tds.exam.web.endpoints;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.mockito.Matchers;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
