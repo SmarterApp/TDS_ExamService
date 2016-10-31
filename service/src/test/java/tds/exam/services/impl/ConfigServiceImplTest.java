@@ -11,6 +11,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.util.Optional;
 
 import tds.config.AssessmentWindow;
+import tds.config.ClientSystemFlag;
 import tds.config.ClientTestProperty;
 import tds.exam.builder.ExternalSessionConfigurationBuilder;
 import tds.exam.configuration.ExamServiceProperties;
@@ -28,6 +29,7 @@ public class ConfigServiceImplTest {
     private static final String CLIENT_NAME = "CLIENT_TEST";
     private static final String ASSESSMENT_ID = "assessment-id-1";
     private static final String BASE_URL = "http://localhost:8080/config";
+    private static final String ATTRIBUTE_OBJECT = "AnonymousTestee";
 
     private RestTemplate restTemplate;
     private ConfigService configService;
@@ -45,27 +47,9 @@ public class ConfigServiceImplTest {
         ClientTestProperty clientTestProperty = new ClientTestProperty.Builder()
                 .withClientName(CLIENT_NAME)
                 .withAssessmentId(ASSESSMENT_ID)
-                .withMaxOpportunities(100)
-                .withPrefetch(2)
-                .withIsSelectable(false)
-                .withLabel("Test Label")
-                .withSubjectName("ELA")
-                .withInitialAbilityBySubject(true)
-                .withAccommodationFamily("myFamily")
-                .withSortOrder(2)
-                .withRtsFormField("field")
-                .withRequireRtsWindow(false)
-                .withRtsModeField("mode")
-                .withRequireRtsMode(false)
-                .withRequireRtsModeWindow(false)
-                .withDeleteUnansweredItems(false)
-                .withAbilitySlope(5D)
-                .withAbilityIntercept(3D)
-                .withValidateCompleteness(false)
-                .withGradeText("03")
                 .build();
 
-        when(restTemplate.getForObject(String.format("%s/%s/%s", BASE_URL, CLIENT_NAME, ASSESSMENT_ID), ClientTestProperty.class)).thenReturn(clientTestProperty);
+        when(restTemplate.getForObject(String.format("%s/client-test-properties/%s/%s", BASE_URL, CLIENT_NAME, ASSESSMENT_ID), ClientTestProperty.class)).thenReturn(clientTestProperty);
         Optional<ClientTestProperty> maybeClientTestProperty = configService.findClientTestProperty(CLIENT_NAME, ASSESSMENT_ID);
 
         assertThat(maybeClientTestProperty.get()).isEqualTo(clientTestProperty);
@@ -73,15 +57,15 @@ public class ConfigServiceImplTest {
 
     @Test
     public void shouldReturnEmptyWhenClientTestPropertyNotFound() {
-        when(restTemplate.getForObject(String.format("%s/%s/%s", BASE_URL, CLIENT_NAME, ASSESSMENT_ID), ClientTestProperty.class)).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
-        Optional<ClientTestProperty> maybeSetOfSubject = configService.findClientTestProperty(CLIENT_NAME, ASSESSMENT_ID);
+        when(restTemplate.getForObject(String.format("%s/client-test-properties/%s/%s", BASE_URL, CLIENT_NAME, ASSESSMENT_ID), ClientTestProperty.class)).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
+        Optional<ClientTestProperty> maybeClientTestProperty = configService.findClientTestProperty(CLIENT_NAME, ASSESSMENT_ID);
 
-        assertThat(maybeSetOfSubject).isNotPresent();
+        assertThat(maybeClientTestProperty).isNotPresent();
     }
 
     @Test (expected = RestClientException.class)
-    public void shouldThrowIfStatusNotNotFoundWhenUnexpectedErrorFindingSetOfAdminSubject() {
-        when(restTemplate.getForObject(String.format("%s/%s/%s", BASE_URL, CLIENT_NAME, ASSESSMENT_ID), ClientTestProperty.class)).thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
+    public void shouldThrowIfStatusNotNotFoundWhenUnexpectedErrorFindingClientTestProperty() {
+        when(restTemplate.getForObject(String.format("%s/client-test-properties/%s/%s", BASE_URL, CLIENT_NAME, ASSESSMENT_ID), ClientTestProperty.class)).thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
         configService.findClientTestProperty(CLIENT_NAME, ASSESSMENT_ID);
     }
 
@@ -112,5 +96,30 @@ public class ConfigServiceImplTest {
         AssessmentWindow[] windows = configService.findAssessmentWindows("SBAC_PT", "ELA 11", 0, 23, config);
 
         assertThat(windows).containsExactly(window);
+    }
+
+
+    @Test
+    public void shouldFindClientSystemFlag() {
+        ClientSystemFlag flag = new ClientSystemFlag.Builder().withAuditObject(ATTRIBUTE_OBJECT).build();
+
+        when(restTemplate.getForObject(String.format("%s/client-system-flags/%s/%s", BASE_URL, CLIENT_NAME, ATTRIBUTE_OBJECT), ClientSystemFlag.class)).thenReturn(flag);
+        Optional<ClientSystemFlag> maybeClientSystemFlag = configService.findClientSystemFlag(CLIENT_NAME, ATTRIBUTE_OBJECT);
+
+        assertThat(maybeClientSystemFlag.get()).isEqualTo(flag);
+    }
+
+    @Test
+    public void shouldReturnEmptyWhenClientSystemFlagNotFound() {
+        when(restTemplate.getForObject(String.format("%s/client-system-flags/%s/%s", BASE_URL, CLIENT_NAME, ATTRIBUTE_OBJECT), ClientSystemFlag.class)).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
+        Optional<ClientSystemFlag> maybeClientSystemFlag = configService.findClientSystemFlag(CLIENT_NAME, ATTRIBUTE_OBJECT);
+
+        assertThat(maybeClientSystemFlag).isNotPresent();
+    }
+
+    @Test (expected = RestClientException.class)
+    public void shouldThrowIfStatusNotNotFoundWhenUnexpectedErrorFindingClientSystemFlag() {
+        when(restTemplate.getForObject(String.format("%s/client-system-flags/%s/%s", BASE_URL, CLIENT_NAME, ATTRIBUTE_OBJECT), ClientSystemFlag.class)).thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
+        configService.findClientSystemFlag(CLIENT_NAME, ATTRIBUTE_OBJECT);
     }
 }

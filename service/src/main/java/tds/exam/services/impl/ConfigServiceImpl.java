@@ -10,6 +10,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.util.Optional;
 
 import tds.config.AssessmentWindow;
+import tds.config.ClientSystemFlag;
 import tds.config.ClientTestProperty;
 import tds.exam.configuration.ExamServiceProperties;
 import tds.exam.services.ConfigService;
@@ -36,19 +37,19 @@ class ConfigServiceImpl implements ConfigService {
     public Optional<ClientTestProperty> findClientTestProperty(final String clientName, final String assessmentId) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
-                .fromHttpUrl(String.format("%s/%s/%s", examServiceProperties.getConfigUrl(), clientName, assessmentId));
+                .fromHttpUrl(String.format("%s/client-test-properties/%s/%s", examServiceProperties.getConfigUrl(), clientName, assessmentId));
 
-        Optional<ClientTestProperty> clientTestPropertyOptional = Optional.empty();
+        Optional<ClientTestProperty> maybeClientTestProperty = Optional.empty();
         try {
             final ClientTestProperty clientTestProperty = restTemplate.getForObject(builder.toUriString(), ClientTestProperty.class);
-            clientTestPropertyOptional = Optional.of(clientTestProperty);
+            maybeClientTestProperty = Optional.of(clientTestProperty);
         } catch (HttpClientErrorException hce) {
             if (hce.getStatusCode() != HttpStatus.NOT_FOUND) {
                 throw hce;
             }
         }
 
-        return clientTestPropertyOptional;
+        return maybeClientTestProperty;
     }
 
     @Override
@@ -73,5 +74,24 @@ class ConfigServiceImpl implements ConfigService {
         builder.queryParam("shiftFormEnd", configuration.getShiftFormEnd());
 
         return restTemplate.getForObject(builder.toUriString(), AssessmentWindow[].class);
+    }
+
+    @Override
+    public Optional<ClientSystemFlag> findClientSystemFlag(String clientName, String auditObject) {
+        UriComponentsBuilder builder =
+            UriComponentsBuilder
+                .fromHttpUrl(String.format("%s/client-system-flags/%s/%s", examServiceProperties.getConfigUrl(), clientName, auditObject));
+
+        Optional<ClientSystemFlag> maybeClientSystemFlag = Optional.empty();
+        try {
+            final ClientSystemFlag clientSystemFlag = restTemplate.getForObject(builder.toUriString(), ClientSystemFlag.class);
+            maybeClientSystemFlag = Optional.of(clientSystemFlag);
+        } catch (HttpClientErrorException hce) {
+            if (hce.getStatusCode() != HttpStatus.NOT_FOUND) {
+                throw hce;
+            }
+        }
+
+        return maybeClientSystemFlag;
     }
 }

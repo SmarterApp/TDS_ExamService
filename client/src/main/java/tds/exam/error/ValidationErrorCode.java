@@ -8,6 +8,7 @@ public class ValidationErrorCode {
     public static final String SESSION_TYPE_MISMATCH = "sessionTypeMismatch";
     public static final String CURRENT_EXAM_OPEN = "examAlreadyOpen";
     public static final String NO_OPEN_ASSESSMENT_WINDOW = "noOpenAssessmentWindow";
+    public static final String ANONYMOUS_STUDENT_NOT_ALLOWED = "anonymousStudentNotAllowed";
 
     // Exam approval validation error codes
     public static final String EXAM_APPROVAL_BROWSER_ID_MISMATCH = "browserIdMismatch";

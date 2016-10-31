@@ -19,6 +19,7 @@ import tds.assessment.SetOfAdminSubject;
 import tds.common.Response;
 import tds.common.ValidationError;
 import tds.config.AssessmentWindow;
+import tds.config.ClientSystemFlag;
 import tds.config.ClientTestProperty;
 import tds.config.TimeLimitConfiguration;
 import tds.exam.ApprovalRequest;
@@ -49,6 +50,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static tds.config.ClientSystemFlag.ANONYMOUS_STUDENT_AUDIT_OBJECT;
+import static tds.session.ExternalSessionConfiguration.DEVELOPMENT_ENVIRONMENT;
+import static tds.session.ExternalSessionConfiguration.SIMULATION_ENVIRONMENT;
 import static tds.student.RtsStudentPackageAttribute.ACCOMMODATIONS;
 import static tds.student.RtsStudentPackageAttribute.ENTITY_NAME;
 import static tds.student.RtsStudentPackageAttribute.EXTERNAL_ID;
@@ -109,7 +113,9 @@ public class ExamServiceImplTest {
     @Test(expected = IllegalArgumentException.class)
     public void shouldReturnErrorWhenSessionCannotBeFound() {
         OpenExamRequest openExamRequest = new OpenExamRequestBuilder().build();
+        ExternalSessionConfiguration extSessionConfig = new ExternalSessionConfiguration(openExamRequest.getClientName(), SIMULATION_ENVIRONMENT, 0, 0, 0, 0);
 
+        when(mockSessionService.findExternalSessionConfigurationByClientName(openExamRequest.getClientName())).thenReturn(Optional.of(extSessionConfig));
         when(mockSessionService.findSessionById(openExamRequest.getSessionId())).thenReturn(Optional.empty());
         when(mockStudentService.getStudentById(openExamRequest.getStudentId())).thenReturn(Optional.of(new Student(1, "testId", "CA", "clientName")));
 
@@ -119,7 +125,9 @@ public class ExamServiceImplTest {
     @Test(expected = IllegalArgumentException.class)
     public void shouldReturnErrorWhenStudentCannotBeFound() {
         OpenExamRequest openExamRequest = new OpenExamRequestBuilder().build();
+        ExternalSessionConfiguration extSessionConfig = new ExternalSessionConfiguration(openExamRequest.getClientName(), SIMULATION_ENVIRONMENT, 0, 0, 0, 0);
 
+        when(mockSessionService.findExternalSessionConfigurationByClientName(openExamRequest.getClientName())).thenReturn(Optional.of(extSessionConfig));
         when(mockSessionService.findSessionById(openExamRequest.getSessionId())).thenReturn(Optional.of(new Session.Builder().build()));
         when(mockStudentService.getStudentById(openExamRequest.getStudentId())).thenReturn(Optional.empty());
 
@@ -147,10 +155,12 @@ public class ExamServiceImplTest {
             .withStatus(new ExamStatusCode.Builder().withStage(ExamStatusCode.STAGE_INACTIVE).build())
             .build();
 
+        ExternalSessionConfiguration extSessionConfig = new ExternalSessionConfiguration(openExamRequest.getClientName(), SIMULATION_ENVIRONMENT, 0, 0, 0, 0);
 
         SetOfAdminSubject assessment = createSetOfAdminSubject();
-        when(mockAssessmentService.findSetOfAdminSubjectByKey(openExamRequest.getAssessmentKey())).thenReturn(Optional.of(assessment));
 
+        when(mockSessionService.findExternalSessionConfigurationByClientName(openExamRequest.getClientName())).thenReturn(Optional.of(extSessionConfig));
+        when(mockAssessmentService.findSetOfAdminSubjectByKey(openExamRequest.getAssessmentKey())).thenReturn(Optional.of(assessment));
         when(mockSessionService.findSessionById(openExamRequest.getSessionId())).thenReturn(Optional.of(currentSession));
         when(mockStudentService.getStudentById(openExamRequest.getStudentId())).thenReturn(Optional.of(student));
         when(mockExamQueryRepository.getLastAvailableExam(openExamRequest.getStudentId(), assessment.getAssessmentId(), openExamRequest.getClientName())).thenReturn(Optional.of(previousExam));
@@ -168,17 +178,6 @@ public class ExamServiceImplTest {
     @Test(expected = IllegalStateException.class)
     public void shouldThrowIllegalStateIfExternSessionConfigCannotBeFoundWhileOpeningExam() {
         OpenExamRequest openExamRequest = new OpenExamRequestBuilder().build();
-        Session currentSession = new Session.Builder()
-            .withType(2)
-            .build();
-
-        Student student = new Student(1, "testId", "CA", "clientName");
-        SetOfAdminSubject assessment = createSetOfAdminSubject();
-
-        when(mockSessionService.findSessionById(openExamRequest.getSessionId())).thenReturn(Optional.of(currentSession));
-        when(mockStudentService.getStudentById(1)).thenReturn(Optional.of(student));
-        when(mockAssessmentService.findSetOfAdminSubjectByKey(openExamRequest.getAssessmentKey())).thenReturn(Optional.of(assessment));
-        when(mockExamQueryRepository.getLastAvailableExam(openExamRequest.getStudentId(), assessment.getAssessmentId(), openExamRequest.getClientName())).thenReturn(Optional.empty());
         when(mockSessionService.findExternalSessionConfigurationByClientName(openExamRequest.getClientName())).thenReturn(Optional.empty());
         examService.openExam(openExamRequest);
     }
@@ -273,14 +272,19 @@ public class ExamServiceImplTest {
             .build();
 
         SetOfAdminSubject assessment = createSetOfAdminSubject();
-        ExternalSessionConfiguration extSessionConfig = new ExternalSessionConfigurationBuilder().build();
+        ExternalSessionConfiguration extSessionConfig = new ExternalSessionConfigurationBuilder()
+            .withEnvironment(DEVELOPMENT_ENVIRONMENT)
+            .build();
         AssessmentWindow window = new AssessmentWindow.Builder()
             .withAssessmentKey(openExamRequest.getAssessmentKey())
             .withWindowId("window1")
             .withStartTime(Instant.now())
             .withAssessmentKey(openExamRequest.getAssessmentKey())
             .build();
+        ClientSystemFlag clientSystemFlag = new ClientSystemFlag.Builder().withIsOn(true).build();
 
+        when(mockSessionService.findExternalSessionConfigurationByClientName(openExamRequest.getClientName())).thenReturn(Optional.of(extSessionConfig));
+        when(mockConfigService.findClientSystemFlag(openExamRequest.getClientName(), ANONYMOUS_STUDENT_AUDIT_OBJECT)).thenReturn(Optional.of(clientSystemFlag));
         when(mockSessionService.findSessionById(openExamRequest.getSessionId())).thenReturn(Optional.of(currentSession));
         when(mockStudentService.getStudentById(openExamRequest.getStudentId())).thenReturn(Optional.empty());
         when(mockAssessmentService.findSetOfAdminSubjectByKey(openExamRequest.getAssessmentKey())).thenReturn(Optional.of(assessment));
@@ -290,9 +294,9 @@ public class ExamServiceImplTest {
             .thenReturn(new AssessmentWindow[]{window});
 
         Response<Exam> examResponse = examService.openExam(openExamRequest);
+        assertThat(examResponse.getErrors()).isEmpty();
         verify(mockExamCommandRepository).save(isA(Exam.class));
 
-        assertThat(examResponse.getErrors()).isEmpty();
 
         Exam exam = examResponse.getData().get();
 
@@ -323,6 +327,8 @@ public class ExamServiceImplTest {
             .withType(2)
             .build();
 
+        ClientSystemFlag clientSystemFlag = new ClientSystemFlag.Builder().withIsOn(true).build();
+
         SetOfAdminSubject assessment = createSetOfAdminSubject();
         ExternalSessionConfiguration extSessionConfig = new ExternalSessionConfigurationBuilder().build();
         AssessmentWindow window = new AssessmentWindow.Builder()
@@ -332,11 +338,12 @@ public class ExamServiceImplTest {
             .withAssessmentKey(openExamRequest.getAssessmentKey())
             .build();
 
+        when(mockSessionService.findExternalSessionConfigurationByClientName(openExamRequest.getClientName())).thenReturn(Optional.of(extSessionConfig));
+        when(mockConfigService.findClientSystemFlag(openExamRequest.getClientName(), ANONYMOUS_STUDENT_AUDIT_OBJECT)).thenReturn(Optional.of(clientSystemFlag));
         when(mockSessionService.findSessionById(openExamRequest.getSessionId())).thenReturn(Optional.of(currentSession));
         when(mockStudentService.getStudentById(openExamRequest.getStudentId())).thenReturn(Optional.empty());
         when(mockAssessmentService.findSetOfAdminSubjectByKey(openExamRequest.getAssessmentKey())).thenReturn(Optional.of(assessment));
         when(mockExamQueryRepository.getLastAvailableExam(openExamRequest.getStudentId(), assessment.getAssessmentId(), openExamRequest.getClientName())).thenReturn(Optional.empty());
-        when(mockSessionService.findExternalSessionConfigurationByClientName(openExamRequest.getClientName())).thenReturn(Optional.of(extSessionConfig));
         when(mockConfigService.findAssessmentWindows(openExamRequest.getClientName(), assessment.getAssessmentId(), currentSession.getType(), openExamRequest.getStudentId(), extSessionConfig))
             .thenReturn(new AssessmentWindow[]{window});
 
@@ -458,6 +465,9 @@ public class ExamServiceImplTest {
             .withDateChanged(Instant.now())
             .build();
         SetOfAdminSubject assessment = createSetOfAdminSubject();
+        ExternalSessionConfiguration extSessionConfig = new ExternalSessionConfiguration(request.getClientName(), SIMULATION_ENVIRONMENT, 0, 0, 0, 0);
+
+        when(mockSessionService.findExternalSessionConfigurationByClientName(request.getClientName())).thenReturn(Optional.of(extSessionConfig));
 
         when(mockSessionService.findSessionById(request.getSessionId())).thenReturn(Optional.of(currentSession));
         when(mockStudentService.getStudentById(request.getStudentId())).thenReturn(Optional.of(student));
@@ -494,6 +504,10 @@ public class ExamServiceImplTest {
             .withDateChanged(Instant.now())
             .build();
         SetOfAdminSubject assessment = createSetOfAdminSubject();
+
+        ExternalSessionConfiguration extSessionConfig = new ExternalSessionConfiguration(request.getClientName(), SIMULATION_ENVIRONMENT, 0, 0, 0, 0);
+
+        when(mockSessionService.findExternalSessionConfigurationByClientName(request.getClientName())).thenReturn(Optional.of(extSessionConfig));
 
         when(mockSessionService.findSessionById(request.getSessionId())).thenReturn(Optional.of(currentSession));
         when(mockStudentService.getStudentById(request.getStudentId())).thenReturn(Optional.of(student));
@@ -572,9 +586,10 @@ public class ExamServiceImplTest {
             .withStatus(new ExamStatusCode.Builder().withStage(ExamStatusCode.STAGE_INACTIVE).build())
             .withDateChanged(Instant.now())
             .build();
-        ExternalSessionConfiguration externalSessionConfiguration = new ExternalSessionConfigurationBuilder().build();
+        ExternalSessionConfiguration externalSessionConfiguration = new ExternalSessionConfiguration(request.getClientName(), SIMULATION_ENVIRONMENT, 0, 0, 0, 0);
         SetOfAdminSubject assessment = createSetOfAdminSubject();
 
+        when(mockSessionService.findExternalSessionConfigurationByClientName(request.getClientName())).thenReturn(Optional.of(externalSessionConfiguration));
         when(mockSessionService.findSessionById(request.getSessionId())).thenReturn(Optional.of(currentSession));
         when(mockExamQueryRepository.getLastAvailableExam(request.getStudentId(), assessment.getAssessmentId(), request.getClientName())).thenReturn(Optional.of(previousExam));
         when(mockSessionService.findSessionById(previousSession.getId())).thenReturn(Optional.of(previousSession));

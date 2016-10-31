@@ -19,6 +19,7 @@ import tds.common.Response;
 import tds.common.ValidationError;
 import tds.common.data.legacy.LegacyComparer;
 import tds.config.AssessmentWindow;
+import tds.config.ClientSystemFlag;
 import tds.config.ClientTestProperty;
 import tds.config.TimeLimitConfiguration;
 import tds.exam.ApprovalRequest;
@@ -43,6 +44,8 @@ import tds.student.RtsStudentPackageAttribute;
 import tds.student.Student;
 
 import static java.time.temporal.ChronoUnit.DAYS;
+import static tds.config.ClientSystemFlag.ANONYMOUS_STUDENT_AUDIT_OBJECT;
+import static tds.exam.error.ValidationErrorCode.ANONYMOUS_STUDENT_NOT_ALLOWED;
 import static tds.exam.error.ValidationErrorCode.NO_OPEN_ASSESSMENT_WINDOW;
 import static tds.student.RtsStudentPackageAttribute.ACCOMMODATIONS;
 import static tds.student.RtsStudentPackageAttribute.ENTITY_NAME;
@@ -87,6 +90,15 @@ class ExamServiceImpl implements ExamService {
 
     @Override
     public Response<Exam> openExam(OpenExamRequest openExamRequest) {
+        //Line 5602 in StudentDLL
+        Optional<ExternalSessionConfiguration> maybeExternalSessionConfiguration = sessionService.findExternalSessionConfigurationByClientName(openExamRequest.getClientName());
+
+        if (!maybeExternalSessionConfiguration.isPresent()) {
+            throw new IllegalStateException(String.format("External Session Configuration could not be found for client name %s", openExamRequest.getClientName()));
+        }
+
+        ExternalSessionConfiguration externalSessionConfiguration = maybeExternalSessionConfiguration.get();
+
         Optional<Session> maybeSession = sessionService.findSessionById(openExamRequest.getSessionId());
         if (!maybeSession.isPresent()) {
             throw new IllegalArgumentException(String.format("Could not find session for id %s", openExamRequest.getSessionId()));
@@ -99,6 +111,11 @@ class ExamServiceImpl implements ExamService {
                 throw new IllegalArgumentException(String.format("Could not find student for id %s", openExamRequest.getStudentId()));
             } else {
                 currentStudent = maybeStudent.get();
+            }
+        } else {
+            //OpenTestServiceImpl lines 103 - 104
+            if (!allowsGuestStudent(openExamRequest.getClientName(), externalSessionConfiguration)) {
+                return new Response<Exam>(new ValidationError(ANONYMOUS_STUDENT_NOT_ALLOWED, String.format("Anonymous students not allowed for this client %s", openExamRequest.getClientName())));
             }
         }
 
@@ -131,14 +148,7 @@ class ExamServiceImpl implements ExamService {
             return new Response<>(new Exam.Builder().withId(maybePreviousExam.get().getId()).build());
         }
 
-        //Line 5602 in StudentDLL
-        Optional<ExternalSessionConfiguration> maybeExternalSessionConfiguration = sessionService.findExternalSessionConfigurationByClientName(openExamRequest.getClientName());
 
-        if (!maybeExternalSessionConfiguration.isPresent()) {
-            throw new IllegalStateException(String.format("External Session Configuration could not be found for client name %s", openExamRequest.getClientName()));
-        }
-
-        ExternalSessionConfiguration externalSessionConfiguration = maybeExternalSessionConfiguration.get();
         Exam previousExam = maybePreviousExam.isPresent() ? maybePreviousExam.get() : null;
         Optional<ValidationError> maybeOpenNewExamValidationError = canCreateNewExam(openExamRequest, previousExam, externalSessionConfiguration);
         if (maybeOpenNewExamValidationError.isPresent()) {
@@ -440,5 +450,16 @@ class ExamServiceImpl implements ExamService {
         }
 
         return Optional.empty();
+    }
+
+    //Should have long term cache
+    private boolean allowsGuestStudent(String clientName, ExternalSessionConfiguration externalSessionConfiguration) {
+        if(externalSessionConfiguration.isInSimulationEnvironment()) {
+            return true;
+        }
+
+        Optional<ClientSystemFlag> maybeSystemFlag = configService.findClientSystemFlag(clientName, ANONYMOUS_STUDENT_AUDIT_OBJECT);
+
+        return maybeSystemFlag.isPresent() && maybeSystemFlag.get().getIsOn();
     }
 }

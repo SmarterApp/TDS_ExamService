@@ -3,6 +3,7 @@ package tds.exam.services;
 import java.util.Optional;
 
 import tds.config.AssessmentWindow;
+import tds.config.ClientSystemFlag;
 import tds.config.ClientTestProperty;
 import tds.session.ExternalSessionConfiguration;
 
@@ -20,5 +21,24 @@ public interface ConfigService {
      */
     Optional<ClientTestProperty> findClientTestProperty(final String clientName, final String assessmentId);
 
+    /**
+     * Finds the assessment windows for an exam
+     *
+     * @param clientName    environment's client name
+     * @param assessmentId  the assessment id for the assessment
+     * @param sessionType   exam session type
+     * @param studentId     identifier to the student
+     * @param configuration {@link tds.session.ExternalSessionConfiguration} for the environment
+     * @return array of {@link tds.config.AssessmentWindow}
+     */
     AssessmentWindow[] findAssessmentWindows(String clientName, String assessmentId, int sessionType, long studentId, ExternalSessionConfiguration configuration);
+
+    /**
+     * Finds the {@link tds.config.ClientSystemFlag} for client
+     *
+     * @param clientName environment's client name
+     * @param auditObject type of system flag
+     * @return {@link tds.config.ClientSystemFlag} if found otherwise empty
+     */
+    Optional<ClientSystemFlag> findClientSystemFlag(final String clientName, final String auditObject);
 }
