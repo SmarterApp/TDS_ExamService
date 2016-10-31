@@ -32,19 +32,16 @@ public class AccommodationQueryRepositoryImpl implements AccommodationQueryRepos
 
     @Override
     public List<Accommodation> findAccommodations(UUID examId, String segmentId, String[] accommodationTypes) {
-        final String joinedAccommodationTypes = Arrays.stream(accommodationTypes)
-            .map(x -> String.format("'%s'", x))
-            .collect(Collectors.joining(","));
         final SqlParameterSource parameters = new MapSqlParameterSource("examId", UuidAdapter.getBytesFromUUID(examId))
             .addValue("segmentId", segmentId)
-            .addValue("accommodationTypes", joinedAccommodationTypes);
+            .addValue("accommodationTypes", Arrays.asList(accommodationTypes));
 
         final String SQL =
             "SELECT \n" +
             "   id, \n" +
             "   exam_id, \n" +
             "   segment_id, \n" +
-            "   type, \n" +
+            "   `type`, \n" +
             "   code, \n" +
             "   description, \n" +
             "   denied_at, \n" +
@@ -54,7 +51,7 @@ public class AccommodationQueryRepositoryImpl implements AccommodationQueryRepos
             "WHERE \n" +
             "   exam_id = :examId \n" +
             "   AND segment_id = :segmentId \n" +
-            "   AND type IN(:accommodationTypes)";
+            "   AND `type` IN (:accommodationTypes)";
 
         return jdbcTemplate.query(SQL,
                 parameters,

@@ -21,17 +21,20 @@ import tds.common.ValidationError;
 import tds.common.web.exceptions.NotFoundException;
 import tds.exam.*;
 import tds.exam.error.ValidationErrorCode;
+import tds.exam.services.AccommodationService;
 import tds.exam.services.ExamService;
 import tds.exam.web.resources.ExamApprovalResource;
 import tds.exam.web.resources.ExamResource;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.anyChar;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ExamControllerTest {
     private ExamService examService;
+    private AccommodationService accommodationService;
     private ExamController controller;
 
     @Before
@@ -41,7 +44,8 @@ public class ExamControllerTest {
         RequestContextHolder.setRequestAttributes(requestAttributes);
 
         examService = mock(ExamService.class);
-        controller = new ExamController(examService);
+        accommodationService = mock(AccommodationService.class);
+        controller = new ExamController(examService, accommodationService);
     }
 
     @After

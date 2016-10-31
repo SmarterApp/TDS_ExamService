@@ -65,14 +65,15 @@ public class ExamController {
         return ResponseEntity.ok(new ExamApprovalResource(examApproval));
     }
 
-    @RequestMapping(value = "/{id}/accommodations/{accommodationTypes}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/{id}/{segmentId}/accommodations/{accommodationTypes}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<Accommodation>> getAccommodation(@PathVariable final UUID id,
+                                                                @PathVariable final String segmentId,
                                                                 @MatrixVariable(required = false) final String[] accommodationTypes) {
         if (accommodationTypes == null || accommodationTypes.length == 0) {
             throw new IllegalArgumentException("accommodation types with values are required");
         }
 
-        return ResponseEntity.ok(accommodationService.findAccommodations(id, accommodationTypes));
+        return ResponseEntity.ok(accommodationService.findAccommodations(id, segmentId, accommodationTypes));
     }
 }
 

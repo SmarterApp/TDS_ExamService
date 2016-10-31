@@ -20,7 +20,7 @@ class AccommodationServiceImpl implements AccommodationService {
     }
 
     @Override
-    public List<Accommodation> findAccommodations(UUID examId, String[] accommodationTypes) {
-        return accommodationQueryRepository.findAccommodations(examId, accommodationTypes);
+    public List<Accommodation> findAccommodations(UUID examId, String segmentId, String[] accommodationTypes) {
+        return accommodationQueryRepository.findAccommodations(examId, segmentId, accommodationTypes);
     }
 }
