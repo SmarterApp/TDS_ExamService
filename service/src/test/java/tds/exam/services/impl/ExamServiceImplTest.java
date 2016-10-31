@@ -281,7 +281,7 @@ public class ExamServiceImplTest {
             .withStartTime(Instant.now())
             .withAssessmentKey(openExamRequest.getAssessmentKey())
             .build();
-        ClientSystemFlag clientSystemFlag = new ClientSystemFlag.Builder().withIsOn(true).build();
+        ClientSystemFlag clientSystemFlag = new ClientSystemFlag.Builder().withEnabled(true).build();
 
         when(mockSessionService.findExternalSessionConfigurationByClientName(openExamRequest.getClientName())).thenReturn(Optional.of(extSessionConfig));
         when(mockConfigService.findClientSystemFlag(openExamRequest.getClientName(), ANONYMOUS_STUDENT_AUDIT_OBJECT)).thenReturn(Optional.of(clientSystemFlag));
@@ -327,7 +327,7 @@ public class ExamServiceImplTest {
             .withType(2)
             .build();
 
-        ClientSystemFlag clientSystemFlag = new ClientSystemFlag.Builder().withIsOn(true).build();
+        ClientSystemFlag clientSystemFlag = new ClientSystemFlag.Builder().withEnabled(true).build();
 
         SetOfAdminSubject assessment = createSetOfAdminSubject();
         ExternalSessionConfiguration extSessionConfig = new ExternalSessionConfigurationBuilder().build();

@@ -460,6 +460,6 @@ class ExamServiceImpl implements ExamService {
 
         Optional<ClientSystemFlag> maybeSystemFlag = configService.findClientSystemFlag(clientName, ANONYMOUS_STUDENT_AUDIT_OBJECT);
 
-        return maybeSystemFlag.isPresent() && maybeSystemFlag.get().getIsOn();
+        return maybeSystemFlag.isPresent() && maybeSystemFlag.get().isEnabled();
     }
 }
