@@ -11,7 +11,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import tds.assessment.SetOfAdminSubject;
+import tds.assessment.Assessment;
+import tds.assessment.Segment;
 import tds.common.Response;
 import tds.common.ValidationError;
 import tds.config.ClientTestProperty;
@@ -534,7 +535,7 @@ public class ExamServiceImplTest {
         when(repository.findAbilities(thisExamId, clientName, "ELA", studentId)).thenReturn(abilities);
         when(historyRepository.findAbilityFromHistoryForSubjectAndStudent(clientName, "ELA", studentId))
                 .thenReturn(Optional.empty());
-        when(assessmentService.findSetOfAdminSubjectByKey(thisExam.getAssessmentId())).thenReturn(Optional.empty());
+        when(assessmentService.findAssessmentByKey(thisExam.getAssessmentId())).thenReturn(Optional.empty());
         Optional<Double> maybeAbilityReturned = examService.getInitialAbility(thisExam, clientTestProperty);
         assertThat(maybeAbilityReturned).isNotPresent();
     }
@@ -550,10 +551,10 @@ public class ExamServiceImplTest {
         final Double slope = 2D;
         final Double intercept = 1D;
 
-        SetOfAdminSubject setOfAdminSubject = new SetOfAdminSubject(
+        Assessment assessment = new Assessment(
                 "(SBAC)SBAC ELA 3-ELA-3-Spring-2112a",
                 assessmentId,
-                false,
+                new ArrayList<Segment>(),
                 "jeff-j-sort",
                 assessmentAbilityVal
         );
@@ -584,7 +585,7 @@ public class ExamServiceImplTest {
         when(repository.findAbilities(thisExamId, clientName, "ELA", studentId)).thenReturn(abilities);
         when(historyRepository.findAbilityFromHistoryForSubjectAndStudent(clientName, "ELA", studentId))
                 .thenReturn(Optional.empty());
-        when(assessmentService.findSetOfAdminSubjectByKey(thisExam.getAssessmentId())).thenReturn(Optional.of(setOfAdminSubject));
+        when(assessmentService.findAssessmentByKey(thisExam.getAssessmentId())).thenReturn(Optional.of(assessment));
         Optional<Double> maybeAbilityReturned = examService.getInitialAbility(thisExam, clientTestProperty);
         assertThat(maybeAbilityReturned.get()).isEqualTo(assessmentAbilityVal);
     }

@@ -7,7 +7,6 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 import tds.exam.repositories.HistoryQueryRepository;
 
-import javax.sql.DataSource;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -17,11 +16,12 @@ import java.util.Optional;
  */
 @Repository
 public class HistoryQueryRepositoryImpl implements HistoryQueryRepository {
+
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     @Autowired
-    public HistoryQueryRepositoryImpl(@Qualifier("queryDataSource") DataSource queryDataSource) {
-        this.jdbcTemplate = new NamedParameterJdbcTemplate(queryDataSource);
+    public HistoryQueryRepositoryImpl(@Qualifier("queryJdbcTemplate") NamedParameterJdbcTemplate queryJdbcTemplate) {
+        this.jdbcTemplate = queryJdbcTemplate;
     }
 
     /**

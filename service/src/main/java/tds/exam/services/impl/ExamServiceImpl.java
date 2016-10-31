@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import tds.assessment.SetOfAdminSubject;
+import tds.assessment.Assessment;
 import tds.common.Response;
 import tds.common.ValidationError;
 import tds.common.data.legacy.LegacyComparer;
@@ -174,9 +174,9 @@ class ExamServiceImpl implements ExamService {
 
         // If the ability was not retrieved from any of the exam tables, query the assessment service
         if (!ability.isPresent()) {
-            Optional<SetOfAdminSubject> subjectOptional = assessmentService.findSetOfAdminSubjectByKey(exam.getAssessmentId());
-            if (subjectOptional.isPresent()) {
-                ability = Optional.of((double) subjectOptional.get().getStartAbility());
+            Optional<Assessment> maybeAssessment = assessmentService.findAssessmentByKey(exam.getAssessmentId());
+            if (maybeAssessment.isPresent()) {
+                ability = Optional.of((double) maybeAssessment.get().getStartAbility());
             } else {
                 LOG.warn("Could not set the ability for exam ID " + exam.getId());
             }
