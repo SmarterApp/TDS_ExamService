@@ -5,8 +5,6 @@ import java.util.UUID;
 
 import tds.exam.Accommodation;
 
-import static tds.exam.builder.AccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE;
-
 /**
  * Build an {@link tds.exam.Accommodation} populated with test data
  */
