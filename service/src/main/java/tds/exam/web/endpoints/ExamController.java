@@ -66,9 +66,9 @@ public class ExamController {
     }
 
     @RequestMapping(value = "/{id}/{segmentId}/accommodations/{accommodationTypes}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<Accommodation>> getAccommodation(@PathVariable final UUID id,
-                                                                @PathVariable final String segmentId,
-                                                                @MatrixVariable(required = false) final String[] accommodationTypes) {
+    public ResponseEntity<List<Accommodation>> getAccommodations(@PathVariable final UUID id,
+                                                                 @PathVariable final String segmentId,
+                                                                 @MatrixVariable(required = false) final String[] accommodationTypes) {
         if (accommodationTypes == null || accommodationTypes.length == 0) {
             throw new IllegalArgumentException("accommodation types with values are required");
         }

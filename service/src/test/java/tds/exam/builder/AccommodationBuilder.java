@@ -5,25 +5,30 @@ import java.util.UUID;
 
 import tds.exam.Accommodation;
 
+import static tds.exam.builder.AccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE;
+
 /**
  * Build an {@link tds.exam.Accommodation} populated with test data
  */
 public class AccommodationBuilder {
-    public static final UUID FIRST_EXAM_ID = UUID.fromString("6b824c7d-0215-4229-ba95-99f1dae5ef04");
-    public static final String FIRST_SEGMENT_ID = "segment-1";
-    public static final String FIRST_ACCOMMODATION_TYPE = "type";
-    public static final String FIRST_ACCOMMODATION_CODE = "code";
+    public static class SampleData {
+        public static final UUID DEFAULT_EXAM_ID = UUID.fromString("6b824c7d-0215-4229-ba95-99f1dae5ef04");
+        public static final String DEFAULT_SEGMENT_ID = "segment-1";
+        public static final String DEFAULT_ACCOMMODATION_TYPE = "language";
+        public static final String DEFAULT_ACCOMMODATION_CODE = "ENU";
 
-    public static final UUID SECOND_EXAM_ID = UUID.fromString("375ab8fe-afad-4c4d-be57-a17a61752621");
-    public static final String SECOND_SEGMENT_ID = "segment-2";
-    public static final String SECOND_ACCOMMODATION_TYPE = "another type";
-    public static final String SECOND_ACCOMMODATION_CODE = "another code";
+        public static final String SECOND_SEGMENT_ID = "segment-2";
+        public static final String ACCOMMODATION_TYPE_CLOSED_CAPTIONING = "closed captioning";
+        public static final String ACCOMMODATION_CODE_CLOSED_CAPTIONING = "TDS_ClosedCap0";
+        public static final String ACCOMMODATION_TYPE_HIGHLIGHT = "highlight";
+        public static final String ACCOMMODATION_CODE_HIGHLIGHT = "TDS_Highlight1";
+    }
 
     private long id = 0L;
-    private UUID examId = FIRST_EXAM_ID;
-    private String segmentId = FIRST_SEGMENT_ID;
-    private String type = FIRST_ACCOMMODATION_TYPE;
-    private String code = FIRST_ACCOMMODATION_CODE;
+    private UUID examId = SampleData.DEFAULT_EXAM_ID;
+    private String segmentId = SampleData.DEFAULT_SEGMENT_ID;
+    private String type = SampleData.DEFAULT_ACCOMMODATION_TYPE;
+    private String code = SampleData.DEFAULT_ACCOMMODATION_CODE;
     private String description = "description";
     private Instant deniedAt = null;
     private Instant createdAt = Instant.now();
