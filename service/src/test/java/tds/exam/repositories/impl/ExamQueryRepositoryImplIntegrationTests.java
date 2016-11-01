@@ -130,12 +130,15 @@ public class ExamQueryRepositoryImplIntegrationTests {
             .addValue("dateStarted", exam.getDateStarted() == null ? null : Date.from(exam.getDateStarted()))
             .addValue("dateCompleted", exam.getDateCompleted() == null ? null : Date.from(exam.getDateCompleted()))
             .addValue("status", exam.getStatus().getStatus())
+            .addValue("environment", exam.getEnvironment())
+            .addValue("assessmentKey", exam.getAssessmentKey())
+            .addValue("assessmentAlgorithm", exam.getAssessmentAlgorithm())
             .addValue("subject", exam.getSubject());
 
         final String SQL =
             "INSERT INTO " +
-            "   exam (exam_id, session_id, browser_id, assessment_id, student_id, attempts, client_name, date_deleted, date_scored, date_changed, date_started, date_completed, status, subject)" +
-            "VALUES(:examId, :sessionId, :browserId, :assessmentId, :studentId, :attempts, :clientName, :dateDeleted, :dateScored, :dateChanged, :dateStarted, :dateCompleted, :status, :subject)";
+            "   exam (exam_id, environment, assessment_key, assessment_algorithm, session_id, browser_id, assessment_id, student_id, attempts, client_name, date_deleted, date_scored, date_changed, date_started, date_completed, status, subject)" +
+            "VALUES(:examId, :environment, :assessmentKey, :assessmentAlgorithm, :sessionId, :browserId, :assessmentId, :studentId, :attempts, :clientName, :dateDeleted, :dateScored, :dateChanged, :dateStarted, :dateCompleted, :status, :subject)";
 
         jdbcTemplate.update(SQL, parameters);
     }
