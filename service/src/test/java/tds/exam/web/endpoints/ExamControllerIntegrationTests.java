@@ -3,19 +3,15 @@ package tds.exam.web.endpoints;
 import java.net.URI;
 import java.util.UUID;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.PlatformTransactionManager;
 
 import tds.exam.services.AccommodationService;
 import tds.exam.services.ExamService;
@@ -36,18 +32,19 @@ public class ExamControllerIntegrationTests {
     @MockBean
     private ExamService examService;
 
+    // @WebMvcTest is not wiring this up automatically (even though Spring does automatically wire it up when starting
+    // the application normally).  As a work-around, this integration test class will mock the RestTemplateBuilder.
+    // Some details about the RestTemplateBuilder can be found here:
+    // https://docs.spring.io/spring-boot/docs/1.4.0.RELEASE/reference/html/boot-features-restclient.html
     @MockBean
-    private PlatformTransactionManager transactionManager;
-
-    @MockBean
-    private RestTemplateBuilder restTemplateBuilder;
+    RestTemplateBuilder restTemplateBuilder;
 
     @Test
-    public void shouldReturnBadRequestIfAccommodationTypesAreNotProvided() throws Exception {
+    public void shouldReturnNotFoundIfAccommodationTypesAreNotProvided() throws Exception {
         UUID mockExamId = UUID.randomUUID();
         http.perform(get(new URI(String.format("/exam/%s/unit-test-segment/accommodations", mockExamId)))
             .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isNotFound());
 
         verifyZeroInteractions(accommodationService);
     }
