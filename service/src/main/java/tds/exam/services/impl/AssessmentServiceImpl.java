@@ -9,7 +9,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.Optional;
 
-import tds.assessment.SetOfAdminSubject;
+import tds.assessment.Assessment;
 import tds.exam.configuration.ExamServiceProperties;
 import tds.exam.services.AssessmentService;
 
@@ -25,21 +25,21 @@ class AssessmentServiceImpl implements AssessmentService {
     }
 
     @Override
-    public Optional<SetOfAdminSubject> findSetOfAdminSubjectByKey(String key) {
+    public Optional<Assessment> findAssessmentByKey(String key) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
                 .fromHttpUrl(String.format("%s/%s", examServiceProperties.getAssessmentUrl(), key));
 
-        Optional<SetOfAdminSubject> maybeSetOfAdminSubject = Optional.empty();
+        Optional<Assessment> maybeAssessment = Optional.empty();
         try {
-            final SetOfAdminSubject setOfAdminSubject = restTemplate.getForObject(builder.toUriString(), SetOfAdminSubject.class);
-            maybeSetOfAdminSubject = Optional.of(setOfAdminSubject);
+            final Assessment assessment = restTemplate.getForObject(builder.toUriString(), Assessment.class);
+            maybeAssessment = Optional.of(assessment);
         } catch (HttpClientErrorException hce) {
             if (hce.getStatusCode() != HttpStatus.NOT_FOUND) {
                 throw hce;
             }
         }
 
-        return maybeSetOfAdminSubject;
+        return maybeAssessment;
     }
 }

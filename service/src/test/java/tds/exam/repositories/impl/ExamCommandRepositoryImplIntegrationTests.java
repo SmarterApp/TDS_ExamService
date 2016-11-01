@@ -10,8 +10,6 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.sql.DataSource;
-
 import tds.exam.Exam;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.repositories.ExamCommandRepository;
@@ -19,23 +17,21 @@ import tds.exam.repositories.ExamQueryRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest
 @Transactional
 public class ExamCommandRepositoryImplIntegrationTests {
     @Autowired
-    @Qualifier("commandDataSource")
-    private DataSource commandDataSource;
+    @Qualifier("commandJdbcTemplate")
+    private NamedParameterJdbcTemplate jdbcTemplate;
 
     private ExamCommandRepository examCommandRepository;
     private ExamQueryRepository examQueryRepository;
 
     @Before
     public void setUp() {
-        NamedParameterJdbcTemplate jdbcTemplate = new NamedParameterJdbcTemplate(commandDataSource);
-        examCommandRepository = new ExamCommandRepositoryImpl(commandDataSource);
-        examQueryRepository = new ExamQueryRepositoryImpl(commandDataSource);
+        examCommandRepository = new ExamCommandRepositoryImpl(jdbcTemplate);
+        examQueryRepository = new ExamQueryRepositoryImpl(jdbcTemplate);
     }
 
     @Test

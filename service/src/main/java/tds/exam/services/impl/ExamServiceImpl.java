@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import tds.assessment.SetOfAdminSubject;
+import tds.assessment.Assessment;
 import tds.common.Response;
 import tds.common.ValidationError;
 import tds.common.data.legacy.LegacyComparer;
@@ -121,12 +121,12 @@ class ExamServiceImpl implements ExamService {
 
         Session currentSession = maybeSession.get();
 
-        Optional<SetOfAdminSubject> maybeSetOfAdminSubject = assessmentService.findSetOfAdminSubjectByKey(openExamRequest.getAssessmentKey());
-        if (!maybeSetOfAdminSubject.isPresent()) {
+        Optional<Assessment> maybeAssessment = assessmentService.findAssessmentByKey(openExamRequest.getAssessmentKey());
+        if (!maybeAssessment.isPresent()) {
             throw new IllegalArgumentException(String.format("Assessment information could not be found for assessment key %s", openExamRequest.getAssessmentKey()));
         }
 
-        SetOfAdminSubject assessment = maybeSetOfAdminSubject.get();
+        Assessment assessment = maybeAssessment.get();
 
         //Previous exam is retrieved in lines 5492 - 5530 and 5605 - 5645 in StudentDLL
         Optional<Exam> maybePreviousExam = examQueryRepository.getLastAvailableExam(openExamRequest.getStudentId(), assessment.getAssessmentId(), openExamRequest.getClientName());
@@ -207,9 +207,9 @@ class ExamServiceImpl implements ExamService {
 
         // If the ability was not retrieved from any of the exam tables, query the assessment service
         if (!ability.isPresent()) {
-            Optional<SetOfAdminSubject> subjectOptional = assessmentService.findSetOfAdminSubjectByKey(exam.getAssessmentId());
-            if (subjectOptional.isPresent()) {
-                ability = Optional.of((double) subjectOptional.get().getStartAbility());
+            Optional<Assessment> maybeAssessment = assessmentService.findAssessmentByKey(exam.getAssessmentId());
+            if (maybeAssessment.isPresent()) {
+                ability = Optional.of((double) maybeAssessment.get().getStartAbility());
             } else {
                 LOG.warn("Could not set the ability for exam ID " + exam.getId());
             }
@@ -269,7 +269,7 @@ class ExamServiceImpl implements ExamService {
         return Optional.empty();
     }
 
-    private Response<Exam> createExam(OpenExamRequest openExamRequest, Session session, SetOfAdminSubject assessment, ExternalSessionConfiguration externalSessionConfiguration) {
+    private Response<Exam> createExam(OpenExamRequest openExamRequest, Session session, Assessment assessment, ExternalSessionConfiguration externalSessionConfiguration) {
         Exam.Builder examBuilder = new Exam.Builder();
 
         //From OpenTestServiceImpl lines 160 -163

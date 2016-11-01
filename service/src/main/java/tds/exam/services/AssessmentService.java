@@ -2,16 +2,16 @@ package tds.exam.services;
 
 import java.util.Optional;
 
-import tds.assessment.SetOfAdminSubject;
+import tds.assessment.Assessment;
 
 /**
  * Service handles assessment interaction
  */
 public interface AssessmentService {
     /**
-     * Finds the {@link tds.assessment.SetOfAdminSubject SetOfAdminSubject}
-     * @param key unique key for the SetOfAdminSubject
-     * @return {@link tds.assessment.SetOfAdminSubject SetOfAdminSubject}
+     * Finds the {@link tds.assessment.Assessment}
+     * @param key unique key for the assessment
+     * @return {@link tds.assessment.Assessment the assessment}
      */
-    Optional<SetOfAdminSubject> findSetOfAdminSubjectByKey(String key);
+    Optional<Assessment> findAssessmentByKey(String key);
 }

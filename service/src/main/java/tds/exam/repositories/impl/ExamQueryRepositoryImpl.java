@@ -9,13 +9,13 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 
-import javax.sql.DataSource;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 import tds.common.data.mapping.ResultSetMapperUtility;
 import tds.common.data.mysql.UuidAdapter;
@@ -29,8 +29,8 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     @Autowired
-    public ExamQueryRepositoryImpl(@Qualifier("queryDataSource") DataSource queryDataSource) {
-        this.jdbcTemplate = new NamedParameterJdbcTemplate(queryDataSource);
+    public ExamQueryRepositoryImpl(@Qualifier("queryJdbcTemplate") NamedParameterJdbcTemplate queryJdbcTemplate) {
+        this.jdbcTemplate = queryJdbcTemplate;
     }
 
     @Override

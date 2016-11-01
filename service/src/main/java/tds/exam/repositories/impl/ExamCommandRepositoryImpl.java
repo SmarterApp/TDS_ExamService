@@ -1,21 +1,22 @@
 package tds.exam.repositories.impl;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
-
-import javax.sql.DataSource;
+import org.springframework.stereotype.Repository;
 
 import tds.exam.Exam;
 import tds.exam.repositories.ExamCommandRepository;
 
 import static tds.common.data.mysql.UuidAdapter.getBytesFromUUID;
 
+@Repository
 public class ExamCommandRepositoryImpl implements ExamCommandRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
-    public ExamCommandRepositoryImpl(DataSource dataSource) {
-        jdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+    public ExamCommandRepositoryImpl(@Qualifier("commandJdbcTemplate") NamedParameterJdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override

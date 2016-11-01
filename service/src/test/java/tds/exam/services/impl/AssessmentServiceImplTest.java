@@ -7,9 +7,12 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
-import tds.assessment.SetOfAdminSubject;
+import tds.assessment.Assessment;
+import tds.assessment.Segment;
 import tds.exam.configuration.ExamServiceProperties;
 import tds.exam.services.AssessmentService;
 
@@ -32,27 +35,35 @@ public class AssessmentServiceImplTest {
 
     @Test
     public void shouldFindSetOfAdminSubjectsByKey() {
-        SetOfAdminSubject subject = new SetOfAdminSubject("key", "assessmentId", true, "virtual", 100F);
+        List<Segment> segments = new ArrayList<>();
+        segments.add(new Segment(
+                    "segkey",
+                    "segid",
+                    "fixedform",
+                    0,
+                    "key"
+                ));
+        Assessment assessment = new Assessment("key", "assessmentId", segments, "virtual", 100F);
 
-        when(restTemplate.getForObject("http://localhost:8080/assessments/key", SetOfAdminSubject.class)).thenReturn(subject);
-        Optional<SetOfAdminSubject> maybeSetOfSubject = assessmentService.findSetOfAdminSubjectByKey("key");
-        verify(restTemplate).getForObject("http://localhost:8080/assessments/key", SetOfAdminSubject.class);
+        when(restTemplate.getForObject("http://localhost:8080/assessments/key", Assessment.class)).thenReturn(assessment);
+        Optional<Assessment> maybeAssessment = assessmentService.findAssessmentByKey("key");
+        verify(restTemplate).getForObject("http://localhost:8080/assessments/key", Assessment.class);
 
-        assertThat(maybeSetOfSubject.get()).isEqualTo(subject);
+        assertThat(maybeAssessment.get()).isEqualTo(assessment);
     }
 
     @Test
     public void shouldReturnEmptyWhenSetOfAdminSubjectNotFound() {
-        when(restTemplate.getForObject("http://localhost:8080/assessments/key", SetOfAdminSubject.class)).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
-        Optional<SetOfAdminSubject> maybeSetOfSubject = assessmentService.findSetOfAdminSubjectByKey("key");
-        verify(restTemplate).getForObject("http://localhost:8080/assessments/key", SetOfAdminSubject.class);
+        when(restTemplate.getForObject("http://localhost:8080/assessments/key", Assessment.class)).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
+        Optional<Assessment> maybeAssessment = assessmentService.findAssessmentByKey("key");
+        verify(restTemplate).getForObject("http://localhost:8080/assessments/key", Assessment.class);
 
-        assertThat(maybeSetOfSubject).isNotPresent();
+        assertThat(maybeAssessment).isNotPresent();
     }
 
     @Test (expected = RestClientException.class)
     public void shouldThrowIfStatusNotNotFoundWhenUnexpectedErrorFindingSetOfAdminSubject() {
-        when(restTemplate.getForObject("http://localhost:8080/assessments/key", SetOfAdminSubject.class)).thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
-        assessmentService.findSetOfAdminSubjectByKey("key");
+        when(restTemplate.getForObject("http://localhost:8080/assessments/key", Assessment.class)).thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
+        assessmentService.findAssessmentByKey("key");
     }
 }
