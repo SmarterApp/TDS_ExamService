@@ -1,6 +1,5 @@
 package tds.exam.repositories.impl;
 
-import javax.sql.DataSource;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -25,8 +24,8 @@ public class AccommodationQueryRepositoryImpl implements AccommodationQueryRepos
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     @Autowired
-    public AccommodationQueryRepositoryImpl(@Qualifier("queryDataSource") DataSource queryDataSource) {
-        this.jdbcTemplate = new NamedParameterJdbcTemplate(queryDataSource);
+    public AccommodationQueryRepositoryImpl(@Qualifier("queryJdbcTemplate") NamedParameterJdbcTemplate queryJdbcTemplate) {
+        this.jdbcTemplate = queryJdbcTemplate;
     }
 
     @Override

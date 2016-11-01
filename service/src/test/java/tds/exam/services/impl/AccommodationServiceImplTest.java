@@ -37,11 +37,11 @@ public class AccommodationServiceImplTest {
             AccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID,
             new String[] { AccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE});
 
-        assertThat(results).isNotNull();
         assertThat(results).hasSize(1);
-        assertThat(results.get(0).getExamId()).isEqualTo(AccommodationBuilder.SampleData.DEFAULT_EXAM_ID);
-        assertThat(results.get(0).getSegmentId()).isEqualTo(AccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID);
-        assertThat(results.get(0).getType()).isEqualTo(AccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE);
+        Accommodation accommodation = results.get(0);
+        assertThat(accommodation.getExamId()).isEqualTo(AccommodationBuilder.SampleData.DEFAULT_EXAM_ID);
+        assertThat(accommodation.getSegmentId()).isEqualTo(AccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID);
+        assertThat(accommodation.getType()).isEqualTo(AccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE);
     }
 
     @Test
@@ -49,42 +49,35 @@ public class AccommodationServiceImplTest {
         List<Accommodation> mockAccommodations = new ArrayList<>();
         mockAccommodations.add(new AccommodationBuilder().build());
         mockAccommodations.add(new AccommodationBuilder()
-            .withType(AccommodationBuilder.SampleData.ACCOMMODATION_TYPE_CLOSED_CAPTIONING)
-            .withCode(AccommodationBuilder.SampleData.ACCOMMODATION_CODE_CLOSED_CAPTIONING)
+            .withType("closed captioning")
+            .withCode("TDS_ClosedCap0")
             .build());
         when(accommodationQueryRepository.findAccommodations(AccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
             AccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID,
             new String[] {
                 AccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE,
-                AccommodationBuilder.SampleData.ACCOMMODATION_TYPE_CLOSED_CAPTIONING }))
+                "closed captioning" }))
             .thenReturn(mockAccommodations);
 
         List<Accommodation> results = accommodationService.findAccommodations(AccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
             AccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID,
             new String[] {
                 AccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE,
-                AccommodationBuilder.SampleData.ACCOMMODATION_TYPE_CLOSED_CAPTIONING });
+                "closed captioning" });
 
-        assertThat(results).isNotNull();
         assertThat(results).hasSize(2);
 
-        Accommodation firstResult = results.stream()
-            .filter(x -> x.getType().equals(AccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE))
-            .findFirst()
-            .get();
+        Accommodation firstResult = results.get(0);
         assertThat(firstResult.getExamId()).isEqualTo(AccommodationBuilder.SampleData.DEFAULT_EXAM_ID);
         assertThat(firstResult.getSegmentId()).isEqualTo(AccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID);
         assertThat(firstResult.getType()).isEqualTo(AccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE);
         assertThat(firstResult.getCode()).isEqualTo(AccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_CODE);
 
-        Accommodation secondResult = results.stream()
-            .filter(x -> x.getType().equals(AccommodationBuilder.SampleData.ACCOMMODATION_TYPE_CLOSED_CAPTIONING))
-            .findFirst()
-            .get();
+        Accommodation secondResult = results.get(1);
         assertThat(secondResult.getExamId()).isEqualTo(AccommodationBuilder.SampleData.DEFAULT_EXAM_ID);
         assertThat(secondResult.getSegmentId()).isEqualTo(AccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID);
-        assertThat(secondResult.getType()).isEqualTo(AccommodationBuilder.SampleData.ACCOMMODATION_TYPE_CLOSED_CAPTIONING);
-        assertThat(secondResult.getCode()).isEqualTo(AccommodationBuilder.SampleData.ACCOMMODATION_CODE_CLOSED_CAPTIONING);
+        assertThat(secondResult.getType()).isEqualTo("closed captioning");
+        assertThat(secondResult.getCode()).isEqualTo("TDS_ClosedCap0");
     }
 
     @Test

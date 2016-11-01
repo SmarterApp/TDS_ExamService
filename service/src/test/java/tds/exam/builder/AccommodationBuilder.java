@@ -14,12 +14,6 @@ public class AccommodationBuilder {
         public static final String DEFAULT_SEGMENT_ID = "segment-1";
         public static final String DEFAULT_ACCOMMODATION_TYPE = "language";
         public static final String DEFAULT_ACCOMMODATION_CODE = "ENU";
-
-        public static final String SECOND_SEGMENT_ID = "segment-2";
-        public static final String ACCOMMODATION_TYPE_CLOSED_CAPTIONING = "closed captioning";
-        public static final String ACCOMMODATION_CODE_CLOSED_CAPTIONING = "TDS_ClosedCap0";
-        public static final String ACCOMMODATION_TYPE_HIGHLIGHT = "highlight";
-        public static final String ACCOMMODATION_CODE_HIGHLIGHT = "TDS_Highlight1";
     }
 
     private long id = 0L;
