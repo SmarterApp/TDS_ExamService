@@ -1,6 +1,11 @@
 package tds.exam.builder;
 
+import java.util.List;
+
+import tds.assessment.Property;
 import tds.assessment.Segment;
+
+import static java.util.Collections.singletonList;
 
 public class SegmentBuilder {
     private String key = "(SBAC_PT)IRP-Perf-ELA-3-Summer-2015-2016";
@@ -9,9 +14,17 @@ public class SegmentBuilder {
     private float startAbility = 0;
     private String subjectName = "ENGLISH";
     private String assessmentKey = "(SBAC_PT)IRP-Perf-ELA-3-Summer-2015-2016";
+    private List<Property> languages = singletonList(new Property("Language", "ENU", "language for assessment"));
 
     public Segment build() {
-        return new Segment(key, segmentId, selectionAlgorithm, startAbility, assessmentKey, subjectName);
+        return new Segment.Builder(key)
+            .withLanguages(languages)
+            .withSegmentId(segmentId)
+            .withSelectionAlgorithm(selectionAlgorithm)
+            .withStartAbility(startAbility)
+            .withSubjectName(subjectName)
+            .withAssessmentKey(assessmentKey)
+            .build();
     }
 
     public SegmentBuilder withKey(String key) {
@@ -41,6 +54,11 @@ public class SegmentBuilder {
 
     public SegmentBuilder withAssessmentKey(String assessmentKey) {
         this.assessmentKey = assessmentKey;
+        return this;
+    }
+
+    public SegmentBuilder withLanguages(List<Property> languages) {
+        this.languages = languages;
         return this;
     }
 }
