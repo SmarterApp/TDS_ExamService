@@ -12,7 +12,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 import tds.assessment.Assessment;
-import tds.assessment.Segment;
 import tds.common.Response;
 import tds.common.ValidationError;
 import tds.config.ClientTestProperty;
@@ -551,13 +550,12 @@ public class ExamServiceImplTest {
         final Double slope = 2D;
         final Double intercept = 1D;
 
-        Assessment assessment = new Assessment(
-                "(SBAC)SBAC ELA 3-ELA-3-Spring-2112a",
-                assessmentId,
-                new ArrayList<Segment>(),
-                "jeff-j-sort",
-                assessmentAbilityVal
-        );
+        Assessment assessment = new Assessment.Builder()
+            .withKey("(SBAC)SBAC ELA 3-ELA-3-Spring-2112a")
+            .withAssessmentId(assessmentId)
+            .withSelectionAlgorithm("jeff-j-sort")
+            .withStartAbility(assessmentAbilityVal)
+            .build();
 
         ClientTestProperty clientTestProperty = new ClientTestProperty.Builder()
                 .withClientName(clientName)
