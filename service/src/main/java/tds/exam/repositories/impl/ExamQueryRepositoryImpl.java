@@ -53,6 +53,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "   e.date_deleted, \n" +
                 "   e.date_changed, \n" +
                 "   e.date_completed, \n" +
+                "   e.date_joined, \n" +
                 "   e.date_scored, \n" +
                 "   e.created_at, \n" +
                 "   esc.description, \n" +
@@ -196,6 +197,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 .withDateDeleted(ResultSetMapperUtility.mapTimeStampToInstant(rs, "date_deleted"))
                 .withDateScored(ResultSetMapperUtility.mapTimeStampToInstant(rs, "date_scored"))
                 .withDateCompleted(ResultSetMapperUtility.mapTimeStampToInstant(rs, "date_completed"))
+                .withDateJoined(ResultSetMapperUtility.mapTimeStampToInstant(rs, "date_joined"))
                 .withCreatedAt(ResultSetMapperUtility.mapTimeStampToInstant(rs, "created_at"))
                 .withStatus(new ExamStatusCode.Builder()
                     .withStatus(rs.getString("status"))

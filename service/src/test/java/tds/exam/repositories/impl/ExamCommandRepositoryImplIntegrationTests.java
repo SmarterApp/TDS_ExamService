@@ -10,6 +10,9 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+import java.util.Optional;
+
 import tds.exam.Exam;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.repositories.ExamCommandRepository;
@@ -36,12 +39,20 @@ public class ExamCommandRepositoryImplIntegrationTests {
 
     @Test
     public void shouldInsertExam() {
-        Exam exam = new ExamBuilder().build();
-
+        Instant now = Instant.now();
+        Exam exam = new ExamBuilder()
+            .withDateJoined(now)
+            .build();
         assertThat(examQueryRepository.getExamById(exam.getId())).isNotPresent();
 
         examCommandRepository.save(exam);
 
-        assertThat(examQueryRepository.getExamById(exam.getId())).isPresent();
+        Optional<Exam> maybeExam = examQueryRepository.getExamById(exam.getId());
+        assertThat(maybeExam).isPresent();
+
+        Exam savedExam = maybeExam.get();
+
+        assertThat(savedExam.getSubject()).isEqualTo(exam.getSubject());
+        assertThat(savedExam.getDateJoined()).isEqualTo(now);
     }
 }

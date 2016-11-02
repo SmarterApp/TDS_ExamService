@@ -6,6 +6,8 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Timestamp;
+
 import tds.exam.Exam;
 import tds.exam.repositories.ExamCommandRepository;
 
@@ -21,6 +23,7 @@ public class ExamCommandRepositoryImpl implements ExamCommandRepository {
 
     @Override
     public void save(Exam exam) {
+        Timestamp joined = exam.getDateJoined() == null ? null : Timestamp.from(exam.getDateJoined());
         SqlParameterSource parameters = new MapSqlParameterSource("examId", getBytesFromUUID(exam.getId()))
             .addValue("clientName", exam.getClientName())
             .addValue("studentId", exam.getStudentId())
@@ -38,7 +41,7 @@ public class ExamCommandRepositoryImpl implements ExamCommandRepository {
             .addValue("assessmentAlgorithm", exam.getAssessmentAlgorithm())
             .addValue("assessmentKey", exam.getAssessmentKey())
             .addValue("environment", exam.getEnvironment())
-            .addValue("dateJoined", exam.getDateJoined());
+            .addValue("dateJoined", joined);
 
 
         String SQL = "INSERT INTO exam\n" +
