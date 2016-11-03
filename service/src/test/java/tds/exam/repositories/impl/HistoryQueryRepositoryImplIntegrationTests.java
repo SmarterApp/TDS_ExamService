@@ -38,6 +38,7 @@ public class HistoryQueryRepositoryImplIntegrationTests {
     public void initialize() {
         historyQueryRepository = new HistoryQueryRepositoryImpl(jdbcTemplate);
 
+
         final String SQL1 =
                 "INSERT INTO history (id, client_name, student_id, subject, initial_ability, attempts, assessment_component_id, " +
                         "date_changed, admin_subject, fk_history_examid_exam, tested_grade, login_ssid, item_group_string, initial_ability_delim)\n" +
@@ -58,6 +59,7 @@ public class HistoryQueryRepositoryImplIntegrationTests {
                         "date_changed, admin_subject, fk_history_examid_exam, tested_grade, login_ssid, item_group_string, initial_ability_delim)\n" +
                         "VALUES (X'12380054d1d24c24805c0dfdb45a0d27', 'CLIENT_TEST', " + STUDENT_ID2 + ", 'ELA', null, 1, 'assessment-id-1', NOW(), 'admin-subject', " +
                         "X'12380054d1d24c24805c0dfdb45a0daa', '03', 'SSID1', null, null)";
+
         jdbcTemplate.update(SQL1, new HashMap<>());
         jdbcTemplate.update(SQL2, new HashMap<>());
         jdbcTemplate.update(SQL3, new HashMap<>());

@@ -3,7 +3,6 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.opentestsystem.exam</groupId>
     <artifactId>tds-exam-service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
@@ -118,12 +117,6 @@
             <version>2.8.3</version>
         </dependency>
 
-        <!-- Test -->
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -247,39 +240,6 @@
                     </resources>
                 </configuration>
             </plugin>
-            <!--<plugin>-->
-                <!--<groupId>org.flywaydb</groupId>-->
-                <!--<artifactId>flyway-maven-plugin</artifactId>-->
-                <!--<version>4.0.3</version>-->
-                <!--<executions>-->
-                    <!--<execution>-->
-                        <!--<id>flyway_test_migrations</id>-->
-                        <!--<phase>test</phase>-->
-                        <!--<goals>-->
-                            <!--<goal>migrate</goal>-->
-                        <!--</goals>-->
-                        <!--<configuration>-->
-                            <!--<locations>-->
-                            <!--<location>filesystem:src/main/resources/db/migration</location>-->
-                            <!--</locations>-->
-                            <!--&lt;!&ndash; no point in running migrations if integration tests are skipped &ndash;&gt;-->
-                            <!--<skip>${integration-tests.skip}</skip>-->
-                            <!--<url>jdbc:h2:mem:exam;MODE=MySQL;DB_CLOSE_DELAY=-1;INIT=CREATE SCHEMA IF NOT EXISTS-->
-                                <!--"public";-->
-                            <!--</url>-->
-                            <!--<user>sa</user>-->
-                        <!--</configuration>-->
-                    <!--</execution>-->
-                <!--</executions>-->
-
-                <!--<dependencies>-->
-                    <!--<dependency>-->
-                        <!--<groupId>com.h2database</groupId>-->
-                        <!--<artifactId>h2</artifactId>-->
-                        <!--<version>${h2-database.version}</version>-->
-                    <!--</dependency>-->
-                <!--</dependencies>-->
-            <!--</plugin>-->
         </plugins>
     </build>
 

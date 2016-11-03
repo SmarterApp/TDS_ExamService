@@ -22,7 +22,7 @@ public class SegmentBuilder {
             .withSegmentId(segmentId)
             .withSelectionAlgorithm(selectionAlgorithm)
             .withStartAbility(startAbility)
-            .withSubjectName(subjectName)
+            .withSubject(subjectName)
             .withAssessmentKey(assessmentKey)
             .build();
     }

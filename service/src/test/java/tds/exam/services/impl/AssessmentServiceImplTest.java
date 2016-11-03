@@ -36,14 +36,21 @@ public class AssessmentServiceImplTest {
     @Test
     public void shouldFindSetOfAdminSubjectsByKey() {
         List<Segment> segments = new ArrayList<>();
-        segments.add(new Segment(
-                    "segkey",
-                    "segid",
-                    "fixedform",
-                    0,
-                    "key"
-                ));
-        Assessment assessment = new Assessment("key", "assessmentId", segments, "virtual", 100F);
+        segments.add(new Segment.Builder("segkey")
+            .withSegmentId("segid")
+            .withAssessmentKey("key")
+            .withSelectionAlgorithm("fixedform")
+            .withStartAbility(0)
+            .build()
+        );
+
+        Assessment assessment = new Assessment.Builder()
+            .withKey("key")
+            .withAssessmentId("assessmentId")
+            .withSegments(segments)
+            .withSelectionAlgorithm("virtual")
+            .withStartAbility(100)
+            .build();
 
         when(restTemplate.getForObject("http://localhost:8080/assessments/key", Assessment.class)).thenReturn(assessment);
         Optional<Assessment> maybeAssessment = assessmentService.findAssessmentByKey("key");

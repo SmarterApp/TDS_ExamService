@@ -11,7 +11,7 @@ public class AssessmentBuilder {
     private String assessmentId = "IRP-Perf-ELA-3";
     private String selectionAlgorithm = "fixedform";
     private float startAbility = 0;
-    private String subjectName = "ENGLISH";
+    private String subject = "ENGLISH";
     private List<Segment> segments;
 
     public AssessmentBuilder() {
@@ -19,7 +19,13 @@ public class AssessmentBuilder {
     }
 
     public Assessment build() {
-        return new Assessment(key, assessmentId, segments, selectionAlgorithm, startAbility);
+        return new Assessment.Builder()
+            .withKey(key)
+            .withAssessmentId(assessmentId)
+            .withSegments(segments)
+            .withSelectionAlgorithm(selectionAlgorithm)
+            .withStartAbility(startAbility)
+            .build();
     }
 
     public AssessmentBuilder withKey(String key) {
@@ -42,8 +48,8 @@ public class AssessmentBuilder {
         return this;
     }
 
-    public AssessmentBuilder withSubjectName(String subjectName) {
-        this.subjectName = subjectName;
+    public AssessmentBuilder withSubject(String subjectName) {
+        this.subject = subjectName;
         return this;
     }
 

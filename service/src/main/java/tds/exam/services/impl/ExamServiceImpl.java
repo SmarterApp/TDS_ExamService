@@ -329,7 +329,7 @@ class ExamServiceImpl implements ExamService {
             .withDateJoined(Instant.now())
             .withAssessmentWindowId(maybeWindow.get().getWindowId())
             .withEnvironment(externalSessionConfiguration.getEnvironment())
-            .withSubject(assessment.getSubjectName())
+            .withSubject(assessment.getSubject())
             .build();
 
         examCommandRepository.save(exam);

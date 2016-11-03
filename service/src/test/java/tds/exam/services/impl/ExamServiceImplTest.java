@@ -313,7 +313,7 @@ public class ExamServiceImplTest {
         assertThat(exam.getStudentName()).isEqualTo("GUEST");
         assertThat(exam.getEnvironment()).isEqualTo(extSessionConfig.getEnvironment());
         assertThat(exam.getStatus().getStatus()).isEqualTo(ExamStatusCode.STATUS_PENDING);
-        assertThat(exam.getSubject()).isEqualTo(assessment.getSubjectName());
+        assertThat(exam.getSubject()).isEqualTo(assessment.getSubject());
     }
 
     @Test
@@ -737,6 +737,13 @@ public class ExamServiceImplTest {
         final Double slope = 2D;
         final Double intercept = 1D;
 
+        Assessment assessment = new Assessment.Builder()
+            .withKey("(SBAC)SBAC ELA 3-ELA-3-Spring-2112a")
+            .withAssessmentId(assessmentId)
+            .withSelectionAlgorithm("jeff-j-sort")
+            .withStartAbility(assessmentAbilityVal)
+            .build();
+
         ClientTestProperty clientTestProperty = new ClientTestProperty.Builder()
                 .withClientName(clientName)
                 .withAssessmentId(assessmentId)
@@ -756,10 +763,6 @@ public class ExamServiceImplTest {
                 .withAbilitySlope(slope)
                 .withAbilityIntercept(intercept)
                 .build();
-
-        Assessment assessment = new AssessmentBuilder()
-            .withStartAbility(99)
-            .build();
 
         Exam thisExam = createExam(sessionId, thisExamId, assessmentId, clientName, studentId);
 
