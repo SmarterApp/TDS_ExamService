@@ -486,7 +486,7 @@ class ExamServiceImpl implements ExamService {
                 .withCode(accommodation.getAccommodationCode())
                 .withType(accommodation.getAccommodationType())
                 .withDescription(accommodation.getAccommodationValue())
-                .withSegmentId(accommodation.getSegmentKey())
+                .withSegmentKey(accommodation.getSegmentKey())
                 .build();
 
             examAccommodations.add(examAccommodation);

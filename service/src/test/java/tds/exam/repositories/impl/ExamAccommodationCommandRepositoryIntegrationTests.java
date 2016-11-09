@@ -45,11 +45,11 @@ public class ExamAccommodationCommandRepositoryIntegrationTests {
         // Two accommodations for the first Exam ID
         mockExamAccommodations.add(new ExamAccommodationBuilder()
             .withExamId(examId)
-            .withSegmentId("segment")
+            .withSegmentKey("segment")
             .build());
         mockExamAccommodations.add(new ExamAccommodationBuilder()
             .withExamId(examId)
-            .withSegmentId("segment")
+            .withSegmentKey("segment")
             .withType("closed captioning")
             .withCode("TDS_ClosedCap0")
             .build());

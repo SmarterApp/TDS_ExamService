@@ -24,13 +24,13 @@ public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodation
 
     @Override
     public void insertAccommodations(List<ExamAccommodation> accommodations) {
-        String SQL = "INSERT INTO exam_accommodations(exam_id, segment_id, type, code, description, denied_at)" +
-            "VALUES(:examId, :segmentId, :type, :code, :description, :deniedAt)";
+        String SQL = "INSERT INTO exam_accommodations(exam_id, segment_key, type, code, description, denied_at)" +
+            "VALUES(:examId, :segmentKey, :type, :code, :description, :deniedAt)";
 
         List<SqlParameterSource> parameterSources = new ArrayList<>();
         accommodations.forEach(examAccommodation -> {
             SqlParameterSource parameters = new MapSqlParameterSource("examId", UuidAdapter.getBytesFromUUID(examAccommodation.getExamId()))
-                .addValue("segmentId", examAccommodation.getSegmentId())
+                .addValue("segmentKey", examAccommodation.getSegmentKey())
                 .addValue("type", examAccommodation.getType())
                 .addValue("code", examAccommodation.getCode())
                 .addValue("description", examAccommodation.getDescription())

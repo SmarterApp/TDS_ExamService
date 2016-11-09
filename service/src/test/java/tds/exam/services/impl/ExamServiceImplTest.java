@@ -461,7 +461,7 @@ public class ExamServiceImplTest {
         ExamAccommodation examAccommodation = accommodations.get(0);
         assertThat(examAccommodation.getCode()).isEqualTo("code");
         assertThat(examAccommodation.getType()).isEqualTo("type");
-        assertThat(examAccommodation.getSegmentId()).isEqualTo("segmentKey");
+        assertThat(examAccommodation.getSegmentKey()).isEqualTo("segmentKey");
     }
 
     @Test
