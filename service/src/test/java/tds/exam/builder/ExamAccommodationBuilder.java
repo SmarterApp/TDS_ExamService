@@ -8,7 +8,7 @@ import tds.exam.ExamAccommodation;
 /**
  * Build an {@link tds.exam.ExamAccommodation} populated with test data
  */
-public class AccommodationBuilder {
+public class ExamAccommodationBuilder {
     public static class SampleData {
         public static final UUID DEFAULT_EXAM_ID = UUID.fromString("6b824c7d-0215-4229-ba95-99f1dae5ef04");
         public static final String DEFAULT_SEGMENT_ID = "segment-1";
@@ -38,42 +38,42 @@ public class AccommodationBuilder {
             .build();
     }
 
-    public AccommodationBuilder withId(long id) {
+    public ExamAccommodationBuilder withId(long id) {
         this.id = id;
         return this;
     }
 
-    public AccommodationBuilder withExamId(UUID examId) {
+    public ExamAccommodationBuilder withExamId(UUID examId) {
         this.examId = examId;
         return this;
     }
 
-    public AccommodationBuilder withSegmentId(String segmentId) {
+    public ExamAccommodationBuilder withSegmentId(String segmentId) {
         this.segmentId = segmentId;
         return this;
     }
 
-    public AccommodationBuilder withType(String type) {
+    public ExamAccommodationBuilder withType(String type) {
         this.type = type;
         return this;
     }
 
-    public AccommodationBuilder withCode(String code) {
+    public ExamAccommodationBuilder withCode(String code) {
         this.code = code;
         return this;
     }
 
-    public AccommodationBuilder withDescription(String description) {
+    public ExamAccommodationBuilder withDescription(String description) {
         this.description = description;
         return this;
     }
 
-    public AccommodationBuilder withDeniedAt(Instant deniedAt) {
+    public ExamAccommodationBuilder withDeniedAt(Instant deniedAt) {
         this.deniedAt = deniedAt;
         return this;
     }
 
-    public AccommodationBuilder withCreatedAt(Instant createdAt) {
+    public ExamAccommodationBuilder withCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
         return this;
     }

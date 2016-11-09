@@ -44,7 +44,6 @@ import tds.student.RtsStudentPackageAttribute;
 import tds.student.Student;
 
 import static java.time.temporal.ChronoUnit.DAYS;
-import static tds.config.ClientSystemFlag.ALLOW_ANONYMOUS_STUDENT_FLAG_TYPE;
 import static tds.exam.error.ValidationErrorCode.ANONYMOUS_STUDENT_NOT_ALLOWED;
 import static tds.exam.error.ValidationErrorCode.NO_OPEN_ASSESSMENT_WINDOW;
 import static tds.student.RtsStudentPackageAttribute.ACCOMMODATIONS;
@@ -458,8 +457,8 @@ class ExamServiceImpl implements ExamService {
             return true;
         }
 
-        Optional<ClientSystemFlag> maybeSystemFlag = configService.findClientSystemFlag(clientName, ALLOW_ANONYMOUS_STUDENT_FLAG_TYPE);
+        Optional<ClientSystemFlag> maybeSystemFlag = configService.findClientSystemFlag(clientName, "AnonymousTestee");
 
-        return maybeSystemFlag.isPresent() && maybeSystemFlag.get().isEnabled();
+        return maybeSystemFlag.isPresent() && maybeSystemFlag.get().getIsOn();
     }
 }

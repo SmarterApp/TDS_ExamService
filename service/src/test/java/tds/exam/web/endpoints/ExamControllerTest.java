@@ -29,7 +29,7 @@ import tds.exam.ExamApproval;
 import tds.exam.ExamApprovalStatus;
 import tds.exam.ExamStatusCode;
 import tds.exam.OpenExamRequest;
-import tds.exam.builder.AccommodationBuilder;
+import tds.exam.builder.ExamAccommodationBuilder;
 import tds.exam.builder.OpenExamRequestBuilder;
 import tds.exam.error.ValidationErrorCode;
 import tds.exam.services.AccommodationService;
@@ -237,63 +237,63 @@ public class ExamControllerTest {
     @Test
     public void shouldGetASingleAccommodation() {
         List<ExamAccommodation> mockExamAccommodations = new ArrayList<>();
-        mockExamAccommodations.add(new AccommodationBuilder().build());
+        mockExamAccommodations.add(new ExamAccommodationBuilder().build());
 
-        when(accommodationService.findAccommodations(AccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
-            AccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID,
-            new String[] { AccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE }))
+        when(accommodationService.findAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
+            ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID,
+            new String[] { ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE }))
             .thenReturn(mockExamAccommodations);
 
-        ResponseEntity<List<ExamAccommodation>> response = controller.getAccommodations(AccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
-            AccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID,
-            new String[] { AccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE });
-        verify(accommodationService).findAccommodations(AccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
-            AccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID,
-            new String[] { AccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE });
+        ResponseEntity<List<ExamAccommodation>> response = controller.getAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
+            ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID,
+            new String[] { ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE });
+        verify(accommodationService).findAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
+            ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID,
+            new String[] { ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE });
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).hasSize(1);
-        assertThat(response.getBody().get(0).getExamId()).isEqualTo(AccommodationBuilder.SampleData.DEFAULT_EXAM_ID);
-        assertThat(response.getBody().get(0).getSegmentId()).isEqualTo(AccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID);
-        assertThat(response.getBody().get(0).getType()).isEqualTo(AccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE);
-        assertThat(response.getBody().get(0).getCode()).isEqualTo(AccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_CODE);
+        assertThat(response.getBody().get(0).getExamId()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID);
+        assertThat(response.getBody().get(0).getSegmentId()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID);
+        assertThat(response.getBody().get(0).getType()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE);
+        assertThat(response.getBody().get(0).getCode()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_CODE);
         assertThat(response.getBody().get(0).isApproved()).isTrue();
     }
 
     @Test
     public void shouldGetTwoAccommodationsForTheSpecifiedAccommodationTypes() {
         List<ExamAccommodation> mockExamAccommodations = new ArrayList<>();
-        mockExamAccommodations.add(new AccommodationBuilder().build());
-        mockExamAccommodations.add(new AccommodationBuilder()
+        mockExamAccommodations.add(new ExamAccommodationBuilder().build());
+        mockExamAccommodations.add(new ExamAccommodationBuilder()
             .withType("closed captioning")
             .withCode("TDS_ClosedCap0")
             .build());
 
-        when(accommodationService.findAccommodations(AccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
-            AccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID,
+        when(accommodationService.findAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
+            ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID,
             new String[] {
-                AccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE,
+                ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE,
                 "closed captioning" }))
             .thenReturn(mockExamAccommodations);
 
-        ResponseEntity<List<ExamAccommodation>> response = controller.getAccommodations(AccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
-            AccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID,
+        ResponseEntity<List<ExamAccommodation>> response = controller.getAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
+            ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID,
             new String[] {
-                AccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE,
+                ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE,
                 "closed captioning" });
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).hasSize(2);
 
         ExamAccommodation firstResult = response.getBody().get(0);
-        assertThat(firstResult.getExamId()).isEqualTo(AccommodationBuilder.SampleData.DEFAULT_EXAM_ID);
-        assertThat(firstResult.getSegmentId()).isEqualTo(AccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID);
-        assertThat(firstResult.getCode()).isEqualTo(AccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_CODE);
+        assertThat(firstResult.getExamId()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID);
+        assertThat(firstResult.getSegmentId()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID);
+        assertThat(firstResult.getCode()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_CODE);
         assertThat(firstResult.isApproved()).isTrue();
 
         ExamAccommodation secondResult = response.getBody().get(1);
-        assertThat(secondResult.getExamId()).isEqualTo(AccommodationBuilder.SampleData.DEFAULT_EXAM_ID);
-        assertThat(secondResult.getSegmentId()).isEqualTo(AccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID);
+        assertThat(secondResult.getExamId()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID);
+        assertThat(secondResult.getSegmentId()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID);
         assertThat(secondResult.getCode()).isEqualTo("TDS_ClosedCap0");
         assertThat(secondResult.isApproved()).isTrue();
     }
@@ -301,46 +301,46 @@ public class ExamControllerTest {
     @Test
     public void shouldIncludeDeniedAccommodations() {
         List<ExamAccommodation> mockExamAccommodations = new ArrayList<>();
-        mockExamAccommodations.add(new AccommodationBuilder().build());
-        mockExamAccommodations.add(new AccommodationBuilder()
+        mockExamAccommodations.add(new ExamAccommodationBuilder().build());
+        mockExamAccommodations.add(new ExamAccommodationBuilder()
             .withType("closed captioning")
             .withCode("TDS_ClosedCap0")
             .withDeniedAt(Instant.now())
             .build());
 
-        when(accommodationService.findAccommodations(AccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
-            AccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID,
+        when(accommodationService.findAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
+            ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID,
             new String[] {
-                AccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE,
+                ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE,
                 "closed captioning" }))
             .thenReturn(mockExamAccommodations);
 
-        ResponseEntity<List<ExamAccommodation>> response = controller.getAccommodations(AccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
-            AccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID,
+        ResponseEntity<List<ExamAccommodation>> response = controller.getAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
+            ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID,
             new String[] {
-                AccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE,
+                ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE,
                 "closed captioning" });
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).hasSize(2);
 
         ExamAccommodation firstResult = response.getBody().get(0);
-        assertThat(firstResult.getExamId()).isEqualTo(AccommodationBuilder.SampleData.DEFAULT_EXAM_ID);
-        assertThat(firstResult.getSegmentId()).isEqualTo(AccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID);
-        assertThat(firstResult.getCode()).isEqualTo(AccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_CODE);
+        assertThat(firstResult.getExamId()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID);
+        assertThat(firstResult.getSegmentId()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID);
+        assertThat(firstResult.getCode()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_CODE);
         assertThat(firstResult.isApproved()).isTrue();
 
         ExamAccommodation secondResult = response.getBody().get(1);
-        assertThat(secondResult.getExamId()).isEqualTo(AccommodationBuilder.SampleData.DEFAULT_EXAM_ID);
-        assertThat(secondResult.getSegmentId()).isEqualTo(AccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID);
+        assertThat(secondResult.getExamId()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID);
+        assertThat(secondResult.getSegmentId()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID);
         assertThat(secondResult.getCode()).isEqualTo("TDS_ClosedCap0");
         assertThat(secondResult.isApproved()).isFalse();
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldThrowIllegalArgumentExceptionWhenAccomodationTypesIsEmpty() {
-        controller.getAccommodations(AccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
-            AccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID,
+        controller.getAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
+            ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID,
             new String[] {});
     }
 }
