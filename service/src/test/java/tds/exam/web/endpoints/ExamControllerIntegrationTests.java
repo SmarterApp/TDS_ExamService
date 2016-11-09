@@ -1,8 +1,5 @@
 package tds.exam.web.endpoints;
 
-import java.net.URI;
-import java.util.UUID;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +10,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
-import tds.exam.services.AccommodationService;
+import java.net.URI;
+import java.util.UUID;
+
+import tds.exam.services.ExamAccommodationService;
 import tds.exam.services.ExamService;
 
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -27,7 +27,7 @@ public class ExamControllerIntegrationTests {
     private MockMvc http;
 
     @MockBean
-    private AccommodationService accommodationService;
+    private ExamAccommodationService examAccommodationService;
 
     @MockBean
     private ExamService examService;
@@ -46,6 +46,6 @@ public class ExamControllerIntegrationTests {
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isNotFound());
 
-        verifyZeroInteractions(accommodationService);
+        verifyZeroInteractions(examAccommodationService);
     }
 }

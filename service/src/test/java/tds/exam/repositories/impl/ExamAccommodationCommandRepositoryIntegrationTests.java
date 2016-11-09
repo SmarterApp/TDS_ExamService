@@ -16,17 +16,17 @@ import java.util.UUID;
 
 import tds.exam.ExamAccommodation;
 import tds.exam.builder.ExamAccommodationBuilder;
-import tds.exam.repositories.AccommodationCommandRepository;
-import tds.exam.repositories.AccommodationQueryRepository;
+import tds.exam.repositories.ExamAccommodationCommandRepository;
+import tds.exam.repositories.ExamAccommodationQueryRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest
 @Transactional
-public class AccommodationCommandRepositoryIntegrationTests {
-    private AccommodationCommandRepository accommodationCommandRepository;
-    private AccommodationQueryRepository accommodationQueryRepository;
+public class ExamAccommodationCommandRepositoryIntegrationTests {
+    private ExamAccommodationCommandRepository examAccommodationCommandRepository;
+    private ExamAccommodationQueryRepository accommodationQueryRepository;
 
     @Autowired
     @Qualifier("commandJdbcTemplate")
@@ -34,8 +34,8 @@ public class AccommodationCommandRepositoryIntegrationTests {
 
     @Before
     public void setUp() {
-        accommodationCommandRepository = new AccommodationCommandRepositoryImpl(jdbcTemplate);
-        accommodationQueryRepository = new AccommodationQueryRepositoryImpl(jdbcTemplate);
+        examAccommodationCommandRepository = new ExamAccommodationCommandRepositoryImpl(jdbcTemplate);
+        accommodationQueryRepository = new ExamAccommodationQueryRepositoryImpl(jdbcTemplate);
     }
 
     @Test
@@ -54,7 +54,7 @@ public class AccommodationCommandRepositoryIntegrationTests {
             .withCode("TDS_ClosedCap0")
             .build());
 
-        accommodationCommandRepository.insertAccommodations(mockExamAccommodations);
+        examAccommodationCommandRepository.insertAccommodations(mockExamAccommodations);
 
         List<ExamAccommodation> accommodations = accommodationQueryRepository.findAccommodations(examId, "segment", new String[]{"language", "closed captioning"});
 

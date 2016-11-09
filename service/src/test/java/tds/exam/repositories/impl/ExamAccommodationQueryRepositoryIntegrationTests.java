@@ -21,15 +21,15 @@ import java.util.UUID;
 import tds.common.data.mysql.UuidAdapter;
 import tds.exam.ExamAccommodation;
 import tds.exam.builder.ExamAccommodationBuilder;
-import tds.exam.repositories.AccommodationQueryRepository;
+import tds.exam.repositories.ExamAccommodationQueryRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest
 @Transactional
-public class AccommodationQueryRepositoryIntegrationTests {
-    private AccommodationQueryRepository accommodationQueryRepository;
+public class ExamAccommodationQueryRepositoryIntegrationTests {
+    private ExamAccommodationQueryRepository examAccommodationQueryRepository;
 
     @Autowired
     @Qualifier("commandJdbcTemplate")
@@ -37,7 +37,7 @@ public class AccommodationQueryRepositoryIntegrationTests {
     
     @Before
     public void setUp() {
-        accommodationQueryRepository = new AccommodationQueryRepositoryImpl(jdbcTemplate);
+        examAccommodationQueryRepository = new ExamAccommodationQueryRepositoryImpl(jdbcTemplate);
 
         List<ExamAccommodation> mockExamAccommodations = new ArrayList<>();
         // Two accommodations for the first Exam ID
@@ -61,7 +61,7 @@ public class AccommodationQueryRepositoryIntegrationTests {
 
     @Test
     public void shouldGetOneAccommodationForExamAndSegmentAndSingleAccommodationType() {
-        List<ExamAccommodation> result = accommodationQueryRepository.findAccommodations(
+        List<ExamAccommodation> result = examAccommodationQueryRepository.findAccommodations(
             ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
             ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID,
             new String[] { ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE});
@@ -80,7 +80,7 @@ public class AccommodationQueryRepositoryIntegrationTests {
 
     @Test
     public void shouldGetTwoAccommodationsForExamAndSegmentAndTwoDifferentAccommodationTypes() {
-        List<ExamAccommodation> result = accommodationQueryRepository.findAccommodations(
+        List<ExamAccommodation> result = examAccommodationQueryRepository.findAccommodations(
             ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
             ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID,
             new String[] {
@@ -111,7 +111,7 @@ public class AccommodationQueryRepositoryIntegrationTests {
 
     @Test
     public void shouldGetTwoAccommodationsForExamAndSegmentAndIgnoreAccommodationTypesThatDoNotExist() {
-        List<ExamAccommodation> result = accommodationQueryRepository.findAccommodations(
+        List<ExamAccommodation> result = examAccommodationQueryRepository.findAccommodations(
             ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
             ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID,
             new String[] {
@@ -146,7 +146,7 @@ public class AccommodationQueryRepositoryIntegrationTests {
 
     @Test
     public void shouldGetAccommodationForExamIdAndSegmentWithADeniedAccommodation() {
-        List<ExamAccommodation> result = accommodationQueryRepository.findAccommodations(
+        List<ExamAccommodation> result = examAccommodationQueryRepository.findAccommodations(
             ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
             "segment-2",
             new String[] { "highlight" });
@@ -168,7 +168,7 @@ public class AccommodationQueryRepositoryIntegrationTests {
 
     @Test
     public void shouldGetAnEmptyListForAnExamIdThatDoesNotExist() {
-        List<ExamAccommodation> result = accommodationQueryRepository.findAccommodations(
+        List<ExamAccommodation> result = examAccommodationQueryRepository.findAccommodations(
             UUID.randomUUID(),
             ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID,
             new String[] { ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE});
@@ -179,7 +179,7 @@ public class AccommodationQueryRepositoryIntegrationTests {
 
     @Test
     public void shouldGetAnEmptyListForASegmentIdThatDoesNotExist() {
-        List<ExamAccommodation> result = accommodationQueryRepository.findAccommodations(
+        List<ExamAccommodation> result = examAccommodationQueryRepository.findAccommodations(
             ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
             "foo",
             new String[] { ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE});
@@ -190,7 +190,7 @@ public class AccommodationQueryRepositoryIntegrationTests {
 
     @Test
     public void shouldGetAnEmptyListForAccommodationTypesThatDoesNotExist() {
-        List<ExamAccommodation> result = accommodationQueryRepository.findAccommodations(
+        List<ExamAccommodation> result = examAccommodationQueryRepository.findAccommodations(
             ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
             "segment-2",
             new String[] { "foo", "bar" });

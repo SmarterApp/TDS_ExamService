@@ -12,13 +12,13 @@ import java.util.List;
 
 import tds.common.data.mysql.UuidAdapter;
 import tds.exam.ExamAccommodation;
-import tds.exam.repositories.AccommodationCommandRepository;
+import tds.exam.repositories.ExamAccommodationCommandRepository;
 
 @Repository
-public class AccommodationCommandRepositoryImpl implements AccommodationCommandRepository {
+public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodationCommandRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
-    public AccommodationCommandRepositoryImpl(@Qualifier("commandJdbcTemplate") NamedParameterJdbcTemplate jdbcTemplate) {
+    public ExamAccommodationCommandRepositoryImpl(@Qualifier("commandJdbcTemplate") NamedParameterJdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 

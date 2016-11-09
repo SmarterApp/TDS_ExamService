@@ -8,7 +8,7 @@ import tds.exam.ExamAccommodation;
 /**
  * Interface for reading {@link tds.exam.ExamAccommodation} data for an {@link tds.exam.Exam}.
  */
-public interface AccommodationQueryRepository {
+public interface ExamAccommodationQueryRepository {
     /**
      * Retrieve a list of {@link tds.exam.ExamAccommodation}s for the specified exam id and a collection of accommodation types.
      *

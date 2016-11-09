@@ -8,7 +8,7 @@ import tds.exam.ExamAccommodation;
 /**
  * Handles interaction with {@link tds.exam.ExamAccommodation}s associated to an {@link tds.exam.Exam}
  */
-public interface AccommodationService {
+public interface ExamAccommodationService {
     /**
      * Find the {@link tds.exam.ExamAccommodation}(s) of the specified types that is/are approved for an {@link tds.exam.Exam}.
      *

@@ -32,7 +32,7 @@ import tds.exam.OpenExamRequest;
 import tds.exam.builder.ExamAccommodationBuilder;
 import tds.exam.builder.OpenExamRequestBuilder;
 import tds.exam.error.ValidationErrorCode;
-import tds.exam.services.AccommodationService;
+import tds.exam.services.ExamAccommodationService;
 import tds.exam.services.ExamService;
 import tds.exam.web.resources.ExamApprovalResource;
 import tds.exam.web.resources.ExamResource;
@@ -44,7 +44,7 @@ import static org.mockito.Mockito.when;
 
 public class ExamControllerTest {
     private ExamService examService;
-    private AccommodationService accommodationService;
+    private ExamAccommodationService examAccommodationService;
     private ExamController controller;
 
     @Before
@@ -54,8 +54,8 @@ public class ExamControllerTest {
         RequestContextHolder.setRequestAttributes(requestAttributes);
 
         examService = mock(ExamService.class);
-        accommodationService = mock(AccommodationService.class);
-        controller = new ExamController(examService, accommodationService);
+        examAccommodationService = mock(ExamAccommodationService.class);
+        controller = new ExamController(examService, examAccommodationService);
     }
 
     @After
@@ -84,7 +84,6 @@ public class ExamControllerTest {
     @Test
     public void shouldCreateErrorResponseWhenOpenExamFailsWithValidationError() {
         OpenExamRequest openExamRequest = new OpenExamRequestBuilder().build();
-
         when(examService.openExam(openExamRequest)).thenReturn(new Response<Exam>(new ValidationError(ValidationErrorCode.SESSION_TYPE_MISMATCH, "Session mismatch")));
 
         ResponseEntity<ExamResource> response = controller.openExam(openExamRequest);
@@ -239,7 +238,7 @@ public class ExamControllerTest {
         List<ExamAccommodation> mockExamAccommodations = new ArrayList<>();
         mockExamAccommodations.add(new ExamAccommodationBuilder().build());
 
-        when(accommodationService.findAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
+        when(examAccommodationService.findAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
             ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID,
             new String[] { ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE }))
             .thenReturn(mockExamAccommodations);
@@ -247,7 +246,7 @@ public class ExamControllerTest {
         ResponseEntity<List<ExamAccommodation>> response = controller.getAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
             ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID,
             new String[] { ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE });
-        verify(accommodationService).findAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
+        verify(examAccommodationService).findAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
             ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID,
             new String[] { ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE });
 
@@ -269,7 +268,7 @@ public class ExamControllerTest {
             .withCode("TDS_ClosedCap0")
             .build());
 
-        when(accommodationService.findAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
+        when(examAccommodationService.findAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
             ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID,
             new String[] {
                 ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE,
@@ -308,7 +307,7 @@ public class ExamControllerTest {
             .withDeniedAt(Instant.now())
             .build());
 
-        when(accommodationService.findAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
+        when(examAccommodationService.findAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
             ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID,
             new String[] {
                 ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE,

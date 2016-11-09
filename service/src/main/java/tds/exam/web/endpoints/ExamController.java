@@ -23,7 +23,7 @@ import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
 import tds.exam.ExamApproval;
 import tds.exam.OpenExamRequest;
-import tds.exam.services.AccommodationService;
+import tds.exam.services.ExamAccommodationService;
 import tds.exam.services.ExamService;
 import tds.exam.web.resources.ExamApprovalResource;
 import tds.exam.web.resources.ExamResource;
@@ -32,12 +32,12 @@ import tds.exam.web.resources.ExamResource;
 @RequestMapping("/exam")
 public class ExamController {
     private final ExamService examService;
-    private final AccommodationService accommodationService;
+    private final ExamAccommodationService examAccommodationService;
 
     @Autowired
-    public ExamController(ExamService examService, AccommodationService accommodationService) {
+    public ExamController(ExamService examService, ExamAccommodationService examAccommodationService) {
         this.examService = examService;
-        this.accommodationService = accommodationService;
+        this.examAccommodationService = examAccommodationService;
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -83,7 +83,7 @@ public class ExamController {
             throw new IllegalArgumentException("accommodation types with values are required");
         }
 
-        return ResponseEntity.ok(accommodationService.findAccommodations(id, segmentId, accommodationTypes));
+        return ResponseEntity.ok(examAccommodationService.findAccommodations(id, segmentId, accommodationTypes));
     }
 }
 

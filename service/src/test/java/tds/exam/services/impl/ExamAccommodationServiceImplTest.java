@@ -9,27 +9,27 @@ import java.util.List;
 
 import tds.exam.ExamAccommodation;
 import tds.exam.builder.ExamAccommodationBuilder;
-import tds.exam.repositories.AccommodationQueryRepository;
+import tds.exam.repositories.ExamAccommodationQueryRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class AccommodationServiceImplTest {
-    private AccommodationQueryRepository accommodationQueryRepository;
-    private AccommodationServiceImpl accommodationService;
+public class ExamAccommodationServiceImplTest {
+    private ExamAccommodationQueryRepository examAccommodationQueryRepository;
+    private ExamAccommodationServiceImpl accommodationService;
 
     @Before
     public void setUp() {
-        accommodationQueryRepository = mock(AccommodationQueryRepository.class);
-        accommodationService = new AccommodationServiceImpl(accommodationQueryRepository);
+        examAccommodationQueryRepository = mock(ExamAccommodationQueryRepository.class);
+        accommodationService = new ExamAccommodationServiceImpl(examAccommodationQueryRepository);
     }
 
     @Test
     public void shouldReturnAnAccommodation() {
         List<ExamAccommodation> mockExamAccommodations = new ArrayList<>();
         mockExamAccommodations.add(new ExamAccommodationBuilder().build());
-        when(accommodationQueryRepository.findAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
+        when(examAccommodationQueryRepository.findAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
             ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID,
             new String[] { ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE})).thenReturn(mockExamAccommodations);
 
@@ -52,7 +52,7 @@ public class AccommodationServiceImplTest {
             .withType("closed captioning")
             .withCode("TDS_ClosedCap0")
             .build());
-        when(accommodationQueryRepository.findAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
+        when(examAccommodationQueryRepository.findAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
             ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID,
             new String[] {
                 ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE,
@@ -82,7 +82,7 @@ public class AccommodationServiceImplTest {
 
     @Test
     public void shouldReturnAnEmptyListWhenSearchingForAccommodationsThatDoNotExist() {
-        when(accommodationQueryRepository.findAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
+        when(examAccommodationQueryRepository.findAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
             ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_ID,
             new String[] { "foo", "bar" })).thenReturn(Lists.emptyList());
 

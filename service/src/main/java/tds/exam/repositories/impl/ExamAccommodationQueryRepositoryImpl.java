@@ -17,14 +17,14 @@ import java.util.UUID;
 import tds.common.data.mapping.ResultSetMapperUtility;
 import tds.common.data.mysql.UuidAdapter;
 import tds.exam.ExamAccommodation;
-import tds.exam.repositories.AccommodationQueryRepository;
+import tds.exam.repositories.ExamAccommodationQueryRepository;
 
 @Repository
-public class AccommodationQueryRepositoryImpl implements AccommodationQueryRepository {
+public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQueryRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     @Autowired
-    public AccommodationQueryRepositoryImpl(@Qualifier("queryJdbcTemplate") NamedParameterJdbcTemplate queryJdbcTemplate) {
+    public ExamAccommodationQueryRepositoryImpl(@Qualifier("queryJdbcTemplate") NamedParameterJdbcTemplate queryJdbcTemplate) {
         this.jdbcTemplate = queryJdbcTemplate;
     }
 
