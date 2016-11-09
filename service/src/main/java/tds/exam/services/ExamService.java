@@ -25,6 +25,12 @@ public interface ExamService {
      */
     Optional<Exam> getExam(UUID uuid);
 
+    /**
+     * Opens a new exam
+     *
+     * @param openExamRequest {@link tds.exam.OpenExamRequest}
+     * @return {@link tds.common.Response<tds.exam.Exam>} containing exam or errors
+     */
     Response<Exam> openExam(OpenExamRequest openExamRequest);
 
     /**
