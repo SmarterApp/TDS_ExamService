@@ -1,17 +1,17 @@
 package tds.exam;
 
+import org.junit.Test;
+
 import java.time.Instant;
 import java.util.UUID;
 
-import org.junit.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class AccommodationTest {
+public class ExamAccommodationTest {
     @Test
     public void shouldCreateAnAccommodation() {
         UUID mockExamId = UUID.randomUUID();
-        Accommodation accommodation = new Accommodation.Builder()
+        ExamAccommodation examAccommodation = new ExamAccommodation.Builder()
             .withId(1L)
             .withExamId(mockExamId)
             .withSegmentId("Segment 1")
@@ -20,16 +20,16 @@ public class AccommodationTest {
             .withCreatedAt(Instant.now())
             .build();
 
-        assertThat(accommodation.getId()).isEqualTo(1L);
-        assertThat(accommodation.getExamId()).isEqualTo(mockExamId);
-        assertThat(accommodation.getSegmentId()).isEqualTo("Segment 1");
-        assertThat(accommodation.getType()).isEqualTo("unit test type");
-        assertThat(accommodation.getCode()).isEqualTo("unit test code");
+        assertThat(examAccommodation.getId()).isEqualTo(1L);
+        assertThat(examAccommodation.getExamId()).isEqualTo(mockExamId);
+        assertThat(examAccommodation.getSegmentId()).isEqualTo("Segment 1");
+        assertThat(examAccommodation.getType()).isEqualTo("unit test type");
+        assertThat(examAccommodation.getCode()).isEqualTo("unit test code");
     }
 
     @Test
     public void shouldBeApproved() {
-        Accommodation accommodation = new Accommodation.Builder()
+        ExamAccommodation examAccommodation = new ExamAccommodation.Builder()
             .withId(1L)
             .withExamId(UUID.randomUUID())
             .withSegmentId("Segment 1")
@@ -38,12 +38,12 @@ public class AccommodationTest {
             .withCreatedAt(Instant.now())
             .build();
 
-        assertThat(accommodation.isApproved()).isTrue();
+        assertThat(examAccommodation.isApproved()).isTrue();
     }
 
     @Test
     public void shouldNotBeApproved() {
-        Accommodation accommodation = new Accommodation.Builder()
+        ExamAccommodation examAccommodation = new ExamAccommodation.Builder()
             .withId(1L)
             .withExamId(UUID.randomUUID())
             .withSegmentId("Segment 1")
@@ -53,12 +53,12 @@ public class AccommodationTest {
             .withCreatedAt(Instant.now())
             .build();
 
-        assertThat(accommodation.isApproved()).isFalse();
+        assertThat(examAccommodation.isApproved()).isFalse();
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldThrowIllegalArgumentExceptionBecasueExamIdCannotBeNull() {
-        Accommodation accommodation = new Accommodation.Builder()
+        ExamAccommodation examAccommodation = new ExamAccommodation.Builder()
             .withExamId(null)
             .withSegmentId("Segment 1")
             .withType("unit test type")
@@ -69,7 +69,7 @@ public class AccommodationTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldThrowIllegalArgumentExceptionBecausSegmentIdCannotBeNull() {
-        Accommodation accommodation = new Accommodation.Builder()
+        ExamAccommodation examAccommodation = new ExamAccommodation.Builder()
             .withId(1L)
             .withExamId(UUID.randomUUID())
             .withSegmentId(null)
@@ -81,7 +81,7 @@ public class AccommodationTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldThrowIllegalArgumentExceptionBecauseTypeCannotBeNull() {
-        Accommodation accommodation = new Accommodation.Builder()
+        ExamAccommodation examAccommodation = new ExamAccommodation.Builder()
             .withId(1L)
             .withExamId(UUID.randomUUID())
             .withSegmentId("Segment 1")
@@ -93,7 +93,7 @@ public class AccommodationTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldThrowIllegalArgumentExceptionBecauseCodeCannotBeNull() {
-        Accommodation accommodation = new Accommodation.Builder()
+        ExamAccommodation examAccommodation = new ExamAccommodation.Builder()
             .withId(1L)
             .withExamId(UUID.randomUUID())
             .withSegmentId("Segment 1")
@@ -105,7 +105,7 @@ public class AccommodationTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldThrowIllegalArgumentExceptionBecauseCreatedAtCannotBeNull() {
-        Accommodation accommodation = new Accommodation.Builder()
+        ExamAccommodation examAccommodation = new ExamAccommodation.Builder()
             .withId(1L)
             .withExamId(UUID.randomUUID())
             .withSegmentId("Segment 1")

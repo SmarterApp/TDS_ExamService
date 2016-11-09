@@ -1,11 +1,5 @@
 package tds.exam.repositories.impl;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.RowMapper;
@@ -14,9 +8,15 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
+
 import tds.common.data.mapping.ResultSetMapperUtility;
 import tds.common.data.mysql.UuidAdapter;
-import tds.exam.Accommodation;
+import tds.exam.ExamAccommodation;
 import tds.exam.repositories.AccommodationQueryRepository;
 
 @Repository
@@ -29,7 +29,7 @@ public class AccommodationQueryRepositoryImpl implements AccommodationQueryRepos
     }
 
     @Override
-    public List<Accommodation> findAccommodations(UUID examId, String segmentId, String[] accommodationTypes) {
+    public List<ExamAccommodation> findAccommodations(UUID examId, String segmentId, String[] accommodationTypes) {
         final SqlParameterSource parameters = new MapSqlParameterSource("examId", UuidAdapter.getBytesFromUUID(examId))
             .addValue("segmentId", segmentId)
             .addValue("accommodationTypes", Arrays.asList(accommodationTypes));
@@ -56,10 +56,10 @@ public class AccommodationQueryRepositoryImpl implements AccommodationQueryRepos
                 new AccommodationRowMapper());
     }
 
-    private class AccommodationRowMapper implements RowMapper<Accommodation> {
+    private class AccommodationRowMapper implements RowMapper<ExamAccommodation> {
         @Override
-        public Accommodation mapRow(ResultSet rs, int rowNum) throws SQLException {
-            return new Accommodation.Builder()
+        public ExamAccommodation mapRow(ResultSet rs, int rowNum) throws SQLException {
+            return new ExamAccommodation.Builder()
                 .withId(rs.getLong("id"))
                 .withExamId(UuidAdapter.getUUIDFromBytes(rs.getBytes("exam_id")))
                 .withSegmentId(rs.getString("segment_id"))

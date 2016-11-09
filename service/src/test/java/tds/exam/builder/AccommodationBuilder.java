@@ -3,10 +3,10 @@ package tds.exam.builder;
 import java.time.Instant;
 import java.util.UUID;
 
-import tds.exam.Accommodation;
+import tds.exam.ExamAccommodation;
 
 /**
- * Build an {@link tds.exam.Accommodation} populated with test data
+ * Build an {@link tds.exam.ExamAccommodation} populated with test data
  */
 public class AccommodationBuilder {
     public static class SampleData {
@@ -25,8 +25,8 @@ public class AccommodationBuilder {
     private Instant deniedAt = null;
     private Instant createdAt = Instant.now();
 
-    public Accommodation build() {
-        return new Accommodation.Builder()
+    public ExamAccommodation build() {
+        return new ExamAccommodation.Builder()
             .withId(id)
             .withExamId(examId)
             .withSegmentId(segmentId)

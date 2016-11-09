@@ -1,12 +1,12 @@
 package tds.exam.services.impl;
 
-import java.util.List;
-import java.util.UUID;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import tds.exam.Accommodation;
+import java.util.List;
+import java.util.UUID;
+
+import tds.exam.ExamAccommodation;
 import tds.exam.repositories.AccommodationQueryRepository;
 import tds.exam.services.AccommodationService;
 
@@ -20,7 +20,7 @@ class AccommodationServiceImpl implements AccommodationService {
     }
 
     @Override
-    public List<Accommodation> findAccommodations(UUID examId, String segmentId, String[] accommodationTypes) {
+    public List<ExamAccommodation> findAccommodations(UUID examId, String segmentId, String[] accommodationTypes) {
         return accommodationQueryRepository.findAccommodations(examId, segmentId, accommodationTypes);
     }
 }
