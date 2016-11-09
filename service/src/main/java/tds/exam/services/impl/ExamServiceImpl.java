@@ -9,26 +9,31 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import tds.assessment.Assessment;
 import tds.common.Response;
 import tds.common.ValidationError;
 import tds.common.data.legacy.LegacyComparer;
+import tds.config.Accommodation;
 import tds.config.AssessmentWindow;
 import tds.config.ClientSystemFlag;
 import tds.config.ClientTestProperty;
 import tds.config.TimeLimitConfiguration;
 import tds.exam.ApprovalRequest;
 import tds.exam.Exam;
+import tds.exam.ExamAccommodation;
 import tds.exam.ExamApproval;
 import tds.exam.ExamStatusCode;
 import tds.exam.OpenExamRequest;
 import tds.exam.error.ValidationErrorCode;
 import tds.exam.models.Ability;
+import tds.exam.repositories.ExamAccommodationCommandRepository;
 import tds.exam.repositories.ExamCommandRepository;
 import tds.exam.repositories.ExamQueryRepository;
 import tds.exam.repositories.HistoryQueryRepository;
@@ -63,6 +68,7 @@ class ExamServiceImpl implements ExamService {
     private final AssessmentService assessmentService;
     private final TimeLimitConfigurationService timeLimitConfigurationService;
     private final ConfigService configService;
+    private final ExamAccommodationCommandRepository examAccommodationCommandRepository;
 
     @Autowired
     public ExamServiceImpl(ExamQueryRepository examQueryRepository,
@@ -72,7 +78,8 @@ class ExamServiceImpl implements ExamService {
                            AssessmentService assessmentService,
                            TimeLimitConfigurationService timeLimitConfigurationService,
                            ConfigService configService,
-                           ExamCommandRepository examCommandRepository) {
+                           ExamCommandRepository examCommandRepository,
+                           ExamAccommodationCommandRepository examAccommodationCommandRepository) {
         this.examQueryRepository = examQueryRepository;
         this.historyQueryRepository = historyQueryRepository;
         this.sessionService = sessionService;
@@ -81,6 +88,7 @@ class ExamServiceImpl implements ExamService {
         this.timeLimitConfigurationService = timeLimitConfigurationService;
         this.configService = configService;
         this.examCommandRepository = examCommandRepository;
+        this.examAccommodationCommandRepository = examAccommodationCommandRepository;
     }
 
     @Override
@@ -333,6 +341,7 @@ class ExamServiceImpl implements ExamService {
             .build();
 
         examCommandRepository.save(exam);
+        initializeExamAccommodations(exam);
 
         return new Response<>(exam);
     }
@@ -461,5 +470,28 @@ class ExamServiceImpl implements ExamService {
         Optional<ClientSystemFlag> maybeSystemFlag = configService.findClientSystemFlag(clientName, ALLOW_ANONYMOUS_STUDENT_FLAG_TYPE);
 
         return maybeSystemFlag.isPresent() && maybeSystemFlag.get().isEnabled();
+    }
+
+    private void initializeExamAccommodations(Exam exam) {
+        //Replaces StudentDLL _InitOpportunityAccommodations_SP
+        Accommodation[] assessmentAccommodations = configService.findAssessmentAccommodations(exam.getAssessmentKey());
+
+        List<Accommodation> accommodations = Arrays.stream(assessmentAccommodations).filter(accommodation ->
+            accommodation.isDefaultAccommodation() && accommodation.getDependsOnToolType() == null).collect(Collectors.toList());
+
+        List<ExamAccommodation> examAccommodations = new ArrayList<>();
+        accommodations.forEach(accommodation -> {
+            ExamAccommodation examAccommodation = new ExamAccommodation.Builder()
+                .withExamId(exam.getId())
+                .withCode(accommodation.getAccommodationCode())
+                .withType(accommodation.getAccommodationType())
+                .withDescription(accommodation.getAccommodationValue())
+                .withSegmentId(accommodation.getSegmentKey())
+                .build();
+
+            examAccommodations.add(examAccommodation);
+        });
+
+        examAccommodationCommandRepository.insertAccommodations(examAccommodations);
     }
 }
