@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import tds.exam.Accommodation;
 import tds.exam.Exam;
 import tds.exam.models.Ability;
 
