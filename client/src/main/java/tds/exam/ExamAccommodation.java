@@ -9,7 +9,7 @@ import java.util.UUID;
 public class ExamAccommodation {
     private long id;
     private UUID examId;
-    private String segmentId;
+    private String segmentKey;
     private String type;
     private String code;
     private String description;
@@ -19,7 +19,7 @@ public class ExamAccommodation {
     public static class Builder {
         private long id;
         private UUID examId;
-        private String segmentId;
+        private String segmentKey;
         private String type;
         private String code;
         private String description;
@@ -40,12 +40,12 @@ public class ExamAccommodation {
             return this;
         }
 
-        public Builder withSegmentId(String segmentId) {
-            if (segmentId == null) {
-                throw new IllegalArgumentException("segmentId cannot be null");
+        public Builder withSegmentKey(String segmentKey) {
+            if (segmentKey == null) {
+                throw new IllegalArgumentException("segmentKey cannot be null");
             }
 
-            this.segmentId = segmentId;
+            this.segmentKey = segmentKey;
             return this;
         }
 
@@ -93,7 +93,7 @@ public class ExamAccommodation {
     private ExamAccommodation(Builder builder) {
         id = builder.id;
         examId = builder.examId;
-        segmentId = builder.segmentId;
+        segmentKey = builder.segmentKey;
         type = builder.type;
         code = builder.code;
         description = builder.description;
@@ -118,8 +118,8 @@ public class ExamAccommodation {
     /**
      * @return The segment of the Assessment in which this {@link ExamAccommodation} can be used
      */
-    public String getSegmentId() {
-        return segmentId;
+    public String getSegmentKey() {
+        return segmentKey;
     }
 
     /**

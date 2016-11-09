@@ -29,16 +29,16 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
     }
 
     @Override
-    public List<ExamAccommodation> findAccommodations(UUID examId, String segmentId, String[] accommodationTypes) {
+    public List<ExamAccommodation> findAccommodations(UUID examId, String segmentKey, String[] accommodationTypes) {
         final SqlParameterSource parameters = new MapSqlParameterSource("examId", UuidAdapter.getBytesFromUUID(examId))
-            .addValue("segmentId", segmentId)
+            .addValue("segmentKey", segmentKey)
             .addValue("accommodationTypes", Arrays.asList(accommodationTypes));
 
         final String SQL =
             "SELECT \n" +
             "   id, \n" +
             "   exam_id, \n" +
-            "   segment_id, \n" +
+            "   segment_key, \n" +
             "   `type`, \n" +
             "   code, \n" +
             "   description, \n" +
@@ -48,7 +48,7 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
             "   exam_accommodations \n" +
             "WHERE \n" +
             "   exam_id = :examId \n" +
-            "   AND segment_id = :segmentId \n" +
+            "   AND segment_key = :segmentKey \n" +
             "   AND `type` IN (:accommodationTypes)";
 
         return jdbcTemplate.query(SQL,
@@ -62,7 +62,7 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
             return new ExamAccommodation.Builder()
                 .withId(rs.getLong("id"))
                 .withExamId(UuidAdapter.getUUIDFromBytes(rs.getBytes("exam_id")))
-                .withSegmentId(rs.getString("segment_id"))
+                .withSegmentKey(rs.getString("segment_key"))
                 .withType(rs.getString("type"))
                 .withCode(rs.getString("code"))
                 .withDescription(rs.getString("description"))

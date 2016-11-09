@@ -11,14 +11,14 @@ import tds.exam.ExamAccommodation;
 public class ExamAccommodationBuilder {
     public static class SampleData {
         public static final UUID DEFAULT_EXAM_ID = UUID.fromString("6b824c7d-0215-4229-ba95-99f1dae5ef04");
-        public static final String DEFAULT_SEGMENT_ID = "segment-1";
+        public static final String DEFAULT_SEGMENT_KEY = "segment-1";
         public static final String DEFAULT_ACCOMMODATION_TYPE = "language";
         public static final String DEFAULT_ACCOMMODATION_CODE = "ENU";
     }
 
     private long id = 0L;
     private UUID examId = SampleData.DEFAULT_EXAM_ID;
-    private String segmentId = SampleData.DEFAULT_SEGMENT_ID;
+    private String segmentKey = SampleData.DEFAULT_SEGMENT_KEY;
     private String type = SampleData.DEFAULT_ACCOMMODATION_TYPE;
     private String code = SampleData.DEFAULT_ACCOMMODATION_CODE;
     private String description = "description";
@@ -29,7 +29,7 @@ public class ExamAccommodationBuilder {
         return new ExamAccommodation.Builder()
             .withId(id)
             .withExamId(examId)
-            .withSegmentId(segmentId)
+            .withSegmentKey(segmentKey)
             .withType(type)
             .withCode(code)
             .withDescription(description)
@@ -48,8 +48,8 @@ public class ExamAccommodationBuilder {
         return this;
     }
 
-    public ExamAccommodationBuilder withSegmentId(String segmentId) {
-        this.segmentId = segmentId;
+    public ExamAccommodationBuilder withSegmentKey(String segmentKey) {
+        this.segmentKey = segmentKey;
         return this;
     }
 
