@@ -2,6 +2,7 @@ package tds.exam.services;
 
 import java.util.Optional;
 
+import tds.config.Accommodation;
 import tds.config.AssessmentWindow;
 import tds.config.ClientSystemFlag;
 import tds.config.ClientTestProperty;
@@ -36,9 +37,17 @@ public interface ConfigService {
     /**
      * Finds the {@link tds.config.ClientSystemFlag} for client
      *
-     * @param clientName environment's client name
+     * @param clientName  environment's client name
      * @param auditObject type of system flag
      * @return {@link tds.config.ClientSystemFlag} if found otherwise empty
      */
     Optional<ClientSystemFlag> findClientSystemFlag(final String clientName, final String auditObject);
+
+    /**
+     * Finds the {@link tds.config.Accommodation} for the assessment
+     *
+     * @param assessmentKey the assessment key
+     * @return {@link tds.config.Accommodation} otherwise empty
+     */
+    Accommodation[] findAssessmentAccommodations(final String assessmentKey);
 }

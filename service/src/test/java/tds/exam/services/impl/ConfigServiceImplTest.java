@@ -10,6 +10,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.Optional;
 
+import tds.config.Accommodation;
 import tds.config.AssessmentWindow;
 import tds.config.ClientSystemFlag;
 import tds.config.ClientTestProperty;
@@ -121,5 +122,15 @@ public class ConfigServiceImplTest {
     public void shouldThrowIfStatusNotNotFoundWhenUnexpectedErrorFindingClientSystemFlag() {
         when(restTemplate.getForObject(String.format("%s/client-system-flags/%s/%s", BASE_URL, CLIENT_NAME, ATTRIBUTE_OBJECT), ClientSystemFlag.class)).thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
         configService.findClientSystemFlag(CLIENT_NAME, ATTRIBUTE_OBJECT);
+    }
+
+    @Test
+    public void shouldFindAssessmentAccommodations() {
+        Accommodation accommodation = new Accommodation.Builder().build();
+        when(restTemplate.getForObject(String.format("%s/accommodations/key", BASE_URL), Accommodation[].class)).thenReturn(new Accommodation[]{accommodation});
+
+        Accommodation[] accommodations = configService.findAssessmentAccommodations("key");
+
+        assertThat(accommodations).containsExactly(accommodation);
     }
 }

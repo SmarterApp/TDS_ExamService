@@ -9,6 +9,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.Optional;
 
+import tds.config.Accommodation;
 import tds.config.AssessmentWindow;
 import tds.config.ClientSystemFlag;
 import tds.config.ClientTestProperty;
@@ -93,5 +94,14 @@ class ConfigServiceImpl implements ConfigService {
         }
 
         return maybeClientSystemFlag;
+    }
+
+    @Override
+    public Accommodation[] findAssessmentAccommodations(String assessmentKey) {
+        UriComponentsBuilder builder =
+            UriComponentsBuilder
+                .fromHttpUrl(String.format("%s/accommodations/%s", examServiceProperties.getConfigUrl(), assessmentKey));
+
+        return restTemplate.getForObject(builder.toUriString(), Accommodation[].class);
     }
 }
