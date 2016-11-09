@@ -6,24 +6,22 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 
-import java.sql.Timestamp;
-
+import tds.common.data.mapping.ResultSetMapperUtility;
 import tds.exam.Exam;
 import tds.exam.repositories.ExamCommandRepository;
 
 import static tds.common.data.mysql.UuidAdapter.getBytesFromUUID;
 
 @Repository
-public class ExamCommandRepositoryImpl implements ExamCommandRepository {
+class ExamCommandRepositoryImpl implements ExamCommandRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
-    public ExamCommandRepositoryImpl(@Qualifier("commandJdbcTemplate") NamedParameterJdbcTemplate jdbcTemplate) {
+    ExamCommandRepositoryImpl(@Qualifier("commandJdbcTemplate") NamedParameterJdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
     public void save(Exam exam) {
-        Timestamp joined = exam.getDateJoined() == null ? null : Timestamp.from(exam.getDateJoined());
         SqlParameterSource parameters = new MapSqlParameterSource("examId", getBytesFromUUID(exam.getId()))
             .addValue("clientName", exam.getClientName())
             .addValue("studentId", exam.getStudentId())
@@ -41,7 +39,7 @@ public class ExamCommandRepositoryImpl implements ExamCommandRepository {
             .addValue("assessmentAlgorithm", exam.getAssessmentAlgorithm())
             .addValue("assessmentKey", exam.getAssessmentKey())
             .addValue("environment", exam.getEnvironment())
-            .addValue("dateJoined", joined);
+            .addValue("dateJoined", ResultSetMapperUtility.mapInstantToTimestamp(exam.getDateJoined()));
 
 
         String SQL = "INSERT INTO exam\n" +
