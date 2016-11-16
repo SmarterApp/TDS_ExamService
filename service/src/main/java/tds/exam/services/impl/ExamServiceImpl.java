@@ -37,6 +37,7 @@ import tds.session.Session;
 import tds.student.Student;
 
 import static java.time.temporal.ChronoUnit.DAYS;
+import static tds.common.time.JodaTimeConverter.convertJodaInstant;
 
 @Service
 class ExamServiceImpl implements ExamService {
@@ -128,13 +129,13 @@ class ExamServiceImpl implements ExamService {
     @Override
     public Response<ExamApproval> getApproval(ApprovalRequest approvalRequest) {
         Exam exam = examQueryRepository.getExamById(approvalRequest.getExamId())
-                .orElseThrow(() -> new IllegalArgumentException(String.format("Exam could not be found for id %s", approvalRequest.getExamId())));
+            .orElseThrow(() -> new IllegalArgumentException(String.format("Exam could not be found for id %s", approvalRequest.getExamId())));
 
         Optional<ValidationError> maybeAccessViolation = verifyAccess(approvalRequest, exam);
 
         return maybeAccessViolation.isPresent()
-                ? new Response<ExamApproval>(maybeAccessViolation.get())
-                : new Response<>(new ExamApproval(approvalRequest.getExamId(), exam.getStatus(), exam.getStatusChangeReason()));
+            ? new Response<ExamApproval>(maybeAccessViolation.get())
+            : new Response<>(new ExamApproval(approvalRequest.getExamId(), exam.getStatus(), exam.getStatusChangeReason()));
     }
 
     /**
@@ -146,7 +147,7 @@ class ExamServiceImpl implements ExamService {
         Double slope = property.getAbilitySlope();
         Double intercept = property.getAbilityIntercept();
         List<Ability> testAbilities = examQueryRepository.findAbilities(exam.getId(), exam.getClientName(),
-                property.getSubjectName(), exam.getStudentId());
+            property.getSubjectName(), exam.getStudentId());
 
         // Attempt to retrieve the most recent ability for the current subject and assessment
         Optional<Ability> initialAbility = getMostRecentTestAbilityForSameAssessment(testAbilities, exam.getAssessmentId());
@@ -161,7 +162,7 @@ class ExamServiceImpl implements ExamService {
             } else {
                 // if no value was returned from the previous call, get the initial ability from the previous year
                 Optional<Double> initialAbilityFromHistory = historyQueryRepository.findAbilityFromHistoryForSubjectAndStudent(
-                        exam.getClientName(), exam.getSubject(), exam.getStudentId());
+                    exam.getClientName(), exam.getSubject(), exam.getStudentId());
 
                 if (initialAbilityFromHistory.isPresent() && slope != null && intercept != null) {
                     ability = Optional.of(initialAbilityFromHistory.get() * slope + intercept);
@@ -255,8 +256,8 @@ class ExamServiceImpl implements ExamService {
     /**
      * Gets the most recent {@link Ability} based on the dateScored value for the same assessment.
      *
-     * @param abilityList the list of {@link Ability}s to iterate through
-     * @param assessmentId  The test key
+     * @param abilityList  the list of {@link Ability}s to iterate through
+     * @param assessmentId The test key
      * @return
      */
     private Optional<Ability> getMostRecentTestAbilityForSameAssessment(List<Ability> abilityList, String assessmentId) {
@@ -274,8 +275,8 @@ class ExamServiceImpl implements ExamService {
     /**
      * Gets the most recent {@link Ability} based on the dateScored value for a different assessment.
      *
-     * @param abilityList the list of {@link Ability}s to iterate through
-     * @param assessmentId  The test key
+     * @param abilityList  the list of {@link Ability}s to iterate through
+     * @param assessmentId The test key
      * @return
      */
     private Optional<Ability> getMostRecentTestAbilityForDifferentAssessment(List<Ability> abilityList, String assessmentId) {
@@ -326,7 +327,7 @@ class ExamServiceImpl implements ExamService {
         if (daysSinceLastChange ||
             LegacyComparer.isEqual(previousSession.getId(), currentSession.getId()) ||
             LegacyComparer.isEqual("closed", previousSession.getStatus()) ||
-            (previousSession.getDateEnd() != null && LegacyComparer.greaterThan(Instant.now(), Instant.ofEpochMilli(previousSession.getDateEnd().getMillis())))) {
+            LegacyComparer.greaterThan(Instant.now(), convertJodaInstant(previousSession.getDateEnd()))) {
             return Optional.empty();
         }
 
@@ -352,7 +353,7 @@ class ExamServiceImpl implements ExamService {
             }
 
             if (previousExam.getDateCompleted() != null) {
-                Duration duration = Duration.between(Instant.ofEpochMilli(previousExam.getDateChanged().getMillis()), Instant.now());
+                Duration duration = Duration.between(convertJodaInstant(previousExam.getDateChanged()), Instant.now());
                 if (LegacyComparer.lessThan(previousExam.getAttempts(), openExamRequest.getMaxAttempts()) &&
                     LegacyComparer.greaterThan(duration.get(DAYS), openExamRequest.getNumberOfDaysToDelay())) {
                     return Optional.empty();
