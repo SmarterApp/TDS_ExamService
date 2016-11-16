@@ -14,7 +14,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.net.URI;
 import java.util.UUID;
 
-import tds.common.configuration.RestTemplateConfiguration;
 import tds.common.web.advice.ExceptionAdvice;
 import tds.exam.services.ExamAccommodationService;
 import tds.exam.services.ExamService;
@@ -25,7 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @RunWith(SpringRunner.class)
 @WebMvcTest(ExamController.class)
-@Import({ExceptionAdvice.class, RestTemplateConfiguration.class})
+@Import({ExceptionAdvice.class})
 public class ExamControllerIntegrationTests {
     @Autowired
     private MockMvc http;
