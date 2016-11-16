@@ -18,7 +18,7 @@ import tds.common.data.mysql.UuidAdapter;
 import tds.exam.ExamAccommodation;
 import tds.exam.repositories.ExamAccommodationQueryRepository;
 
-import static tds.common.data.mapping.ResultSetMapperUtility.mapTimeStampToJodaInstant;
+import static tds.common.data.mapping.ResultSetMapperUtility.mapTimestampToJodaInstant;
 
 @Repository
 public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQueryRepository {
@@ -67,8 +67,8 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
                 .withType(rs.getString("type"))
                 .withCode(rs.getString("code"))
                 .withDescription(rs.getString("description"))
-                .withDeniedAt(mapTimeStampToJodaInstant(rs, "denied_at"))
-                .withCreatedAt(mapTimeStampToJodaInstant(rs, "created_at"))
+                .withDeniedAt(mapTimestampToJodaInstant(rs, "denied_at"))
+                .withCreatedAt(mapTimestampToJodaInstant(rs, "created_at"))
                 .build();
         }
     }

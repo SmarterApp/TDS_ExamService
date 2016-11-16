@@ -5,10 +5,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import tds.common.data.mapping.ResultSetMapperUtility;
-import tds.common.data.mysql.UuidAdapter;
-import tds.exam.models.ExamSegment;
-import tds.exam.repositories.ExamSegmentQueryRepository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -19,6 +15,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+
+import tds.common.data.mapping.ResultSetMapperUtility;
+import tds.common.data.mysql.UuidAdapter;
+import tds.exam.models.ExamSegment;
+import tds.exam.repositories.ExamSegmentQueryRepository;
 
 /**
  * Repository implementation for reading from the {@link ExamSegment} related tables.
@@ -161,10 +162,10 @@ public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepositor
                     .withRestorePermeableCondition(rs.getString("restore_permeable_condition"))
                     .withFormCohort(rs.getString("form_cohort"))
                     .withIsSatisfied(rs.getBoolean("satisfied"))
-                    .withDateExited(ResultSetMapperUtility.mapTimeStampToInstant(rs, "date_exited"))
+                    .withDateExited(ResultSetMapperUtility.mapTimestampToInstant(rs, "date_exited"))
                     .withItemPool(createItemListFromString(rs.getString("item_pool")))
                     .withPoolCount(rs.getInt("pool_count"))
-                    .withCreatedAt(ResultSetMapperUtility.mapTimeStampToInstant(rs, "created_at"))
+                    .withCreatedAt(ResultSetMapperUtility.mapTimestampToInstant(rs, "created_at"))
                     .build();
         }
     }
