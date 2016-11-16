@@ -17,16 +17,21 @@ public class OpenExamRequest {
     @NotNull
     private String assessmentKey;
 
+    //Can be null in the database but the loader script always sets it to 3
     @NotNull
-    private int maxAttempts;
+    private Integer maxAttempts;
 
     @NotNull
     private UUID sessionId;
 
+    //TODO - Delete because now we have to fetch this
     @NotNull
     @Min(0)
     private int numberOfDaysToDelay;
 
+    /**
+     * TODO - This should be fetched from session instead of passed in
+     */
     private Long proctorId;
 
     private String guestAccommodations;
@@ -80,10 +85,12 @@ public class OpenExamRequest {
         return assessmentKey;
     }
 
+
+    //TODO I guess exam should fetch this via client_testproperty
     /**
      * @return max number of attempts the student has to take the exam
      */
-    public int getMaxAttempts() {
+    public Integer getMaxAttempts() {
         return maxAttempts;
     }
 
@@ -105,6 +112,7 @@ public class OpenExamRequest {
      * @return {@code true} if the student is a guest
      */
     public boolean isGuestStudent() {
+        //TODO Is Zero Valid?
         return studentId <= 0;
     }
 

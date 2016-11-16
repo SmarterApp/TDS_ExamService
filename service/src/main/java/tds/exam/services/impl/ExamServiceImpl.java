@@ -91,6 +91,7 @@ class ExamServiceImpl implements ExamService {
         this.examAccommodationCommandRepository = examAccommodationCommandRepository;
     }
 
+//TODO - ADD MORE NOTES WHY YOU"RE DOING SHIT TODD
     @Override
     public Optional<Exam> getExam(UUID id) {
         return examQueryRepository.getExamById(id);
@@ -98,6 +99,15 @@ class ExamServiceImpl implements ExamService {
 
     @Override
     public Response<Exam> openExam(OpenExamRequest openExamRequest) {
+        /*
+         Basic Requirements documentation
+
+        TODO - need to fill out the requiremenst before we start this flow
+
+         */
+
+
+
         //Line 5602 in StudentDLL
         Optional<ExternalSessionConfiguration> maybeExternalSessionConfiguration = sessionService.findExternalSessionConfigurationByClientName(openExamRequest.getClientName());
 
@@ -111,6 +121,11 @@ class ExamServiceImpl implements ExamService {
         if (!maybeSession.isPresent()) {
             throw new IllegalArgumentException(String.format("Could not find session for id %s", openExamRequest.getSessionId()));
         }
+
+        Session currentSession = maybeSession.get();
+
+        //TODO - Check if session is open
+        //Line OpenTestServiceImp line 126 - 130
 
         Student currentStudent = null;
         if (!openExamRequest.isGuestStudent()) {
@@ -127,8 +142,6 @@ class ExamServiceImpl implements ExamService {
             }
         }
 
-        Session currentSession = maybeSession.get();
-
         Optional<Assessment> maybeAssessment = assessmentService.findAssessmentByKey(openExamRequest.getAssessmentKey());
         if (!maybeAssessment.isPresent()) {
             throw new IllegalArgumentException(String.format("Assessment information could not be found for assessment key %s", openExamRequest.getAssessmentKey()));
@@ -139,6 +152,9 @@ class ExamServiceImpl implements ExamService {
         //Previous exam is retrieved in lines 5492 - 5530 and 5605 - 5645 in StudentDLL
         Optional<Exam> maybePreviousExam = examQueryRepository.getLastAvailableExam(openExamRequest.getStudentId(), assessment.getAssessmentId(), openExamRequest.getClientName());
 
+        //TODO - Need to get timelmits for delay days  Line 516-525 OpenTestServiceImp
+
+        //TODO - Double check this logic when opening previous previous exam.  Can we open a new one even if we can't open previous
         boolean canOpenPreviousExam = false;
         if (maybePreviousExam.isPresent()) {
             Optional<ValidationError> canOpenPreviousExamError = canOpenPreviousExam(maybePreviousExam.get(), currentSession);
@@ -156,14 +172,14 @@ class ExamServiceImpl implements ExamService {
             return new Response<>(new Exam.Builder().withId(maybePreviousExam.get().getId()).build());
         }
 
-
+//TODO - Do we need to fetch max attempts or force student to fetch?
         Exam previousExam = maybePreviousExam.isPresent() ? maybePreviousExam.get() : null;
         Optional<ValidationError> maybeOpenNewExamValidationError = canCreateNewExam(openExamRequest, previousExam, externalSessionConfiguration);
         if (maybeOpenNewExamValidationError.isPresent()) {
             return new Response<Exam>(maybeOpenNewExamValidationError.get());
         }
 
-        return createExam(openExamRequest, currentSession, assessment, externalSessionConfiguration);
+        return createExam(openExamRequest, currentSession, assessment, externalSessionConfiguration, previousExam);
     }
 
     @Override
@@ -277,7 +293,7 @@ class ExamServiceImpl implements ExamService {
         return Optional.empty();
     }
 
-    private Response<Exam> createExam(OpenExamRequest openExamRequest, Session session, Assessment assessment, ExternalSessionConfiguration externalSessionConfiguration) {
+    private Response<Exam> createExam(OpenExamRequest openExamRequest, Session session, Assessment assessment, ExternalSessionConfiguration externalSessionConfiguration, Exam previousExam) {
         Exam.Builder examBuilder = new Exam.Builder();
 
         //From OpenTestServiceImpl lines 160 -163
@@ -319,9 +335,15 @@ class ExamServiceImpl implements ExamService {
             .filter(assessmentWindow -> assessmentWindow.getAssessmentKey().equals(openExamRequest.getAssessmentKey()))
             .min((o1, o2) -> o1.getStartTime().compareTo(o2.getStartTime()));
 
+        //OpenTestServiceImpl line 367 - 368 validation check.  no window no exam
         if (!maybeWindow.isPresent()) {
             return new Response<Exam>(new ValidationError(NO_OPEN_ASSESSMENT_WINDOW, "Could not find an open assessment window"));
         }
+
+        AssessmentWindow assessmentWindow = maybeWindow.get();
+
+        //OpenTestServiceImpl lines 381 0 395 were not implemented because "_version" is never used in the application.  It is
+        //inserted and updated throughout the flow but is not included in the TRT nor is used for any logic within the code.
 
         Exam exam = examBuilder
             .withId(UUID.randomUUID())
@@ -331,17 +353,24 @@ class ExamServiceImpl implements ExamService {
             .withBrowserId(openExamRequest.getBrowserId())
             .withAssessmentId(assessment.getAssessmentId())
             .withAssessmentKey(assessment.getKey())
-            .withAttempts(0)
+            .withAttempts(previousExam == null ? 1 : previousExam.getAttempts() + 1)
             .withAssessmentAlgorithm(assessment.getSelectionAlgorithm())
             .withSegmented(assessment.isSegmented())
             .withDateJoined(Instant.now())
-            .withAssessmentWindowId(maybeWindow.get().getWindowId())
+            .withAssessmentWindowId(assessmentWindow.getWindowId())
             .withEnvironment(externalSessionConfiguration.getEnvironment())
             .withSubject(assessment.getSubject())
             .build();
 
         examCommandRepository.save(exam);
+
+        //Lines 412 - 421 OpenTestServiceImpl is not implemented.  After talking with data warehouse and Smarter Balanced
+        //The initial student attributes are not used and smarter balance suggested removing them
+
         initializeExamAccommodations(exam);
+
+        //Lines OpenTestServiceImpl lines 428-447 not implemented.  Instead exam status is set during insert instead of inserting
+        //and then updating status after accommodations
 
         return new Response<>(exam);
     }
@@ -429,32 +458,29 @@ class ExamServiceImpl implements ExamService {
     }
 
     private Optional<ValidationError> canCreateNewExam(OpenExamRequest openExamRequest, Exam previousExam, ExternalSessionConfiguration externalSessionConfiguration) {
+        //Lines 5610 - 5618 in StudentDLL was not implemented.  The reason is that the max opportunities is always
+        //3 via the loader scripts.  So the the conditional in the StudentDLL code will always allow one to open a new
+        //Exam if previous exam is null (0 ocnt in the legacy code)
 
-        //Lines 5612 - 5618 in StudentDLL
-        if (previousExam == null) {
-            if (openExamRequest.getMaxAttempts() < 0 && !externalSessionConfiguration.isInSimulationEnvironment()) {
-                return Optional.of(new ValidationError(ValidationErrorCode.SIMULATION_ENVIRONMENT_REQUIRED, "Environment must be simulation when max attempts less than zero"));
-            }
-
-            return Optional.empty();
-        }
+        //TODO - what if it isn't closed?
 
         //Lines 5645 - 5673 in StudentDLL
-        if (ExamStatusCode.STAGE_CLOSED.equals(previousExam.getStatus().getStage())) {
+        if (previousExam != null && ExamStatusCode.STAGE_CLOSED.equals(previousExam.getStatus().getStage())) {
+            //Lines 5646 - 5649
             if (externalSessionConfiguration.isInSimulationEnvironment()) {
                 return Optional.empty();
             }
 
-            if (previousExam.getDateCompleted() != null) {
-                Duration duration = Duration.between(previousExam.getDateChanged(), Instant.now());
-                if (LegacyComparer.lessThan(previousExam.getAttempts(), openExamRequest.getMaxAttempts()) &&
-                    LegacyComparer.greaterThan(duration.get(DAYS), openExamRequest.getNumberOfDaysToDelay())) {
-                    return Optional.empty();
-                } else if (LegacyComparer.greaterOrEqual(previousExam.getAttempts(), openExamRequest.getMaxAttempts())) {
-                    return Optional.of(new ValidationError(ValidationErrorCode.MAX_OPPORTUNITY_EXCEEDED, "Max number of attempts for exam exceeded"));
-                } else {
-                    return Optional.of(new ValidationError(ValidationErrorCode.NOT_ENOUGH_DAYS_PASSED, String.format("Next exam cannot be started until %s days pass since last exam", openExamRequest.getNumberOfDaysToDelay())));
-                }
+            boolean daysSinceLastExamThreshold = previousExam.getDateCompleted() == null ||
+                LegacyComparer.greaterThan(Duration.between(previousExam.getDateCompleted(), Instant.now()).get(DAYS), openExamRequest.getNumberOfDaysToDelay());
+
+            if (LegacyComparer.lessThan(previousExam.getAttempts(), openExamRequest.getMaxAttempts()) &&
+                daysSinceLastExamThreshold) {
+                return Optional.empty();
+            } else if (LegacyComparer.greaterOrEqual(previousExam.getAttempts(), openExamRequest.getMaxAttempts())) {
+                return Optional.of(new ValidationError(ValidationErrorCode.MAX_OPPORTUNITY_EXCEEDED, "Max number of attempts for exam exceeded"));
+            } else {
+                return Optional.of(new ValidationError(ValidationErrorCode.NOT_ENOUGH_DAYS_PASSED, String.format("Next exam cannot be started until %s days pass since last exam", openExamRequest.getNumberOfDaysToDelay())));
             }
         }
 
@@ -463,7 +489,7 @@ class ExamServiceImpl implements ExamService {
 
     //Should have long term cache
     private boolean allowsGuestStudent(String clientName, ExternalSessionConfiguration externalSessionConfiguration) {
-        if(externalSessionConfiguration.isInSimulationEnvironment()) {
+        if (externalSessionConfiguration.isInSimulationEnvironment()) {
             return true;
         }
 
@@ -478,6 +504,8 @@ class ExamServiceImpl implements ExamService {
 
         List<Accommodation> accommodations = Arrays.stream(assessmentAccommodations).filter(accommodation ->
             accommodation.isDefaultAccommodation() && accommodation.getDependsOnToolType() == null).collect(Collectors.toList());
+
+        //TODO - Accommodations could change between attempts.  How do we want to insert those records and also fetch them
 
         List<ExamAccommodation> examAccommodations = new ArrayList<>();
         accommodations.forEach(accommodation -> {
