@@ -1,5 +1,7 @@
 package tds.exam.repositories.impl;
 
+import org.joda.time.Instant;
+import org.joda.time.Minutes;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -12,9 +14,6 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.Date;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -27,6 +26,7 @@ import tds.exam.models.Ability;
 import tds.exam.repositories.ExamQueryRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static tds.common.data.mapping.ResultSetMapperUtility.mapJodaInstantToTimestamp;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest
@@ -49,7 +49,7 @@ public class ExamQueryRepositoryImplIntegrationTests {
         exams.add(new ExamBuilder()
             .withId(UUID.fromString("ab880054-d1d2-4c24-805c-0dfdb45a0d24"))
             .withAssessmentId("assementId2")
-            .withDateDeleted(Instant.now().minus(5, ChronoUnit.MINUTES))
+            .withDateDeleted(Instant.now().minus(Minutes.minutes(5).toStandardDuration()))
             .build());
 
         // Build an exam record that is a subsequent attempt of an exam
@@ -59,7 +59,7 @@ public class ExamQueryRepositoryImplIntegrationTests {
             .withAssessmentId("assessmentId3")
             .withStudentId(9999L)
             .withAttempts(2)
-            .withDateScored(Instant.now().minus(5, ChronoUnit.MINUTES))
+            .withDateScored(Instant.now().minus(Minutes.minutes(5).toStandardDuration()))
             .build());
 
         exams.forEach(this::insertExamData);
@@ -113,7 +113,7 @@ public class ExamQueryRepositoryImplIntegrationTests {
         assertThat(myAbility.getExamId()).isNotEqualTo(UUID.fromString("af880054-d1d2-4c24-805c-1f0dfdb45989"));
         assertThat(myAbility.getAssessmentId()).isEqualTo("assessmentId3");
         assertThat(myAbility.getAttempts()).isEqualTo(2);
-        assertThat(myAbility.getDateScored()).isLessThan(Instant.now());
+        assertThat(myAbility.getDateScored()).isLessThan(java.time.Instant.now());
     }
 
     private void insertExamData(Exam exam) {
@@ -124,11 +124,11 @@ public class ExamQueryRepositoryImplIntegrationTests {
             .addValue("studentId", exam.getStudentId())
             .addValue("attempts", exam.getAttempts())
             .addValue("clientName", exam.getClientName())
-            .addValue("dateDeleted", exam.getDateDeleted() == null ? null : Date.from(exam.getDateDeleted()))
-            .addValue("dateScored", exam.getDateScored() == null ? null : Date.from(exam.getDateScored()))
-            .addValue("dateChanged", exam.getDateChanged() == null ? null : Date.from(exam.getDateChanged()))
-            .addValue("dateStarted", exam.getDateStarted() == null ? null : Date.from(exam.getDateStarted()))
-            .addValue("dateCompleted", exam.getDateCompleted() == null ? null : Date.from(exam.getDateCompleted()))
+            .addValue("dateDeleted", exam.getDateDeleted() == null ? null : mapJodaInstantToTimestamp(exam.getDateDeleted()))
+            .addValue("dateScored", exam.getDateScored() == null ? null : mapJodaInstantToTimestamp(exam.getDateScored()))
+            .addValue("dateChanged", exam.getDateChanged() == null ? null : mapJodaInstantToTimestamp(exam.getDateChanged()))
+            .addValue("dateStarted", exam.getDateStarted() == null ? null : mapJodaInstantToTimestamp(exam.getDateStarted()))
+            .addValue("dateCompleted", exam.getDateCompleted() == null ? null : mapJodaInstantToTimestamp(exam.getDateCompleted()))
             .addValue("status", exam.getStatus().getStatus())
             .addValue("subject", exam.getSubject());
 

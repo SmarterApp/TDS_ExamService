@@ -1,13 +1,5 @@
 package tds.exam.repositories.impl;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -17,12 +9,22 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+
 import tds.common.data.mapping.ResultSetMapperUtility;
 import tds.common.data.mysql.UuidAdapter;
 import tds.exam.Exam;
 import tds.exam.ExamStatusCode;
 import tds.exam.models.Ability;
 import tds.exam.repositories.ExamQueryRepository;
+
+import static tds.common.data.mapping.ResultSetMapperUtility.mapTimeStampToJodaInstant;
 
 @Repository
 public class ExamQueryRepositoryImpl implements ExamQueryRepository {
@@ -191,12 +193,12 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 .withAttempts(rs.getInt("attempts"))
                 .withClientName(rs.getString("client_name"))
                 .withSubject(rs.getString("subject"))
-                .withDateStarted(ResultSetMapperUtility.mapTimeStampToInstant(rs, "date_started"))
-                .withDateChanged(ResultSetMapperUtility.mapTimeStampToInstant(rs, "date_changed"))
-                .withDateDeleted(ResultSetMapperUtility.mapTimeStampToInstant(rs, "date_deleted"))
-                .withDateScored(ResultSetMapperUtility.mapTimeStampToInstant(rs, "date_scored"))
-                .withDateCompleted(ResultSetMapperUtility.mapTimeStampToInstant(rs, "date_completed"))
-                .withCreatedAt(ResultSetMapperUtility.mapTimeStampToInstant(rs, "created_at"))
+                .withDateStarted(mapTimeStampToJodaInstant(rs, "date_started"))
+                .withDateChanged(mapTimeStampToJodaInstant(rs, "date_changed"))
+                .withDateDeleted(mapTimeStampToJodaInstant(rs, "date_deleted"))
+                .withDateScored(mapTimeStampToJodaInstant(rs, "date_scored"))
+                .withDateCompleted(mapTimeStampToJodaInstant(rs, "date_completed"))
+                .withCreatedAt(mapTimeStampToJodaInstant(rs, "created_at"))
                 .withStatus(new ExamStatusCode.Builder()
                     .withStatus(rs.getString("status"))
                     .withDescription(rs.getString("description"))

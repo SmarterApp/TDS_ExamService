@@ -1,11 +1,12 @@
 package tds.exam.services.impl;
 
+import org.joda.time.Days;
+import org.joda.time.Instant;
+import org.joda.time.Minutes;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -271,7 +272,7 @@ public class ExamServiceImplTest {
             .withId(UUID.randomUUID())
             .withSessionId(previousSession.getId())
             .withStatus(new ExamStatusCode.Builder().withStage(ExamStatusCode.STAGE_OPEN).build())
-            .withDateChanged(Instant.now().minus(2, ChronoUnit.DAYS))
+            .withDateChanged(Instant.now().minus(Days.days(2).toStandardDuration()))
             .build();
 
         when(sessionService.findSessionById(sessionId)).thenReturn(Optional.of(currentSession));
@@ -390,7 +391,7 @@ public class ExamServiceImplTest {
         Session previousSession = new Session.Builder()
             .withId(UUID.randomUUID())
             .withType(2)
-            .withDateEnd(Instant.now().minus(1, ChronoUnit.DAYS))
+            .withDateEnd(Instant.now().minus(Days.days(1).toStandardDuration()))
             .build();
 
         Student student = new Student(1, "testId", "CA", "clientName");
@@ -448,9 +449,9 @@ public class ExamServiceImplTest {
         Exam thisExam = createExam(sessionId, thisExamId, assessmentId, clientName, studentId);
 
         Ability sameAssessmentAbility = new Ability(
-                UUID.randomUUID(), assessmentId, 1, Instant.now(), assessmentAbilityVal);
+                UUID.randomUUID(), assessmentId, 1, java.time.Instant.now(), assessmentAbilityVal);
         Ability differentAssessmentAbility = new Ability(
-                UUID.randomUUID(), assessmentId, 1, Instant.now(), 50D);
+                UUID.randomUUID(), assessmentId, 1, java.time.Instant.now(), 50D);
 
         List<Ability> abilities = new ArrayList<>();
         abilities.add(sameAssessmentAbility);
@@ -662,9 +663,9 @@ public class ExamServiceImplTest {
         Exam thisExam = createExam(sessionId, thisExamId, assessmentId, clientName, studentId);
 
         Ability sameAssessmentAbility = new Ability(
-                UUID.randomUUID(), "assessmentid-2", 1, Instant.now(), assessmentAbilityVal);
+                UUID.randomUUID(), "assessmentid-2", 1, java.time.Instant.now(), assessmentAbilityVal);
         Ability differentAssessmentAbility = new Ability(
-                UUID.randomUUID(), "assessmentid-2", 1, Instant.now(), 50D);
+                UUID.randomUUID(), "assessmentid-2", 1, java.time.Instant.now(), 50D);
 
         List<Ability> abilities = new ArrayList<>();
         abilities.add(sameAssessmentAbility);
@@ -691,7 +692,7 @@ public class ExamServiceImplTest {
         Session previousSession = new Session.Builder()
             .withId(UUID.randomUUID())
             .withType(2)
-            .withDateEnd(Instant.now().minus(1, ChronoUnit.DAYS))
+            .withDateEnd(Instant.now().minus(Days.days(1).toStandardDuration()))
             .build();
 
         Exam previousExam = new Exam.Builder()
@@ -736,8 +737,8 @@ public class ExamServiceImplTest {
         when(sessionService.findSessionById(sessionId))
                 .thenReturn(Optional.of(new Session.Builder()
                         .withId(sessionId)
-                        .withDateBegin(Instant.now().minus(60, ChronoUnit.MINUTES))
-                        .withDateEnd(Instant.now().plus(60, ChronoUnit.MINUTES))
+                        .withDateBegin(Instant.now().minus(Minutes.minutes(60).toStandardDuration()))
+                        .withDateEnd(Instant.now().plus(Minutes.minutes(60).toStandardDuration()))
                         .withDateVisited(Instant.now())
                         .withStatus("open")
                         .withProctorId(42L)
@@ -783,8 +784,8 @@ public class ExamServiceImplTest {
         when(sessionService.findSessionById(sessionId))
                 .thenReturn(Optional.of(new Session.Builder()
                         .withId(sessionId)
-                        .withDateBegin(Instant.now().minus(60, ChronoUnit.MINUTES))
-                        .withDateEnd(Instant.now().plus(30, ChronoUnit.MINUTES))
+                        .withDateBegin(Instant.now().minus(Minutes.minutes(60).toStandardDuration()))
+                        .withDateEnd(Instant.now().plus(Minutes.minutes(30).toStandardDuration()))
                         .withDateVisited(Instant.now())
                         .withStatus("closed")
                         .withProctorId(42L)
@@ -830,9 +831,9 @@ public class ExamServiceImplTest {
         when(sessionService.findSessionById(sessionId))
                 .thenReturn(Optional.of(new Session.Builder()
                         .withId(sessionId)
-                        .withDateBegin(Instant.now().minus(60, ChronoUnit.MINUTES))
-                        .withDateEnd(Instant.now().minus(10, ChronoUnit.MINUTES))
-                        .withDateVisited(Instant.now().minus(11, ChronoUnit.MINUTES))
+                        .withDateBegin(Instant.now().minus(Minutes.minutes(60).toStandardDuration()))
+                        .withDateEnd(Instant.now().minus(Minutes.minutes(10).toStandardDuration()))
+                        .withDateVisited(Instant.now().minus(Minutes.minutes(11).toStandardDuration()))
                         .withStatus("closed")
                         .withProctorId(42L)
                         .build()));
@@ -877,9 +878,9 @@ public class ExamServiceImplTest {
         when(sessionService.findSessionById(sessionId))
                 .thenReturn(Optional.of(new Session.Builder()
                         .withId(sessionId)
-                        .withDateBegin(Instant.now().minus(60, ChronoUnit.MINUTES))
-                        .withDateEnd(Instant.now().minus(30, ChronoUnit.MINUTES))
-                        .withDateVisited(Instant.now().minus(55, ChronoUnit.MINUTES))
+                        .withDateBegin(Instant.now().minus(Minutes.minutes(60).toStandardDuration()))
+                        .withDateEnd(Instant.now().minus(Minutes.minutes(30).toStandardDuration()))
+                        .withDateVisited(Instant.now().minus(Minutes.minutes(55).toStandardDuration()))
                         .withStatus("closed")
                         .withProctorId(null)
                         .build()));
@@ -921,8 +922,8 @@ public class ExamServiceImplTest {
         when(sessionService.findSessionById(sessionId))
                 .thenReturn(Optional.of(new Session.Builder()
                         .withId(sessionId)
-                        .withDateBegin(Instant.now().minus(60, ChronoUnit.MINUTES))
-                        .withDateEnd(Instant.now().plus(60, ChronoUnit.MINUTES))
+                        .withDateBegin(Instant.now().minus(Minutes.minutes(60).toStandardDuration()))
+                        .withDateEnd(Instant.now().plus(Minutes.minutes(60).toStandardDuration()))
                         .withDateVisited(Instant.now())
                         .withStatus("open")
                         .withProctorId(42L)
@@ -964,8 +965,8 @@ public class ExamServiceImplTest {
         when(sessionService.findSessionById(sessionId))
                 .thenReturn(Optional.of(new Session.Builder()
                         .withId(sessionId)
-                        .withDateBegin(Instant.now().minus(60, ChronoUnit.MINUTES))
-                        .withDateEnd(Instant.now().plus(60, ChronoUnit.MINUTES))
+                        .withDateBegin(Instant.now().minus(Minutes.minutes(60).toStandardDuration()))
+                        .withDateEnd(Instant.now().plus(Minutes.minutes(60).toStandardDuration()))
                         .withDateVisited(Instant.now())
                         .withStatus("open")
                         .withProctorId(42L)
@@ -1007,9 +1008,9 @@ public class ExamServiceImplTest {
         when(sessionService.findSessionById(sessionId))
                 .thenReturn(Optional.of(new Session.Builder()
                         .withId(sessionId)
-                        .withDateBegin(Instant.now().minus(60, ChronoUnit.MINUTES))
-                        .withDateEnd(Instant.now().minus(30, ChronoUnit.MINUTES))
-                        .withDateVisited(Instant.now().minus(45, ChronoUnit.MINUTES))
+                        .withDateBegin(Instant.now().minus(Minutes.minutes(60).toStandardDuration()))
+                        .withDateEnd(Instant.now().minus(Minutes.minutes(30).toStandardDuration()))
+                        .withDateVisited(Instant.now().minus(Minutes.minutes(45).toStandardDuration()))
                         .withStatus("closed")
                         .withProctorId(42L)
                         .build()));
@@ -1050,9 +1051,9 @@ public class ExamServiceImplTest {
         when(sessionService.findSessionById(sessionId))
                 .thenReturn(Optional.of(new Session.Builder()
                         .withId(sessionId)
-                        .withDateBegin(Instant.now().minus(60, ChronoUnit.MINUTES))
-                        .withDateEnd(Instant.now().plus(30, ChronoUnit.MINUTES))
-                        .withDateVisited(Instant.now().minus(45, ChronoUnit.MINUTES))
+                        .withDateBegin(Instant.now().minus(Minutes.minutes(60).toStandardDuration()))
+                        .withDateEnd(Instant.now().plus(Minutes.minutes(30).toStandardDuration()))
+                        .withDateVisited(Instant.now().minus(Minutes.minutes(45).toStandardDuration()))
                         .withStatus("open")
                         .withProctorId(42L)
                         .build()));
@@ -1088,9 +1089,9 @@ public class ExamServiceImplTest {
         when(sessionService.findSessionById(sessionId))
                 .thenReturn(Optional.of(new Session.Builder()
                         .withId(sessionId)
-                        .withDateBegin(Instant.now().minus(60, ChronoUnit.MINUTES))
-                        .withDateEnd(Instant.now().plus(30, ChronoUnit.MINUTES))
-                        .withDateVisited(Instant.now().minus(45, ChronoUnit.MINUTES))
+                        .withDateBegin(Instant.now().minus(Minutes.minutes(60).toStandardDuration()))
+                        .withDateEnd(Instant.now().plus(Minutes.minutes(30).toStandardDuration()))
+                        .withDateVisited(Instant.now().minus(Minutes.minutes(45).toStandardDuration()))
                         .withStatus("open")
                         .withProctorId(42L)
                         .build()));
@@ -1159,9 +1160,9 @@ public class ExamServiceImplTest {
         when(sessionService.findSessionById(sessionId))
                 .thenReturn(Optional.of(new Session.Builder()
                         .withId(sessionId)
-                        .withDateBegin(Instant.now().minus(60, ChronoUnit.MINUTES))
-                        .withDateEnd(Instant.now().plus(30, ChronoUnit.MINUTES))
-                        .withDateVisited(Instant.now().minus(45, ChronoUnit.MINUTES))
+                        .withDateBegin(Instant.now().minus(Minutes.minutes(60).toStandardDuration()))
+                        .withDateEnd(Instant.now().plus(Minutes.minutes(30).toStandardDuration()))
+                        .withDateVisited(Instant.now().minus(Minutes.minutes(45).toStandardDuration()))
                         .withStatus("open")
                         .withProctorId(42L)
                         .build()));
@@ -1198,9 +1199,9 @@ public class ExamServiceImplTest {
         when(sessionService.findSessionById(sessionId))
                 .thenReturn(Optional.of(new Session.Builder()
                         .withId(sessionId)
-                        .withDateBegin(Instant.now().minus(60, ChronoUnit.MINUTES))
-                        .withDateEnd(Instant.now().plus(30, ChronoUnit.MINUTES))
-                        .withDateVisited(Instant.now().minus(45, ChronoUnit.MINUTES))
+                        .withDateBegin(Instant.now().minus(Minutes.minutes(60).toStandardDuration()))
+                        .withDateEnd(Instant.now().plus(Minutes.minutes(30).toStandardDuration()))
+                        .withDateVisited(Instant.now().minus(Minutes.minutes(45).toStandardDuration()))
                         .withStatus("open")
                         .withProctorId(42L)
                         .build()));

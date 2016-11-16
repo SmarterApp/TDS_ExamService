@@ -1,5 +1,6 @@
 package tds.exam.services.impl;
 
+import org.joda.time.Instant;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -8,7 +9,6 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -71,11 +71,11 @@ public class SessionServiceImplTest {
     public void shouldPauseASession() {
         String sessionStatus = "closed";
         Session mockSession = new Session.Builder()
-                .withId(UUID.randomUUID())
-                .withStatus(sessionStatus)
-                .withDateChanged(Instant.now())
-                .withDateEnd(Instant.now())
-                .build();
+            .withId(UUID.randomUUID())
+            .withStatus(sessionStatus)
+            .withDateChanged(Instant.now())
+            .withDateEnd(Instant.now())
+            .build();
         String url = String.format("http://localhost:8080/session/%s/pause", mockSession.getId());
         when(restTemplate.getForObject(url, PauseSessionResponse.class)).thenReturn(new PauseSessionResponse(mockSession));
 

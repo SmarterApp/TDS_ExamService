@@ -16,13 +16,13 @@ import tds.assessment.Assessment;
 import tds.common.Response;
 import tds.common.ValidationError;
 import tds.common.data.legacy.LegacyComparer;
-import tds.config.TimeLimitConfiguration;
 import tds.config.ClientTestProperty;
-import tds.exam.Exam;
-import tds.exam.OpenExamRequest;
-import tds.exam.ExamApproval;
+import tds.config.TimeLimitConfiguration;
 import tds.exam.ApprovalRequest;
+import tds.exam.Exam;
+import tds.exam.ExamApproval;
 import tds.exam.ExamStatusCode;
+import tds.exam.OpenExamRequest;
 import tds.exam.error.ValidationErrorCode;
 import tds.exam.models.Ability;
 import tds.exam.repositories.ExamQueryRepository;
@@ -226,7 +226,8 @@ class ExamServiceImpl implements ExamService {
             timeLimitConfigurationService.findTimeLimitConfiguration(approvalRequest.getClientName(), exam.getAssessmentId())
                 .orElseThrow(() -> new IllegalArgumentException(String.format("Could not find time limit configuration for client name %s and assessment id %s", approvalRequest.getClientName(), exam.getAssessmentId())));
 
-        if (Instant.now().isAfter(session.getDateVisited().plus(timeLimitConfig.getTaCheckinTimeMinutes(), ChronoUnit.MINUTES))) {
+        Instant sessionDateVisited = Instant.ofEpochMilli(session.getDateVisited().getMillis());
+        if (Instant.now().isAfter(sessionDateVisited.plus(timeLimitConfig.getTaCheckinTimeMinutes(), ChronoUnit.MINUTES))) {
             // Legacy code creates an audit record here.  Immutability should provide an audit trail; a new session record
             // will be inserted to represent the change in status.
             sessionService.pause(session.getId(), "closed");
@@ -319,13 +320,13 @@ class ExamServiceImpl implements ExamService {
          */
         boolean daysSinceLastChange = false;
         if (previousExam.getDateChanged() != null) {
-            daysSinceLastChange = DAYS.between(previousExam.getDateChanged(), Instant.now()) >= 1;
+            daysSinceLastChange = DAYS.between(Instant.ofEpochMilli(previousExam.getDateChanged().getMillis()), Instant.now()) >= 1;
         }
 
         if (daysSinceLastChange ||
             LegacyComparer.isEqual(previousSession.getId(), currentSession.getId()) ||
             LegacyComparer.isEqual("closed", previousSession.getStatus()) ||
-            LegacyComparer.greaterThan(Instant.now(), previousSession.getDateEnd())) {
+            (previousSession.getDateEnd() != null && LegacyComparer.greaterThan(Instant.now(), Instant.ofEpochMilli(previousSession.getDateEnd().getMillis())))) {
             return Optional.empty();
         }
 
@@ -351,7 +352,7 @@ class ExamServiceImpl implements ExamService {
             }
 
             if (previousExam.getDateCompleted() != null) {
-                Duration duration = Duration.between(previousExam.getDateChanged(), Instant.now());
+                Duration duration = Duration.between(Instant.ofEpochMilli(previousExam.getDateChanged().getMillis()), Instant.now());
                 if (LegacyComparer.lessThan(previousExam.getAttempts(), openExamRequest.getMaxAttempts()) &&
                     LegacyComparer.greaterThan(duration.get(DAYS), openExamRequest.getNumberOfDaysToDelay())) {
                     return Optional.empty();

@@ -1,30 +1,29 @@
 package tds.exam.web.endpoints;
 
-import com.jayway.restassured.http.ContentType;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.boot.test.IntegrationTest;
-import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.servlet.MockMvc;
 
-import tds.exam.ExamServiceApplication;
+import java.net.URI;
 
-import static com.jayway.restassured.RestAssured.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = ExamServiceApplication.class)
-@WebAppConfiguration
-@IntegrationTest("server.port:8080")
+@RunWith(SpringRunner.class)
+@WebMvcTest(HealthController.class)
 public class HealthControllerIntegrationTests {
+    @Autowired
+    private MockMvc http;
+
     @Test
-    public void shouldReturnOk() {
-        given()
-            .accept(ContentType.JSON)
-        .when()
-            .get("/exam/isAlive")
-        .then()
-            .contentType(ContentType.JSON)
-            .statusCode(200);
+    public void shouldReturnOkForIsAliveEndpoint() throws Exception {
+        http.perform(get(new URI("/exam/isAlive")).contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(content().string("Exam Service Alive"));
     }
 }
