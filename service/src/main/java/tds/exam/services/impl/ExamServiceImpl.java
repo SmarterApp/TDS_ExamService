@@ -99,11 +99,6 @@ class ExamServiceImpl implements ExamService {
 
     @Override
     public Response<Exam> openExam(OpenExamRequest openExamRequest) {
-        /*
-         Basic Requirements documentation
-        TODO - add documentation
-         */
-
         //Line 5602 in StudentDLL.  This has been moved to earlier in the flow than the original because it is used throughout.  The original
         //fetches the external configuration multiple times in the different layers.
         Optional<ExternalSessionConfiguration> maybeExternalSessionConfiguration = sessionService.findExternalSessionConfigurationByClientName(openExamRequest.getClientName());
@@ -123,7 +118,7 @@ class ExamServiceImpl implements ExamService {
         Session currentSession = maybeSession.get();
 
         //Line OpenTestServiceImp line 126 - 130
-        if(!currentSession.isOpen()) {
+        if (!currentSession.isOpen()) {
             return new Response<Exam>(new ValidationError(ValidationErrorCode.SESSION_NOT_OPEN, String.format("Session %s is not open", currentSession.getId())));
         }
 
@@ -152,7 +147,6 @@ class ExamServiceImpl implements ExamService {
         //Previous exam is retrieved in lines 5492 - 5530 and 5605 - 5645 in StudentDLL
         Optional<Exam> maybePreviousExam = examQueryRepository.getLastAvailableExam(openExamRequest.getStudentId(), assessment.getAssessmentId(), openExamRequest.getClientName());
 
-        //TODO - Double check this logic when opening previous previous exam.  Can we open a new one even if we can't open previous
         boolean canOpenPreviousExam = false;
         if (maybePreviousExam.isPresent()) {
             Optional<ValidationError> canOpenPreviousExamError = canOpenPreviousExam(maybePreviousExam.get(), currentSession);
@@ -374,11 +368,11 @@ class ExamServiceImpl implements ExamService {
     }
 
     /**
-     * Gets the most recent {@link Ability} based on the dateScored value for the same assessment.
+     * Gets the most recent {@link tds.exam.models.Ability} based on the dateScored value for the same assessment.
      *
-     * @param abilityList  the list of {@link Ability}s to iterate through
+     * @param abilityList  the list of {@link tds.exam.models.Ability}s to iterate through
      * @param assessmentId The test key
-     * @return
+     * @return the {@link tds.exam.models.Ability} that lines up with the assessment id
      */
     private Optional<Ability> getMostRecentTestAbilityForSameAssessment(List<Ability> abilityList, String assessmentId) {
         for (Ability ability : abilityList) {
@@ -393,15 +387,14 @@ class ExamServiceImpl implements ExamService {
     }
 
     /**
-     * Gets the most recent {@link Ability} based on the dateScored value for a different assessment.
+     * Gets the most recent {@link tds.exam.models.Ability} based on the dateScored value for a different assessment.
      *
-     * @param abilityList  the list of {@link Ability}s to iterate through
+     * @param abilityList  the list of {@link tds.exam.models.Ability}s to iterate through
      * @param assessmentId The test key
-     * @return
+     * @return the {@link tds.exam.models.Ability} that lines up with the assessment id
      */
     private Optional<Ability> getMostRecentTestAbilityForDifferentAssessment(List<Ability> abilityList, String assessmentId) {
         for (Ability ability : abilityList) {
-
             if (!assessmentId.equals(ability.getAssessmentId())) {
                 /* NOTE: The query that retrieves the list of abilities is sorted by the "date_scored" of the exam in
                    descending order. Therefore we can assume the first match is the most recent */
@@ -460,10 +453,10 @@ class ExamServiceImpl implements ExamService {
         //3 via the loader scripts.  So the the conditional in the StudentDLL code will always allow one to open a new
         //Exam if previous exam is null (0 ocnt in the legacy code)
 
-        //TODO - Need to get timelmits for delay days  Line 516-525 OpenTestServiceImp
+        //Get timelmits for delay days  Line 516-525 OpenTestServiceImpl
         Integer numberOfDaysToDelay = null;
         Optional<TimeLimitConfiguration> maybeTimeLimitConfiguration = timeLimitConfigurationService.findTimeLimitConfiguration(openExamRequest.getClientName(), openExamRequest.getAssessmentKey());
-        if(maybeTimeLimitConfiguration.isPresent()) {
+        if (maybeTimeLimitConfiguration.isPresent()) {
             numberOfDaysToDelay = maybeTimeLimitConfiguration.get().getExamDelayDays();
         }
 
@@ -479,6 +472,7 @@ class ExamServiceImpl implements ExamService {
                 return Optional.empty();
             }
 
+            //Verifies that the new exam does not exceed attempts and there are enough days since the last attempt
             boolean daysSinceLastExamThreshold = previousExam.getDateCompleted() == null ||
                 LegacyComparer.greaterThan(Duration.between(convertJodaInstant(previousExam.getDateCompleted()), Instant.now()).get(DAYS), numberOfDaysToDelay);
 
