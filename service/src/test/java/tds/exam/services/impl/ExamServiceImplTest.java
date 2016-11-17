@@ -36,6 +36,7 @@ import tds.exam.OpenExamRequest;
 import tds.exam.builder.AssessmentBuilder;
 import tds.exam.builder.ExternalSessionConfigurationBuilder;
 import tds.exam.builder.OpenExamRequestBuilder;
+import tds.exam.builder.SessionBuilder;
 import tds.exam.error.ValidationErrorCode;
 import tds.exam.models.Ability;
 import tds.exam.repositories.ExamAccommodationCommandRepository;
@@ -142,21 +143,35 @@ public class ExamServiceImplTest {
         ExternalSessionConfiguration extSessionConfig = new ExternalSessionConfiguration(openExamRequest.getClientName(), SIMULATION_ENVIRONMENT, 0, 0, 0, 0);
 
         when(mockSessionService.findExternalSessionConfigurationByClientName(openExamRequest.getClientName())).thenReturn(Optional.of(extSessionConfig));
-        when(mockSessionService.findSessionById(openExamRequest.getSessionId())).thenReturn(Optional.of(new Session.Builder().build()));
+        when(mockSessionService.findSessionById(openExamRequest.getSessionId())).thenReturn(Optional.of(new SessionBuilder().build()));
         when(mockStudentService.getStudentById(openExamRequest.getStudentId())).thenReturn(Optional.empty());
 
         examService.openExam(openExamRequest);
     }
 
     @Test
+    public void shouldReturnValidationErrorWhenSessionIsNoOpen() {
+        OpenExamRequest openExamRequest = new OpenExamRequestBuilder().build();
+        ExternalSessionConfiguration extSessionConfig = new ExternalSessionConfiguration(openExamRequest.getClientName(), SIMULATION_ENVIRONMENT, 0, 0, 0, 0);
+
+        when(mockSessionService.findExternalSessionConfigurationByClientName(openExamRequest.getClientName())).thenReturn(Optional.of(extSessionConfig));
+        when(mockSessionService.findSessionById(openExamRequest.getSessionId())).thenReturn(Optional.of(new SessionBuilder().withStatus("closed").build()));
+
+        Response<Exam> response = examService.openExam(openExamRequest);
+
+        assertThat(response.getData()).isNotPresent();
+        assertThat(response.getErrors().get()[0].getCode()).isEqualTo(ValidationErrorCode.SESSION_NOT_OPEN);
+    }
+
+    @Test
     public void shouldReturnErrorWhenOpenExamPreviousSessionTypeDoesNotEqualCurrentSessionType() {
         OpenExamRequest openExamRequest = new OpenExamRequestBuilder().build();
 
-        Session currentSession = new Session.Builder()
+        Session currentSession = new SessionBuilder()
             .withType(2)
             .build();
 
-        Session previousSession = new Session.Builder()
+        Session previousSession = new SessionBuilder()
             .withId(UUID.randomUUID())
             .withType(33)
             .build();
@@ -200,11 +215,12 @@ public class ExamServiceImplTest {
     public void shouldNotAllowExamToOpenIfStillActive() {
         OpenExamRequest openExamRequest = new OpenExamRequestBuilder().build();
 
-        Session currentSession = new Session.Builder()
+        Session currentSession = new SessionBuilder()
             .withType(2)
             .build();
 
-        Session previousSession = new Session.Builder()
+
+        Session previousSession = new SessionBuilder()
             .withId(UUID.randomUUID())
             .withType(2)
             .build();
@@ -245,7 +261,7 @@ public class ExamServiceImplTest {
             .withStudentId(-1)
             .build();
         Instant startTestTime = Instant.now().minus(Minutes.minutes(1).toStandardDuration());
-        Session currentSession = new Session.Builder()
+        Session currentSession = new SessionBuilder()
             .withType(2)
             .build();
 
@@ -313,7 +329,7 @@ public class ExamServiceImplTest {
             .withProctorId(null)
             .build();
 
-        Session currentSession = new Session.Builder()
+        Session currentSession = new SessionBuilder()
             .withType(2)
             .build();
 
@@ -364,7 +380,7 @@ public class ExamServiceImplTest {
             .withStudentId(1)
             .withProctorId(99L)
             .build();
-        Session currentSession = new Session.Builder()
+        Session currentSession = new SessionBuilder()
             .withType(2)
             .build();
 
@@ -433,11 +449,11 @@ public class ExamServiceImplTest {
     public void shouldAllowPreviousExamToOpenIfDayHasPassed() {
         OpenExamRequest request = new OpenExamRequestBuilder().build();
 
-        Session currentSession = new Session.Builder()
+        Session currentSession = new SessionBuilder()
             .withType(2)
             .build();
 
-        Session previousSession = new Session.Builder()
+        Session previousSession = new SessionBuilder()
             .withId(UUID.randomUUID())
             .withType(2)
             .build();
@@ -476,11 +492,11 @@ public class ExamServiceImplTest {
             .withMaxAttempts(5)
             .build();
 
-        Session currentSession = new Session.Builder()
+        Session currentSession = new SessionBuilder()
             .withType(2)
             .build();
 
-        Session previousSession = new Session.Builder()
+        Session previousSession = new SessionBuilder()
             .withId(UUID.randomUUID())
             .withType(2)
             .withStatus("closed")
@@ -516,11 +532,11 @@ public class ExamServiceImplTest {
     public void shouldOpenPreviousExamIfSessionIdSame() {
         OpenExamRequest request = new OpenExamRequestBuilder().build();
 
-        Session currentSession = new Session.Builder()
+        Session currentSession = new SessionBuilder()
             .withType(2)
             .build();
 
-        Session previousSession = new Session.Builder()
+        Session previousSession = new SessionBuilder()
             .withId(request.getSessionId())
             .withType(2)
             .build();
@@ -558,11 +574,11 @@ public class ExamServiceImplTest {
     public void shouldOpenPreviousExamIfSessionEndTimeIsBeforeNow() {
         OpenExamRequest request = new OpenExamRequestBuilder().build();
 
-        Session currentSession = new Session.Builder()
+        Session currentSession = new SessionBuilder()
             .withType(2)
             .build();
 
-        Session previousSession = new Session.Builder()
+        Session previousSession = new SessionBuilder()
             .withId(UUID.randomUUID())
             .withType(2)
             .withDateEnd(Instant.now().minus(Days.days(1).toStandardDuration()))
@@ -600,11 +616,11 @@ public class ExamServiceImplTest {
             .withStudentId(-1)
             .build();
 
-        Session currentSession = new Session.Builder()
+        Session currentSession = new SessionBuilder()
             .withType(2)
             .build();
 
-        Session previousSession = new Session.Builder()
+        Session previousSession = new SessionBuilder()
             .withId(UUID.randomUUID())
             .withType(2)
             .withDateEnd(Instant.now().minus(Days.days(1).toStandardDuration()))

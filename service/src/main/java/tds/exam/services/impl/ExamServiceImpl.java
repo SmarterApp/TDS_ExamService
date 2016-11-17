@@ -20,7 +20,6 @@ import tds.assessment.Assessment;
 import tds.common.Response;
 import tds.common.ValidationError;
 import tds.common.data.legacy.LegacyComparer;
-import tds.common.time.JodaTimeConverter;
 import tds.config.Accommodation;
 import tds.config.AssessmentWindow;
 import tds.config.ClientSystemFlag;
@@ -124,9 +123,9 @@ class ExamServiceImpl implements ExamService {
         Session currentSession = maybeSession.get();
 
         //Line OpenTestServiceImp line 126 - 130
-//        if(!currentSession.isOpen()) {
-//            return new Response<Exam>(new ValidationError(ValidationErrorCode.SESSION_NOT_OPEN, String.format("Session %s is not open", currentSession.getId())));
-//        }
+        if(!currentSession.isOpen()) {
+            return new Response<Exam>(new ValidationError(ValidationErrorCode.SESSION_NOT_OPEN, String.format("Session %s is not open", currentSession.getId())));
+        }
 
         Student currentStudent = null;
         if (!openExamRequest.isGuestStudent()) {
