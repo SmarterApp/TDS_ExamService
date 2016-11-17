@@ -35,7 +35,7 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
             .addValue("browserId", getBytesFromUUID(exam.getBrowserId()))
             .addValue("dateChanged", exam.getDateChanged())
             .addValue("assessmentWindowId", exam.getAssessmentWindowId())
-            .addValue("segmented", exam.isSegmented() ? 1 : 0)
+            .addValue("segmented", exam.isSegmented())
             .addValue("assessmentAlgorithm", exam.getAssessmentAlgorithm())
             .addValue("assessmentKey", exam.getAssessmentKey())
             .addValue("environment", exam.getEnvironment())

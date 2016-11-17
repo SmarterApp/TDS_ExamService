@@ -54,5 +54,6 @@ public class ExamCommandRepositoryImplIntegrationTests {
 
         assertThat(savedExam.getSubject()).isEqualTo(exam.getSubject());
         assertThat(savedExam.getDateJoined()).isEqualTo(now);
+        assertThat(savedExam.isSegmented()).isEqualTo(exam.isSegmented());
     }
 }
