@@ -47,7 +47,7 @@ public interface ConfigService {
      * Finds the {@link tds.config.Accommodation} for the assessment
      *
      * @param assessmentKey the assessment key
-     * @return {@link tds.config.Accommodation} otherwise empty
+     * @return {@link tds.config.Accommodation} for the assessment
      */
     Accommodation[] findAssessmentAccommodations(final String assessmentKey);
 }
