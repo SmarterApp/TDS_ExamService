@@ -91,7 +91,6 @@ class ExamServiceImpl implements ExamService {
         this.examAccommodationCommandRepository = examAccommodationCommandRepository;
     }
 
-//TODO - ADD MORE NOTES WHY YOU"RE DOING SHIT TODD
     @Override
     public Optional<Exam> getExam(UUID id) {
         return examQueryRepository.getExamById(id);
@@ -101,22 +100,20 @@ class ExamServiceImpl implements ExamService {
     public Response<Exam> openExam(OpenExamRequest openExamRequest) {
         /*
          Basic Requirements documentation
-
-        TODO - need to fill out the requiremenst before we start this flow
-
+        TODO - add documentation
          */
 
-
-
-        //Line 5602 in StudentDLL
+        //Line 5602 in StudentDLL.  This has been moved to earlier in the flow than the original because it is used throughout.  The original
+        //fetches the external configuration multiple times in the different layers.
         Optional<ExternalSessionConfiguration> maybeExternalSessionConfiguration = sessionService.findExternalSessionConfigurationByClientName(openExamRequest.getClientName());
-
         if (!maybeExternalSessionConfiguration.isPresent()) {
             throw new IllegalStateException(String.format("External Session Configuration could not be found for client name %s", openExamRequest.getClientName()));
         }
 
         ExternalSessionConfiguration externalSessionConfiguration = maybeExternalSessionConfiguration.get();
 
+        //Different parts of the session are queried throughout the legacy code.  Instead we fetch the entire session object in one call and pass
+        //the reference to those parts that require it.
         Optional<Session> maybeSession = sessionService.findSessionById(openExamRequest.getSessionId());
         if (!maybeSession.isPresent()) {
             throw new IllegalArgumentException(String.format("Could not find session for id %s", openExamRequest.getSessionId()));
@@ -124,8 +121,10 @@ class ExamServiceImpl implements ExamService {
 
         Session currentSession = maybeSession.get();
 
-        //TODO - Check if session is open
         //Line OpenTestServiceImp line 126 - 130
+        if(!currentSession.isOpen()) {
+            return new Response<Exam>(new ValidationError(ValidationErrorCode.SESSION_NOT_OPEN, String.format("Session %s is not open", currentSession.getId())));
+        }
 
         Student currentStudent = null;
         if (!openExamRequest.isGuestStudent()) {
