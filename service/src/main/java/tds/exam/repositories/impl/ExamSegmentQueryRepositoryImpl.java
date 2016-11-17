@@ -5,10 +5,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import tds.common.data.mapping.ResultSetMapperUtility;
-import tds.common.data.mysql.UuidAdapter;
-import tds.exam.models.ExamSegment;
-import tds.exam.repositories.ExamSegmentQueryRepository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -19,6 +15,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+
+import tds.common.data.mapping.ResultSetMapperUtility;
+import tds.common.data.mysql.UuidAdapter;
+import tds.exam.models.ExamSegment;
+import tds.exam.repositories.ExamSegmentQueryRepository;
 
 /**
  * Repository implementation for reading from the {@link ExamSegment} related tables.
@@ -65,7 +66,7 @@ public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepositor
                 "   SELECT \n" +
                 "       fk_segment_examid_exam AS exam_id, \n" +
                 "       segment_position, \n" +
-                "       MAX(created_at) AS created_at \n" +
+                "       MAX(id) AS id \n" +
                 "   FROM \n" +
                 "       exam_segment_event \n" +
                 "   WHERE fk_segment_examid_exam = :examId \n" +
@@ -78,7 +79,7 @@ public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepositor
                 "   exam_segment_event se \n" +
                 "ON \n" +
                 "   last_event.exam_id = se.fk_segment_examid_exam AND \n" +
-                "   last_event.created_at = se.created_at \n" +
+                "   last_event.id = se.id \n" +
                 "ORDER BY \n" +
                 "   segment_position \n";
 
@@ -123,7 +124,7 @@ public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepositor
                 "   s.fk_segment_examid_exam = :examId AND \n " +
                 "   s.segment_position = :segmentPosition \n" +
                 "ORDER BY \n" +
-                "   se.created_at \n" +
+                "   se.id \n" +
                 "DESC \n" +
                 "LIMIT 1";
 
@@ -161,10 +162,10 @@ public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepositor
                     .withRestorePermeableCondition(rs.getString("restore_permeable_condition"))
                     .withFormCohort(rs.getString("form_cohort"))
                     .withIsSatisfied(rs.getBoolean("satisfied"))
-                    .withDateExited(ResultSetMapperUtility.mapTimeStampToInstant(rs, "date_exited"))
+                    .withDateExited(ResultSetMapperUtility.mapTimestampToInstant(rs, "date_exited"))
                     .withItemPool(createItemListFromString(rs.getString("item_pool")))
                     .withPoolCount(rs.getInt("pool_count"))
-                    .withCreatedAt(ResultSetMapperUtility.mapTimeStampToInstant(rs, "created_at"))
+                    .withCreatedAt(ResultSetMapperUtility.mapTimestampToInstant(rs, "created_at"))
                     .build();
         }
     }

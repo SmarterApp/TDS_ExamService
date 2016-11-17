@@ -7,12 +7,13 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import tds.common.data.mysql.UuidAdapter;
 import tds.exam.ExamAccommodation;
 import tds.exam.repositories.ExamAccommodationCommandRepository;
+
+import static tds.common.data.mapping.ResultSetMapperUtility.mapJodaInstantToTimestamp;
 
 @Repository
 public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodationCommandRepository {
@@ -34,7 +35,7 @@ public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodation
                 .addValue("type", examAccommodation.getType())
                 .addValue("code", examAccommodation.getCode())
                 .addValue("description", examAccommodation.getDescription())
-                .addValue("deniedAt", examAccommodation.getDeniedAt() == null ? null : Date.from(examAccommodation.getDeniedAt()));
+                .addValue("deniedAt", mapJodaInstantToTimestamp(examAccommodation.getDeniedAt()));
 
             parameterSources.add(parameters);
         });

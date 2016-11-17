@@ -1,5 +1,6 @@
 package tds.exam.services.impl;
 
+import org.joda.time.Instant;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,7 +13,6 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 

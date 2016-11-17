@@ -24,6 +24,8 @@ import tds.exam.ExamStatusCode;
 import tds.exam.models.Ability;
 import tds.exam.repositories.ExamQueryRepository;
 
+import static tds.common.data.mapping.ResultSetMapperUtility.mapTimestampToJodaInstant;
+
 @Repository
 public class ExamQueryRepositoryImpl implements ExamQueryRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
@@ -175,7 +177,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                     UuidAdapter.getUUIDFromBytes(rs.getBytes("exam_id")),
                     rs.getString("assessment_id"),
                     rs.getInt("attempts"),
-                    ResultSetMapperUtility.mapTimeStampToInstant(rs, "date_scored"),
+                    ResultSetMapperUtility.mapTimestampToInstant(rs, "date_scored"),
                     rs.getDouble("score")
             );
         }
@@ -193,13 +195,13 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 .withAttempts(rs.getInt("attempts"))
                 .withClientName(rs.getString("client_name"))
                 .withSubject(rs.getString("subject"))
-                .withDateStarted(ResultSetMapperUtility.mapTimeStampToInstant(rs, "date_started"))
-                .withDateChanged(ResultSetMapperUtility.mapTimeStampToInstant(rs, "date_changed"))
-                .withDateDeleted(ResultSetMapperUtility.mapTimeStampToInstant(rs, "date_deleted"))
-                .withDateScored(ResultSetMapperUtility.mapTimeStampToInstant(rs, "date_scored"))
-                .withDateCompleted(ResultSetMapperUtility.mapTimeStampToInstant(rs, "date_completed"))
-                .withDateJoined(ResultSetMapperUtility.mapTimeStampToInstant(rs, "date_joined"))
-                .withCreatedAt(ResultSetMapperUtility.mapTimeStampToInstant(rs, "created_at"))
+                .withDateStarted(mapTimestampToJodaInstant(rs, "date_started"))
+                .withDateChanged(mapTimestampToJodaInstant(rs, "date_changed"))
+                .withDateDeleted(mapTimestampToJodaInstant(rs, "date_deleted"))
+                .withDateScored(mapTimestampToJodaInstant(rs, "date_scored"))
+                .withDateCompleted(mapTimestampToJodaInstant(rs, "date_completed"))
+                .withCreatedAt(mapTimestampToJodaInstant(rs, "created_at"))
+                .withDateJoined(mapTimestampToJodaInstant(rs, "date_joined"))
                 .withStatus(new ExamStatusCode.Builder()
                     .withStatus(rs.getString("status"))
                     .withDescription(rs.getString("description"))

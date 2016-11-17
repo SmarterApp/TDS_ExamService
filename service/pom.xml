@@ -16,6 +16,11 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
+    <properties>
+        <java.version>1.8</java.version>
+        <assertj.version>3.4.1</assertj.version>
+    </properties>
+
     <dependencies>
         <!-- TDS -->
         <dependency>
@@ -76,6 +81,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
             <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
         </dependency>
 
         <!-- Validation -->
@@ -144,12 +154,6 @@
             <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>com.jayway.restassured</groupId>
-            <artifactId>rest-assured</artifactId>
-            <version>${rest-assured.version}</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <profiles>
@@ -193,6 +197,16 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.5.1</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
             </plugin>
 
             <plugin>

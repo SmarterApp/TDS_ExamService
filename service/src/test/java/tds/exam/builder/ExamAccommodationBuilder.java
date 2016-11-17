@@ -1,6 +1,7 @@
 package tds.exam.builder;
 
-import java.time.Instant;
+import org.joda.time.Instant;
+
 import java.util.UUID;
 
 import tds.exam.ExamAccommodation;

@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -13,6 +14,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.net.URI;
 import java.util.UUID;
 
+import tds.common.web.advice.ExceptionAdvice;
 import tds.exam.services.ExamAccommodationService;
 import tds.exam.services.ExamService;
 
@@ -22,6 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @RunWith(SpringRunner.class)
 @WebMvcTest(ExamController.class)
+@Import({ExceptionAdvice.class})
 public class ExamControllerIntegrationTests {
     @Autowired
     private MockMvc http;

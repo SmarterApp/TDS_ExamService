@@ -1,8 +1,8 @@
 package tds.exam;
 
+import org.joda.time.Instant;
 import org.junit.Test;
 
-import java.time.Instant;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;

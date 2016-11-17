@@ -2,7 +2,7 @@ package tds.exam.builder;
 
 import java.util.List;
 
-import tds.assessment.Property;
+import tds.assessment.ItemProperty;
 import tds.assessment.Segment;
 
 import static java.util.Collections.singletonList;
@@ -14,7 +14,7 @@ public class SegmentBuilder {
     private float startAbility = 0;
     private String subjectName = "ENGLISH";
     private String assessmentKey = "(SBAC_PT)IRP-Perf-ELA-3-Summer-2015-2016";
-    private List<Property> languages = singletonList(new Property("Language", "ENU", "language for assessment"));
+    private List<ItemProperty> languages = singletonList(new ItemProperty("Language", "ENU", "language for assessment"));
 
     public Segment build() {
         return new Segment.Builder(key)
@@ -57,7 +57,7 @@ public class SegmentBuilder {
         return this;
     }
 
-    public SegmentBuilder withLanguages(List<Property> languages) {
+    public SegmentBuilder withLanguages(List<ItemProperty> languages) {
         this.languages = languages;
         return this;
     }

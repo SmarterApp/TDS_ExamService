@@ -20,6 +20,7 @@ import tds.assessment.Assessment;
 import tds.common.Response;
 import tds.common.ValidationError;
 import tds.common.data.legacy.LegacyComparer;
+import tds.common.time.JodaTimeConverter;
 import tds.config.Accommodation;
 import tds.config.AssessmentWindow;
 import tds.config.ClientSystemFlag;
@@ -49,6 +50,7 @@ import tds.student.RtsStudentPackageAttribute;
 import tds.student.Student;
 
 import static java.time.temporal.ChronoUnit.DAYS;
+import static tds.common.time.JodaTimeConverter.convertJodaInstant;
 import static tds.config.ClientSystemFlag.ALLOW_ANONYMOUS_STUDENT_FLAG_TYPE;
 import static tds.exam.error.ValidationErrorCode.ANONYMOUS_STUDENT_NOT_ALLOWED;
 import static tds.exam.error.ValidationErrorCode.NO_OPEN_ASSESSMENT_WINDOW;
@@ -122,9 +124,9 @@ class ExamServiceImpl implements ExamService {
         Session currentSession = maybeSession.get();
 
         //Line OpenTestServiceImp line 126 - 130
-        if(!currentSession.isOpen()) {
-            return new Response<Exam>(new ValidationError(ValidationErrorCode.SESSION_NOT_OPEN, String.format("Session %s is not open", currentSession.getId())));
-        }
+//        if(!currentSession.isOpen()) {
+//            return new Response<Exam>(new ValidationError(ValidationErrorCode.SESSION_NOT_OPEN, String.format("Session %s is not open", currentSession.getId())));
+//        }
 
         Student currentStudent = null;
         if (!openExamRequest.isGuestStudent()) {
@@ -282,7 +284,8 @@ class ExamServiceImpl implements ExamService {
             timeLimitConfigurationService.findTimeLimitConfiguration(approvalRequest.getClientName(), exam.getAssessmentId())
                 .orElseThrow(() -> new IllegalArgumentException(String.format("Could not find time limit configuration for client name %s and assessment id %s", approvalRequest.getClientName(), exam.getAssessmentId())));
 
-        if (Instant.now().isAfter(session.getDateVisited().plus(timeLimitConfig.getTaCheckinTimeMinutes(), ChronoUnit.MINUTES))) {
+        Instant sessionDateVisited = Instant.ofEpochMilli(session.getDateVisited().getMillis());
+        if (Instant.now().isAfter(sessionDateVisited.plus(timeLimitConfig.getTaCheckinTimeMinutes(), ChronoUnit.MINUTES))) {
             // Legacy code creates an audit record here.  Immutability should provide an audit trail; a new session record
             // will be inserted to represent the change in status.
             sessionService.pause(session.getId(), "closed");
@@ -355,7 +358,7 @@ class ExamServiceImpl implements ExamService {
             .withAttempts(previousExam == null ? 1 : previousExam.getAttempts() + 1)
             .withAssessmentAlgorithm(assessment.getSelectionAlgorithm())
             .withSegmented(assessment.isSegmented())
-            .withDateJoined(Instant.now())
+            .withDateJoined(org.joda.time.Instant.now())
             .withAssessmentWindowId(assessmentWindow.getWindowId())
             .withEnvironment(externalSessionConfiguration.getEnvironment())
             .withSubject(assessment.getSubject())
@@ -442,13 +445,13 @@ class ExamServiceImpl implements ExamService {
          */
         boolean daysSinceLastChange = false;
         if (previousExam.getDateChanged() != null) {
-            daysSinceLastChange = DAYS.between(previousExam.getDateChanged(), Instant.now()) >= 1;
+            daysSinceLastChange = DAYS.between(Instant.ofEpochMilli(previousExam.getDateChanged().getMillis()), Instant.now()) >= 1;
         }
 
         if (daysSinceLastChange ||
             LegacyComparer.isEqual(previousSession.getId(), currentSession.getId()) ||
             LegacyComparer.isEqual("closed", previousSession.getStatus()) ||
-            LegacyComparer.greaterThan(Instant.now(), previousSession.getDateEnd())) {
+            LegacyComparer.greaterThan(Instant.now(), convertJodaInstant(previousSession.getDateEnd()))) {
             return Optional.empty();
         }
 
@@ -471,7 +474,7 @@ class ExamServiceImpl implements ExamService {
             }
 
             boolean daysSinceLastExamThreshold = previousExam.getDateCompleted() == null ||
-                LegacyComparer.greaterThan(Duration.between(previousExam.getDateCompleted(), Instant.now()).get(DAYS), openExamRequest.getNumberOfDaysToDelay());
+                LegacyComparer.greaterThan(Duration.between(convertJodaInstant(previousExam.getDateCompleted()), Instant.now()).get(DAYS), openExamRequest.getNumberOfDaysToDelay());
 
             if (LegacyComparer.lessThan(previousExam.getAttempts(), openExamRequest.getMaxAttempts()) &&
                 daysSinceLastExamThreshold) {

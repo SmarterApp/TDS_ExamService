@@ -1,5 +1,6 @@
 package tds.exam.repositories.impl;
 
+import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -12,7 +13,6 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -205,7 +205,7 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
             .addValue("type", examAccommodation.getType())
             .addValue("code", examAccommodation.getCode())
             .addValue("description", examAccommodation.getDescription())
-            .addValue("deniedAt", examAccommodation.getDeniedAt() == null ? null : Date.from(examAccommodation.getDeniedAt()));
+            .addValue("deniedAt", examAccommodation.getDeniedAt() == null ? null : new Date(examAccommodation.getDeniedAt().getMillis()));
 
         final String SQL =
             "INSERT INTO exam_accommodations(exam_id, segment_key, type, code, description, denied_at)" +
