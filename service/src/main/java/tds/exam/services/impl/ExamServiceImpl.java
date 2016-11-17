@@ -152,8 +152,6 @@ class ExamServiceImpl implements ExamService {
         //Previous exam is retrieved in lines 5492 - 5530 and 5605 - 5645 in StudentDLL
         Optional<Exam> maybePreviousExam = examQueryRepository.getLastAvailableExam(openExamRequest.getStudentId(), assessment.getAssessmentId(), openExamRequest.getClientName());
 
-        //TODO - Need to get timelmits for delay days  Line 516-525 OpenTestServiceImp
-
         //TODO - Double check this logic when opening previous previous exam.  Can we open a new one even if we can't open previous
         boolean canOpenPreviousExam = false;
         if (maybePreviousExam.isPresent()) {
@@ -172,7 +170,6 @@ class ExamServiceImpl implements ExamService {
             return new Response<>(new Exam.Builder().withId(maybePreviousExam.get().getId()).build());
         }
 
-//TODO - Do we need to fetch max attempts or force student to fetch?
         Exam previousExam = maybePreviousExam.isPresent() ? maybePreviousExam.get() : null;
         Optional<ValidationError> maybeOpenNewExamValidationError = canCreateNewExam(openExamRequest, previousExam, externalSessionConfiguration);
         if (maybeOpenNewExamValidationError.isPresent()) {
@@ -463,17 +460,27 @@ class ExamServiceImpl implements ExamService {
         //3 via the loader scripts.  So the the conditional in the StudentDLL code will always allow one to open a new
         //Exam if previous exam is null (0 ocnt in the legacy code)
 
-        //TODO - what if it isn't closed?
+        //TODO - Need to get timelmits for delay days  Line 516-525 OpenTestServiceImp
+        Integer numberOfDaysToDelay = null;
+        Optional<TimeLimitConfiguration> maybeTimeLimitConfiguration = timeLimitConfigurationService.findTimeLimitConfiguration(openExamRequest.getClientName(), openExamRequest.getAssessmentKey());
+        if(maybeTimeLimitConfiguration.isPresent()) {
+            numberOfDaysToDelay = maybeTimeLimitConfiguration.get().getExamDelayDays();
+        }
 
         //Lines 5645 - 5673 in StudentDLL
-        if (previousExam != null && ExamStatusCode.STAGE_CLOSED.equals(previousExam.getStatus().getStage())) {
+        if (previousExam != null) {
+            //This is done with a query in the legacy application but we can just check the status of the previous exam fetched in a previous step.
+            if (!ExamStatusCode.STAGE_CLOSED.equals(previousExam.getStatus().getStage())) {
+                return Optional.of(new ValidationError(ValidationErrorCode.PREVIOUS_EXAM_NOT_CLOSED, "Previous exam is not closed"));
+            }
+
             //Lines 5646 - 5649
             if (externalSessionConfiguration.isInSimulationEnvironment()) {
                 return Optional.empty();
             }
 
             boolean daysSinceLastExamThreshold = previousExam.getDateCompleted() == null ||
-                LegacyComparer.greaterThan(Duration.between(convertJodaInstant(previousExam.getDateCompleted()), Instant.now()).get(DAYS), openExamRequest.getNumberOfDaysToDelay());
+                LegacyComparer.greaterThan(Duration.between(convertJodaInstant(previousExam.getDateCompleted()), Instant.now()).get(DAYS), numberOfDaysToDelay);
 
             if (LegacyComparer.lessThan(previousExam.getAttempts(), openExamRequest.getMaxAttempts()) &&
                 daysSinceLastExamThreshold) {
@@ -481,7 +488,7 @@ class ExamServiceImpl implements ExamService {
             } else if (LegacyComparer.greaterOrEqual(previousExam.getAttempts(), openExamRequest.getMaxAttempts())) {
                 return Optional.of(new ValidationError(ValidationErrorCode.MAX_OPPORTUNITY_EXCEEDED, "Max number of attempts for exam exceeded"));
             } else {
-                return Optional.of(new ValidationError(ValidationErrorCode.NOT_ENOUGH_DAYS_PASSED, String.format("Next exam cannot be started until %s days pass since last exam", openExamRequest.getNumberOfDaysToDelay())));
+                return Optional.of(new ValidationError(ValidationErrorCode.NOT_ENOUGH_DAYS_PASSED, String.format("Next exam cannot be started until %s days pass since last exam", numberOfDaysToDelay)));
             }
         }
 
@@ -505,8 +512,6 @@ class ExamServiceImpl implements ExamService {
 
         List<Accommodation> accommodations = Arrays.stream(assessmentAccommodations).filter(accommodation ->
             accommodation.isDefaultAccommodation() && accommodation.getDependsOnToolType() == null).collect(Collectors.toList());
-
-        //TODO - Accommodations could change between attempts.  How do we want to insert those records and also fetch them
 
         List<ExamAccommodation> examAccommodations = new ArrayList<>();
         accommodations.forEach(accommodation -> {

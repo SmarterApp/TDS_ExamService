@@ -7,6 +7,7 @@ public class ValidationErrorCode {
     public static final String SIMULATION_ENVIRONMENT_REQUIRED = "simulationEnvironmentRequired";
     public static final String SESSION_TYPE_MISMATCH = "sessionTypeMismatch";
     public static final String CURRENT_EXAM_OPEN = "examAlreadyOpen";
+    public static final String PREVIOUS_EXAM_NOT_CLOSED = "previousExamNotClosed";
     public static final String NO_OPEN_ASSESSMENT_WINDOW = "noOpenAssessmentWindow";
     public static final String ANONYMOUS_STUDENT_NOT_ALLOWED = "anonymousStudentNotAllowed";
     public static final String SESSION_NOT_OPEN = "sessionNotOpen";

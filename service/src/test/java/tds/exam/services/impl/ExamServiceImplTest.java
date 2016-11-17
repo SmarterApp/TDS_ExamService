@@ -285,6 +285,8 @@ public class ExamServiceImplTest {
             .withDependsOnToolType(null)
             .build();
 
+        TimeLimitConfiguration configuration = new TimeLimitConfiguration.Builder().withExamDelayDays(0).build();
+
         when(mockSessionService.findExternalSessionConfigurationByClientName(openExamRequest.getClientName())).thenReturn(Optional.of(extSessionConfig));
         when(mockConfigService.findClientSystemFlag(openExamRequest.getClientName(), ALLOW_ANONYMOUS_STUDENT_FLAG_TYPE)).thenReturn(Optional.of(clientSystemFlag));
         when(mockSessionService.findSessionById(openExamRequest.getSessionId())).thenReturn(Optional.of(currentSession));
@@ -296,6 +298,7 @@ public class ExamServiceImplTest {
             .thenReturn(new AssessmentWindow[]{window});
         when(mockConfigService.findAssessmentAccommodations(openExamRequest.getAssessmentKey()))
             .thenReturn(new Accommodation[]{accommodation});
+        when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(openExamRequest.getClientName(), openExamRequest.getAssessmentKey())).thenReturn(Optional.of(configuration));
 
         Response<Exam> examResponse = examService.openExam(openExamRequest);
         assertThat(examResponse.getErrors()).isEmpty();
@@ -352,6 +355,8 @@ public class ExamServiceImplTest {
             .withDependsOnToolType(null)
             .build();
 
+        TimeLimitConfiguration configuration = new TimeLimitConfiguration.Builder().withExamDelayDays(0).build();
+
         when(mockSessionService.findExternalSessionConfigurationByClientName(openExamRequest.getClientName())).thenReturn(Optional.of(extSessionConfig));
         when(mockConfigService.findClientSystemFlag(openExamRequest.getClientName(), ALLOW_ANONYMOUS_STUDENT_FLAG_TYPE)).thenReturn(Optional.of(clientSystemFlag));
         when(mockSessionService.findSessionById(openExamRequest.getSessionId())).thenReturn(Optional.of(currentSession));
@@ -362,6 +367,7 @@ public class ExamServiceImplTest {
             .thenReturn(new AssessmentWindow[]{window});
         when(mockConfigService.findAssessmentAccommodations(openExamRequest.getAssessmentKey()))
             .thenReturn(new Accommodation[]{accommodation});
+        when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(openExamRequest.getClientName(), openExamRequest.getAssessmentKey())).thenReturn(Optional.of(configuration));
 
         Response<Exam> examResponse = examService.openExam(openExamRequest);
         verify(mockExamCommandRepository).save(isA(Exam.class));
@@ -415,6 +421,8 @@ public class ExamServiceImplTest {
             .withDependsOnToolType("dependingSoCool")
             .build();
 
+        TimeLimitConfiguration configuration = new TimeLimitConfiguration.Builder().withExamDelayDays(0).build();
+
         when(mockSessionService.findSessionById(openExamRequest.getSessionId())).thenReturn(Optional.of(currentSession));
         when(mockStudentService.getStudentById(openExamRequest.getStudentId())).thenReturn(Optional.of(student));
         when(mockAssessmentService.findAssessmentByKey(openExamRequest.getAssessmentKey())).thenReturn(Optional.of(assessment));
@@ -425,6 +433,7 @@ public class ExamServiceImplTest {
         when(mockConfigService.findAssessmentWindows(openExamRequest.getClientName(), assessment.getAssessmentId(), currentSession.getType(), openExamRequest.getStudentId(), extSessionConfig))
             .thenReturn(new AssessmentWindow[]{window});
         when(mockConfigService.findAssessmentAccommodations(openExamRequest.getAssessmentKey())).thenReturn(new Accommodation[]{accommodation, nonDefaultAccommodation, dependsOnToolTypeAccommodation});
+        when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(openExamRequest.getClientName(), openExamRequest.getAssessmentKey())).thenReturn(Optional.of(configuration));
 
         Response<Exam> examResponse = examService.openExam(openExamRequest);
         verify(mockExamCommandRepository).save(isA(Exam.class));
