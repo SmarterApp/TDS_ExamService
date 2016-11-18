@@ -256,7 +256,7 @@ public class ExamServiceImplTest {
      * Open New Exam Tests
      */
     @Test
-    public void shouldOpenNewExamAsGuestAsGuest() {
+    public void shouldOpenNewExamAsGuest() {
         OpenExamRequest openExamRequest = new OpenExamRequestBuilder()
             .withStudentId(-1)
             .build();
@@ -915,46 +915,6 @@ public class ExamServiceImplTest {
         Optional<Double> maybeAbilityReturned = examService.getInitialAbility(thisExam, clientTestProperty);
         assertThat(maybeAbilityReturned.get()).isEqualTo(assessmentAbilityVal);
     }
-
-//    @Test
-//    public void shouldOpenPreviousExamIfPreviousExamIsInactiveStage() {
-//        UUID sessionId = UUID.randomUUID();
-//        OpenExamRequest openExamRequest = new OpenExamRequest();
-//        openExamRequest.setStudentId(-1);
-//        openExamRequest.setSessionId(sessionId);
-//        openExamRequest.setAssessmentId("assessmentId");
-//        openExamRequest.setClientName("SBAC-PT");
-//        openExamRequest.setMaxAttempts(5);
-//
-//        Session currentSession = new Session.Builder()
-//            .withType(2)
-//            .build();
-//
-//        Session previousSession = new Session.Builder()
-//            .withId(UUID.randomUUID())
-//            .withType(2)
-//            .withDateEnd(Instant.now().minus(Days.days(1).toStandardDuration()))
-//            .build();
-//
-//        Exam previousExam = new Exam.Builder()
-//            .withId(UUID.randomUUID())
-//            .withSessionId(previousSession.getId())
-//            .withStatus(new ExamStatusCode.Builder().withStage(ExamStatusCode.STAGE_INACTIVE).build())
-//            .withDateChanged(Instant.now())
-//            .build();
-//
-//        when(sessionService.findSessionById(sessionId)).thenReturn(Optional.of(currentSession));
-//        when(repository.getLastAvailableExam(-1, "assessmentId", "SBAC-PT")).thenReturn(Optional.of(previousExam));
-//        when(sessionService.findSessionById(previousSession.getId())).thenReturn(Optional.of(previousSession));
-//        ExternalSessionConfiguration externalSessionConfiguration = new ExternalSessionConfigurationBuilder().build();
-//        when(sessionService.findExternalSessionConfigurationByClientName("SBAC-PT")).thenReturn(Optional.of(externalSessionConfiguration));
-//
-//        Response<Exam> examResponse = examService.openExam(openExamRequest);
-//
-//        assertThat(examResponse.getErrors()).isNotPresent();
-//        assertThat(examResponse.getData()).isPresent();
-//        assertThat(examResponse.getData().get().getId()).isEqualTo(previousExam.getId());
-//    }
 
     @Test
     public void shouldReturnExamApprovalBecauseAllRulesAreSatisfied() {
