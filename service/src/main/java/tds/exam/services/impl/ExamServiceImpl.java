@@ -495,15 +495,20 @@ class ExamServiceImpl implements ExamService {
             return true;
         }
 
-        Optional<ClientSystemFlag> maybeSystemFlag = configService.findClientSystemFlag(clientName, ALLOW_ANONYMOUS_STUDENT_FLAG_TYPE);
+        Optional<ClientSystemFlag> maybeAllowGuestAccessFlag = configService.findClientSystemFlag(clientName, ALLOW_ANONYMOUS_STUDENT_FLAG_TYPE);
 
-        return maybeSystemFlag.isPresent() && maybeSystemFlag.get().isEnabled();
+        return maybeAllowGuestAccessFlag.isPresent() && maybeAllowGuestAccessFlag.get().isEnabled();
     }
 
     private void initializeExamAccommodations(Exam exam) {
-        //Replaces StudentDLL _InitOpportunityAccommodations_SP
+        // This method replaces StudentDLL._InitOpportunityAccommodations_SP.
+
+        // StudentDLL fetches the key accommodations via CommonDLL.TestKeyAccommodations_FN which this call replicates.  The legacy application leverages
+        // temporary tables for most of its data structures which is unnecessary in this case so a collection is returned.
         Accommodation[] assessmentAccommodations = configService.findAssessmentAccommodations(exam.getAssessmentKey());
 
+        // StudentDLL line 6645 - the query filters the results of the temporary table fetched above by these two values.
+        // It was decided the record usage and report usage values that are also queried are not actually used.
         List<Accommodation> accommodations = Arrays.stream(assessmentAccommodations).filter(accommodation ->
             accommodation.isDefaultAccommodation() && accommodation.getDependsOnToolType() == null).collect(Collectors.toList());
 
@@ -520,6 +525,7 @@ class ExamServiceImpl implements ExamService {
             examAccommodations.add(examAccommodation);
         });
 
+        //Inserts the accommodations into the exam system.
         examAccommodationCommandRepository.insertAccommodations(examAccommodations);
     }
 }
