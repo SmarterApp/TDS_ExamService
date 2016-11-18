@@ -17,9 +17,8 @@ public class OpenExamRequest {
     @NotNull
     private String assessmentKey;
 
-    //Can be null in the database but the loader script always sets it to 3
     @NotNull
-    private Integer maxAttempts;
+    private int maxAttempts;
 
     @NotNull
     private UUID sessionId;
@@ -112,7 +111,6 @@ public class OpenExamRequest {
      * @return {@code true} if the student is a guest
      */
     public boolean isGuestStudent() {
-        //TODO Is Zero Valid?
         return studentId <= 0;
     }
 
