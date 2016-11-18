@@ -6,6 +6,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 
+import tds.common.data.CreateRecordException;
 import tds.exam.Exam;
 import tds.exam.repositories.ExamCommandRepository;
 
@@ -88,8 +89,7 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
         int insertCount = jdbcTemplate.update(SQL, parameters);
 
         if (insertCount != 1) {
-            //TODO - should decide how to handle this.  If Exception probably should have a named runtime exception for this case
-            throw new RuntimeException(String.format("Failed to insert exam %s", exam));
+            throw new CreateRecordException("Failed to insert exam");
         }
     }
 }
