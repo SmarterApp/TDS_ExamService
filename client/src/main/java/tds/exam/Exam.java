@@ -24,7 +24,7 @@ public class Exam {
     private Instant dateScored;
     private Instant dateCompleted;
     private Instant createdAt;
-    private String studentKey;
+    private String loginSSID;
     private String studentName;
     private Instant dateJoined;
     private String assessmentWindowId;
@@ -50,7 +50,7 @@ public class Exam {
         private Instant createdAt;
         private Instant dateScored;
         private Instant dateCompleted;
-        private String studentKey;
+        private String loginSSID;
         private String studentName;
         private Instant dateJoined;
         private String assessmentWindowId;
@@ -64,8 +64,8 @@ public class Exam {
             return this;
         }
 
-        public Builder withStudentKey(String studentKey) {
-            this.studentKey = studentKey;
+        public Builder withLoginSSID(String loginSSID) {
+            this.loginSSID = loginSSID;
             return this;
         }
 
@@ -201,7 +201,7 @@ public class Exam {
         dateScored = builder.dateScored;
         createdAt = builder.createdAt;
         dateCompleted = builder.dateCompleted;
-        studentKey = builder.studentKey;
+        loginSSID = builder.loginSSID;
         studentName = builder.studentName;
         dateJoined = builder.dateJoined;
         assessmentWindowId = builder.assessmentWindowId;
@@ -333,8 +333,8 @@ public class Exam {
     /**
      * @return the student key of the student taking the exam
      */
-    public String getStudentKey() {
-        return studentKey;
+    public String getLoginSSID() {
+        return loginSSID;
     }
 
     /**

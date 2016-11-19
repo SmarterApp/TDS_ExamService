@@ -316,7 +316,7 @@ public class ExamServiceImplTest {
         assertThat(exam.getDateJoined()).isGreaterThan(startTestTime);
         assertThat(exam.getClientName()).isEqualTo(openExamRequest.getClientName());
         assertThat(exam.getStudentId()).isEqualTo(openExamRequest.getStudentId());
-        assertThat(exam.getStudentKey()).isEqualTo("GUEST");
+        assertThat(exam.getLoginSSID()).isEqualTo("GUEST");
         assertThat(exam.getStudentName()).isEqualTo("GUEST");
         assertThat(exam.getEnvironment()).isEqualTo(extSessionConfig.getEnvironment());
         assertThat(exam.getStatus().getStatus()).isEqualTo(ExamStatusCode.STATUS_PENDING);
@@ -444,7 +444,7 @@ public class ExamServiceImplTest {
         Exam exam = examResponse.getData().get();
         assertThat(exam.getStatus().getStatus()).isEqualTo(ExamStatusCode.STATUS_PENDING);
         assertThat(exam.getStudentName()).isEqualTo("Entity Id");
-        assertThat(exam.getStudentKey()).isEqualTo("External Id");
+        assertThat(exam.getLoginSSID()).isEqualTo("External Id");
 
         List<ExamAccommodation> accommodations = examAccommodationCaptor.getValue();
         assertThat(accommodations).hasSize(1);

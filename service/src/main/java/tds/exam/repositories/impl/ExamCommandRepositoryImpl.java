@@ -23,73 +23,108 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
 
     @Override
     public void save(Exam exam) {
-        SqlParameterSource parameters = new MapSqlParameterSource("examId", getBytesFromUUID(exam.getId()))
+        SqlParameterSource examParameters = new MapSqlParameterSource("id", getBytesFromUUID(exam.getId()))
             .addValue("clientName", exam.getClientName())
-            .addValue("studentId", exam.getStudentId())
-            .addValue("sessionId", getBytesFromUUID(exam.getSessionId()))
-            .addValue("assessmentId", exam.getAssessmentId())
-            .addValue("attempts", exam.getAttempts())
-            .addValue("status", exam.getStatus().getStatus())
-            .addValue("subject", exam.getSubject())
-            .addValue("studentKey", exam.getStudentKey())
-            .addValue("studentName", exam.getStudentName())
-            .addValue("browserId", getBytesFromUUID(exam.getBrowserId()))
-            .addValue("dateChanged", exam.getDateChanged())
-            .addValue("assessmentWindowId", exam.getAssessmentWindowId())
-            .addValue("segmented", exam.isSegmented())
-            .addValue("assessmentAlgorithm", exam.getAssessmentAlgorithm())
-            .addValue("assessmentKey", exam.getAssessmentKey())
             .addValue("environment", exam.getEnvironment())
-            .addValue("dateJoined", mapJodaInstantToTimestamp(exam.getDateJoined()));
+            .addValue("sessionId", getBytesFromUUID(exam.getSessionId()))
+            .addValue("browserId", getBytesFromUUID(exam.getBrowserId()))
+            .addValue("subject", exam.getSubject())
+            .addValue("loginSsid", exam.getLoginSSID())
+            .addValue("studentId", exam.getStudentId())
+            .addValue("studentName", exam.getStudentName())
+            .addValue("assessmentId", exam.getAssessmentId())
+            .addValue("assessmentKey", exam.getAssessmentKey())
+            .addValue("assessmentWindowId", exam.getAssessmentWindowId())
+            .addValue("assessmentAlgorithm", exam.getAssessmentAlgorithm())
+            .addValue("segmented", exam.isSegmented())
+            .addValue("dateStarted", mapJodaInstantToTimestamp(exam.getDateStarted()));
 
-
-        String SQL = "INSERT INTO exam\n" +
+        String examInsertSQL = "INSERT INTO exam \n" +
             "(\n" +
-            "exam_id,\n" +
-            "client_name,\n" +
-            "student_id,\n" +
-            "session_id,\n" +
-            "assessment_id,\n" +
-            "attempts,\n" +
-            "status,\n" +
-            "subject,\n" +
-            "student_key,\n" +
-            "student_name,\n" +
-            "browser_id,\n" +
-            "date_changed,\n" +
-            "assessment_window_id,\n" +
-            "segmented,\n" +
-            "assessment_algorithm,\n" +
-            "assessment_key,\n" +
-            "environment,\n" +
-            "date_joined\n" +
-            ") " +
-            "VALUES (" +
-            ":examId, " +
-            ":clientName, " +
-            ":studentId, " +
-            ":sessionId, " +
-            ":assessmentId, " +
-            ":attempts, " +
-            ":status, " +
-            ":subject, " +
-            ":studentKey, " +
-            ":studentName, " +
-            ":browserId, " +
-            ":dateChanged, " +
-            ":assessmentWindowId, " +
-            ":segmented, " +
-            ":assessmentAlgorithm, " +
-            ":assessmentKey, " +
-            ":environment, " +
-            ":dateJoined " +
-            ")";
+            "  id,\n" +
+            "  client_name, \n" +
+            "  environment,\n" +
+            "  session_id,\n" +
+            "  browser_id,\n" +
+            "  subject,\n" +
+            "  login_ssid,\n" +
+            "  student_id,\n" +
+            "  student_name,\n" +
+            "  assessment_id,\n" +
+            "  assessment_key,\n" +
+            "  assessment_window_id,\n" +
+            "  assessment_algorithm,\n" +
+            "  segmented,\n" +
+            "  date_started \n" +
+            ")\n" +
+            "VALUES\n" +
+            "(\n" +
+            "  :id,\n" +
+            "  :clientName,\n" +
+            "  :environment,\n" +
+            "  :sessionId,\n" +
+            "  :browserId,\n" +
+            "  :subject,\n" +
+            "  :loginSsid,\n" +
+            "  :studentId,\n" +
+            "  :studentName,\n" +
+            "  :assessmentId,\n" +
+            "  :assessmentKey,\n" +
+            "  :assessmentWindowId,\n" +
+            "  :assessmentAlgorithm,\n" +
+            "  :segmented,\n" +
+            "  :dateStarted\n" +
+            ");";
 
-
-        int insertCount = jdbcTemplate.update(SQL, parameters);
+        int insertCount = jdbcTemplate.update(examInsertSQL, examParameters);
 
         if (insertCount != 1) {
             throw new CreateRecordException("Failed to insert exam");
+        }
+
+        update(exam);
+    }
+
+    @Override
+    public void update(Exam exam) {
+        SqlParameterSource examEventParameters = new MapSqlParameterSource("examId", getBytesFromUUID(exam.getId()))
+            .addValue("attempts", exam.getAttempts())
+            .addValue("status", exam.getStatus().getStatus())
+            .addValue("statusChangeReason", exam.getStatusChangeReason())
+            .addValue("dateChanged", mapJodaInstantToTimestamp(exam.getDateChanged()))
+            .addValue("dateDeleted", mapJodaInstantToTimestamp(exam.getDateDeleted()))
+            .addValue("dateCompleted", mapJodaInstantToTimestamp(exam.getDateCompleted()))
+            .addValue("dateScored", mapJodaInstantToTimestamp(exam.getDateScored()))
+            .addValue("dateJoined", mapJodaInstantToTimestamp(exam.getDateJoined()));
+
+        String examEventInsertSQL = "INSERT INTO exam_event (\n" +
+            "  exam_id,\n" +
+            "  attempts,\n" +
+            "  status,\n" +
+            "  status_change_reason,\n" +
+            "  date_changed,\n" +
+            "  date_deleted,\n" +
+            "  date_completed,\n" +
+            "  date_scored,\n" +
+            "  date_joined\n" +
+            ")\n" +
+            "VALUES\n" +
+            "(\n" +
+            "  :examId,\n" +
+            "  :attempts,\n" +
+            "  :status,\n" +
+            "  :statusChangeReason,\n" +
+            "  :dateChanged,\n" +
+            "  :dateDeleted,\n" +
+            "  :dateCompleted,\n" +
+            "  :dateScored,\n" +
+            "  :dateJoined\n" +
+            ");";
+
+        int insertCount = jdbcTemplate.update(examEventInsertSQL, examEventParameters);
+
+        if (insertCount != 1) {
+            throw new CreateRecordException("Failed to insert exam event");
         }
     }
 }

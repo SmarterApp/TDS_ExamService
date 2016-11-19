@@ -298,13 +298,13 @@ class ExamServiceImpl implements ExamService {
         String guestAccommodations = openExamRequest.getGuestAccommodations();
         if (openExamRequest.isGuestStudent()) {
             examBuilder.withStudentName("GUEST");
-            examBuilder.withStudentKey("GUEST");
+            examBuilder.withLoginSSID("GUEST");
         } else {
             List<RtsStudentPackageAttribute> attributes = studentService.findStudentPackageAttributes(openExamRequest.getStudentId(), openExamRequest.getClientName(), EXTERNAL_ID, ENTITY_NAME, ACCOMMODATIONS);
 
             for (RtsStudentPackageAttribute attribute : attributes) {
                 if (EXTERNAL_ID.equals(attribute.getName())) {
-                    examBuilder.withStudentKey(attribute.getValue());
+                    examBuilder.withLoginSSID(attribute.getValue());
                 } else if (ENTITY_NAME.equals(attribute.getName())) {
                     examBuilder.withStudentName(attribute.getValue());
                 } else if (StringUtils.isEmpty(guestAccommodations) && ACCOMMODATIONS.equals(attribute.getName())) {

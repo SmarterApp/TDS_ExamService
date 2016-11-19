@@ -52,7 +52,7 @@ public class ExamBuilder {
             .withDateCompleted(dateCompleted)
             .withStatus(status)
             .withSubject(subject)
-            .withStudentKey(studentKey)
+            .withLoginSSID(studentKey)
             .withDateJoined(dateJoined)
             .withAssessmentWindowId(assessmentWindowId)
             .withStudentName(studentName)
