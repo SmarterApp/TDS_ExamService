@@ -23,16 +23,17 @@ import tds.common.data.mysql.UuidAdapter;
 import tds.exam.Exam;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.models.Ability;
+import tds.exam.repositories.ExamCommandRepository;
 import tds.exam.repositories.ExamQueryRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static tds.common.data.mapping.ResultSetMapperUtility.mapJodaInstantToTimestamp;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest
 @Transactional
 public class ExamQueryRepositoryImplIntegrationTests {
     private ExamQueryRepository examQueryRepository;
+    private ExamCommandRepository examCommandRepository;
 
     @Autowired
     @Qualifier("commandJdbcTemplate")
@@ -41,6 +42,7 @@ public class ExamQueryRepositoryImplIntegrationTests {
     @Before
     public void setUp() {
         examQueryRepository = new ExamQueryRepositoryImpl(jdbcTemplate);
+        examCommandRepository = new ExamCommandRepositoryImpl(jdbcTemplate);
         List<Exam> exams = new ArrayList<>();
         // Build a basic exam record
         exams.add(new ExamBuilder().build());
@@ -62,7 +64,7 @@ public class ExamQueryRepositoryImplIntegrationTests {
             .withDateScored(Instant.now().minus(Minutes.minutes(5).toStandardDuration()))
             .build());
 
-        exams.forEach(this::insertExamData);
+        exams.forEach(exam -> examCommandRepository.save(exam));
 
         insertExamScoresData();
     }
@@ -114,33 +116,6 @@ public class ExamQueryRepositoryImplIntegrationTests {
         assertThat(myAbility.getAssessmentId()).isEqualTo("assessmentId3");
         assertThat(myAbility.getAttempts()).isEqualTo(2);
         assertThat(myAbility.getDateScored()).isLessThan(java.time.Instant.now());
-    }
-
-    private void insertExamData(Exam exam) {
-        final SqlParameterSource parameters = new MapSqlParameterSource("examId", UuidAdapter.getBytesFromUUID(exam.getId()))
-            .addValue("sessionId", UuidAdapter.getBytesFromUUID(exam.getSessionId()))
-            .addValue("browserId", UuidAdapter.getBytesFromUUID(exam.getBrowserId()))
-            .addValue("assessmentId", exam.getAssessmentId())
-            .addValue("studentId", exam.getStudentId())
-            .addValue("attempts", exam.getAttempts())
-            .addValue("clientName", exam.getClientName())
-            .addValue("dateDeleted", exam.getDateDeleted() == null ? null : mapJodaInstantToTimestamp(exam.getDateDeleted()))
-            .addValue("dateScored", exam.getDateScored() == null ? null : mapJodaInstantToTimestamp(exam.getDateScored()))
-            .addValue("dateChanged", exam.getDateChanged() == null ? null : mapJodaInstantToTimestamp(exam.getDateChanged()))
-            .addValue("dateStarted", exam.getDateStarted() == null ? null : mapJodaInstantToTimestamp(exam.getDateStarted()))
-            .addValue("dateCompleted", exam.getDateCompleted() == null ? null : mapJodaInstantToTimestamp(exam.getDateCompleted()))
-            .addValue("status", exam.getStatus().getStatus())
-            .addValue("environment", exam.getEnvironment())
-            .addValue("assessmentKey", exam.getAssessmentKey())
-            .addValue("assessmentAlgorithm", exam.getAssessmentAlgorithm())
-            .addValue("subject", exam.getSubject());
-
-        final String SQL =
-            "INSERT INTO " +
-            "   exam (exam_id, environment, assessment_key, assessment_algorithm, session_id, browser_id, assessment_id, student_id, attempts, client_name, date_deleted, date_scored, date_changed, date_started, date_completed, status, subject)" +
-            "VALUES(:examId, :environment, :assessmentKey, :assessmentAlgorithm, :sessionId, :browserId, :assessmentId, :studentId, :attempts, :clientName, :dateDeleted, :dateScored, :dateChanged, :dateStarted, :dateCompleted, :status, :subject)";
-
-        jdbcTemplate.update(SQL, parameters);
     }
 
     private void insertExamScoresData() {
