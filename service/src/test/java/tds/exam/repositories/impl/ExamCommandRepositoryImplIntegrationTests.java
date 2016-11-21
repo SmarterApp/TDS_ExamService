@@ -46,20 +46,31 @@ public class ExamCommandRepositoryImplIntegrationTests {
         assertThat(examQueryRepository.getExamById(exam.getId())).isNotPresent();
 
         examCommandRepository.save(exam);
-//
-//        Exam exam2 = new ExamBuilder()
-//            .withId(exam.getId())
-//            .withStatus(new ExamStatusCode.Builder().withStatus("started").build())
-//            .build();
-//
-//        examCommandRepository.update(exam2);
+
         Optional<Exam> maybeExam = examQueryRepository.getExamById(exam.getId());
         assertThat(maybeExam).isPresent();
 
         Exam savedExam = maybeExam.get();
 
         assertThat(savedExam.getSubject()).isEqualTo(exam.getSubject());
-        assertThat(savedExam.getDateJoined()).isEqualTo(now);
         assertThat(savedExam.isSegmented()).isEqualTo(exam.isSegmented());
+        assertThat(savedExam.getStatus()).isEqualTo(exam.getStatus());
+        assertThat(savedExam.getId()).isEqualByComparingTo(exam.getId());
+        assertThat(savedExam.getSessionId()).isEqualTo(exam.getSessionId());
+        assertThat(savedExam.getEnvironment()).isEqualTo(exam.getEnvironment());
+        assertThat(savedExam.getClientName()).isEqualTo(exam.getClientName());
+        assertThat(savedExam.getAssessmentAlgorithm()).isEqualTo(exam.getAssessmentAlgorithm());
+        assertThat(savedExam.getAssessmentId()).isEqualTo(exam.getAssessmentId());
+        assertThat(savedExam.getAssessmentKey()).isEqualTo(exam.getAssessmentKey());
+        assertThat(savedExam.getAssessmentWindowId()).isEqualTo(exam.getAssessmentWindowId());
+        assertThat(savedExam.getDateJoined()).isEqualTo(now);
+        assertThat(savedExam.getDateChanged()).isEqualTo(exam.getDateChanged());
+        assertThat(savedExam.getDateStarted()).isEqualTo(exam.getDateStarted());
+        assertThat(savedExam.getDateScored()).isEqualTo(exam.getDateScored());
+        assertThat(savedExam.getDateCompleted()).isEqualTo(exam.getDateCompleted());
+        assertThat(savedExam.getDateDeleted()).isEqualTo(exam.getDateDeleted());
+        assertThat(savedExam.getBrowserId()).isEqualTo(exam.getBrowserId());
+        assertThat(savedExam.getLoginSSID()).isEqualTo(exam.getLoginSSID());
+        assertThat(savedExam.getStatusChangeReason()).isEqualTo(exam.getStatusChangeReason());
     }
 }

@@ -24,6 +24,7 @@ public class ExamBuilder {
     private Instant dateStarted = null;
     private Instant dateCompleted = null;
     private ExamStatusCode status = new ExamStatusCode.Builder()
+        .withStage(ExamStatusCode.STAGE_INUSE)
         .withStatus("pending")
         .build();
     private String subject = "ELA";

@@ -56,4 +56,32 @@ public class ExamStatusCode {
             return new ExamStatusCode(this);
         }
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ExamStatusCode that = (ExamStatusCode) o;
+
+        if (status != null ? !status.equals(that.status) : that.status != null) return false;
+        return stage != null ? stage.equals(that.stage) : that.stage == null;
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = status != null ? status.hashCode() : 0;
+        result = 31 * result + (stage != null ? stage.hashCode() : 0);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "ExamStatusCode{" +
+            "status='" + status + '\'' +
+            ", stage='" + stage + '\'' +
+            ", description='" + description + '\'' +
+            '}';
+    }
 }

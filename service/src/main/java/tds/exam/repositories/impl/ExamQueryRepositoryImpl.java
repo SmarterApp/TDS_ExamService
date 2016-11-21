@@ -65,6 +65,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
             "   ee.date_scored, \n" +
             "   e.created_at, \n" +
             "   esc.description, \n" +
+            "   esc.status, \n" +
             "   esc.stage\n" +
             "FROM exam.exam e\n" +
             "JOIN ( \n" +
@@ -129,6 +130,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
             "   ee.date_scored, \n" +
             "   e.created_at, \n" +
             "   esc.description, \n" +
+            "   esc.status, \n" +
             "   esc.stage\n" +
             "FROM exam.exam e\n" +
             "JOIN ( \n" +
@@ -234,6 +236,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 .withAssessmentId(rs.getString("assessment_id"))
                 .withAssessmentKey(rs.getString("assessment_key"))
                 .withAssessmentWindowId(rs.getString("assessment_window_id"))
+                .withAssessmentAlgorithm(rs.getString("assessment_algorithm"))
                 .withEnvironment(rs.getString("environment"))
                 .withStudentId(rs.getLong("student_id"))
                 .withLoginSSID(rs.getString("login_ssid"))
