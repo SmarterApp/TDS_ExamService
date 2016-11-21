@@ -137,7 +137,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
             "       MAX(id) AS id \n" +
             "   FROM \n" +
             "       exam.exam_event \n" +
-            "   WHERE exam_id = :examId\n" +
+            "   WHERE date_deleted IS NULL \n" +
             "   GROUP BY exam_id \n" +
             ") last_event \n" +
             "  ON e.id = last_event.exam_id \n" +
@@ -147,8 +147,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
             "JOIN exam.exam_status_codes esc \n" +
             "  ON esc.status = ee.status \n" +
             "WHERE \n" +
-            "   e.date_deleted IS NULL \n" +
-            "   AND e.student_id = :studentId \n" +
+            "   e.student_id = :studentId \n" +
             "   AND e.assessment_id = :assessmentId \n" +
             "   AND e.client_name = :clientName \n" +
             "ORDER BY \n" +
