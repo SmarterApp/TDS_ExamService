@@ -129,7 +129,7 @@ public class ExamQueryRepositoryImplIntegrationTests {
 
         final String SQL =
             "INSERT INTO" +
-            "   exam_scores (fk_scores_examid_exam, measure_label, value, measure_of, use_for_ability) " +
+            "   exam_scores (exam_id, measure_label, value, measure_of, use_for_ability) " +
             "VALUES(:examId, :measureLabel, :value, :measureOf, :useForAbility)";
 
         jdbcTemplate.update(SQL, parameters);

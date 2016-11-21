@@ -198,7 +198,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
             "INNER JOIN \n" +
                 "exam_scores \n" +
             "ON \n" +
-                "exam.id = exam_scores.fk_scores_examid_exam \n" +
+                "exam.id = exam_scores.exam_id \n" +
             "WHERE\n" +
                 "exam.client_name = :clientName AND\n" +
                 "exam.student_id = :studentId AND\n" +
