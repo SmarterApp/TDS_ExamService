@@ -42,9 +42,9 @@ public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepositor
 
         final String SQL =
                 "SELECT \n" +
-                "   s.fk_segment_examid_exam as exam_id, \n" +
-                "   s.assessment_segment_key, \n" +
-                "   s.assessment_segment_id, \n" +
+                "   s.exam_id, \n" +
+                "   s.segment_key, \n" +
+                "   s.segment_id, \n" +
                 "   s.segment_position, \n" +
                 "   s.form_key, \n" +
                 "   s.form_id, \n" +
@@ -64,21 +64,21 @@ public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepositor
                 "   exam_segment s \n" +
                 "INNER JOIN ( \n" +
                 "   SELECT \n" +
-                "       fk_segment_examid_exam AS exam_id, \n" +
+                "       exam_id, \n" +
                 "       segment_position, \n" +
                 "       MAX(id) AS id \n" +
                 "   FROM \n" +
                 "       exam_segment_event \n" +
-                "   WHERE fk_segment_examid_exam = :examId \n" +
+                "   WHERE exam_id = :examId \n" +
                 "   GROUP BY \n" +
                 "       exam_id, segment_position \n" +
                 ") last_event \n" +
-                "ON s.fk_segment_examid_exam = last_event.exam_id AND \n" +
+                "ON s.exam_id = last_event.exam_id AND \n" +
                 "   s.segment_position = last_event.segment_position \n" +
                 "INNER JOIN \n" +
                 "   exam_segment_event se \n" +
                 "ON \n" +
-                "   last_event.exam_id = se.fk_segment_examid_exam AND \n" +
+                "   last_event.exam_id = se.exam_id AND \n" +
                 "   last_event.id = se.id \n" +
                 "ORDER BY \n" +
                 "   segment_position \n";
@@ -97,9 +97,9 @@ public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepositor
 
         final String SQL =
                 "SELECT \n" +
-                "   s.fk_segment_examid_exam as exam_id, \n" +
-                "   s.assessment_segment_key, \n" +
-                "   s.assessment_segment_id, \n" +
+                "   s.exam_id as exam_id, \n" +
+                "   s.segment_key, \n" +
+                "   s.segment_id, \n" +
                 "   s.segment_position, \n" +
                 "   s.form_key, \n" +
                 "   s.form_id, \n" +
@@ -118,10 +118,10 @@ public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepositor
                 "FROM \n" +
                 "   exam_segment s \n" +
                 "JOIN exam_segment_event se \n" +
-                "   ON s.fk_segment_examid_exam = se.fk_segment_examid_exam AND \n" +
+                "   ON s.exam_id = se.exam_id AND \n" +
                 "       s.segment_position = se.segment_position \n" +
                 "WHERE \n" +
-                "   s.fk_segment_examid_exam = :examId AND \n " +
+                "   s.exam_id = :examId AND \n " +
                 "   s.segment_position = :segmentPosition \n" +
                 "ORDER BY \n" +
                 "   se.id \n" +
@@ -149,8 +149,8 @@ public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepositor
         public ExamSegment mapRow(ResultSet rs, int rowNum) throws SQLException {
             return new ExamSegment.Builder()
                     .withExamId(UuidAdapter.getUUIDFromBytes(rs.getBytes("exam_id")))
-                    .withAssessmentSegmentId(rs.getString("assessment_segment_id"))
-                    .withAssessmentSegmentKey(rs.getString("assessment_segment_key"))
+                    .withAssessmentSegmentId(rs.getString("segment_id"))
+                    .withAssessmentSegmentKey(rs.getString("segment_key"))
                     .withSegmentPosition(rs.getInt("segment_position"))
                     .withFormKey(rs.getString("form_key"))
                     .withFormId(rs.getString("form_id"))

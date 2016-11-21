@@ -9,7 +9,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
-import tds.exam.models.ExamSegment;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -17,6 +16,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import tds.exam.Exam;
+import tds.exam.builder.ExamBuilder;
+import tds.exam.models.ExamSegment;
+import tds.exam.repositories.ExamCommandRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -35,10 +39,20 @@ public class ExamSegmentRepositoryImplIntegrationTests {
     @Qualifier("commandJdbcTemplate")
     private NamedParameterJdbcTemplate commandJdbcTemplate;
 
+    private Exam exam;
+    private Exam otherExam;
+
     @Before
     public void setUp() {
+        ExamCommandRepository examCommandRepository = new ExamCommandRepositoryImpl(commandJdbcTemplate);
         commandRepository = new ExamSegmentCommandRepositoryImpl(commandJdbcTemplate);
         queryRepository = new ExamSegmentQueryRepositoryImpl(commandJdbcTemplate);
+
+        exam = new ExamBuilder().withId(UUID.randomUUID()).build();
+        otherExam = new ExamBuilder().withId(UUID.randomUUID()).build();
+
+        examCommandRepository.save(exam);
+        examCommandRepository.save(otherExam);
     }
 
     @Test
@@ -51,7 +65,7 @@ public class ExamSegmentRepositoryImplIntegrationTests {
         final int segmentPos2 = 2;
         final String algorithm = "fixedform";
         final Instant dateExited = Instant.now(Clock.systemUTC());
-        final UUID examId = UUID.randomUUID();
+        final UUID examId = exam.getId();
         final int examItemCount = 3;
         final int ftItemCount = 0;
         final String cohort = "Default";
@@ -137,7 +151,7 @@ public class ExamSegmentRepositoryImplIntegrationTests {
         final int segmentPos = 1;
         final String algorithm = "fixedform";
         final Instant dateExited = Instant.now(Clock.systemUTC());
-        final UUID examId = UUID.randomUUID();
+        final UUID examId = exam.getId();
         final int examItemCount = 3;
         final int ftItemCount = 0;
         final String cohort = "Default";
@@ -228,8 +242,8 @@ public class ExamSegmentRepositoryImplIntegrationTests {
         final String algorithm1 = "adaptive2";
         final String algorithm2 = "fixedform";
         final Instant dateExited = Instant.now(Clock.systemUTC());
-        final UUID examId = UUID.randomUUID();
-        final UUID differentExamid = UUID.randomUUID();
+        final UUID examId = exam.getId();
+        final UUID differentExamid = otherExam.getId();
         final int examItemCount = 3;
         final int ftItemCount = 0;
         final String cohort = "Default";

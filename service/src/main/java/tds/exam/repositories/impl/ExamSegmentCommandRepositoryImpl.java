@@ -6,6 +6,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
+
 import tds.common.data.mapping.ResultSetMapperUtility;
 import tds.common.data.mysql.UuidAdapter;
 import tds.exam.models.ExamSegment;
@@ -50,9 +51,9 @@ public class ExamSegmentCommandRepositoryImpl implements ExamSegmentCommandRepos
 
         final String segmentQuery =
                 "INSERT INTO exam_segment (\n" +
-                "   fk_segment_examid_exam, \n" +
-                "   assessment_segment_key, \n" +
-                "   assessment_segment_id, \n" +
+                "   exam_id, \n" +
+                "   segment_key, \n" +
+                "   segment_id, \n" +
                 "   segment_position, \n" +
                 "   form_key, \n" +
                 "   form_id, \n" +
@@ -98,7 +99,7 @@ public class ExamSegmentCommandRepositoryImpl implements ExamSegmentCommandRepos
 
         final String segmentEventQuery =
                 "INSERT INTO exam_segment_event (\n" +
-                "   fk_segment_examid_exam, \n" +
+                "   exam_id, \n" +
                 "   segment_position, \n" +
                 "   satisfied, \n" +
                 "   permeable, \n" +
