@@ -3,7 +3,6 @@ package tds.exam.repositories.impl;
 import org.joda.time.Instant;
 import org.joda.time.Minutes;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -108,14 +107,14 @@ public class ExamQueryRepositoryImplIntegrationTests {
     }
 
     @Test
-    @Ignore("This test doesn't make sense and I'll need to work with Ernie to fix it")
     public void shouldReturnSingleAbility() {
-        List<Ability> oneAbility = examQueryRepository.findAbilities(UUID.fromString("af880054-d1d2-4c24-805c-1f0dfdb45980"),
+        UUID examId = UUID.randomUUID();
+        List<Ability> oneAbility = examQueryRepository.findAbilities(examId,
                 "clientName", "ELA", 9999L);
         assertThat(oneAbility).hasSize(1);
         Ability myAbility = oneAbility.get(0);
         // Should not be the same exam
-        assertThat(myAbility.getExamId()).isNotEqualTo(currentExamId);
+        assertThat(myAbility.getExamId()).isNotEqualTo(examId);
         assertThat(myAbility.getAssessmentId()).isEqualTo("assessmentId3");
         assertThat(myAbility.getAttempts()).isEqualTo(2);
         assertThat(myAbility.getDateScored()).isLessThan(java.time.Instant.now());

@@ -215,7 +215,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
         @Override
         public Ability mapRow(ResultSet rs, int rowNum) throws SQLException {
             return new Ability(
-                    UuidAdapter.getUUIDFromBytes(rs.getBytes("exam_id")),
+                    UuidAdapter.getUUIDFromBytes(rs.getBytes("id")),
                     rs.getString("assessment_id"),
                     rs.getInt("attempts"),
                     ResultSetMapperUtility.mapTimestampToInstant(rs, "date_scored"),
