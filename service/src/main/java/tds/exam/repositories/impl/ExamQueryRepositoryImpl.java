@@ -143,7 +143,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
             "  ON e.id = last_event.exam_id \n" +
             "JOIN exam.exam_event ee \n" +
             "  ON last_event.exam_id = ee.exam_id AND \n" +
-            "     last_event.id = ee.id\n" +
+            "     last_event.id = ee.id \n" +
             "JOIN exam.exam_status_codes esc \n" +
             "  ON esc.status = ee.status \n" +
             "WHERE \n" +
@@ -175,11 +175,24 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
             "SELECT\n" +
                 "exam.id,\n" +
                 "exam.assessment_id,\n" +
-                "exam.attempts,\n" +
-                "exam.date_scored,\n" +
+                "ee.attempts,\n" +
+                "ee.date_scored,\n" +
                 "exam_scores.value AS score\n" +
-            "FROM\n" +
-                "exam \n" +
+            "FROM exam exam \n" +
+            "JOIN ( \n" +
+            "   SELECT \n" +
+            "       exam_id, \n" +
+            "       MAX(id) AS id \n" +
+            "   FROM \n" +
+            "       exam.exam_event \n" +
+            "   GROUP BY exam_id \n" +
+            ") last_event \n" +
+            "  ON exam.id = last_event.exam_id \n" +
+            "JOIN exam.exam_event ee \n" +
+            "  ON last_event.exam_id = ee.exam_id AND \n" +
+            "     last_event.id = ee.id \n" +
+            "JOIN exam.exam_status_codes esc \n" +
+            "  ON esc.status = ee.status \n" +
             "INNER JOIN \n" +
                 "exam_scores \n" +
             "ON \n" +
@@ -188,12 +201,12 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "exam.client_name = :clientName AND\n" +
                 "exam.student_id = :studentId AND\n" +
                 "exam.subject = :subject AND\n" +
-                "exam.date_deleted IS NULL AND\n" +
-                "exam.date_scored IS NOT NULL AND\n" +
-                "exam.exam_id <> :examId AND\n" +
+                "ee.date_deleted IS NULL AND\n" +
+                "ee.date_scored IS NOT NULL AND\n" +
+                "exam.id <> :examId AND\n" +
                 "exam_scores.use_for_ability = 1 AND\n" +
                 "exam_scores.value IS NOT NULL \n" +
-            "ORDER BY exam.date_scored DESC";
+            "ORDER BY ee.date_scored DESC";
 
         return jdbcTemplate.query(SQL, parameters, new AbilityRowMapper());
     }
