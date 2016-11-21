@@ -46,6 +46,6 @@ CREATE TABLE exam_event (
   date_joined datetime(3) DEFAULT NULL,
   created_at timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
   PRIMARY KEY (id),
-  FOREIGN KEY (exam_id) REFERENCES exam(id),
+  FOREIGN KEY fk_exam_event_examid_exam (exam_id) REFERENCES exam(id),
   INDEX ix_created_at (created_at)
 );
