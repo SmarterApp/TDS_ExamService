@@ -120,8 +120,18 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
                 "foo",
                 "bar" });
 
+        ExamAccommodation examAccommodation = null;
+        ExamAccommodation secondExamAccommodation = null;
+
         assertThat(result).hasSize(2);
-        ExamAccommodation examAccommodation = result.get(0);
+        for(ExamAccommodation accommodation : result) {
+            if(accommodation.getCode().equals(ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_CODE)) {
+                examAccommodation = accommodation;
+            } else {
+                secondExamAccommodation = accommodation;
+            }
+        }
+
         assertThat(examAccommodation.getId()).isGreaterThan(0);
         assertThat(examAccommodation.getExamId()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID);
         assertThat(examAccommodation.getSegmentKey()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_KEY);
@@ -132,7 +142,6 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
         assertThat(examAccommodation.getDeniedAt()).isNull();
         assertThat(examAccommodation.isApproved()).isTrue();
 
-        ExamAccommodation secondExamAccommodation = result.get(1);
         assertThat(secondExamAccommodation.getId()).isGreaterThan(0);
         assertThat(secondExamAccommodation.getExamId()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID);
         assertThat(secondExamAccommodation.getSegmentKey()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_KEY);

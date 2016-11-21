@@ -11,9 +11,9 @@ import tds.exam.ExamStatusCode;
  * Build an {@link Exam} populated with test data.
  */
 public class ExamBuilder {
-    private UUID examId = UUID.fromString("af880054-d1d2-4c24-805c-0dfdb45a0d24");
-    private UUID sessionId = UUID.fromString("244363EE-D4D3-4C02-AFAE-52FFE1AEAC33");
-    private UUID browserId = UUID.fromString("38446ebf-e181-482d-8e41-3ca21ba66303");
+    private UUID examId = UUID.randomUUID();
+    private UUID sessionId = UUID.randomUUID();
+    private UUID browserId = UUID.randomUUID();
     private String assessmentId = "assessmentId";
     private long studentId = 1L;
     private int attempts = 0;
