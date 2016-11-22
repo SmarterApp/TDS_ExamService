@@ -36,6 +36,7 @@ public class ExamBuilder {
     private String assessmentKey = "(SBAC_PT)SBAC-IRP-CAT-ELA-3-Summer-2015-2016";
     private String environment = "Development";
     private boolean segmented = false;
+    private int abnormalStarts = 1;
 
     public Exam build() {
         return new Exam.Builder()
@@ -61,6 +62,7 @@ public class ExamBuilder {
             .withAssessmentKey(assessmentKey)
             .withEnvironment(environment)
             .withSegmented(segmented)
+            .withAbnormalStarts(abnormalStarts)
             .build();
     }
 
@@ -171,6 +173,11 @@ public class ExamBuilder {
 
     public ExamBuilder withSubject(String subject) {
         this.subject = subject;
+        return this;
+    }
+
+    public ExamBuilder withAbnormalStarts(int abnormalStarts) {
+        this.abnormalStarts = abnormalStarts;
         return this;
     }
 }

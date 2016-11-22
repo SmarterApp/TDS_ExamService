@@ -55,7 +55,7 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
             "  assessment_window_id,\n" +
             "  assessment_algorithm,\n" +
             "  segmented,\n" +
-            "  date_started \n" +
+            "  date_started\n" +
             ")\n" +
             "VALUES\n" +
             "(\n" +
@@ -73,7 +73,7 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
             "  :assessmentWindowId,\n" +
             "  :assessmentAlgorithm,\n" +
             "  :segmented,\n" +
-            "  :dateStarted\n" +
+            "  :dateStarted \n" +
             ");";
 
         int insertCount = jdbcTemplate.update(examInsertSQL, examParameters);
@@ -95,6 +95,7 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
             .addValue("dateDeleted", mapJodaInstantToTimestamp(exam.getDateDeleted()))
             .addValue("dateCompleted", mapJodaInstantToTimestamp(exam.getDateCompleted()))
             .addValue("dateScored", mapJodaInstantToTimestamp(exam.getDateScored()))
+            .addValue("abnormalStarts", exam.getAbnormalStarts())
             .addValue("dateJoined", mapJodaInstantToTimestamp(exam.getDateJoined()));
 
         String examEventInsertSQL = "INSERT INTO exam_event (\n" +
@@ -106,7 +107,8 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
             "  date_deleted,\n" +
             "  date_completed,\n" +
             "  date_scored,\n" +
-            "  date_joined\n" +
+            "  date_joined,\n" +
+            "  abnormal_starts\n" +
             ")\n" +
             "VALUES\n" +
             "(\n" +
@@ -118,7 +120,8 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
             "  :dateDeleted,\n" +
             "  :dateCompleted,\n" +
             "  :dateScored,\n" +
-            "  :dateJoined\n" +
+            "  :dateJoined,\n" +
+            "  :abnormalStarts\n" +
             ");";
 
         int insertCount = jdbcTemplate.update(examEventInsertSQL, examEventParameters);

@@ -32,6 +32,7 @@ public class Exam {
     private String assessmentKey;
     private String environment;
     private boolean segmented;
+    private int abnormalStarts;
 
     public static class Builder {
         private UUID id;
@@ -58,6 +59,7 @@ public class Exam {
         private String assessmentKey;
         private String environment;
         private boolean segmented;
+        private int abnormalStarts;
 
         public Builder withSegmented(boolean segmented) {
             this.segmented = segmented;
@@ -129,7 +131,7 @@ public class Exam {
             return this;
         }
 
-        public Builder withStatus(ExamStatusCode newStatus){
+        public Builder withStatus(ExamStatusCode newStatus) {
             status = newStatus;
             return this;
         }
@@ -179,6 +181,11 @@ public class Exam {
             return this;
         }
 
+        public Builder withAbnormalStarts(int abnormalStarts) {
+            this.abnormalStarts = abnormalStarts;
+            return this;
+        }
+
         public Exam build() {
             return new Exam(this);
         }
@@ -209,6 +216,7 @@ public class Exam {
         assessmentKey = builder.assessmentKey;
         environment = builder.environment;
         segmented = builder.segmented;
+        abnormalStarts = builder.abnormalStarts;
     }
 
     /**
@@ -228,7 +236,7 @@ public class Exam {
     /**
      * @return The identifier of the browser of the browser information for thie eaxm
      * <p>
-     *     "Browser information" refers to IP address, user-agent etc, from another table.
+     * "Browser information" refers to IP address, user-agent etc, from another table.
      * </p>
      */
     public UUID getBrowserId() {
@@ -266,7 +274,7 @@ public class Exam {
     /**
      * @return Text describing the reason for the most recent status change.
      * <p>
-     *     Sources for this value include restarting an exam or when a Proctor denies approval to start an exam.
+     * Sources for this value include restarting an exam or when a Proctor denies approval to start an exam.
      * </p>
      */
     public String getStatusChangeReason() {
@@ -384,5 +392,13 @@ public class Exam {
      */
     public boolean isSegmented() {
         return segmented;
+    }
+
+    /**
+     * @return the number of times an exam was started under abnormal instances.  For example,
+     * restarting an exam that was already in the process of being started.
+     */
+    public int getAbnormalStarts() {
+        return abnormalStarts;
     }
 }

@@ -63,6 +63,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
             "   ee.date_completed, \n" +
             "   ee.date_joined, \n" +
             "   ee.date_scored, \n" +
+            "   ee.abnormal_starts, \n" +
             "   e.created_at, \n" +
             "   esc.description, \n" +
             "   esc.status, \n" +
@@ -128,6 +129,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
             "   ee.date_completed, \n" +
             "   ee.date_joined, \n" +
             "   ee.date_scored, \n" +
+            "   ee.abnormal_starts, \n" +
             "   e.created_at, \n" +
             "   esc.description, \n" +
             "   esc.status, \n" +
@@ -257,6 +259,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                     .withStage(rs.getString("stage"))
                     .build())
                 .withStatusChangeReason(rs.getString("status_change_reason"))
+                .withAbnormalStarts(rs.getInt("abnormal_starts"))
                 .build();
         }
     }

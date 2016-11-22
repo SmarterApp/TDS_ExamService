@@ -42,6 +42,7 @@ public class ExamCommandRepositoryImplIntegrationTests {
         Instant now = Instant.now();
         Exam exam = new ExamBuilder()
             .withDateJoined(now)
+            .withAbnormalStarts(5)
             .build();
         assertThat(examQueryRepository.getExamById(exam.getId())).isNotPresent();
 
@@ -72,5 +73,6 @@ public class ExamCommandRepositoryImplIntegrationTests {
         assertThat(savedExam.getBrowserId()).isEqualTo(exam.getBrowserId());
         assertThat(savedExam.getLoginSSID()).isEqualTo(exam.getLoginSSID());
         assertThat(savedExam.getStatusChangeReason()).isEqualTo(exam.getStatusChangeReason());
+        assertThat(savedExam.getAbnormalStarts()).isEqualTo(5);
     }
 }
