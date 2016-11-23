@@ -43,7 +43,7 @@ public class Exam {
         private String assessmentId;
         private long studentId;
         private int attempts;
-        private ExamStatusCode status = new ExamStatusCode.Builder().build();
+        private ExamStatusCode status;
         private String statusChangeReason;
         private String clientName;
         private String subject;
@@ -198,6 +198,37 @@ public class Exam {
 
         public Builder withCurrentSegmentPosition(int currentSegmentPosition) {
             this.currentSegmentPosition = currentSegmentPosition;
+            return this;
+        }
+
+        public Builder fromExam(Exam exam) {
+            id = exam.id;
+            sessionId = exam.sessionId;
+            browserId = exam.browserId;
+            assessmentId = exam.assessmentId;
+            studentId = exam.studentId;
+            attempts = exam.attempts;
+            status = exam.status;
+            statusChangeReason = exam.statusChangeReason;
+            subject = exam.subject;
+            clientName = exam.clientName;
+            dateStarted = exam.dateStarted;
+            dateChanged = exam.dateChanged;
+            dateDeleted = exam.dateDeleted;
+            dateScored = exam.dateScored;
+            createdAt = exam.createdAt;
+            dateCompleted = exam.dateCompleted;
+            loginSSID = exam.loginSSID;
+            studentName = exam.studentName;
+            dateJoined = exam.dateJoined;
+            assessmentWindowId = exam.assessmentWindowId;
+            assessmentAlgorithm = exam.assessmentAlgorithm;
+            assessmentKey = exam.assessmentKey;
+            environment = exam.environment;
+            segmented = exam.segmented;
+            abnormalStarts = exam.abnormalStarts;
+            waitingForSegmentApproval = exam.waitingForSegmentApproval;
+            currentSegmentPosition = exam.currentSegmentPosition;
             return this;
         }
 

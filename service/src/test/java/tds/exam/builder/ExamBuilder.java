@@ -6,6 +6,9 @@ import java.util.UUID;
 
 import tds.exam.Exam;
 import tds.exam.ExamStatusCode;
+import tds.exam.ExamStatusStage;
+
+import static tds.exam.ExamStatusCode.STATUS_PENDING;
 
 /**
  * Build an {@link Exam} populated with test data.
@@ -23,10 +26,7 @@ public class ExamBuilder {
     private Instant dateChanged = null;
     private Instant dateStarted = null;
     private Instant dateCompleted = null;
-    private ExamStatusCode status = new ExamStatusCode.Builder()
-        .withStage(ExamStatusCode.STAGE_INUSE)
-        .withStatus("pending")
-        .build();
+    private ExamStatusCode status = new ExamStatusCode(STATUS_PENDING, ExamStatusStage.inuse);
     private String subject = "ELA";
     private String studentKey = "ADV001";
     private String studentName = "Darth";

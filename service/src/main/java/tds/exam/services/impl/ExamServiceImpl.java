@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import tds.assessment.Assessment;
@@ -30,12 +31,14 @@ import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
 import tds.exam.ExamApproval;
 import tds.exam.ExamStatusCode;
+import tds.exam.ExamStatusStage;
 import tds.exam.OpenExamRequest;
 import tds.exam.error.ValidationErrorCode;
 import tds.exam.models.Ability;
 import tds.exam.repositories.ExamAccommodationCommandRepository;
 import tds.exam.repositories.ExamCommandRepository;
 import tds.exam.repositories.ExamQueryRepository;
+import tds.exam.repositories.ExamStatusQueryRepository;
 import tds.exam.repositories.HistoryQueryRepository;
 import tds.exam.services.AssessmentService;
 import tds.exam.services.ConfigService;
@@ -46,7 +49,6 @@ import tds.exam.services.TimeLimitConfigurationService;
 import tds.session.ExternalSessionConfiguration;
 import tds.session.Session;
 import tds.student.RtsStudentPackageAttribute;
-import tds.student.Student;
 
 import static java.time.temporal.ChronoUnit.DAYS;
 import static tds.common.time.JodaTimeConverter.convertJodaInstant;
@@ -70,6 +72,7 @@ class ExamServiceImpl implements ExamService {
     private final TimeLimitConfigurationService timeLimitConfigurationService;
     private final ConfigService configService;
     private final ExamAccommodationCommandRepository examAccommodationCommandRepository;
+    private final ExamStatusQueryRepository examStatusQueryRepository;
 
     @Autowired
     public ExamServiceImpl(ExamQueryRepository examQueryRepository,
@@ -80,7 +83,8 @@ class ExamServiceImpl implements ExamService {
                            TimeLimitConfigurationService timeLimitConfigurationService,
                            ConfigService configService,
                            ExamCommandRepository examCommandRepository,
-                           ExamAccommodationCommandRepository examAccommodationCommandRepository) {
+                           ExamAccommodationCommandRepository examAccommodationCommandRepository,
+                           ExamStatusQueryRepository examStatusQueryRepository) {
         this.examQueryRepository = examQueryRepository;
         this.historyQueryRepository = historyQueryRepository;
         this.sessionService = sessionService;
@@ -90,6 +94,7 @@ class ExamServiceImpl implements ExamService {
         this.configService = configService;
         this.examCommandRepository = examCommandRepository;
         this.examAccommodationCommandRepository = examAccommodationCommandRepository;
+        this.examStatusQueryRepository = examStatusQueryRepository;
     }
 
     @Override
@@ -122,14 +127,10 @@ class ExamServiceImpl implements ExamService {
             return new Response<Exam>(new ValidationError(ValidationErrorCode.SESSION_NOT_OPEN, String.format("Session %s is not open", currentSession.getId())));
         }
 
-        Student currentStudent = null;
         if (!openExamRequest.isGuestStudent()) {
-            Optional<Student> maybeStudent = studentService.getStudentById(openExamRequest.getStudentId());
-            if (!maybeStudent.isPresent()) {
-                throw new IllegalArgumentException(String.format("Could not find student for id %s", openExamRequest.getStudentId()));
-            } else {
-                currentStudent = maybeStudent.get();
-            }
+            studentService.getStudentById(openExamRequest.getStudentId()).orElseThrow((Supplier<RuntimeException>) ()
+                -> new IllegalArgumentException(String.format("Could not find student for id %s", openExamRequest.getStudentId()))
+            );
         } else {
             //OpenTestServiceImpl lines 103 - 104
             if (!allowsGuestStudent(openExamRequest.getClientName(), externalSessionConfiguration)) {
@@ -171,6 +172,25 @@ class ExamServiceImpl implements ExamService {
         }
 
         return createExam(openExamRequest, currentSession, assessment, externalSessionConfiguration, previousExam);
+    }
+
+    private Response<Exam> openPreviousExam(OpenExamRequest openExamRequest, ExternalSessionConfiguration externalSessionConfiguration, Exam previousExam, Assessment assessment) {
+//        ExamStatusCode status = examStatusCodeQueryRepository.findStatusCode("PAUSE");
+//        if (previousExam.getDateStarted() != null) {
+//            status = ExamStatusCode.STATUS_SUSPENDED;
+//        }
+//
+//        int abnormalIncrement = ExamStatusCode.STAGE_INUSE.equals(previousExam.getStatus().getStage()) ? 1 : 0;
+//
+//        Exam.Builder currentExamBuilder = new Exam.Builder()
+//            .fromExam(previousExam)
+//            .withStatus(new ExamStatusCode.Builder().withStatus(status)
+//                .withStage(ExamStatusCode.STAGE_CLOSED)
+//                .build());
+//
+//        return examQueryRepository.getExamById(id);
+
+        return null;
     }
 
     @Override
@@ -290,9 +310,9 @@ class ExamServiceImpl implements ExamService {
 
         //From OpenTestServiceImpl lines 160 -163
         if (openExamRequest.getProctorId() == null) {
-            examBuilder.withStatus(new ExamStatusCode.Builder().withStatus(ExamStatusCode.STATUS_APPROVED).build());
+            examBuilder.withStatus(examStatusQueryRepository.findExamStatusCode(ExamStatusCode.STATUS_APPROVED));
         } else {
-            examBuilder.withStatus(new ExamStatusCode.Builder().withStatus(ExamStatusCode.STATUS_PENDING).build());
+            examBuilder.withStatus(examStatusQueryRepository.findExamStatusCode(ExamStatusCode.STATUS_PENDING));
         }
 
         String guestAccommodations = openExamRequest.getGuestAccommodations();
@@ -407,7 +427,7 @@ class ExamServiceImpl implements ExamService {
 
     private Optional<ValidationError> canOpenPreviousExam(Exam previousExam, Session currentSession) {
         //Port of Student.DLL lines 5526-5530
-        if (ExamStatusCode.STAGE_CLOSED.equals(previousExam.getStatus().getStage())) {
+        if (ExamStatusStage.closed.equals(previousExam.getStatus().getStage())) {
             return Optional.empty();
         }
 
@@ -424,7 +444,7 @@ class ExamServiceImpl implements ExamService {
         }
 
         //Port of Student.DLL lines 5555-5560
-        if (ExamStatusCode.STAGE_INACTIVE.equals(previousExam.getStatus().getStage())) {
+        if (ExamStatusStage.inactive.equals(previousExam.getStatus().getStage())) {
             return Optional.empty();
         }
 
@@ -463,7 +483,7 @@ class ExamServiceImpl implements ExamService {
         //Lines 5645 - 5673 in StudentDLL
         if (previousExam != null) {
             //This is done with a query in the legacy application but we can just check the status of the previous exam fetched in a previous step.
-            if (!ExamStatusCode.STAGE_CLOSED.equals(previousExam.getStatus().getStage())) {
+            if (!ExamStatusStage.closed.equals(previousExam.getStatus().getStage())) {
                 return Optional.of(new ValidationError(ValidationErrorCode.PREVIOUS_EXAM_NOT_CLOSED, "Previous exam is not closed"));
             }
 

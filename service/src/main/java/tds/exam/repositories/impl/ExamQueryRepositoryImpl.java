@@ -21,6 +21,7 @@ import tds.common.data.mapping.ResultSetMapperUtility;
 import tds.common.data.mysql.UuidAdapter;
 import tds.exam.Exam;
 import tds.exam.ExamStatusCode;
+import tds.exam.ExamStatusStage;
 import tds.exam.models.Ability;
 import tds.exam.repositories.ExamQueryRepository;
 
@@ -257,11 +258,10 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 .withDateCompleted(mapTimestampToJodaInstant(rs, "date_completed"))
                 .withCreatedAt(mapTimestampToJodaInstant(rs, "created_at"))
                 .withDateJoined(mapTimestampToJodaInstant(rs, "date_joined"))
-                .withStatus(new ExamStatusCode.Builder()
-                    .withStatus(rs.getString("status"))
-                    .withDescription(rs.getString("description"))
-                    .withStage(rs.getString("stage"))
-                    .build())
+                .withStatus(new ExamStatusCode(
+                    rs.getString("status"),
+                    ExamStatusStage.fromType(rs.getString("stage"))
+                ))
                 .withStatusChangeReason(rs.getString("status_change_reason"))
                 .withAbnormalStarts(rs.getInt("abnormal_starts"))
                 .withWaitingForSegmentApproval(rs.getBoolean("waiting_for_segment_approval"))

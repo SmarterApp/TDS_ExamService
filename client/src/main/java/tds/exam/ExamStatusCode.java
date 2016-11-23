@@ -1,60 +1,31 @@
 package tds.exam;
 
 public class ExamStatusCode {
-    public static final String STAGE_CLOSED = "closed";
-    public static final String STAGE_INACTIVE = "inactive";
-    public static final String STAGE_INUSE = "inuse";
-    public static final String STAGE_OPEN = "open";
-
     public static final String STATUS_PAUSED = "paused";
     public static final String STATUS_PENDING = "pending";
     public static final String STATUS_APPROVED = "approved";
+    public static final String STATUS_SUSPENDED = "suspended";
+    public static final String STATUS_DENIED = "denied";
 
     private String status;
-    private String stage;
-    private String description;
+    private ExamStatusStage stage;
 
     public String getStatus() {
         return status;
     }
 
-    public String getStage() {
+    public ExamStatusStage getStage() {
         return stage;
     }
 
-    public String getDescription() {
-        return description;
-    }
+    /**
+     * For Frameworks
+     */
+    private ExamStatusCode(){}
 
-    private ExamStatusCode(Builder builder) {
-        status = builder.status;
-        stage = builder.stage;
-        description = builder.description;
-    }
-
-    public static class Builder {
-        private String status;
-        private String stage;
-        private String description;
-
-        public Builder withStatus(String newStatus) {
-            status = newStatus;
-            return this;
-        }
-
-        public Builder withStage(String newStage) {
-            stage = newStage;
-            return this;
-        }
-
-        public Builder withDescription(String newDescription) {
-            description = newDescription;
-            return this;
-        }
-
-        public ExamStatusCode build() {
-            return new ExamStatusCode(this);
-        }
+    public ExamStatusCode(String status, ExamStatusStage stage) {
+        this.status = status;
+        this.stage = stage;
     }
 
     @Override
@@ -81,7 +52,6 @@ public class ExamStatusCode {
         return "ExamStatusCode{" +
             "status='" + status + '\'' +
             ", stage='" + stage + '\'' +
-            ", description='" + description + '\'' +
             '}';
     }
 }

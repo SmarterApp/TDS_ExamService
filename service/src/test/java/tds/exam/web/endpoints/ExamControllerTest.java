@@ -28,6 +28,7 @@ import tds.exam.ExamAccommodation;
 import tds.exam.ExamApproval;
 import tds.exam.ExamApprovalStatus;
 import tds.exam.ExamStatusCode;
+import tds.exam.ExamStatusStage;
 import tds.exam.OpenExamRequest;
 import tds.exam.builder.ExamAccommodationBuilder;
 import tds.exam.builder.OpenExamRequestBuilder;
@@ -41,6 +42,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static tds.exam.ExamStatusCode.STATUS_APPROVED;
+import static tds.exam.ExamStatusCode.STATUS_DENIED;
+import static tds.exam.ExamStatusCode.STATUS_PAUSED;
+import static tds.exam.ExamStatusCode.STATUS_PENDING;
 
 public class ExamControllerTest {
     private ExamService examService;
@@ -114,15 +119,14 @@ public class ExamControllerTest {
         String clientName = "UNIT_TEST";
         ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserId, clientName);
 
-        ExamApproval mockExamApproval =
-                new ExamApproval(examId, new ExamStatusCode.Builder().withStatus("approved").build(), null);
+        ExamApproval mockExamApproval = new ExamApproval(examId, new ExamStatusCode(STATUS_APPROVED, ExamStatusStage.open), null);
         when(examService.getApproval(Matchers.isA(ApprovalRequest.class))).thenReturn(new Response<>(mockExamApproval));
 
         ResponseEntity<ExamApprovalResource> response = controller.getApproval(
-                approvalRequest.getExamId(),
-                approvalRequest.getSessionId(),
-                approvalRequest.getBrowserId(),
-                approvalRequest.getClientName());
+            approvalRequest.getExamId(),
+            approvalRequest.getSessionId(),
+            approvalRequest.getBrowserId(),
+            approvalRequest.getClientName());
         verify(examService).getApproval(Matchers.isA(ApprovalRequest.class));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -141,13 +145,13 @@ public class ExamControllerTest {
         ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserId, clientName);
 
         when(examService.getApproval(Matchers.isA(ApprovalRequest.class))).thenReturn(
-                new Response<>(new ExamApproval(examId, new ExamStatusCode.Builder().withStatus("pending").build(), null)));
+            new Response<>(new ExamApproval(examId, new ExamStatusCode(STATUS_PENDING, null), null)));
 
         ResponseEntity<ExamApprovalResource> response = controller.getApproval(
-                approvalRequest.getExamId(),
-                approvalRequest.getSessionId(),
-                approvalRequest.getBrowserId(),
-                approvalRequest.getClientName());
+            approvalRequest.getExamId(),
+            approvalRequest.getSessionId(),
+            approvalRequest.getBrowserId(),
+            approvalRequest.getClientName());
         verify(examService).getApproval(Matchers.isA(ApprovalRequest.class));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -166,13 +170,13 @@ public class ExamControllerTest {
         ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserId, clientName);
 
         when(examService.getApproval(Matchers.isA(ApprovalRequest.class))).thenReturn(
-                new Response<>(new ExamApproval(examId, new ExamStatusCode.Builder().withStatus("paused").build(), null)));
+            new Response<>(new ExamApproval(examId, new ExamStatusCode(STATUS_PAUSED, null), null)));
 
         ResponseEntity<ExamApprovalResource> response = controller.getApproval(
-                approvalRequest.getExamId(),
-                approvalRequest.getSessionId(),
-                approvalRequest.getBrowserId(),
-                approvalRequest.getClientName());
+            approvalRequest.getExamId(),
+            approvalRequest.getSessionId(),
+            approvalRequest.getBrowserId(),
+            approvalRequest.getClientName());
         verify(examService).getApproval(Matchers.isA(ApprovalRequest.class));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -191,13 +195,13 @@ public class ExamControllerTest {
         ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserId, clientName);
 
         when(examService.getApproval(Matchers.isA(ApprovalRequest.class))).thenReturn(
-                new Response<>(new ExamApproval(examId, new ExamStatusCode.Builder().withStatus("denied").build(), null)));
+            new Response<>(new ExamApproval(examId, new ExamStatusCode(STATUS_DENIED, null), null)));
 
         ResponseEntity<ExamApprovalResource> response = controller.getApproval(
-                approvalRequest.getExamId(),
-                approvalRequest.getSessionId(),
-                approvalRequest.getBrowserId(),
-                approvalRequest.getClientName());
+            approvalRequest.getExamId(),
+            approvalRequest.getSessionId(),
+            approvalRequest.getBrowserId(),
+            approvalRequest.getClientName());
         verify(examService).getApproval(Matchers.isA(ApprovalRequest.class));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -219,10 +223,10 @@ public class ExamControllerTest {
         when(examService.getApproval(Matchers.isA(ApprovalRequest.class))).thenReturn(errorResponse);
 
         ResponseEntity<ExamApprovalResource> response = controller.getApproval(
-                approvalRequest.getExamId(),
-                approvalRequest.getSessionId(),
-                approvalRequest.getBrowserId(),
-                approvalRequest.getClientName());
+            approvalRequest.getExamId(),
+            approvalRequest.getSessionId(),
+            approvalRequest.getBrowserId(),
+            approvalRequest.getClientName());
         verify(examService).getApproval(Matchers.isA(ApprovalRequest.class));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
@@ -240,15 +244,15 @@ public class ExamControllerTest {
 
         when(examAccommodationService.findAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
             ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_KEY,
-            new String[] { ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE }))
+            new String[]{ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE}))
             .thenReturn(mockExamAccommodations);
 
         ResponseEntity<List<ExamAccommodation>> response = controller.getAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
             ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_KEY,
-            new String[] { ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE });
+            new String[]{ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE});
         verify(examAccommodationService).findAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
             ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_KEY,
-            new String[] { ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE });
+            new String[]{ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE});
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).hasSize(1);
@@ -270,16 +274,16 @@ public class ExamControllerTest {
 
         when(examAccommodationService.findAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
             ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_KEY,
-            new String[] {
+            new String[]{
                 ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE,
-                "closed captioning" }))
+                "closed captioning"}))
             .thenReturn(mockExamAccommodations);
 
         ResponseEntity<List<ExamAccommodation>> response = controller.getAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
             ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_KEY,
-            new String[] {
+            new String[]{
                 ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE,
-                "closed captioning" });
+                "closed captioning"});
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).hasSize(2);
@@ -309,16 +313,16 @@ public class ExamControllerTest {
 
         when(examAccommodationService.findAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
             ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_KEY,
-            new String[] {
+            new String[]{
                 ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE,
-                "closed captioning" }))
+                "closed captioning"}))
             .thenReturn(mockExamAccommodations);
 
         ResponseEntity<List<ExamAccommodation>> response = controller.getAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
             ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_KEY,
-            new String[] {
+            new String[]{
                 ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE,
-                "closed captioning" });
+                "closed captioning"});
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).hasSize(2);
@@ -340,6 +344,6 @@ public class ExamControllerTest {
     public void shouldThrowIllegalArgumentExceptionWhenAccomodationTypesIsEmpty() {
         controller.getAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
             ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_KEY,
-            new String[] {});
+            new String[]{});
     }
 }
