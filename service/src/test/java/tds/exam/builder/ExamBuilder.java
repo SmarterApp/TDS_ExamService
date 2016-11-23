@@ -37,6 +37,8 @@ public class ExamBuilder {
     private String environment = "Development";
     private boolean segmented = false;
     private int abnormalStarts = 1;
+    private boolean waitingForSegmentApproval = false;
+    private int currentSegmentPosition = 1;
 
     public Exam build() {
         return new Exam.Builder()
@@ -63,6 +65,8 @@ public class ExamBuilder {
             .withEnvironment(environment)
             .withSegmented(segmented)
             .withAbnormalStarts(abnormalStarts)
+            .withWaitingForSegmentApproval(waitingForSegmentApproval)
+            .withCurrentSegmentPosition(currentSegmentPosition)
             .build();
     }
 
@@ -178,6 +182,16 @@ public class ExamBuilder {
 
     public ExamBuilder withAbnormalStarts(int abnormalStarts) {
         this.abnormalStarts = abnormalStarts;
+        return this;
+    }
+
+    public ExamBuilder withWaitingForSegmentApproval(boolean waitingForSegmentApproval) {
+        this.waitingForSegmentApproval = waitingForSegmentApproval;
+        return this;
+    }
+
+    public ExamBuilder withCurrentSegmentPosition(int currentSegmentPosition) {
+        this.currentSegmentPosition = currentSegmentPosition;
         return this;
     }
 }

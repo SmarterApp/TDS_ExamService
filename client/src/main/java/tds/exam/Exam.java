@@ -33,6 +33,8 @@ public class Exam {
     private String environment;
     private boolean segmented;
     private int abnormalStarts;
+    private boolean waitingForSegmentApproval;
+    private int currentSegmentPosition;
 
     public static class Builder {
         private UUID id;
@@ -60,6 +62,9 @@ public class Exam {
         private String environment;
         private boolean segmented;
         private int abnormalStarts;
+        private boolean waitingForSegmentApproval;
+        private int currentSegmentPosition;
+
 
         public Builder withSegmented(boolean segmented) {
             this.segmented = segmented;
@@ -186,6 +191,16 @@ public class Exam {
             return this;
         }
 
+        public Builder withWaitingForSegmentApproval(boolean waitingForSegmentApproval) {
+            this.waitingForSegmentApproval = waitingForSegmentApproval;
+            return this;
+        }
+
+        public Builder withCurrentSegmentPosition(int currentSegmentPosition) {
+            this.currentSegmentPosition = currentSegmentPosition;
+            return this;
+        }
+
         public Exam build() {
             return new Exam(this);
         }
@@ -217,6 +232,8 @@ public class Exam {
         environment = builder.environment;
         segmented = builder.segmented;
         abnormalStarts = builder.abnormalStarts;
+        waitingForSegmentApproval = builder.waitingForSegmentApproval;
+        currentSegmentPosition = builder.currentSegmentPosition;
     }
 
     /**
@@ -400,5 +417,19 @@ public class Exam {
      */
     public int getAbnormalStarts() {
         return abnormalStarts;
+    }
+
+    /**
+     * @return {@code true} when approval is required before the student can move onto the next segment
+     */
+    public boolean isWaitingForSegmentApproval() {
+        return waitingForSegmentApproval;
+    }
+
+    /**
+     * @return the current segment position in multi segmented exams
+     */
+    public int getCurrentSegmentPosition() {
+        return currentSegmentPosition;
     }
 }

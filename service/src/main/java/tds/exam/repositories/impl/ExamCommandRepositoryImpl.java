@@ -37,7 +37,7 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
             .addValue("assessmentWindowId", exam.getAssessmentWindowId())
             .addValue("assessmentAlgorithm", exam.getAssessmentAlgorithm())
             .addValue("segmented", exam.isSegmented())
-            .addValue("dateStarted", mapJodaInstantToTimestamp(exam.getDateStarted()));
+            .addValue("dateJoined", mapJodaInstantToTimestamp(exam.getDateJoined()));
 
         String examInsertSQL = "INSERT INTO exam \n" +
             "(\n" +
@@ -55,7 +55,7 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
             "  assessment_window_id,\n" +
             "  assessment_algorithm,\n" +
             "  segmented,\n" +
-            "  date_started\n" +
+            "  date_joined\n" +
             ")\n" +
             "VALUES\n" +
             "(\n" +
@@ -73,7 +73,7 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
             "  :assessmentWindowId,\n" +
             "  :assessmentAlgorithm,\n" +
             "  :segmented,\n" +
-            "  :dateStarted \n" +
+            "  :dateJoined \n" +
             ");";
 
         int insertCount = jdbcTemplate.update(examInsertSQL, examParameters);
@@ -96,7 +96,9 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
             .addValue("dateCompleted", mapJodaInstantToTimestamp(exam.getDateCompleted()))
             .addValue("dateScored", mapJodaInstantToTimestamp(exam.getDateScored()))
             .addValue("abnormalStarts", exam.getAbnormalStarts())
-            .addValue("dateJoined", mapJodaInstantToTimestamp(exam.getDateJoined()));
+            .addValue("waitingForSegmentApproval", exam.isWaitingForSegmentApproval())
+            .addValue("currentSegmentPosition", exam.getCurrentSegmentPosition())
+            .addValue("dateStarted", mapJodaInstantToTimestamp(exam.getDateStarted()));
 
         String examEventInsertSQL = "INSERT INTO exam_event (\n" +
             "  exam_id,\n" +
@@ -107,7 +109,9 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
             "  date_deleted,\n" +
             "  date_completed,\n" +
             "  date_scored,\n" +
-            "  date_joined,\n" +
+            "  date_started,\n" +
+            "  waiting_for_segment_approval,\n" +
+            "  current_segment_position,\n" +
             "  abnormal_starts\n" +
             ")\n" +
             "VALUES\n" +
@@ -120,7 +124,9 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
             "  :dateDeleted,\n" +
             "  :dateCompleted,\n" +
             "  :dateScored,\n" +
-            "  :dateJoined,\n" +
+            "  :dateStarted,\n" +
+            "  :waitingForSegmentApproval,\n" +
+            "  :currentSegmentPosition,\n" +
             "  :abnormalStarts\n" +
             ");";
 

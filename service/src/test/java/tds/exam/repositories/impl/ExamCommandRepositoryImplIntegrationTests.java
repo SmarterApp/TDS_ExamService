@@ -74,5 +74,7 @@ public class ExamCommandRepositoryImplIntegrationTests {
         assertThat(savedExam.getLoginSSID()).isEqualTo(exam.getLoginSSID());
         assertThat(savedExam.getStatusChangeReason()).isEqualTo(exam.getStatusChangeReason());
         assertThat(savedExam.getAbnormalStarts()).isEqualTo(5);
+        assertThat(savedExam.isWaitingForSegmentApproval()).isEqualTo(exam.isWaitingForSegmentApproval());
+        assertThat(savedExam.getCurrentSegmentPosition()).isEqualTo(exam.getCurrentSegmentPosition());
     }
 }
