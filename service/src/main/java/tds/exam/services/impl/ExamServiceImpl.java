@@ -53,6 +53,8 @@ import tds.student.RtsStudentPackageAttribute;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static tds.common.time.JodaTimeConverter.convertJodaInstant;
 import static tds.config.ClientSystemFlag.ALLOW_ANONYMOUS_STUDENT_FLAG_TYPE;
+import static tds.exam.ExamStatusCode.STATUS_PENDING;
+import static tds.exam.ExamStatusCode.STATUS_SUSPENDED;
 import static tds.exam.error.ValidationErrorCode.ANONYMOUS_STUDENT_NOT_ALLOWED;
 import static tds.exam.error.ValidationErrorCode.NO_OPEN_ASSESSMENT_WINDOW;
 import static tds.student.RtsStudentPackageAttribute.ACCOMMODATIONS;
@@ -160,9 +162,7 @@ class ExamServiceImpl implements ExamService {
         }
 
         if (canOpenPreviousExam) {
-            //Open previous exam
-            LOG.debug("Can open previous exam");
-            return new Response<>(new Exam.Builder().withId(maybePreviousExam.get().getId()).build());
+            return openPreviousExam(openExamRequest, externalSessionConfiguration, maybePreviousExam.get(), assessment);
         }
 
         Exam previousExam = maybePreviousExam.isPresent() ? maybePreviousExam.get() : null;
@@ -172,25 +172,6 @@ class ExamServiceImpl implements ExamService {
         }
 
         return createExam(openExamRequest, currentSession, assessment, externalSessionConfiguration, previousExam);
-    }
-
-    private Response<Exam> openPreviousExam(OpenExamRequest openExamRequest, ExternalSessionConfiguration externalSessionConfiguration, Exam previousExam, Assessment assessment) {
-//        ExamStatusCode status = examStatusCodeQueryRepository.findStatusCode("PAUSE");
-//        if (previousExam.getDateStarted() != null) {
-//            status = ExamStatusCode.STATUS_SUSPENDED;
-//        }
-//
-//        int abnormalIncrement = ExamStatusCode.STAGE_INUSE.equals(previousExam.getStatus().getStage()) ? 1 : 0;
-//
-//        Exam.Builder currentExamBuilder = new Exam.Builder()
-//            .fromExam(previousExam)
-//            .withStatus(new ExamStatusCode.Builder().withStatus(status)
-//                .withStage(ExamStatusCode.STAGE_CLOSED)
-//                .build());
-//
-//        return examQueryRepository.getExamById(id);
-
-        return null;
     }
 
     @Override
@@ -423,6 +404,40 @@ class ExamServiceImpl implements ExamService {
         }
 
         return Optional.empty();
+    }
+
+    private Response<Exam> openPreviousExam(OpenExamRequest openExamRequest, ExternalSessionConfiguration externalSessionConfiguration, Exam previousExam, Assessment assessment) {
+        /*
+         Represents StudentDLL._OpenExistingOpportunity_SP in the legacy code.  The beginning of the method
+         goes and fetches statuses and previous exams which we do not need to do here since that is done earlier
+         in the flow.
+         */
+
+        //StudentDLL - around line 6793
+        //If the student already has started the exam then the exam starts in a suspended state otherwise
+        //the new exam being opened is treated as a fresh one which is pending state waiting for the proctor to approve
+        ExamStatusCode status = examStatusQueryRepository.findExamStatusCode(STATUS_PENDING);
+        if (previousExam.getDateStarted() != null) {
+            status = examStatusQueryRepository.findExamStatusCode(STATUS_SUSPENDED);
+        }
+
+        //Student DLL - around line 6804
+        //If for some reason the previous exam is in an inuse stage then we still allow the prevous exam to
+        //be opened but we mark it as an abnormal start.  This should not happen very often as it most likely
+        //is some type of bug in the legacy Web app and its processing of requests.
+        int abnormalIncrement = ExamStatusStage.inuse.equals(previousExam.getStatus().getStage()) ? 1 : 0;
+
+        Exam currentExam = new Exam.Builder()
+            .fromExam(previousExam)
+            .withStatus(status)
+            .withBrowserId(openExamRequest.getBrowserId())
+            .withDateChanged(org.joda.time.Instant.now())
+            .withAbnormalStarts(previousExam.getAbnormalStarts() + abnormalIncrement)
+            .build();
+
+        examCommandRepository.update(currentExam);
+
+        return new Response<>(currentExam);
     }
 
     private Optional<ValidationError> canOpenPreviousExam(Exam previousExam, Session currentSession) {
