@@ -4,10 +4,10 @@ package tds.exam;
  * Exam status also has an associated stage.
  */
 public enum ExamStatusStage {
-    inuse("inuse"),
-    closed("closed"),
-    inactive("inactive"),
-    open("open");
+    INUSE("INUSE"),
+    CLOSED("closed"),
+    INACTIVE("inactive"),
+    OPEN("open");
 
     private final String type;
 

@@ -26,7 +26,7 @@ public class ExamBuilder {
     private Instant dateChanged = null;
     private Instant dateStarted = null;
     private Instant dateCompleted = null;
-    private ExamStatusCode status = new ExamStatusCode(STATUS_PENDING, ExamStatusStage.inuse);
+    private ExamStatusCode status = new ExamStatusCode(STATUS_PENDING, ExamStatusStage.INUSE);
     private String subject = "ELA";
     private String studentKey = "ADV001";
     private String studentName = "Darth";

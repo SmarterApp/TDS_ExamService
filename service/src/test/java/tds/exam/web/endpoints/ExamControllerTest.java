@@ -119,7 +119,7 @@ public class ExamControllerTest {
         String clientName = "UNIT_TEST";
         ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserId, clientName);
 
-        ExamApproval mockExamApproval = new ExamApproval(examId, new ExamStatusCode(STATUS_APPROVED, ExamStatusStage.open), null);
+        ExamApproval mockExamApproval = new ExamApproval(examId, new ExamStatusCode(STATUS_APPROVED, ExamStatusStage.OPEN), null);
         when(examService.getApproval(Matchers.isA(ApprovalRequest.class))).thenReturn(new Response<>(mockExamApproval));
 
         ResponseEntity<ExamApprovalResource> response = controller.getApproval(

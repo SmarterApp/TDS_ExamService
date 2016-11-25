@@ -424,7 +424,7 @@ class ExamServiceImpl implements ExamService {
         //If for some reason the previous exam is in an inuse stage then we still allow the prevous exam to
         //be opened but we mark it as an abnormal start.  This should not happen very often as it most likely
         //is some type of bug in the legacy Web app and its processing of requests.
-        int abnormalIncrement = ExamStatusStage.inuse.equals(previousExam.getStatus().getStage()) ? 1 : 0;
+        int abnormalIncrement = ExamStatusStage.INUSE.equals(previousExam.getStatus().getStage()) ? 1 : 0;
 
         Exam currentExam = new Exam.Builder()
             .fromExam(previousExam)
@@ -441,7 +441,7 @@ class ExamServiceImpl implements ExamService {
 
     private Optional<ValidationError> canOpenPreviousExam(Exam previousExam, Session currentSession) {
         //Port of Student.DLL lines 5526-5530
-        if (ExamStatusStage.closed.equals(previousExam.getStatus().getStage())) {
+        if (ExamStatusStage.CLOSED.equals(previousExam.getStatus().getStage())) {
             return Optional.empty();
         }
 
@@ -458,7 +458,7 @@ class ExamServiceImpl implements ExamService {
         }
 
         //Port of Student.DLL lines 5555-5560
-        if (ExamStatusStage.inactive.equals(previousExam.getStatus().getStage())) {
+        if (ExamStatusStage.INACTIVE.equals(previousExam.getStatus().getStage())) {
             return Optional.empty();
         }
 
@@ -497,7 +497,7 @@ class ExamServiceImpl implements ExamService {
         //Lines 5645 - 5673 in StudentDLL
         if (previousExam != null) {
             //This is done with a query in the legacy application but we can just check the status of the previous exam fetched in a previous step.
-            if (!ExamStatusStage.closed.equals(previousExam.getStatus().getStage())) {
+            if (!ExamStatusStage.CLOSED.equals(previousExam.getStatus().getStage())) {
                 return Optional.of(new ValidationError(ValidationErrorCode.PREVIOUS_EXAM_NOT_CLOSED, "Previous exam is not closed"));
             }
 
