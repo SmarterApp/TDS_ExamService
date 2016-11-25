@@ -27,7 +27,6 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
             .addValue("clientName", exam.getClientName())
             .addValue("environment", exam.getEnvironment())
             .addValue("sessionId", getBytesFromUUID(exam.getSessionId()))
-            .addValue("browserId", getBytesFromUUID(exam.getBrowserId()))
             .addValue("subject", exam.getSubject())
             .addValue("loginSsid", exam.getLoginSSID())
             .addValue("studentId", exam.getStudentId())
@@ -45,7 +44,6 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
             "  client_name, \n" +
             "  environment,\n" +
             "  session_id,\n" +
-            "  browser_id,\n" +
             "  subject,\n" +
             "  login_ssid,\n" +
             "  student_id,\n" +
@@ -63,7 +61,6 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
             "  :clientName,\n" +
             "  :environment,\n" +
             "  :sessionId,\n" +
-            "  :browserId,\n" +
             "  :subject,\n" +
             "  :loginSsid,\n" +
             "  :studentId,\n" +
@@ -90,6 +87,7 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
         SqlParameterSource examEventParameters = new MapSqlParameterSource("examId", getBytesFromUUID(exam.getId()))
             .addValue("attempts", exam.getAttempts())
             .addValue("status", exam.getStatus().getStatus())
+            .addValue("browserId", getBytesFromUUID(exam.getBrowserId()))
             .addValue("statusChangeReason", exam.getStatusChangeReason())
             .addValue("dateChanged", mapJodaInstantToTimestamp(exam.getDateChanged()))
             .addValue("dateDeleted", mapJodaInstantToTimestamp(exam.getDateDeleted()))
@@ -102,7 +100,8 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
 
         String examEventInsertSQL = "INSERT INTO exam_event (\n" +
             "  exam_id,\n" +
-            "  attempts,\n" +
+            "  attempts, \n" +
+            "  browser_id, \n" +
             "  status,\n" +
             "  status_change_reason,\n" +
             "  date_changed,\n" +
@@ -118,6 +117,7 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
             "(\n" +
             "  :examId,\n" +
             "  :attempts,\n" +
+            "  :browserId,\n" +
             "  :status,\n" +
             "  :statusChangeReason,\n" +
             "  :dateChanged,\n" +

@@ -43,7 +43,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
         String querySQL = "SELECT \n" +
             "   e.id, \n" +
             "   e.session_id, \n" +
-            "   e.browser_id, \n" +
+            "   ee.browser_id, \n" +
             "   e.assessment_id, \n" +
             "   e.student_id, \n" +
             "   e.client_name, \n" +
@@ -111,7 +111,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
             "SELECT " +
                 "   e.id, \n" +
                 "   e.session_id, \n" +
-                "   e.browser_id, \n" +
+                "   ee.browser_id, \n" +
                 "   e.assessment_id, \n" +
                 "   e.student_id, \n" +
                 "   e.client_name, \n" +
