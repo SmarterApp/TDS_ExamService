@@ -3,13 +3,14 @@ package tds.exam.builder;
 import java.util.Collections;
 import java.util.List;
 
+import tds.assessment.Algorithm;
 import tds.assessment.Assessment;
 import tds.assessment.Segment;
 
 public class AssessmentBuilder {
     private String key = "(SBAC_PT)IRP-Perf-ELA-3-Summer-2015-2016";
     private String assessmentId = "IRP-Perf-ELA-3";
-    private String selectionAlgorithm = "fixedform";
+    private Algorithm selectionAlgorithm = Algorithm.FIXED_FORM;
     private float startAbility = 0;
     private String subject = "ENGLISH";
     private List<Segment> segments;
@@ -38,7 +39,7 @@ public class AssessmentBuilder {
         return this;
     }
 
-    public AssessmentBuilder withSelectionAlgorithm(String selectionAlgorithm) {
+    public AssessmentBuilder withSelectionAlgorithm(Algorithm selectionAlgorithm) {
         this.selectionAlgorithm = selectionAlgorithm;
         return this;
     }

@@ -40,23 +40,23 @@ public class HistoryQueryRepositoryImplIntegrationTests {
 
 
         final String SQL1 =
-                "INSERT INTO history (id, client_name, student_id, subject, initial_ability, attempts, assessment_component_id, " +
-                        "date_changed, admin_subject, fk_history_examid_exam, tested_grade, login_ssid, item_group_string, initial_ability_delim)\n" +
+                "INSERT INTO history (id, client_name, student_id, subject, initial_ability, attempts, segment_id, " +
+                        "date_changed, segment_key, exam_id, tested_grade, login_ssid, item_group_string, initial_ability_delim)\n" +
                         "VALUES (X'12380054d1d24c24805c0dfdb45a0d24', 'CLIENT_TEST', " + STUDENT_ID1 + ", 'ELA', 25, 1, 'assessment-id-1', NOW(), 'admin-subject', " +
                         "X'12380054d1d24c24805c0dfdb45a0daa', '03', 'SSID1', null, null)";
         final String SQL2 =
-                "INSERT INTO history (id, client_name, student_id, subject, initial_ability, attempts, assessment_component_id, " +
-                        "date_changed, admin_subject, fk_history_examid_exam, tested_grade, login_ssid, item_group_string, initial_ability_delim)\n" +
+                "INSERT INTO history (id, client_name, student_id, subject, initial_ability, attempts, segment_id, " +
+                        "date_changed, segment_key, exam_id, tested_grade, login_ssid, item_group_string, initial_ability_delim)\n" +
                         "VALUES (X'12380054d1d24c24805c0dfdb45a0d25', 'CLIENT_TEST', " + STUDENT_ID1 + ", 'ELA', null, 1, 'assessment-id-1', NOW(), 'admin-subject', " +
                         "X'12380054d1d24c24805c0dfdb45a0daa', '03', 'SSID1', null, null)";
         final String SQL3 =
-                "INSERT INTO history (id, client_name, student_id, subject, initial_ability, attempts, assessment_component_id, " +
-                        "date_changed, admin_subject, fk_history_examid_exam, tested_grade, login_ssid, item_group_string, initial_ability_delim)\n" +
+                "INSERT INTO history (id, client_name, student_id, subject, initial_ability, attempts, segment_id, " +
+                        "date_changed, segment_key, exam_id, tested_grade, login_ssid, item_group_string, initial_ability_delim)\n" +
                         "VALUES (X'12380054d1d24c24805c0dfdb45a0d26', 'CLIENT_TEST', " + STUDENT_ID1 + ", 'ELA', " + MAX_ABILITY_VAL_FOR_STUDENT1 + ", 1, " +
                         "'assessment-id-1', NOW(), 'admin-subject', X'12380054d1d24c24805c0dfdb45a0daa', '03', 'SSID1', null, null)";
         final String SQL4 =
-                "INSERT INTO history (id, client_name, student_id, subject, initial_ability, attempts, assessment_component_id, " +
-                        "date_changed, admin_subject, fk_history_examid_exam, tested_grade, login_ssid, item_group_string, initial_ability_delim)\n" +
+                "INSERT INTO history (id, client_name, student_id, subject, initial_ability, attempts, segment_id, " +
+                        "date_changed, segment_key, exam_id, tested_grade, login_ssid, item_group_string, initial_ability_delim)\n" +
                         "VALUES (X'12380054d1d24c24805c0dfdb45a0d27', 'CLIENT_TEST', " + STUDENT_ID2 + ", 'ELA', null, 1, 'assessment-id-1', NOW(), 'admin-subject', " +
                         "X'12380054d1d24c24805c0dfdb45a0daa', '03', 'SSID1', null, null)";
 

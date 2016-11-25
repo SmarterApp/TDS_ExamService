@@ -347,7 +347,7 @@ class ExamServiceImpl implements ExamService {
             .withAssessmentId(assessment.getAssessmentId())
             .withAssessmentKey(assessment.getKey())
             .withAttempts(previousExam == null ? 1 : previousExam.getAttempts() + 1)
-            .withAssessmentAlgorithm(assessment.getSelectionAlgorithm())
+            .withAssessmentAlgorithm(assessment.getSelectionAlgorithm().getType())
             .withSegmented(assessment.isSegmented())
             .withDateJoined(org.joda.time.Instant.now())
             .withAssessmentWindowId(assessmentWindow.getWindowId())

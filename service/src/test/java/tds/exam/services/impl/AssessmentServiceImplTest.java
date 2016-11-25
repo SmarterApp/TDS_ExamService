@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import tds.assessment.Algorithm;
 import tds.assessment.Assessment;
 import tds.assessment.Segment;
 import tds.exam.configuration.ExamServiceProperties;
@@ -39,7 +40,7 @@ public class AssessmentServiceImplTest {
         Segment segment = new Segment("segkey");
         segment.setSegmentId("segid");
         segment.setAssessmentKey("key");
-        segment.setSelectionAlgorithm("fixedform");
+        segment.setSelectionAlgorithm(Algorithm.FIXED_FORM);
         segment.setStartAbility(0);
         segments.add(segment);
 
@@ -47,7 +48,7 @@ public class AssessmentServiceImplTest {
         assessment.setKey("key");
         assessment.setAssessmentId("assessmentId");
         assessment.setSegments(segments);
-        assessment.setSelectionAlgorithm("virtual");
+        assessment.setSelectionAlgorithm(Algorithm.FIXED_FORM.VIRTUAL);
         assessment.setStartAbility(100);
 
         when(restTemplate.getForObject("http://localhost:8080/assessments/key", Assessment.class)).thenReturn(assessment);

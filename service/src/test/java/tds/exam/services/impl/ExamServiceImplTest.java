@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import tds.assessment.Algorithm;
 import tds.assessment.Assessment;
 import tds.common.Response;
 import tds.common.ValidationError;
@@ -320,7 +321,7 @@ public class ExamServiceImplTest {
         Exam exam = examResponse.getData().get();
 
         assertThat(exam.getAssessmentId()).isEqualTo(assessment.getAssessmentId());
-        assertThat(exam.getAssessmentAlgorithm()).isEqualTo(assessment.getSelectionAlgorithm());
+        assertThat(exam.getAssessmentAlgorithm()).isEqualTo(assessment.getSelectionAlgorithm().getType());
         assertThat(exam.getAssessmentKey()).isEqualTo(openExamRequest.getAssessmentKey());
         assertThat(exam.getAssessmentWindowId()).isEqualTo("window1");
         assertThat(exam.getAttempts()).isEqualTo(1);
@@ -845,7 +846,7 @@ public class ExamServiceImplTest {
         Assessment assessment = new Assessment();
         assessment.setKey("(SBAC)SBAC ELA 3-ELA-3-Spring-2112a");
         assessment.setAssessmentId(assessmentId);
-        assessment.setSelectionAlgorithm("jeff-j-sort");
+        assessment.setSelectionAlgorithm(Algorithm.FIXED_FORM);
         assessment.setStartAbility(assessmentAbilityVal);
 
         ClientTestProperty clientTestProperty = new ClientTestProperty.Builder()
