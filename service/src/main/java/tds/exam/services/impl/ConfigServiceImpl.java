@@ -1,12 +1,16 @@
 package tds.exam.services.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.List;
 import java.util.Optional;
 
 import tds.config.Accommodation;
@@ -54,11 +58,11 @@ class ConfigServiceImpl implements ConfigService {
     }
 
     @Override
-    public AssessmentWindow[] findAssessmentWindows(String clientName,
-                                                    String assessmentId,
-                                                    int sessionType,
-                                                    long studentId,
-                                                    ExternalSessionConfiguration configuration) {
+    public List<AssessmentWindow> findAssessmentWindows(String clientName,
+                                                        String assessmentId,
+                                                        int sessionType,
+                                                        long studentId,
+                                                        ExternalSessionConfiguration configuration) {
 
         UriComponentsBuilder builder =
             UriComponentsBuilder
@@ -74,7 +78,11 @@ class ConfigServiceImpl implements ConfigService {
         builder.queryParam("shiftFormStart", configuration.getShiftFormStart());
         builder.queryParam("shiftFormEnd", configuration.getShiftFormEnd());
 
-        return restTemplate.getForObject(builder.toUriString(), AssessmentWindow[].class);
+        ResponseEntity<List<AssessmentWindow>> responseEntity = restTemplate.exchange(builder.toUriString(),
+            HttpMethod.GET, null, new ParameterizedTypeReference<List<AssessmentWindow>>() {
+            });
+
+        return responseEntity.getBody();
     }
 
     @Override
@@ -97,11 +105,15 @@ class ConfigServiceImpl implements ConfigService {
     }
 
     @Override
-    public Accommodation[] findAssessmentAccommodations(String assessmentKey) {
+    public List<Accommodation> findAssessmentAccommodations(String assessmentKey) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
                 .fromHttpUrl(String.format("%s/accommodations/%s", examServiceProperties.getConfigUrl(), assessmentKey));
 
-        return restTemplate.getForObject(builder.toUriString(), Accommodation[].class);
+        ResponseEntity<List<Accommodation>> responseEntity = restTemplate.exchange(builder.toUriString(),
+            HttpMethod.GET, null, new ParameterizedTypeReference<List<Accommodation>>() {
+            });
+
+        return responseEntity.getBody();
     }
 }

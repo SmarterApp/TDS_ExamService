@@ -1,5 +1,6 @@
 package tds.exam.services;
 
+import java.util.List;
 import java.util.Optional;
 
 import tds.config.Accommodation;
@@ -32,7 +33,7 @@ public interface ConfigService {
      * @param configuration {@link tds.session.ExternalSessionConfiguration} for the environment
      * @return array of {@link tds.config.AssessmentWindow}
      */
-    AssessmentWindow[] findAssessmentWindows(String clientName, String assessmentId, int sessionType, long studentId, ExternalSessionConfiguration configuration);
+    List<AssessmentWindow> findAssessmentWindows(String clientName, String assessmentId, int sessionType, long studentId, ExternalSessionConfiguration configuration);
 
     /**
      * Finds the {@link tds.config.ClientSystemFlag} for client
@@ -49,5 +50,5 @@ public interface ConfigService {
      * @param assessmentKey the assessment key
      * @return {@link tds.config.Accommodation} for the assessment
      */
-    Accommodation[] findAssessmentAccommodations(final String assessmentKey);
+    List<Accommodation> findAssessmentAccommodations(final String assessmentKey);
 }

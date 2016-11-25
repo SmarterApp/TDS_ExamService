@@ -10,7 +10,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -315,7 +314,7 @@ class ExamServiceImpl implements ExamService {
         }
 
         //OpenTestServiceImpl lines 317 - 341
-        AssessmentWindow[] assessmentWindows = configService.findAssessmentWindows(
+        List<AssessmentWindow> assessmentWindows = configService.findAssessmentWindows(
             openExamRequest.getClientName(),
             assessment.getAssessmentId(),
             session.getType(),
@@ -324,7 +323,7 @@ class ExamServiceImpl implements ExamService {
         );
 
         //OpenTestServiceImpl lines 344 - 365
-        Optional<AssessmentWindow> maybeWindow = Arrays.stream(assessmentWindows)
+        Optional<AssessmentWindow> maybeWindow = assessmentWindows.stream()
             .filter(assessmentWindow -> assessmentWindow.getAssessmentKey().equals(openExamRequest.getAssessmentKey()))
             .min((o1, o2) -> o1.getStartTime().compareTo(o2.getStartTime()));
 
@@ -540,11 +539,11 @@ class ExamServiceImpl implements ExamService {
 
         // StudentDLL fetches the key accommodations via CommonDLL.TestKeyAccommodations_FN which this call replicates.  The legacy application leverages
         // temporary tables for most of its data structures which is unnecessary in this case so a collection is returned.
-        Accommodation[] assessmentAccommodations = configService.findAssessmentAccommodations(exam.getAssessmentKey());
+        List<Accommodation> assessmentAccommodations = configService.findAssessmentAccommodations(exam.getAssessmentKey());
 
         // StudentDLL line 6645 - the query filters the results of the temporary table fetched above by these two values.
         // It was decided the record usage and report usage values that are also queried are not actually used.
-        List<Accommodation> accommodations = Arrays.stream(assessmentAccommodations).filter(accommodation ->
+        List<Accommodation> accommodations = assessmentAccommodations.stream().filter(accommodation ->
             accommodation.isDefaultAccommodation() && accommodation.getDependsOnToolType() == null).collect(Collectors.toList());
 
         List<ExamAccommodation> examAccommodations = new ArrayList<>();

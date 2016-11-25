@@ -1,13 +1,15 @@
 package tds.exam.services.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -57,6 +59,10 @@ class StudentServiceImpl implements StudentService {
                     String.join(",", (CharSequence[]) attributeNames))
                 );
 
-        return Arrays.asList(restTemplate.getForObject(builder.toUriString(), RtsStudentPackageAttribute[].class));
+        ResponseEntity<List<RtsStudentPackageAttribute>> responseEntity = restTemplate.exchange(builder.toUriString(),
+            HttpMethod.GET, null, new ParameterizedTypeReference<List<RtsStudentPackageAttribute>>() {
+        });
+
+        return responseEntity.getBody();
     }
 }

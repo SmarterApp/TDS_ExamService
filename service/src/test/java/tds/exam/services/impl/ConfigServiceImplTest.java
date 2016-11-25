@@ -2,12 +2,16 @@ package tds.exam.services.impl;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import tds.config.Accommodation;
@@ -22,6 +26,7 @@ import tds.session.ExternalSessionConfiguration;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpMethod.GET;
 
 /**
  * Class for testing the {@link ConfigService}
@@ -93,8 +98,12 @@ public class ConfigServiceImplTest {
             .withShiftFormEnd(11)
             .build();
 
-        when(restTemplate.getForObject(url, AssessmentWindow[].class)).thenReturn(new AssessmentWindow[]{window});
-        AssessmentWindow[] windows = configService.findAssessmentWindows("SBAC_PT", "ELA 11", 0, 23, config);
+        ResponseEntity<List<AssessmentWindow>> entity = new ResponseEntity<>(Collections.singletonList(window), HttpStatus.OK);
+
+        when(restTemplate.exchange(url, GET, null, new ParameterizedTypeReference<List<AssessmentWindow>>() {}))
+            .thenReturn(entity);
+
+        List<AssessmentWindow> windows = configService.findAssessmentWindows("SBAC_PT", "ELA 11", 0, 23, config);
 
         assertThat(windows).containsExactly(window);
     }
@@ -127,9 +136,12 @@ public class ConfigServiceImplTest {
     @Test
     public void shouldFindAssessmentAccommodations() {
         Accommodation accommodation = new Accommodation.Builder().build();
-        when(restTemplate.getForObject(String.format("%s/accommodations/key", BASE_URL), Accommodation[].class)).thenReturn(new Accommodation[]{accommodation});
+        ResponseEntity<List<Accommodation>> entity = new ResponseEntity<>(Collections.singletonList(accommodation), HttpStatus.OK);
 
-        Accommodation[] accommodations = configService.findAssessmentAccommodations("key");
+        when(restTemplate.exchange(String.format("%s/accommodations/key", BASE_URL), GET, null, new ParameterizedTypeReference<List<Accommodation>>() {}))
+            .thenReturn(entity);
+
+        List<Accommodation> accommodations = configService.findAssessmentAccommodations("key");
 
         assertThat(accommodations).containsExactly(accommodation);
     }
