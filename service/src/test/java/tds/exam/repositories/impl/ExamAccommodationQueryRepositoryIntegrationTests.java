@@ -7,20 +7,18 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-import tds.common.data.mysql.UuidAdapter;
 import tds.exam.ExamAccommodation;
 import tds.exam.builder.ExamAccommodationBuilder;
+import tds.exam.repositories.ExamAccommodationCommandRepository;
 import tds.exam.repositories.ExamAccommodationQueryRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,14 +28,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Transactional
 public class ExamAccommodationQueryRepositoryIntegrationTests {
     private ExamAccommodationQueryRepository examAccommodationQueryRepository;
+    private ExamAccommodationCommandRepository examAccommodationCommandRepository;
 
     @Autowired
     @Qualifier("commandJdbcTemplate")
     private NamedParameterJdbcTemplate jdbcTemplate;
-    
+
     @Before
     public void setUp() {
         examAccommodationQueryRepository = new ExamAccommodationQueryRepositoryImpl(jdbcTemplate);
+        examAccommodationCommandRepository = new ExamAccommodationCommandRepositoryImpl(jdbcTemplate);
 
         List<ExamAccommodation> mockExamAccommodations = new ArrayList<>();
         // Two accommodations for the first Exam ID
@@ -56,7 +56,7 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
             .withDeniedAt(Instant.now())
             .build());
 
-        mockExamAccommodations.forEach(this::insertMockAccommodation);
+        examAccommodationCommandRepository.insertAccommodations(mockExamAccommodations);
     }
 
     @Test
@@ -208,18 +208,18 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
         assertThat(result).hasSize(0);
     }
 
-    private void insertMockAccommodation(ExamAccommodation examAccommodation) {
-        SqlParameterSource parameters = new MapSqlParameterSource("examId", UuidAdapter.getBytesFromUUID(examAccommodation.getExamId()))
-            .addValue("segmentKey", examAccommodation.getSegmentKey())
-            .addValue("type", examAccommodation.getType())
-            .addValue("code", examAccommodation.getCode())
-            .addValue("description", examAccommodation.getDescription())
-            .addValue("deniedAt", examAccommodation.getDeniedAt() == null ? null : new Date(examAccommodation.getDeniedAt().getMillis()));
+    @Test
+    public void shouldGetExamAccommodations() {
+        UUID examId = UUID.randomUUID();
+        ExamAccommodation examAccommodation = new ExamAccommodationBuilder()
+            .withExamId(examId)
+            .build();
 
-        final String SQL =
-            "INSERT INTO exam_accommodations(exam_id, segment_key, type, code, description, denied_at)" +
-            "VALUES(:examId, :segmentKey, :type, :code, :description, :deniedAt)";
+        examAccommodationCommandRepository.insertAccommodations(Collections.singletonList(examAccommodation));
 
-        jdbcTemplate.update(SQL, parameters);
+        List<ExamAccommodation> accommodations = examAccommodationQueryRepository.findAccommodations(examId);
+
+        assertThat(accommodations).hasSize(1);
+        assertThat(accommodations.get(0).getExamId()).isEqualTo(examId);
     }
 }

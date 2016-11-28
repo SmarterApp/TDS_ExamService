@@ -57,6 +57,30 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
                 new AccommodationRowMapper());
     }
 
+    @Override
+    public List<ExamAccommodation> findAccommodations(UUID examId) {
+        final SqlParameterSource parameters = new MapSqlParameterSource("examId", UuidAdapter.getBytesFromUUID(examId));
+
+        final String SQL =
+            "SELECT \n" +
+                "   id, \n" +
+                "   exam_id, \n" +
+                "   segment_key, \n" +
+                "   `type`, \n" +
+                "   code, \n" +
+                "   description, \n" +
+                "   denied_at, \n" +
+                "   created_at \n" +
+                "FROM \n" +
+                "   exam_accommodations \n" +
+                "WHERE \n" +
+                "   exam_id = :examId;";
+
+        return jdbcTemplate.query(SQL,
+            parameters,
+            new AccommodationRowMapper());
+    }
+
     private class AccommodationRowMapper implements RowMapper<ExamAccommodation> {
         @Override
         public ExamAccommodation mapRow(ResultSet rs, int rowNum) throws SQLException {
