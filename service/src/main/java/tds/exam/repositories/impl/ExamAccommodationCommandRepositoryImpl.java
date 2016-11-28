@@ -24,7 +24,7 @@ public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodation
     }
 
     @Override
-    public void insertAccommodations(List<ExamAccommodation> accommodations) {
+    public void save(List<ExamAccommodation> accommodations) {
         String SQL = "INSERT INTO exam_accommodations(exam_id, segment_key, type, code, description, denied_at)" +
             "VALUES(:examId, :segmentKey, :type, :code, :description, :deniedAt)";
 

@@ -56,7 +56,7 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
             .withDeniedAt(Instant.now())
             .build());
 
-        examAccommodationCommandRepository.insertAccommodations(mockExamAccommodations);
+        examAccommodationCommandRepository.save(mockExamAccommodations);
     }
 
     @Test
@@ -215,7 +215,7 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
             .withExamId(examId)
             .build();
 
-        examAccommodationCommandRepository.insertAccommodations(Collections.singletonList(examAccommodation));
+        examAccommodationCommandRepository.save(Collections.singletonList(examAccommodation));
 
         List<ExamAccommodation> accommodations = examAccommodationQueryRepository.findAccommodations(examId);
 

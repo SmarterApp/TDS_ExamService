@@ -317,7 +317,7 @@ public class ExamServiceImplTest {
         Response<Exam> examResponse = examService.openExam(openExamRequest);
         assertThat(examResponse.getErrors()).isEmpty();
         verify(mockExamCommandRepository).save(isA(Exam.class));
-        verify(mockExamAccommodationCommandRepository).insertAccommodations(examAccommodationCaptor.capture());
+        verify(mockExamAccommodationCommandRepository).save(examAccommodationCaptor.capture());
 
         Exam exam = examResponse.getData().get();
 
@@ -386,7 +386,7 @@ public class ExamServiceImplTest {
 
         Response<Exam> examResponse = examService.openExam(openExamRequest);
         verify(mockExamCommandRepository).save(isA(Exam.class));
-        verify(mockExamAccommodationCommandRepository).insertAccommodations(examAccommodationCaptor.capture());
+        verify(mockExamAccommodationCommandRepository).save(examAccommodationCaptor.capture());
         assertThat(examResponse.getErrors()).isEmpty();
 
         Exam exam = examResponse.getData().get();
@@ -453,7 +453,7 @@ public class ExamServiceImplTest {
 
         Response<Exam> examResponse = examService.openExam(openExamRequest);
         verify(mockExamCommandRepository).save(isA(Exam.class));
-        verify(mockExamAccommodationCommandRepository).insertAccommodations(examAccommodationCaptor.capture());
+        verify(mockExamAccommodationCommandRepository).save(examAccommodationCaptor.capture());
 
         assertThat(examResponse.getErrors()).isEmpty();
 

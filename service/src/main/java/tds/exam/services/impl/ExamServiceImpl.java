@@ -560,6 +560,6 @@ class ExamServiceImpl implements ExamService {
         });
 
         //Inserts the accommodations into the exam system.
-        examAccommodationCommandRepository.insertAccommodations(examAccommodations);
+        examAccommodationCommandRepository.save(examAccommodations);
     }
 }
