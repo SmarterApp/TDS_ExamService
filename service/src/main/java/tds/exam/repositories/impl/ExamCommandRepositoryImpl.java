@@ -22,7 +22,7 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
     }
 
     @Override
-    public void save(Exam exam) {
+    public void insert(Exam exam) {
         SqlParameterSource examParameters = new MapSqlParameterSource("id", getBytesFromUUID(exam.getId()))
             .addValue("clientName", exam.getClientName())
             .addValue("environment", exam.getEnvironment())

@@ -316,8 +316,8 @@ public class ExamServiceImplTest {
 
         Response<Exam> examResponse = examService.openExam(openExamRequest);
         assertThat(examResponse.getErrors()).isEmpty();
-        verify(mockExamCommandRepository).save(isA(Exam.class));
-        verify(mockExamAccommodationCommandRepository).save(examAccommodationCaptor.capture());
+        verify(mockExamCommandRepository).insert(isA(Exam.class));
+        verify(mockExamAccommodationCommandRepository).insert(examAccommodationCaptor.capture());
 
         Exam exam = examResponse.getData().get();
 
@@ -385,8 +385,8 @@ public class ExamServiceImplTest {
         when(mockExamStatusQueryRepository.findExamStatusCode(STATUS_APPROVED)).thenReturn(new ExamStatusCode(STATUS_APPROVED, OPEN));
 
         Response<Exam> examResponse = examService.openExam(openExamRequest);
-        verify(mockExamCommandRepository).save(isA(Exam.class));
-        verify(mockExamAccommodationCommandRepository).save(examAccommodationCaptor.capture());
+        verify(mockExamCommandRepository).insert(isA(Exam.class));
+        verify(mockExamAccommodationCommandRepository).insert(examAccommodationCaptor.capture());
         assertThat(examResponse.getErrors()).isEmpty();
 
         Exam exam = examResponse.getData().get();
@@ -452,8 +452,8 @@ public class ExamServiceImplTest {
         when(mockExamStatusQueryRepository.findExamStatusCode(STATUS_PENDING)).thenReturn(new ExamStatusCode(STATUS_PENDING, OPEN));
 
         Response<Exam> examResponse = examService.openExam(openExamRequest);
-        verify(mockExamCommandRepository).save(isA(Exam.class));
-        verify(mockExamAccommodationCommandRepository).save(examAccommodationCaptor.capture());
+        verify(mockExamCommandRepository).insert(isA(Exam.class));
+        verify(mockExamAccommodationCommandRepository).insert(examAccommodationCaptor.capture());
 
         assertThat(examResponse.getErrors()).isEmpty();
 

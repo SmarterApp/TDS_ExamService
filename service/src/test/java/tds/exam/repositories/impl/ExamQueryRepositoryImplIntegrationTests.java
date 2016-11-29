@@ -66,7 +66,7 @@ public class ExamQueryRepositoryImplIntegrationTests {
             .withDateScored(Instant.now().minus(Minutes.minutes(5).toStandardDuration()))
             .build());
 
-        exams.forEach(exam -> examCommandRepository.save(exam));
+        exams.forEach(exam -> examCommandRepository.insert(exam));
 
         insertExamScoresData();
     }

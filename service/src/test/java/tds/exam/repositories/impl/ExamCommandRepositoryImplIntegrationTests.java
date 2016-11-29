@@ -46,7 +46,7 @@ public class ExamCommandRepositoryImplIntegrationTests {
             .build();
         assertThat(examQueryRepository.getExamById(exam.getId())).isNotPresent();
 
-        examCommandRepository.save(exam);
+        examCommandRepository.insert(exam);
 
         Optional<Exam> maybeExam = examQueryRepository.getExamById(exam.getId());
         assertThat(maybeExam).isPresent();

@@ -11,7 +11,7 @@ public interface ExamCommandRepository {
      *
      * @param exam a non null {@link tds.exam.Exam}
      */
-    void save(Exam exam);
+    void insert(Exam exam);
 
     /**
      * Updates the exam

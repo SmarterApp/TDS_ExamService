@@ -354,7 +354,7 @@ class ExamServiceImpl implements ExamService {
             .withSubject(assessment.getSubject())
             .build();
 
-        examCommandRepository.save(exam);
+        examCommandRepository.insert(exam);
 
         //Lines 412 - 421 OpenTestServiceImpl is not implemented.  After talking with data warehouse and Smarter Balanced
         //The initial student attributes are not used and smarter balance suggested removing them
@@ -560,6 +560,6 @@ class ExamServiceImpl implements ExamService {
         });
 
         //Inserts the accommodations into the exam system.
-        examAccommodationCommandRepository.save(examAccommodations);
+        examAccommodationCommandRepository.insert(examAccommodations);
     }
 }

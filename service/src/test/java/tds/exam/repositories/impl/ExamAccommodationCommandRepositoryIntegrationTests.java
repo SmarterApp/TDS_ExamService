@@ -54,7 +54,7 @@ public class ExamAccommodationCommandRepositoryIntegrationTests {
             .withCode("TDS_ClosedCap0")
             .build());
 
-        examAccommodationCommandRepository.save(mockExamAccommodations);
+        examAccommodationCommandRepository.insert(mockExamAccommodations);
 
         List<ExamAccommodation> accommodations = accommodationQueryRepository.findAccommodations(examId, "segment", new String[]{"language", "closed captioning"});
 

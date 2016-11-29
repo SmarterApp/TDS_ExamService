@@ -51,8 +51,8 @@ public class ExamSegmentRepositoryImplIntegrationTests {
         exam = new ExamBuilder().withId(UUID.randomUUID()).build();
         otherExam = new ExamBuilder().withId(UUID.randomUUID()).build();
 
-        examCommandRepository.save(exam);
-        examCommandRepository.save(otherExam);
+        examCommandRepository.insert(exam);
+        examCommandRepository.insert(otherExam);
     }
 
     @Test
