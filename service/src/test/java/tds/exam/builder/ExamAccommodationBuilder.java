@@ -25,6 +25,7 @@ public class ExamAccommodationBuilder {
     private String description = "description";
     private Instant deniedAt = null;
     private Instant createdAt = Instant.now();
+    private Instant deletedAt = null;
 
     public ExamAccommodation build() {
         return new ExamAccommodation.Builder()
@@ -36,6 +37,7 @@ public class ExamAccommodationBuilder {
             .withDescription(description)
             .withDeniedAt(deniedAt)
             .withCreatedAt(createdAt)
+            .withDeletedAt(deletedAt)
             .build();
     }
 
@@ -76,6 +78,11 @@ public class ExamAccommodationBuilder {
 
     public ExamAccommodationBuilder withCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
+        return this;
+    }
+
+    public ExamAccommodationBuilder withDeletedAt(Instant deletedAt) {
+        this.deletedAt = deletedAt;
         return this;
     }
 }

@@ -221,5 +221,16 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
 
         assertThat(accommodations).hasSize(1);
         assertThat(accommodations.get(0).getExamId()).isEqualTo(examId);
+
+
+        examAccommodation = new ExamAccommodationBuilder()
+            .withExamId(examId)
+            .withId(examAccommodation.getId())
+            .withDeletedAt(Instant.now())
+            .build();
+
+        examAccommodationCommandRepository.update(examAccommodation);
+
+        assertThat(examAccommodationQueryRepository.findAccommodations(examId)).isEmpty();
     }
 }

@@ -38,12 +38,12 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
         final String SQL =
             "SELECT \n" +
             "   ea.id, \n" +
-            "   exam_id, \n" +
-            "   segment_key, \n" +
-            "   `type`, \n" +
-            "   code, \n" +
-            "   description, \n" +
-            "   denied_at, \n" +
+            "   ea.exam_id, \n" +
+            "   ea.segment_key, \n" +
+            "   ea.`type`, \n" +
+            "   ea.code, \n" +
+            "   ea.description, \n" +
+            "   eae.denied_at, \n" +
             "   ea.created_at \n" +
             "FROM \n" +
             "   exam_accommodation ea \n" +
@@ -53,7 +53,6 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
             "       MAX(id) AS id \n" +
             "   FROM \n" +
             "       exam_accommodation_event \n" +
-            "   WHERE deleted_at is null \n" +
             "   GROUP BY exam_accommodation_id \n" +
             ") last_event \n" +
             "  ON ea.id = last_event.exam_accommodation_id \n" +
@@ -62,7 +61,8 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
             "WHERE \n" +
             "   exam_id = :examId \n" +
             "   AND segment_key = :segmentKey \n" +
-            "   AND `type` IN (:accommodationTypes)";
+            "   AND `type` IN (:accommodationTypes)" +
+            "   AND deleted_at IS NULL";
 
         return jdbcTemplate.query(SQL,
                 parameters,
@@ -76,12 +76,12 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
         final String SQL =
             "SELECT \n" +
                 "   ea.id, \n" +
-                "   exam_id, \n" +
-                "   segment_key, \n" +
-                "   `type`, \n" +
-                "   code, \n" +
-                "   description, \n" +
-                "   denied_at, \n" +
+                "   ea.exam_id, \n" +
+                "   ea.segment_key, \n" +
+                "   ea.`type`, \n" +
+                "   ea.code, \n" +
+                "   ea.description, \n" +
+                "   eae.denied_at, \n" +
                 "   ea.created_at \n" +
                 "FROM \n" +
                 "   exam_accommodation ea \n" +
@@ -91,14 +91,14 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
                 "       MAX(id) AS id \n" +
                 "   FROM \n" +
                 "       exam_accommodation_event \n" +
-                "   WHERE deleted_at is null \n" +
                 "   GROUP BY exam_accommodation_id \n" +
                 ") last_event \n" +
                 "  ON ea.id = last_event.exam_accommodation_id \n" +
                 "JOIN exam_accommodation_event eae \n" +
                 "  ON last_event.id = eae.id \n" +
                 "WHERE \n" +
-                "   exam_id = :examId;";
+                "   exam_id = :examId" +
+                "   AND deleted_at IS NULL;";
 
         return jdbcTemplate.query(SQL,
             parameters,
