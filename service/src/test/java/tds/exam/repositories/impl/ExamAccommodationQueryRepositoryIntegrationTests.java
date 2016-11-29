@@ -232,5 +232,14 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
         examAccommodationCommandRepository.update(examAccommodation);
 
         assertThat(examAccommodationQueryRepository.findAccommodations(examId)).isEmpty();
+
+        examAccommodation = new ExamAccommodationBuilder()
+            .withExamId(examId)
+            .withId(examAccommodation.getId())
+            .withDeletedAt(null)
+            .build();
+
+        examAccommodationCommandRepository.update(examAccommodation);
+        assertThat(examAccommodationQueryRepository.findAccommodations(examId)).hasSize(1);
     }
 }
