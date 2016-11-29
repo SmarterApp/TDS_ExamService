@@ -59,10 +59,10 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
             "JOIN exam_accommodation_event eae \n" +
             "  ON last_event.id = eae.id \n" +
             "WHERE \n" +
-            "   exam_id = :examId \n" +
-            "   AND segment_key = :segmentKey \n" +
-            "   AND `type` IN (:accommodationTypes)" +
-            "   AND deleted_at IS NULL";
+            "   ea.exam_id = :examId \n" +
+            "   AND ea.segment_key = :segmentKey \n" +
+            "   AND ea.`type` IN (:accommodationTypes)" +
+            "   AND eae.deleted_at IS NULL";
 
         return jdbcTemplate.query(SQL,
                 parameters,
@@ -97,8 +97,8 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
                 "JOIN exam_accommodation_event eae \n" +
                 "  ON last_event.id = eae.id \n" +
                 "WHERE \n" +
-                "   exam_id = :examId" +
-                "   AND deleted_at IS NULL;";
+                "   ea.exam_id = :examId" +
+                "   AND eae.deleted_at IS NULL;";
 
         return jdbcTemplate.query(SQL,
             parameters,
