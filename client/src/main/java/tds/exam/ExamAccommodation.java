@@ -17,6 +17,7 @@ public class ExamAccommodation {
     private String description;
     private Instant deniedAt;
     private Instant createdAt;
+    private Instant deletedAt;
 
     public static class Builder {
         private long id;
@@ -27,6 +28,7 @@ public class ExamAccommodation {
         private String description;
         private Instant deniedAt;
         private Instant createdAt;
+        private Instant deletedAt;
 
         public Builder withId(long id) {
             this.id = id;
@@ -87,6 +89,11 @@ public class ExamAccommodation {
             return this;
         }
 
+        public Builder withDeletedAt(Instant deletedAt) {
+            this.deletedAt = deletedAt;
+            return this;
+        }
+
         public ExamAccommodation build() {
             return new ExamAccommodation(this);
         }
@@ -101,6 +108,7 @@ public class ExamAccommodation {
         description = builder.description;
         deniedAt = builder.deniedAt;
         createdAt = builder.createdAt;
+        deletedAt = builder.deletedAt;
     }
 
     /**
@@ -166,5 +174,18 @@ public class ExamAccommodation {
      */
     public boolean isApproved() {
         return deniedAt == null;
+    }
+
+    /**
+     * Delete date
+     *
+     * @return the delete date
+     */
+    public Instant getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void setId(long id) {
+        this.id = id;
     }
 }

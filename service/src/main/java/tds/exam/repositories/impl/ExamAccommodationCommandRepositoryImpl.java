@@ -4,9 +4,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import tds.common.data.mysql.UuidAdapter;
@@ -25,21 +26,35 @@ public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodation
 
     @Override
     public void save(List<ExamAccommodation> accommodations) {
-        String SQL = "INSERT INTO exam_accommodations(exam_id, segment_key, type, code, description, denied_at)" +
-            "VALUES(:examId, :segmentKey, :type, :code, :description, :deniedAt)";
+        String SQL = "INSERT INTO exam_accommodation(exam_id, segment_key, type, code, description) \n" +
+            "VALUES(:examId, :segmentKey, :type, :code, :description)";
 
-        List<SqlParameterSource> parameterSources = new ArrayList<>();
         accommodations.forEach(examAccommodation -> {
             SqlParameterSource parameters = new MapSqlParameterSource("examId", UuidAdapter.getBytesFromUUID(examAccommodation.getExamId()))
                 .addValue("segmentKey", examAccommodation.getSegmentKey())
                 .addValue("type", examAccommodation.getType())
                 .addValue("code", examAccommodation.getCode())
-                .addValue("description", examAccommodation.getDescription())
-                .addValue("deniedAt", mapJodaInstantToTimestamp(examAccommodation.getDeniedAt()));
+                .addValue("description", examAccommodation.getDescription());
 
-            parameterSources.add(parameters);
+            KeyHolder keyHolder = new GeneratedKeyHolder();
+
+            jdbcTemplate.update(SQL, parameters, keyHolder);
+
+            examAccommodation.setId(keyHolder.getKey().intValue());
+
+            update(examAccommodation);
         });
+    }
 
-        jdbcTemplate.batchUpdate(SQL, parameterSources.toArray(new SqlParameterSource[parameterSources.size()]));
+    @Override
+    public void update(ExamAccommodation examAccommodation) {
+        String SQL = "INSERT INTO exam_accommodation_event(exam_accommodation_id, denied_at, deleted_at) \n" +
+            "VALUES(:examAccommodationId, :deniedAt, :deletedAt);";
+
+        SqlParameterSource parameters = new MapSqlParameterSource("examAccommodationId", examAccommodation.getId())
+            .addValue("deniedAt", mapJodaInstantToTimestamp(examAccommodation.getDeniedAt()))
+            .addValue("deletedAt", mapJodaInstantToTimestamp(examAccommodation.getDeletedAt()));
+
+        jdbcTemplate.update(SQL, parameters);
     }
 }
