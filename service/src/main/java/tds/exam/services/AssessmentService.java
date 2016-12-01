@@ -10,8 +10,10 @@ import tds.assessment.Assessment;
 public interface AssessmentService {
     /**
      * Finds the {@link tds.assessment.Assessment}
+     *
+     * @param clientName The name of the client (e.g. SBAC or SBAC_PT)
      * @param key unique key for the assessment
      * @return {@link tds.assessment.Assessment the assessment}
      */
-    Optional<Assessment> findAssessmentByKey(String key);
+    Optional<Assessment> findAssessmentByKey(String clientName, String key);
 }

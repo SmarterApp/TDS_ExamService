@@ -139,7 +139,8 @@ class ExamServiceImpl implements ExamService {
             }
         }
 
-        Optional<Assessment> maybeAssessment = assessmentService.findAssessmentByKey(openExamRequest.getAssessmentKey());
+        Optional<Assessment> maybeAssessment = assessmentService.findAssessmentByKey(openExamRequest.getClientName(),
+            openExamRequest.getAssessmentKey());
         if (!maybeAssessment.isPresent()) {
             throw new IllegalArgumentException(String.format("Assessment information could not be found for assessment key %s", openExamRequest.getAssessmentKey()));
         }
@@ -222,7 +223,8 @@ class ExamServiceImpl implements ExamService {
 
         // If the ability was not retrieved from any of the exam tables, query the assessment service
         if (!ability.isPresent()) {
-            Optional<Assessment> maybeAssessment = assessmentService.findAssessmentByKey(exam.getAssessmentId());
+            Optional<Assessment> maybeAssessment = assessmentService.findAssessmentByKey(exam.getClientName(),
+                exam.getAssessmentId());
             if (maybeAssessment.isPresent()) {
                 ability = Optional.of((double) maybeAssessment.get().getStartAbility());
             } else {
