@@ -719,6 +719,9 @@ public class ExamServiceImplTest {
         final double assessmentAbilityVal = 99D;
 
         Exam thisExam = createExam(sessionId, thisExamId, assessmentId, clientName, studentId);
+        Assessment assessment = new AssessmentBuilder()
+            .withSubject("ELA")
+            .build();
 
         Ability sameAssessmentAbility = new Ability(
             UUID.randomUUID(), assessmentId, 1, java.time.Instant.now(), assessmentAbilityVal);
@@ -729,7 +732,8 @@ public class ExamServiceImplTest {
         abilities.add(sameAssessmentAbility);
         abilities.add(differentAssessmentAbility);
         when(mockExamQueryRepository.findAbilities(thisExamId, clientName, "ELA", studentId)).thenReturn(abilities);
-        Optional<Double> maybeAbilityReturned = examService.getInitialAbility(thisExam, new AssessmentBuilder().build());
+
+        Optional<Double> maybeAbilityReturned = examService.getInitialAbility(thisExam, assessment);
 
         assertThat(maybeAbilityReturned.get()).isEqualTo(assessmentAbilityVal);
     }
@@ -761,35 +765,6 @@ public class ExamServiceImplTest {
         Optional<Double> maybeAbilityReturned = examService.getInitialAbility(thisExam, assessment);
         verify(mockHistoryRepository).findAbilityFromHistoryForSubjectAndStudent(clientName, "ELA", studentId);
         assertThat(maybeAbilityReturned.get()).isEqualTo(maybeAbility.get());
-    }
-
-    @Test
-    public void shouldGetNullInitialAbility() {
-        final UUID sessionId = UUID.randomUUID();
-        final UUID thisExamId = UUID.randomUUID();
-        final String assessmentId = "SBAC ELA 3-ELA-3";
-        final String clientName = "SBAC_TEST7";
-        final long studentId = 9898L;
-        final float slope = 2f;
-        final float intercept = 1f;
-
-
-        Assessment assessment = new AssessmentBuilder()
-            .withAbilitySlope(slope)
-            .withAbilityIntercept(intercept)
-            .withInitialAbilityBySubject(true)
-            .build();
-
-        Exam thisExam = createExam(sessionId, thisExamId, assessmentId, clientName, studentId);
-        List<Ability> abilities = new ArrayList<>();
-
-        when(mockExamQueryRepository.findAbilities(thisExamId, clientName, "ELA", studentId)).thenReturn(abilities);
-        when(mockHistoryRepository.findAbilityFromHistoryForSubjectAndStudent(clientName, "ELA", studentId))
-            .thenReturn(Optional.empty());
-
-        Optional<Double> maybeAbilityReturned = examService.getInitialAbility(thisExam, assessment);
-
-        assertThat(maybeAbilityReturned).isNotPresent();
     }
 
     @Test
@@ -827,19 +802,27 @@ public class ExamServiceImplTest {
         final String assessmentId = "SBAC ELA 3-ELA-3";
         final String clientName = "SBAC_TEST3";
         final long studentId = 9898L;
-        final Double slope = 2D;
-        final Double intercept = 1D;
+        final float slope = 2f;
+        final float intercept = 1f;
 
         Exam thisExam = createExam(sessionId, thisExamId, assessmentId, clientName, studentId);
+
+        Assessment assessment = new AssessmentBuilder()
+            .withSubject("ELA")
+            .withAbilitySlope(slope)
+            .withAbilityIntercept(intercept)
+            .withInitialAbilityBySubject(true)
+            .build();
+
         List<Ability> abilities = new ArrayList<>();
         Optional<Double> maybeAbility = Optional.of(66D);
         when(mockExamQueryRepository.findAbilities(thisExamId, clientName, "ELA", studentId)).thenReturn(abilities);
         when(mockHistoryRepository.findAbilityFromHistoryForSubjectAndStudent(clientName, "ELA", studentId))
             .thenReturn(maybeAbility);
-        Optional<Double> maybeAbilityReturned = examService.getInitialAbility(thisExam, new AssessmentBuilder().build());
+        Optional<Double> maybeAbilityReturned = examService.getInitialAbility(thisExam, assessment);
         // y=mx+b
-        double abilityCalulated = maybeAbility.get() * slope + intercept;
-        assertThat(maybeAbilityReturned.get()).isEqualTo((float) abilityCalulated);
+        double abilityCalculated = maybeAbility.get() * slope + intercept;
+        assertThat(maybeAbilityReturned.get()).isEqualTo((float) abilityCalculated);
     }
 
     @Test
