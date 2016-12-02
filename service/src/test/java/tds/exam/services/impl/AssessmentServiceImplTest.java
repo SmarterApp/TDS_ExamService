@@ -52,7 +52,7 @@ public class AssessmentServiceImplTest {
         assessment.setStartAbility(100);
 
         when(restTemplate.getForObject("http://localhost:8080/clientname/assessments/key", Assessment.class)).thenReturn(assessment);
-        Optional<Assessment> maybeAssessment = assessmentService.findAssessmentByKey("clientname", "key");
+        Optional<Assessment> maybeAssessment = assessmentService.findAssessment("clientname", "key");
         verify(restTemplate).getForObject("http://localhost:8080/clientname/assessments/key", Assessment.class);
 
         assertThat(maybeAssessment.get()).isEqualTo(assessment);
@@ -61,7 +61,7 @@ public class AssessmentServiceImplTest {
     @Test
     public void shouldReturnEmptyWhenSetOfAdminSubjectNotFound() {
         when(restTemplate.getForObject("http://localhost:8080/clientname/assessments/key", Assessment.class)).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
-        Optional<Assessment> maybeAssessment = assessmentService.findAssessmentByKey("clientname", "key");
+        Optional<Assessment> maybeAssessment = assessmentService.findAssessment("clientname", "key");
         verify(restTemplate).getForObject("http://localhost:8080/clientname/assessments/key", Assessment.class);
 
         assertThat(maybeAssessment).isNotPresent();
@@ -70,6 +70,6 @@ public class AssessmentServiceImplTest {
     @Test (expected = RestClientException.class)
     public void shouldThrowIfStatusNotNotFoundWhenUnexpectedErrorFindingSetOfAdminSubject() {
         when(restTemplate.getForObject("http://localhost:8080/clientname/assessments/key", Assessment.class)).thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
-        assessmentService.findAssessmentByKey("clientname", "key");
+        assessmentService.findAssessment("clientname", "key");
     }
 }

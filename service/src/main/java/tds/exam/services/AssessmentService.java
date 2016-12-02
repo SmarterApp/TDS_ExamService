@@ -15,5 +15,5 @@ public interface AssessmentService {
      * @param key unique key for the assessment
      * @return {@link tds.assessment.Assessment the assessment}
      */
-    Optional<Assessment> findAssessmentByKey(String clientName, String key);
+    Optional<Assessment> findAssessment(String clientName, String key);
 }

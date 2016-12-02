@@ -25,7 +25,7 @@ class AssessmentServiceImpl implements AssessmentService {
     }
 
     @Override
-    public Optional<Assessment> findAssessmentByKey(final String clientName, final String key) {
+    public Optional<Assessment> findAssessment(final String clientName, final String key) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
                 .fromHttpUrl(String.format("%s/%s/assessments/%s", examServiceProperties.getAssessmentUrl(), clientName, key));

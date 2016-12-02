@@ -138,7 +138,7 @@ class ExamServiceImpl implements ExamService {
             }
         }
 
-        Optional<Assessment> maybeAssessment = assessmentService.findAssessmentByKey(openExamRequest.getClientName(),
+        Optional<Assessment> maybeAssessment = assessmentService.findAssessment(openExamRequest.getClientName(),
             openExamRequest.getAssessmentKey());
         if (!maybeAssessment.isPresent()) {
             throw new IllegalArgumentException(String.format("Assessment information could not be found for assessment key %s", openExamRequest.getAssessmentKey()));
@@ -211,20 +211,15 @@ class ExamServiceImpl implements ExamService {
                 Optional<Double> initialAbilityFromHistory = historyQueryRepository.findAbilityFromHistoryForSubjectAndStudent(
                     exam.getClientName(), exam.getSubject(), exam.getStudentId());
 
-                // If no slope/intercept is provided, store base value
-                ability = initialAbilityFromHistory.map(aDouble -> Optional.of(aDouble * slope + intercept)).orElse(initialAbilityFromHistory);
+                if (initialAbilityFromHistory.isPresent()) {
+                    ability = Optional.of(initialAbilityFromHistory.get() * slope + intercept);
+                }
             }
         }
 
         // If the ability was not retrieved from any of the exam tables, query the assessment service
         if (!ability.isPresent()) {
-            Optional<Assessment> maybeAssessment = assessmentService.findAssessmentByKey(exam.getClientName(),
-                exam.getAssessmentId());
-            if (maybeAssessment.isPresent()) {
-                ability = Optional.of((double) maybeAssessment.get().getStartAbility());
-            } else {
-                LOG.warn("Could not set the ability for exam ID " + exam.getId());
-            }
+            ability = Optional.of((double) assessment.getStartAbility());
         }
 
         return ability;
