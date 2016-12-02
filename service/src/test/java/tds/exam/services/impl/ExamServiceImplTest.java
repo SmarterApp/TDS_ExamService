@@ -26,7 +26,6 @@ import tds.common.ValidationError;
 import tds.config.Accommodation;
 import tds.config.AssessmentWindow;
 import tds.config.ClientSystemFlag;
-import tds.config.ClientTestProperty;
 import tds.config.TimeLimitConfiguration;
 import tds.exam.ApprovalRequest;
 import tds.exam.Exam;
@@ -719,26 +718,6 @@ public class ExamServiceImplTest {
         final long studentId = 9898L;
         final double assessmentAbilityVal = 99D;
 
-        ClientTestProperty clientTestProperty = new ClientTestProperty.Builder()
-            .withClientName(clientName)
-            .withAssessmentId(assessmentId)
-            .withMaxOpportunities(3)
-            .withPrefetch(2)
-            .withIsSelectable(true)
-            .withLabel("Grades 3 - 5 MATH")
-            .withSubjectName("ELA")
-            .withAccommodationFamily("MATH")
-            .withRtsFormField("tds-testform")
-            .withRequireRtsWindow(true)
-            .withRtsModeField("tds-testmode")
-            .withRequireRtsMode(true)
-            .withRequireRtsModeWindow(true)
-            .withDeleteUnansweredItems(true)
-            .withInitialAbilityBySubject(true)
-            .withAbilitySlope(1D)
-            .withAbilityIntercept(2D)
-            .build();
-
         Exam thisExam = createExam(sessionId, thisExamId, assessmentId, clientName, studentId);
 
         Ability sameAssessmentAbility = new Ability(
@@ -750,7 +729,7 @@ public class ExamServiceImplTest {
         abilities.add(sameAssessmentAbility);
         abilities.add(differentAssessmentAbility);
         when(mockExamQueryRepository.findAbilities(thisExamId, clientName, "ELA", studentId)).thenReturn(abilities);
-        Optional<Double> maybeAbilityReturned = examService.getInitialAbility(thisExam, clientTestProperty);
+        Optional<Double> maybeAbilityReturned = examService.getInitialAbility(thisExam, new AssessmentBuilder().build());
 
         assertThat(maybeAbilityReturned.get()).isEqualTo(assessmentAbilityVal);
     }
@@ -763,32 +742,17 @@ public class ExamServiceImplTest {
         final String clientName = "SBAC_TEST4";
         final long studentId = 9897L;
 
+        Assessment assessment = new AssessmentBuilder().build();
         // Null slope/intercept for this test case
-        ClientTestProperty clientTestProperty = new ClientTestProperty.Builder()
-            .withClientName(clientName)
-            .withAssessmentId(assessmentId)
-            .withMaxOpportunities(3)
-            .withPrefetch(2)
-            .withIsSelectable(true)
-            .withLabel("Grades 3 - 5 MATH")
-            .withSubjectName("ELA")
-            .withAccommodationFamily("MATH")
-            .withRtsFormField("tds-testform")
-            .withRequireRtsWindow(true)
-            .withRtsModeField("tds-testmode")
-            .withRequireRtsMode(true)
-            .withRequireRtsModeWindow(true)
-            .withDeleteUnansweredItems(true)
-            .withInitialAbilityBySubject(true)
-            .build();
 
         Exam thisExam = createExam(sessionId, thisExamId, assessmentId, clientName, studentId);
         List<Ability> abilities = new ArrayList<>();
         Optional<Double> maybeAbility = Optional.of(66D);
+
         when(mockExamQueryRepository.findAbilities(thisExamId, clientName, "ELA", studentId)).thenReturn(abilities);
         when(mockHistoryRepository.findAbilityFromHistoryForSubjectAndStudent(clientName, "ELA", studentId))
             .thenReturn(maybeAbility);
-        Optional<Double> maybeAbilityReturned = examService.getInitialAbility(thisExam, clientTestProperty);
+        Optional<Double> maybeAbilityReturned = examService.getInitialAbility(thisExam, assessment);
         assertThat(maybeAbilityReturned.get()).isEqualTo(maybeAbility.get());
     }
 
@@ -802,34 +766,15 @@ public class ExamServiceImplTest {
         final Double slope = 2D;
         final Double intercept = 1D;
 
-        ClientTestProperty clientTestProperty = new ClientTestProperty.Builder()
-            .withClientName(clientName)
-            .withAssessmentId(assessmentId)
-            .withMaxOpportunities(3)
-            .withPrefetch(2)
-            .withIsSelectable(true)
-            .withLabel("Grades 3 - 5 MATH")
-            .withSubjectName("ELA")
-            .withAccommodationFamily("MATH")
-            .withRtsFormField("tds-testform")
-            .withRequireRtsWindow(true)
-            .withRtsModeField("tds-testmode")
-            .withRequireRtsMode(true)
-            .withRequireRtsModeWindow(true)
-            .withDeleteUnansweredItems(true)
-            .withInitialAbilityBySubject(true)
-            .withAbilitySlope(slope)
-            .withAbilityIntercept(intercept)
-            .build();
 
         Exam thisExam = createExam(sessionId, thisExamId, assessmentId, clientName, studentId);
-
+        Assessment assessment = new AssessmentBuilder().build();
         List<Ability> abilities = new ArrayList<>();
         when(mockExamQueryRepository.findAbilities(thisExamId, clientName, "ELA", studentId)).thenReturn(abilities);
         when(mockHistoryRepository.findAbilityFromHistoryForSubjectAndStudent(clientName, "ELA", studentId))
             .thenReturn(Optional.empty());
         when(mockAssessmentService.findAssessmentByKey(thisExam.getClientName(), thisExam.getAssessmentId())).thenReturn(Optional.empty());
-        Optional<Double> maybeAbilityReturned = examService.getInitialAbility(thisExam, clientTestProperty);
+        Optional<Double> maybeAbilityReturned = examService.getInitialAbility(thisExam, assessment);
         assertThat(maybeAbilityReturned).isNotPresent();
     }
 
@@ -850,26 +795,6 @@ public class ExamServiceImplTest {
         assessment.setSelectionAlgorithm(Algorithm.FIXED_FORM);
         assessment.setStartAbility(assessmentAbilityVal);
 
-        ClientTestProperty clientTestProperty = new ClientTestProperty.Builder()
-            .withClientName(clientName)
-            .withAssessmentId(assessmentId)
-            .withMaxOpportunities(3)
-            .withPrefetch(2)
-            .withIsSelectable(true)
-            .withLabel("Grades 3 - 5 MATH")
-            .withSubjectName("ELA")
-            .withAccommodationFamily("MATH")
-            .withRtsFormField("tds-testform")
-            .withRequireRtsWindow(true)
-            .withRtsModeField("tds-testmode")
-            .withRequireRtsMode(true)
-            .withRequireRtsModeWindow(true)
-            .withDeleteUnansweredItems(true)
-            .withInitialAbilityBySubject(true)
-            .withAbilitySlope(slope)
-            .withAbilityIntercept(intercept)
-            .build();
-
         Exam thisExam = createExam(sessionId, thisExamId, assessmentId, clientName, studentId);
 
         List<Ability> abilities = new ArrayList<>();
@@ -877,7 +802,7 @@ public class ExamServiceImplTest {
         when(mockHistoryRepository.findAbilityFromHistoryForSubjectAndStudent(clientName, "ELA", studentId))
             .thenReturn(Optional.empty());
         when(mockAssessmentService.findAssessmentByKey(thisExam.getClientName(), thisExam.getAssessmentId())).thenReturn(Optional.of(assessment));
-        Optional<Double> maybeAbilityReturned = examService.getInitialAbility(thisExam, clientTestProperty);
+        Optional<Double> maybeAbilityReturned = examService.getInitialAbility(thisExam, assessment);
         assertThat(maybeAbilityReturned.get()).isEqualTo(assessmentAbilityVal);
     }
 
@@ -891,33 +816,13 @@ public class ExamServiceImplTest {
         final Double slope = 2D;
         final Double intercept = 1D;
 
-        ClientTestProperty clientTestProperty = new ClientTestProperty.Builder()
-            .withClientName(clientName)
-            .withAssessmentId(assessmentId)
-            .withMaxOpportunities(3)
-            .withPrefetch(2)
-            .withIsSelectable(true)
-            .withLabel("Grades 3 - 5 MATH")
-            .withSubjectName("ELA")
-            .withAccommodationFamily("MATH")
-            .withRtsFormField("tds-testform")
-            .withRequireRtsWindow(true)
-            .withRtsModeField("tds-testmode")
-            .withRequireRtsMode(true)
-            .withRequireRtsModeWindow(true)
-            .withDeleteUnansweredItems(true)
-            .withInitialAbilityBySubject(true)
-            .withAbilitySlope(slope)
-            .withAbilityIntercept(intercept)
-            .build();
-
         Exam thisExam = createExam(sessionId, thisExamId, assessmentId, clientName, studentId);
         List<Ability> abilities = new ArrayList<>();
         Optional<Double> maybeAbility = Optional.of(66D);
         when(mockExamQueryRepository.findAbilities(thisExamId, clientName, "ELA", studentId)).thenReturn(abilities);
         when(mockHistoryRepository.findAbilityFromHistoryForSubjectAndStudent(clientName, "ELA", studentId))
             .thenReturn(maybeAbility);
-        Optional<Double> maybeAbilityReturned = examService.getInitialAbility(thisExam, clientTestProperty);
+        Optional<Double> maybeAbilityReturned = examService.getInitialAbility(thisExam, new AssessmentBuilder().build());
         // y=mx+b
         double abilityCalulated = maybeAbility.get() * slope + intercept;
         assertThat(maybeAbilityReturned.get()).isEqualTo((float) abilityCalulated);
@@ -932,25 +837,6 @@ public class ExamServiceImplTest {
         final long studentId = 9899L;
         final double assessmentAbilityVal = 75D;
 
-        ClientTestProperty clientTestProperty = new ClientTestProperty.Builder()
-            .withClientName(clientName)
-            .withAssessmentId(assessmentId)
-            .withMaxOpportunities(3)
-            .withPrefetch(2)
-            .withIsSelectable(true)
-            .withLabel("Grades 3 - 5 MATH")
-            .withSubjectName("ELA")
-            .withAccommodationFamily("MATH")
-            .withRtsFormField("tds-testform")
-            .withRequireRtsWindow(true)
-            .withRtsModeField("tds-testmode")
-            .withRequireRtsMode(true)
-            .withRequireRtsModeWindow(true)
-            .withDeleteUnansweredItems(true)
-            .withInitialAbilityBySubject(true)
-            .withAbilitySlope(1D)
-            .withAbilityIntercept(2D)
-            .build();
 
         Exam thisExam = createExam(sessionId, thisExamId, assessmentId, clientName, studentId);
 
@@ -963,7 +849,7 @@ public class ExamServiceImplTest {
         abilities.add(sameAssessmentAbility);
         abilities.add(differentAssessmentAbility);
         when(mockExamQueryRepository.findAbilities(thisExamId, clientName, "ELA", studentId)).thenReturn(abilities);
-        Optional<Double> maybeAbilityReturned = examService.getInitialAbility(thisExam, clientTestProperty);
+        Optional<Double> maybeAbilityReturned = examService.getInitialAbility(thisExam, new AssessmentBuilder().build());
         assertThat(maybeAbilityReturned.get()).isEqualTo(assessmentAbilityVal);
     }
 

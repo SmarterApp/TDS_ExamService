@@ -23,7 +23,6 @@ import tds.common.data.legacy.LegacyComparer;
 import tds.config.Accommodation;
 import tds.config.AssessmentWindow;
 import tds.config.ClientSystemFlag;
-import tds.config.ClientTestProperty;
 import tds.config.TimeLimitConfiguration;
 import tds.exam.ApprovalRequest;
 import tds.exam.Exam;
@@ -190,18 +189,18 @@ class ExamServiceImpl implements ExamService {
      * @inheritDoc
      */
     @Override
-    public Optional<Double> getInitialAbility(Exam exam, ClientTestProperty property) {
+    public Optional<Double> getInitialAbility(Exam exam, Assessment assessment) {
         Optional<Double> ability = Optional.empty();
-        Double slope = property.getAbilitySlope();
-        Double intercept = property.getAbilityIntercept();
+        float slope = assessment.getAbilitySlope();
+        float intercept = assessment.getAbilityIntercept();
         List<Ability> testAbilities = examQueryRepository.findAbilities(exam.getId(), exam.getClientName(),
-            property.getSubjectName(), exam.getStudentId());
+            assessment.getSubject(), exam.getStudentId());
 
         // Attempt to retrieve the most recent ability for the current subject and assessment
         Optional<Ability> initialAbility = getMostRecentTestAbilityForSameAssessment(testAbilities, exam.getAssessmentId());
         if (initialAbility.isPresent()) {
             ability = Optional.of(initialAbility.get().getScore());
-        } else if (property.getInitialAbilityBySubject()) {
+        } else if (assessment.isInitialAbilityBySubject()) {
             // if no ability for a similar assessment was retrieved above, attempt to get the initial ability for another
             // assessment of the same subject
             initialAbility = getMostRecentTestAbilityForDifferentAssessment(testAbilities, exam.getAssessmentId());
@@ -212,12 +211,8 @@ class ExamServiceImpl implements ExamService {
                 Optional<Double> initialAbilityFromHistory = historyQueryRepository.findAbilityFromHistoryForSubjectAndStudent(
                     exam.getClientName(), exam.getSubject(), exam.getStudentId());
 
-                if (initialAbilityFromHistory.isPresent() && slope != null && intercept != null) {
-                    ability = Optional.of(initialAbilityFromHistory.get() * slope + intercept);
-                } else if (initialAbilityFromHistory.isPresent()) {
-                    // If no slope/intercept is provided, store base value
-                    ability = initialAbilityFromHistory;
-                }
+                // If no slope/intercept is provided, store base value
+                ability = initialAbilityFromHistory.map(aDouble -> Optional.of(aDouble * slope + intercept)).orElse(initialAbilityFromHistory);
             }
         }
 

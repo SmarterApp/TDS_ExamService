@@ -16,7 +16,6 @@ import java.util.Optional;
 import tds.config.Accommodation;
 import tds.config.AssessmentWindow;
 import tds.config.ClientSystemFlag;
-import tds.config.ClientTestProperty;
 import tds.exam.configuration.ExamServiceProperties;
 import tds.exam.services.ConfigService;
 import tds.session.ExternalSessionConfiguration;
@@ -33,28 +32,6 @@ class ConfigServiceImpl implements ConfigService {
     public ConfigServiceImpl(RestTemplate restTemplate, ExamServiceProperties examServiceProperties) {
         this.restTemplate = restTemplate;
         this.examServiceProperties = examServiceProperties;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    @Override
-    public Optional<ClientTestProperty> findClientTestProperty(final String clientName, final String assessmentId) {
-        UriComponentsBuilder builder =
-            UriComponentsBuilder
-                .fromHttpUrl(String.format("%s/client-test-properties/%s/%s", examServiceProperties.getConfigUrl(), clientName, assessmentId));
-
-        Optional<ClientTestProperty> maybeClientTestProperty = Optional.empty();
-        try {
-            final ClientTestProperty clientTestProperty = restTemplate.getForObject(builder.toUriString(), ClientTestProperty.class);
-            maybeClientTestProperty = Optional.of(clientTestProperty);
-        } catch (HttpClientErrorException hce) {
-            if (hce.getStatusCode() != HttpStatus.NOT_FOUND) {
-                throw hce;
-            }
-        }
-
-        return maybeClientTestProperty;
     }
 
     @Override
