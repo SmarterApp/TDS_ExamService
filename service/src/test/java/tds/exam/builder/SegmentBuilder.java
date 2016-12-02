@@ -1,12 +1,7 @@
 package tds.exam.builder;
 
-import java.util.List;
-
 import tds.assessment.Algorithm;
-import tds.assessment.ItemProperty;
 import tds.assessment.Segment;
-
-import static java.util.Collections.singletonList;
 
 public class SegmentBuilder {
     private String key = "(SBAC_PT)IRP-Perf-ELA-3-Summer-2015-2016";
