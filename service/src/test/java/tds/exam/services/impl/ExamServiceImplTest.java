@@ -845,11 +845,17 @@ public class ExamServiceImplTest {
         Ability differentAssessmentAbility = new Ability(
             UUID.randomUUID(), "assessmentid-2", 1, java.time.Instant.now(), 50D);
 
+        Assessment assessment = new AssessmentBuilder()
+            .withAssessmentId(assessmentId)
+            .withInitialAbilityBySubject(true)
+            .withSubject("ELA")
+            .build();
+
         List<Ability> abilities = new ArrayList<>();
         abilities.add(sameAssessmentAbility);
         abilities.add(differentAssessmentAbility);
         when(mockExamQueryRepository.findAbilities(thisExamId, clientName, "ELA", studentId)).thenReturn(abilities);
-        Optional<Double> maybeAbilityReturned = examService.getInitialAbility(thisExam, new AssessmentBuilder().build());
+        Optional<Double> maybeAbilityReturned = examService.getInitialAbility(thisExam, assessment);
         assertThat(maybeAbilityReturned.get()).isEqualTo(assessmentAbilityVal);
     }
 
