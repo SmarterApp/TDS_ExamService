@@ -51,6 +51,7 @@ import tds.student.RtsStudentPackageAttribute;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static tds.common.time.JodaTimeConverter.convertJodaInstant;
 import static tds.config.ClientSystemFlag.ALLOW_ANONYMOUS_STUDENT_FLAG_TYPE;
+import static tds.config.ClientSystemFlag.RESTORE_ACCOMMODATIONS_TYPE;
 import static tds.exam.ExamStatusCode.STATUS_PENDING;
 import static tds.exam.ExamStatusCode.STATUS_SUSPENDED;
 import static tds.exam.error.ValidationErrorCode.ANONYMOUS_STUDENT_NOT_ALLOWED;
@@ -427,6 +428,9 @@ class ExamServiceImpl implements ExamService {
             .build();
 
         examCommandRepository.update(currentExam);
+
+        Optional<ClientSystemFlag> maybeRestoreAccommodations = configService.findClientSystemFlag(openExamRequest.getClientName(), RESTORE_ACCOMMODATIONS_TYPE);
+        boolean restoreAccommodations = maybeRestoreAccommodations.isPresent() && maybeRestoreAccommodations.get().isEnabled();
 
         return new Response<>(currentExam);
     }
