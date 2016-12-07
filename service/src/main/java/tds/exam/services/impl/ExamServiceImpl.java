@@ -9,37 +9,33 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import tds.assessment.Assessment;
 import tds.common.Response;
 import tds.common.ValidationError;
 import tds.common.data.legacy.LegacyComparer;
-import tds.config.Accommodation;
 import tds.config.AssessmentWindow;
 import tds.config.ClientSystemFlag;
 import tds.config.TimeLimitConfiguration;
 import tds.exam.ApprovalRequest;
 import tds.exam.Exam;
-import tds.exam.ExamAccommodation;
 import tds.exam.ExamApproval;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
 import tds.exam.OpenExamRequest;
 import tds.exam.error.ValidationErrorCode;
 import tds.exam.models.Ability;
-import tds.exam.repositories.ExamAccommodationCommandRepository;
 import tds.exam.repositories.ExamCommandRepository;
 import tds.exam.repositories.ExamQueryRepository;
 import tds.exam.repositories.ExamStatusQueryRepository;
 import tds.exam.repositories.HistoryQueryRepository;
 import tds.exam.services.AssessmentService;
 import tds.exam.services.ConfigService;
+import tds.exam.services.ExamAccommodationService;
 import tds.exam.services.ExamService;
 import tds.exam.services.SessionService;
 import tds.exam.services.StudentService;
@@ -71,8 +67,8 @@ class ExamServiceImpl implements ExamService {
     private final AssessmentService assessmentService;
     private final TimeLimitConfigurationService timeLimitConfigurationService;
     private final ConfigService configService;
-    private final ExamAccommodationCommandRepository examAccommodationCommandRepository;
     private final ExamStatusQueryRepository examStatusQueryRepository;
+    private final ExamAccommodationService examAccommodationService;
 
     @Autowired
     public ExamServiceImpl(ExamQueryRepository examQueryRepository,
@@ -83,8 +79,8 @@ class ExamServiceImpl implements ExamService {
                            TimeLimitConfigurationService timeLimitConfigurationService,
                            ConfigService configService,
                            ExamCommandRepository examCommandRepository,
-                           ExamAccommodationCommandRepository examAccommodationCommandRepository,
-                           ExamStatusQueryRepository examStatusQueryRepository) {
+                           ExamStatusQueryRepository examStatusQueryRepository,
+                           ExamAccommodationService examAccommodationService) {
         this.examQueryRepository = examQueryRepository;
         this.historyQueryRepository = historyQueryRepository;
         this.sessionService = sessionService;
@@ -93,8 +89,8 @@ class ExamServiceImpl implements ExamService {
         this.timeLimitConfigurationService = timeLimitConfigurationService;
         this.configService = configService;
         this.examCommandRepository = examCommandRepository;
-        this.examAccommodationCommandRepository = examAccommodationCommandRepository;
         this.examStatusQueryRepository = examStatusQueryRepository;
+        this.examAccommodationService = examAccommodationService;
     }
 
     @Override
@@ -350,8 +346,7 @@ class ExamServiceImpl implements ExamService {
 
         //Lines 412 - 421 OpenTestServiceImpl is not implemented.  After talking with data warehouse and Smarter Balanced
         //The initial student attributes are not used and smarter balance suggested removing them
-
-        initializeExamAccommodations(exam);
+        examAccommodationService.initializeExamAccommodations(exam);
 
         //Lines OpenTestServiceImpl lines 428-447 not implemented.  Instead exam status is set during insert instead of inserting
         //and then updating status after accommodations
@@ -524,34 +519,5 @@ class ExamServiceImpl implements ExamService {
         Optional<ClientSystemFlag> maybeAllowGuestAccessFlag = configService.findClientSystemFlag(clientName, ALLOW_ANONYMOUS_STUDENT_FLAG_TYPE);
 
         return maybeAllowGuestAccessFlag.isPresent() && maybeAllowGuestAccessFlag.get().isEnabled();
-    }
-
-    private void initializeExamAccommodations(Exam exam) {
-        // This method replaces StudentDLL._InitOpportunityAccommodations_SP.
-
-        // StudentDLL fetches the key accommodations via CommonDLL.TestKeyAccommodations_FN which this call replicates.  The legacy application leverages
-        // temporary tables for most of its data structures which is unnecessary in this case so a collection is returned.
-        List<Accommodation> assessmentAccommodations = configService.findAssessmentAccommodations(exam.getAssessmentKey());
-
-        // StudentDLL line 6645 - the query filters the results of the temporary table fetched above by these two values.
-        // It was decided the record usage and report usage values that are also queried are not actually used.
-        List<Accommodation> accommodations = assessmentAccommodations.stream().filter(accommodation ->
-            accommodation.isDefaultAccommodation() && accommodation.getDependsOnToolType() == null).collect(Collectors.toList());
-
-        List<ExamAccommodation> examAccommodations = new ArrayList<>();
-        accommodations.forEach(accommodation -> {
-            ExamAccommodation examAccommodation = new ExamAccommodation.Builder()
-                .withExamId(exam.getId())
-                .withCode(accommodation.getAccommodationCode())
-                .withType(accommodation.getAccommodationType())
-                .withDescription(accommodation.getAccommodationValue())
-                .withSegmentKey(accommodation.getSegmentKey())
-                .build();
-
-            examAccommodations.add(examAccommodation);
-        });
-
-        //Inserts the accommodations into the exam system.
-        examAccommodationCommandRepository.insert(examAccommodations);
     }
 }
