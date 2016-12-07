@@ -429,8 +429,21 @@ class ExamServiceImpl implements ExamService {
 
         examCommandRepository.update(currentExam);
 
+        //The next block replaces OpenTestServiceImpl lines 194-202 fetching the guest accommodations if not a guest student
+        //Fetches the client system flag for restoring accommodations StudentDLL._RestoreRTSAccommodations_FN
+        String guestAccommodations = openExamRequest.getGuestAccommodations();
         Optional<ClientSystemFlag> maybeRestoreAccommodations = configService.findClientSystemFlag(openExamRequest.getClientName(), RESTORE_ACCOMMODATIONS_TYPE);
         boolean restoreAccommodations = maybeRestoreAccommodations.isPresent() && maybeRestoreAccommodations.get().isEnabled();
+        if(restoreAccommodations && !openExamRequest.isGuestStudent()) {
+            List<RtsStudentPackageAttribute> attributes = studentService.findStudentPackageAttributes(openExamRequest.getStudentId(), openExamRequest.getClientName(), ACCOMMODATIONS);
+
+            if(!attributes.isEmpty()) {
+                //If there are any attributes returned it should only be the one for restore accommodations
+                RtsStudentPackageAttribute restoreAccommodationAttribute = attributes.get(0);
+                guestAccommodations = restoreAccommodationAttribute.getValue();
+            }
+        }
+
 
         return new Response<>(currentExam);
     }
