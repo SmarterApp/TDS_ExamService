@@ -7,8 +7,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
@@ -29,7 +27,6 @@ import tds.config.ClientSystemFlag;
 import tds.config.TimeLimitConfiguration;
 import tds.exam.ApprovalRequest;
 import tds.exam.Exam;
-import tds.exam.ExamAccommodation;
 import tds.exam.ExamApproval;
 import tds.exam.ExamApprovalStatus;
 import tds.exam.ExamStatusCode;
@@ -41,13 +38,13 @@ import tds.exam.builder.OpenExamRequestBuilder;
 import tds.exam.builder.SessionBuilder;
 import tds.exam.error.ValidationErrorCode;
 import tds.exam.models.Ability;
-import tds.exam.repositories.ExamAccommodationCommandRepository;
 import tds.exam.repositories.ExamCommandRepository;
 import tds.exam.repositories.ExamQueryRepository;
 import tds.exam.repositories.ExamStatusQueryRepository;
 import tds.exam.repositories.HistoryQueryRepository;
 import tds.exam.services.AssessmentService;
 import tds.exam.services.ConfigService;
+import tds.exam.services.ExamAccommodationService;
 import tds.exam.services.ExamService;
 import tds.exam.services.SessionService;
 import tds.exam.services.StudentService;
@@ -101,13 +98,10 @@ public class ExamServiceImplTest {
     private ConfigService mockConfigService;
 
     @Mock
-    private ExamAccommodationCommandRepository mockExamAccommodationCommandRepository;
+    private ExamAccommodationService mockExamAccommodationService;
 
     @Mock
     private ExamStatusQueryRepository mockExamStatusQueryRepository;
-
-    @Captor
-    private ArgumentCaptor<List<ExamAccommodation>> examAccommodationCaptor;
 
     private ExamService examService;
 
@@ -122,8 +116,8 @@ public class ExamServiceImplTest {
             mockTimeLimitConfigurationService,
             mockConfigService,
             mockExamCommandRepository,
-            mockExamAccommodationCommandRepository,
-            mockExamStatusQueryRepository);
+            mockExamStatusQueryRepository,
+            mockExamAccommodationService);
     }
 
     @After
@@ -290,14 +284,6 @@ public class ExamServiceImplTest {
             .build();
         ClientSystemFlag clientSystemFlag = new ClientSystemFlag.Builder().withEnabled(true).build();
 
-        Accommodation accommodation = new Accommodation.Builder()
-            .withAccommodationCode("code")
-            .withAccommodationType("type")
-            .withSegmentKey("segmentKey")
-            .withDefaultAccommodation(true)
-            .withDependsOnToolType(null)
-            .build();
-
         TimeLimitConfiguration configuration = new TimeLimitConfiguration.Builder().withExamDelayDays(0).build();
 
         when(mockSessionService.findExternalSessionConfigurationByClientName(openExamRequest.getClientName())).thenReturn(Optional.of(extSessionConfig));
@@ -309,15 +295,12 @@ public class ExamServiceImplTest {
         when(mockSessionService.findExternalSessionConfigurationByClientName(openExamRequest.getClientName())).thenReturn(Optional.of(extSessionConfig));
         when(mockConfigService.findAssessmentWindows(openExamRequest.getClientName(), assessment.getAssessmentId(), currentSession.getType(), openExamRequest.getStudentId(), extSessionConfig))
             .thenReturn(Collections.singletonList(window));
-        when(mockConfigService.findAssessmentAccommodations(openExamRequest.getAssessmentKey()))
-            .thenReturn(Collections.singletonList(accommodation));
         when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(openExamRequest.getClientName(), openExamRequest.getAssessmentKey())).thenReturn(Optional.of(configuration));
         when(mockExamStatusQueryRepository.findExamStatusCode(STATUS_PENDING)).thenReturn(new ExamStatusCode(STATUS_PENDING, OPEN));
 
         Response<Exam> examResponse = examService.openExam(openExamRequest);
         assertThat(examResponse.getErrors()).isEmpty();
         verify(mockExamCommandRepository).insert(isA(Exam.class));
-        verify(mockExamAccommodationCommandRepository).insert(examAccommodationCaptor.capture());
 
         Exam exam = examResponse.getData().get();
 
@@ -335,8 +318,6 @@ public class ExamServiceImplTest {
         assertThat(exam.getEnvironment()).isEqualTo(extSessionConfig.getEnvironment());
         assertThat(exam.getStatus().getStatus()).isEqualTo(STATUS_PENDING);
         assertThat(exam.getSubject()).isEqualTo(assessment.getSubject());
-
-        assertThat(examAccommodationCaptor.getValue()).hasSize(1);
     }
 
     @Test
@@ -386,13 +367,10 @@ public class ExamServiceImplTest {
 
         Response<Exam> examResponse = examService.openExam(openExamRequest);
         verify(mockExamCommandRepository).insert(isA(Exam.class));
-        verify(mockExamAccommodationCommandRepository).insert(examAccommodationCaptor.capture());
         assertThat(examResponse.getErrors()).isEmpty();
 
         Exam exam = examResponse.getData().get();
         assertThat(exam.getStatus().getStatus()).isEqualTo(ExamStatusCode.STATUS_APPROVED);
-
-        assertThat(examAccommodationCaptor.getValue()).hasSize(1);
     }
 
     @Test
@@ -418,24 +396,6 @@ public class ExamServiceImplTest {
         RtsStudentPackageAttribute externalIdAttribute = new RtsStudentPackageAttribute(EXTERNAL_ID, "External Id");
         RtsStudentPackageAttribute entityNameAttribute = new RtsStudentPackageAttribute(ENTITY_NAME, "Entity Id");
 
-        Accommodation accommodation = new Accommodation.Builder()
-            .withAccommodationCode("code")
-            .withAccommodationType("type")
-            .withSegmentKey("segmentKey")
-            .withDefaultAccommodation(true)
-            .withDependsOnToolType(null)
-            .build();
-
-        Accommodation nonDefaultAccommodation = new Accommodation.Builder()
-            .withDefaultAccommodation(false)
-            .withDependsOnToolType(null)
-            .build();
-
-        Accommodation dependsOnToolTypeAccommodation = new Accommodation.Builder()
-            .withDefaultAccommodation(true)
-            .withDependsOnToolType("dependingSoCool")
-            .build();
-
         TimeLimitConfiguration configuration = new TimeLimitConfiguration.Builder().withExamDelayDays(0).build();
 
         when(mockSessionService.findSessionById(openExamRequest.getSessionId())).thenReturn(Optional.of(currentSession));
@@ -447,13 +407,12 @@ public class ExamServiceImplTest {
             .thenReturn(Arrays.asList(externalIdAttribute, entityNameAttribute));
         when(mockConfigService.findAssessmentWindows(openExamRequest.getClientName(), assessment.getAssessmentId(), currentSession.getType(), openExamRequest.getStudentId(), extSessionConfig))
             .thenReturn(Collections.singletonList(window));
-        when(mockConfigService.findAssessmentAccommodations(openExamRequest.getAssessmentKey())).thenReturn(Arrays.asList(accommodation, nonDefaultAccommodation, dependsOnToolTypeAccommodation));
         when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(openExamRequest.getClientName(), openExamRequest.getAssessmentKey())).thenReturn(Optional.of(configuration));
         when(mockExamStatusQueryRepository.findExamStatusCode(STATUS_PENDING)).thenReturn(new ExamStatusCode(STATUS_PENDING, OPEN));
 
         Response<Exam> examResponse = examService.openExam(openExamRequest);
         verify(mockExamCommandRepository).insert(isA(Exam.class));
-        verify(mockExamAccommodationCommandRepository).insert(examAccommodationCaptor.capture());
+        verify(mockExamAccommodationService).initializeExamAccommodations(isA(Exam.class));
 
         assertThat(examResponse.getErrors()).isEmpty();
 
@@ -461,13 +420,6 @@ public class ExamServiceImplTest {
         assertThat(exam.getStatus().getStatus()).isEqualTo(STATUS_PENDING);
         assertThat(exam.getStudentName()).isEqualTo("Entity Id");
         assertThat(exam.getLoginSSID()).isEqualTo("External Id");
-
-        List<ExamAccommodation> accommodations = examAccommodationCaptor.getValue();
-        assertThat(accommodations).hasSize(1);
-        ExamAccommodation examAccommodation = accommodations.get(0);
-        assertThat(examAccommodation.getCode()).isEqualTo("code");
-        assertThat(examAccommodation.getType()).isEqualTo("type");
-        assertThat(examAccommodation.getSegmentKey()).isEqualTo("segmentKey");
     }
 
     @Test
