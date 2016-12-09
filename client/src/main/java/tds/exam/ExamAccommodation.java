@@ -15,7 +15,7 @@ public class ExamAccommodation {
     private String type;
     private String code;
     private String description;
-    private boolean selected;
+    private boolean selectable;
     private boolean allowChange;
     private Instant deniedAt;
     private Instant createdAt;
@@ -31,7 +31,7 @@ public class ExamAccommodation {
         private Instant deniedAt;
         private Instant createdAt;
         private Instant deletedAt;
-        private boolean selected;
+        private boolean selectable;
         private boolean allowChange;
 
         public Builder withId(long id) {
@@ -98,8 +98,8 @@ public class ExamAccommodation {
             return this;
         }
 
-        public Builder withSelected(boolean selected) {
-            this.selected = selected;
+        public Builder withSelectable(boolean selectable) {
+            this.selectable = selectable;
             return this;
         }
 
@@ -118,7 +118,7 @@ public class ExamAccommodation {
             deniedAt = accommodation.getDeniedAt();
             createdAt = accommodation.getCreatedAt();
             deletedAt = accommodation.getDeletedAt();
-            selected = accommodation.isSelected();
+            selectable = accommodation.isSelectable();
             allowChange = accommodation.isAllowChange();
             return this;
         }
@@ -138,7 +138,7 @@ public class ExamAccommodation {
         deniedAt = builder.deniedAt;
         createdAt = builder.createdAt;
         deletedAt = builder.deletedAt;
-        selected = builder.selected;
+        selectable = builder.selectable;
         allowChange = builder.allowChange;
     }
 
@@ -220,8 +220,8 @@ public class ExamAccommodation {
         this.id = id;
     }
 
-    public boolean isSelected() {
-        return selected;
+    public boolean isSelectable() {
+        return selectable;
     }
 
     public boolean isAllowChange() {

@@ -46,7 +46,7 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
             .withType("closed captioning")
             .withCode("TDS_ClosedCap0")
             .withAllowChange(true)
-            .withSelected(true)
+            .withSelectable(true)
             .build());
 
         // Accommodation in second segment that is denied
@@ -99,7 +99,7 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
         assertThat(firstExamAccommodation.getCreatedAt()).isNotNull();
         assertThat(firstExamAccommodation.getCreatedAt()).isLessThan(Instant.now());
         assertThat(firstExamAccommodation.isApproved()).isTrue();
-        assertThat(firstExamAccommodation.isSelected()).isTrue();
+        assertThat(firstExamAccommodation.isSelectable()).isTrue();
         assertThat(firstExamAccommodation.isAllowChange()).isTrue();
 
         ExamAccommodation secondAccommodation = result.get(1);
@@ -110,7 +110,7 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
         assertThat(secondAccommodation.getCode()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_CODE);
         assertThat(secondAccommodation.getCreatedAt()).isNotNull();
         assertThat(secondAccommodation.getCreatedAt()).isLessThan(Instant.now());
-        assertThat(secondAccommodation.isSelected()).isFalse();
+        assertThat(secondAccommodation.isSelectable()).isFalse();
         assertThat(secondAccommodation.isAllowChange()).isFalse();
         assertThat(secondAccommodation.isApproved()).isTrue();
     }

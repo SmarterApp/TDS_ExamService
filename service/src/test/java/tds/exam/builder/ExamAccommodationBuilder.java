@@ -26,7 +26,7 @@ public class ExamAccommodationBuilder {
     private Instant deniedAt = null;
     private Instant createdAt = Instant.now();
     private Instant deletedAt = null;
-    private boolean selected = false;
+    private boolean selectable = false;
     private boolean allowChange = false;
 
     public ExamAccommodation build() {
@@ -40,7 +40,7 @@ public class ExamAccommodationBuilder {
             .withDeniedAt(deniedAt)
             .withCreatedAt(createdAt)
             .withDeletedAt(deletedAt)
-            .withSelected(selected)
+            .withSelectable(selectable)
             .withAllowChange(allowChange)
             .build();
     }
@@ -90,8 +90,8 @@ public class ExamAccommodationBuilder {
         return this;
     }
 
-    public ExamAccommodationBuilder withSelected(boolean selected) {
-        this.selected = selected;
+    public ExamAccommodationBuilder withSelectable(boolean selectable) {
+        this.selectable = selectable;
         return this;
     }
 
