@@ -15,6 +15,8 @@ public class ExamAccommodation {
     private String type;
     private String code;
     private String description;
+    private boolean selected;
+    private boolean allowChange;
     private Instant deniedAt;
     private Instant createdAt;
     private Instant deletedAt;
@@ -29,6 +31,8 @@ public class ExamAccommodation {
         private Instant deniedAt;
         private Instant createdAt;
         private Instant deletedAt;
+        private boolean selected;
+        private boolean allowChange;
 
         public Builder withId(long id) {
             this.id = id;
@@ -94,6 +98,16 @@ public class ExamAccommodation {
             return this;
         }
 
+        public Builder withSelected(boolean selected) {
+            this.selected = selected;
+            return this;
+        }
+
+        public Builder withAllowChange(boolean allowChange) {
+            this.allowChange = allowChange;
+            return this;
+        }
+
         public Builder fromExamAccommodation(final ExamAccommodation accommodation) {
             id = accommodation.getId();
             examId = accommodation.getExamId();
@@ -104,6 +118,8 @@ public class ExamAccommodation {
             deniedAt = accommodation.getDeniedAt();
             createdAt = accommodation.getCreatedAt();
             deletedAt = accommodation.getDeletedAt();
+            selected = accommodation.isSelected();
+            allowChange = accommodation.isAllowChange();
             return this;
         }
 
@@ -122,6 +138,8 @@ public class ExamAccommodation {
         deniedAt = builder.deniedAt;
         createdAt = builder.createdAt;
         deletedAt = builder.deletedAt;
+        selected = builder.selected;
+        allowChange = builder.allowChange;
     }
 
     /**
@@ -200,6 +218,14 @@ public class ExamAccommodation {
 
     public void setId(long id) {
         this.id = id;
+    }
+
+    public boolean isSelected() {
+        return selected;
+    }
+
+    public boolean isAllowChange() {
+        return allowChange;
     }
 
     @Override

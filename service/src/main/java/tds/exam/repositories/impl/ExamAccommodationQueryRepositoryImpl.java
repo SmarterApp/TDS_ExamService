@@ -44,7 +44,9 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
             "   ea.code, \n" +
             "   ea.description, \n" +
             "   eae.denied_at, \n" +
-            "   ea.created_at \n" +
+            "   ea.created_at, \n" +
+            "   ea.allow_change, \n" +
+            "   eae.selected \n" +
             "FROM \n" +
             "   exam_accommodation ea \n" +
             "JOIN ( \n" +
@@ -82,7 +84,9 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
                 "   ea.code, \n" +
                 "   ea.description, \n" +
                 "   eae.denied_at, \n" +
-                "   ea.created_at \n" +
+                "   ea.created_at, \n" +
+                "   ea.allow_change, \n" +
+                "   eae.selected \n" +
                 "FROM \n" +
                 "   exam_accommodation ea \n" +
                 "JOIN ( \n" +
@@ -117,6 +121,8 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
                 .withDescription(rs.getString("description"))
                 .withDeniedAt(mapTimestampToJodaInstant(rs, "denied_at"))
                 .withCreatedAt(mapTimestampToJodaInstant(rs, "created_at"))
+                .withSelected(rs.getBoolean("selected"))
+                .withAllowChange(rs.getBoolean("allow_change"))
                 .build();
         }
     }

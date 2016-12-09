@@ -42,11 +42,11 @@ public class ExamAccommodationCommandRepositoryIntegrationTests {
     @Test
     public void shouldInsertExamAccommodations() {
         UUID examId = UUID.randomUUID();
-        List<ExamAccommodation> mockExamAccommodations1 = insertExamAccommodations(examId);
+        List<ExamAccommodation> savedExamAccommodations = insertExamAccommodations(examId);
 
         List<ExamAccommodation> accommodations = accommodationQueryRepository.findAccommodations(examId, "segment", new String[]{"language", "closed captioning"});
 
-        assertThat(accommodations).hasSize(2);
+        assertThat(accommodations).containsExactly(savedExamAccommodations.toArray(new ExamAccommodation[savedExamAccommodations.size()]));
     }
 
     @Test

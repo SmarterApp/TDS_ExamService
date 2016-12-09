@@ -28,14 +28,15 @@ public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodation
 
     @Override
     public void insert(List<ExamAccommodation> accommodations) {
-        String SQL = "INSERT INTO exam_accommodation(exam_id, segment_key, type, code, description) \n" +
-            "VALUES(:examId, :segmentKey, :type, :code, :description)";
+        String SQL = "INSERT INTO exam_accommodation(exam_id, segment_key, type, code, description, allow_change) \n" +
+            "VALUES(:examId, :segmentKey, :type, :code, :description, :allowChange)";
 
         accommodations.forEach(examAccommodation -> {
             SqlParameterSource parameters = new MapSqlParameterSource("examId", UuidAdapter.getBytesFromUUID(examAccommodation.getExamId()))
                 .addValue("segmentKey", examAccommodation.getSegmentKey())
                 .addValue("type", examAccommodation.getType())
                 .addValue("code", examAccommodation.getCode())
+                .addValue("allowChange", examAccommodation.isAllowChange())
                 .addValue("description", examAccommodation.getDescription());
 
             KeyHolder keyHolder = new GeneratedKeyHolder();
@@ -54,8 +55,8 @@ public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodation
     }
 
     private void updateEvent(ExamAccommodation... examAccommodations) {
-        String SQL = "INSERT INTO exam_accommodation_event(exam_accommodation_id, denied_at, deleted_at) \n" +
-            "VALUES(:examAccommodationId, :deniedAt, :deletedAt);";
+        String SQL = "INSERT INTO exam_accommodation_event(exam_accommodation_id, denied_at, deleted_at, selected) \n" +
+            "VALUES(:examAccommodationId, :deniedAt, :deletedAt, :isSelected);";
 
         SqlParameterSource[] parameterSources = new SqlParameterSource[examAccommodations.length];
 
@@ -63,6 +64,7 @@ public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodation
             ExamAccommodation examAccommodation = examAccommodations[i];
             SqlParameterSource parameters = new MapSqlParameterSource("examAccommodationId", examAccommodation.getId())
                 .addValue("deniedAt", mapJodaInstantToTimestamp(examAccommodation.getDeniedAt()))
+                .addValue("isSelected", examAccommodation.isSelected())
                 .addValue("deletedAt", mapJodaInstantToTimestamp(examAccommodation.getDeletedAt()));
 
             parameterSources[i] = parameters;
