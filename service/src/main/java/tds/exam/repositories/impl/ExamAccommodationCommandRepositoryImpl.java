@@ -1,5 +1,6 @@
 package tds.exam.repositories.impl;
 
+import org.joda.time.Instant;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -9,6 +10,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import tds.common.data.mysql.UuidAdapter;
 import tds.exam.ExamAccommodation;
@@ -48,13 +50,39 @@ public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodation
 
     @Override
     public void update(ExamAccommodation examAccommodation) {
+        updateEvent(examAccommodation);
+    }
+
+    private void updateEvent(ExamAccommodation... examAccommodations) {
         String SQL = "INSERT INTO exam_accommodation_event(exam_accommodation_id, denied_at, deleted_at) \n" +
             "VALUES(:examAccommodationId, :deniedAt, :deletedAt);";
 
-        SqlParameterSource parameters = new MapSqlParameterSource("examAccommodationId", examAccommodation.getId())
-            .addValue("deniedAt", mapJodaInstantToTimestamp(examAccommodation.getDeniedAt()))
-            .addValue("deletedAt", mapJodaInstantToTimestamp(examAccommodation.getDeletedAt()));
+        SqlParameterSource[] parameterSources = new SqlParameterSource[examAccommodations.length];
 
-        jdbcTemplate.update(SQL, parameters);
+        for (int i = 0; i < parameterSources.length; i++) {
+            ExamAccommodation examAccommodation = examAccommodations[i];
+            SqlParameterSource parameters = new MapSqlParameterSource("examAccommodationId", examAccommodation.getId())
+                .addValue("deniedAt", mapJodaInstantToTimestamp(examAccommodation.getDeniedAt()))
+                .addValue("deletedAt", mapJodaInstantToTimestamp(examAccommodation.getDeletedAt()));
+
+            parameterSources[i] = parameters;
+        }
+
+        jdbcTemplate.batchUpdate(SQL, parameterSources);
+    }
+
+    @Override
+    public void delete(List<ExamAccommodation> accommodations) {
+        Instant deletedAt = Instant.now();
+
+        List<ExamAccommodation> accommodationsToDelete = accommodations.stream()
+            .map(accommodation -> new ExamAccommodation
+                .Builder()
+                .fromExamAccommodation(accommodation)
+                .withDeletedAt(deletedAt)
+                .build())
+            .collect(Collectors.toList());
+
+        updateEvent(accommodationsToDelete.toArray(new ExamAccommodation[accommodationsToDelete.size()]));
     }
 }

@@ -94,6 +94,19 @@ public class ExamAccommodation {
             return this;
         }
 
+        public Builder fromExamAccommodation(final ExamAccommodation accommodation) {
+            id = accommodation.getId();
+            examId = accommodation.getExamId();
+            segmentKey = accommodation.getSegmentKey();
+            type = accommodation.getType();
+            code = accommodation.getCode();
+            description = accommodation.getDescription();
+            deniedAt = accommodation.getDeniedAt();
+            createdAt = accommodation.getCreatedAt();
+            deletedAt = accommodation.getDeletedAt();
+            return this;
+        }
+
         public ExamAccommodation build() {
             return new ExamAccommodation(this);
         }
@@ -187,5 +200,25 @@ public class ExamAccommodation {
 
     public void setId(long id) {
         this.id = id;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ExamAccommodation that = (ExamAccommodation) o;
+
+        if (!examId.equals(that.examId)) return false;
+        if (!segmentKey.equals(that.segmentKey)) return false;
+        return type.equals(that.type);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = examId.hashCode();
+        result = 31 * result + segmentKey.hashCode();
+        result = 31 * result + type.hashCode();
+        return result;
     }
 }
