@@ -22,6 +22,11 @@ import tds.exam.repositories.ExamAccommodationCommandRepository;
 import tds.exam.repositories.ExamAccommodationQueryRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static tds.exam.builder.ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_CODE;
+import static tds.exam.builder.ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE;
+import static tds.exam.builder.ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_VALUE;
+import static tds.exam.builder.ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID;
+import static tds.exam.builder.ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_KEY;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest
@@ -51,7 +56,7 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
 
         // Accommodation in second segment that is denied
         mockExamAccommodations.add(new ExamAccommodationBuilder()
-            .withExamId(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID)
+            .withExamId(DEFAULT_EXAM_ID)
             .withSegmentKey("segment-2")
             .withType("highlight")
             .withCode("TDS_Highlight1")
@@ -64,17 +69,17 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
     @Test
     public void shouldGetOneAccommodationForExamAndSegmentAndSingleAccommodationType() {
         List<ExamAccommodation> result = examAccommodationQueryRepository.findAccommodations(
-            ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
-            ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_KEY,
-            new String[] { ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE});
+            DEFAULT_EXAM_ID,
+            DEFAULT_SEGMENT_KEY,
+            new String[] { DEFAULT_ACCOMMODATION_TYPE});
 
         assertThat(result).hasSize(1);
         ExamAccommodation examAccommodation = result.get(0);
         assertThat(examAccommodation.getId()).isGreaterThan(0);
-        assertThat(examAccommodation.getExamId()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID);
-        assertThat(examAccommodation.getSegmentKey()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_KEY);
-        assertThat(examAccommodation.getType()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE);
-        assertThat(examAccommodation.getCode()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_CODE);
+        assertThat(examAccommodation.getExamId()).isEqualTo(DEFAULT_EXAM_ID);
+        assertThat(examAccommodation.getSegmentKey()).isEqualTo(DEFAULT_SEGMENT_KEY);
+        assertThat(examAccommodation.getType()).isEqualTo(DEFAULT_ACCOMMODATION_TYPE);
+        assertThat(examAccommodation.getCode()).isEqualTo(DEFAULT_ACCOMMODATION_CODE);
         assertThat(examAccommodation.getCreatedAt()).isNotNull();
         assertThat(examAccommodation.getCreatedAt()).isLessThan(Instant.now());
         assertThat(examAccommodation.isApproved()).isTrue();
@@ -83,17 +88,17 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
     @Test
     public void shouldGetTwoAccommodationsForExamAndSegmentAndTwoDifferentAccommodationTypes() {
         List<ExamAccommodation> result = examAccommodationQueryRepository.findAccommodations(
-            ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
-            ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_KEY,
+            DEFAULT_EXAM_ID,
+            DEFAULT_SEGMENT_KEY,
             new String[] {
-                ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE,
+                DEFAULT_ACCOMMODATION_TYPE,
                 "closed captioning" });
 
         assertThat(result).hasSize(2);
         ExamAccommodation firstExamAccommodation = result.get(0);
         assertThat(firstExamAccommodation.getId()).isGreaterThan(0);
-        assertThat(firstExamAccommodation.getExamId()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID);
-        assertThat(firstExamAccommodation.getSegmentKey()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_KEY);
+        assertThat(firstExamAccommodation.getExamId()).isEqualTo(DEFAULT_EXAM_ID);
+        assertThat(firstExamAccommodation.getSegmentKey()).isEqualTo(DEFAULT_SEGMENT_KEY);
         assertThat(firstExamAccommodation.getType()).isEqualTo("closed captioning");
         assertThat(firstExamAccommodation.getCode()).isEqualTo("TDS_ClosedCap0");
         assertThat(firstExamAccommodation.getCreatedAt()).isNotNull();
@@ -104,10 +109,11 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
 
         ExamAccommodation secondAccommodation = result.get(1);
         assertThat(secondAccommodation.getId()).isGreaterThan(0);
-        assertThat(secondAccommodation.getExamId()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID);
-        assertThat(secondAccommodation.getSegmentKey()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_KEY);
-        assertThat(secondAccommodation.getType()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE);
-        assertThat(secondAccommodation.getCode()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_CODE);
+        assertThat(secondAccommodation.getExamId()).isEqualTo(DEFAULT_EXAM_ID);
+        assertThat(secondAccommodation.getSegmentKey()).isEqualTo(DEFAULT_SEGMENT_KEY);
+        assertThat(secondAccommodation.getType()).isEqualTo(DEFAULT_ACCOMMODATION_TYPE);
+        assertThat(secondAccommodation.getCode()).isEqualTo(DEFAULT_ACCOMMODATION_CODE);
+        assertThat(firstExamAccommodation.getValue()).isEqualTo(DEFAULT_ACCOMMODATION_VALUE);
         assertThat(secondAccommodation.getCreatedAt()).isNotNull();
         assertThat(secondAccommodation.getCreatedAt()).isLessThan(Instant.now());
         assertThat(secondAccommodation.isSelectable()).isFalse();
@@ -118,10 +124,10 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
     @Test
     public void shouldGetTwoAccommodationsForExamAndSegmentAndIgnoreAccommodationTypesThatDoNotExist() {
         List<ExamAccommodation> result = examAccommodationQueryRepository.findAccommodations(
-            ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
-            ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_KEY,
+            DEFAULT_EXAM_ID,
+            DEFAULT_SEGMENT_KEY,
             new String[] {
-                ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE,
+                DEFAULT_ACCOMMODATION_TYPE,
                 "closed captioning",
                 "foo",
                 "bar" });
@@ -131,7 +137,7 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
 
         assertThat(result).hasSize(2);
         for(ExamAccommodation accommodation : result) {
-            if(accommodation.getCode().equals(ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_CODE)) {
+            if(accommodation.getCode().equals(DEFAULT_ACCOMMODATION_CODE)) {
                 examAccommodation = accommodation;
             } else {
                 secondExamAccommodation = accommodation;
@@ -140,19 +146,19 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
 
         assertThat(examAccommodation).isNotNull();
         assertThat(examAccommodation.getId()).isGreaterThan(0);
-        assertThat(examAccommodation.getExamId()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID);
-        assertThat(examAccommodation.getSegmentKey()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_KEY);
-        assertThat(examAccommodation.getType()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE);
-        assertThat(examAccommodation.getCode()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_CODE);
-        assertThat(examAccommodation.getCreatedAt()).isNotNull();
+        assertThat(examAccommodation.getExamId()).isEqualTo(DEFAULT_EXAM_ID);
+        assertThat(examAccommodation.getSegmentKey()).isEqualTo(DEFAULT_SEGMENT_KEY);
+        assertThat(examAccommodation.getType()).isEqualTo(DEFAULT_ACCOMMODATION_TYPE);
+        assertThat(examAccommodation.getCode()).isEqualTo(DEFAULT_ACCOMMODATION_CODE);
+        assertThat(examAccommodation.getValue()).isEqualTo(DEFAULT_ACCOMMODATION_VALUE);
         assertThat(examAccommodation.getCreatedAt()).isLessThan(Instant.now());
         assertThat(examAccommodation.getDeniedAt()).isNull();
         assertThat(examAccommodation.isApproved()).isTrue();
 
         assertThat(secondExamAccommodation).isNotNull();
         assertThat(secondExamAccommodation.getId()).isGreaterThan(0);
-        assertThat(secondExamAccommodation.getExamId()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID);
-        assertThat(secondExamAccommodation.getSegmentKey()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_KEY);
+        assertThat(secondExamAccommodation.getExamId()).isEqualTo(DEFAULT_EXAM_ID);
+        assertThat(secondExamAccommodation.getSegmentKey()).isEqualTo(DEFAULT_SEGMENT_KEY);
         assertThat(secondExamAccommodation.getType()).isEqualTo("closed captioning");
         assertThat(secondExamAccommodation.getCode()).isEqualTo("TDS_ClosedCap0");
         assertThat(secondExamAccommodation.getCreatedAt()).isNotNull();
@@ -164,7 +170,7 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
     @Test
     public void shouldGetAccommodationForExamIdAndSegmentWithADeniedAccommodation() {
         List<ExamAccommodation> result = examAccommodationQueryRepository.findAccommodations(
-            ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
+            DEFAULT_EXAM_ID,
             "segment-2",
             new String[] { "highlight" });
 
@@ -172,7 +178,7 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
 
         ExamAccommodation examAccommodation = result.get(0);
         assertThat(examAccommodation.getId()).isGreaterThan(0);
-        assertThat(examAccommodation.getExamId()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID);
+        assertThat(examAccommodation.getExamId()).isEqualTo(DEFAULT_EXAM_ID);
         assertThat(examAccommodation.getSegmentKey()).isEqualTo("segment-2");
         assertThat(examAccommodation.getType()).isEqualTo("highlight");
         assertThat(examAccommodation.getCode()).isEqualTo("TDS_Highlight1");
@@ -187,8 +193,8 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
     public void shouldGetAnEmptyListForAnExamIdThatDoesNotExist() {
         List<ExamAccommodation> result = examAccommodationQueryRepository.findAccommodations(
             UUID.randomUUID(),
-            ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_KEY,
-            new String[] { ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE});
+            DEFAULT_SEGMENT_KEY,
+            new String[] { DEFAULT_ACCOMMODATION_TYPE});
 
         assertThat(result).isNotNull();
         assertThat(result).hasSize(0);
@@ -197,9 +203,9 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
     @Test
     public void shouldGetAnEmptyListForASegmentIdThatDoesNotExist() {
         List<ExamAccommodation> result = examAccommodationQueryRepository.findAccommodations(
-            ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
+            DEFAULT_EXAM_ID,
             "foo",
-            new String[] { ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE});
+            new String[] { DEFAULT_ACCOMMODATION_TYPE});
 
         assertThat(result).isNotNull();
         assertThat(result).hasSize(0);
@@ -208,7 +214,7 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
     @Test
     public void shouldGetAnEmptyListForAccommodationTypesThatDoesNotExist() {
         List<ExamAccommodation> result = examAccommodationQueryRepository.findAccommodations(
-            ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
+            DEFAULT_EXAM_ID,
             "segment-2",
             new String[] { "foo", "bar" });
 

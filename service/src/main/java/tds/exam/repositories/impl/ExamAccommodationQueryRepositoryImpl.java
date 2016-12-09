@@ -46,6 +46,7 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
             "   eae.denied_at, \n" +
             "   ea.created_at, \n" +
             "   ea.allow_change, \n" +
+            "   ea.value, \n" +
             "   eae.selectable \n" +
             "FROM \n" +
             "   exam_accommodation ea \n" +
@@ -86,6 +87,7 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
                 "   eae.denied_at, \n" +
                 "   ea.created_at, \n" +
                 "   ea.allow_change, \n" +
+                "   ea.value, \n" +
                 "   eae.selectable \n" +
                 "FROM \n" +
                 "   exam_accommodation ea \n" +
@@ -123,6 +125,7 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
                 .withCreatedAt(mapTimestampToJodaInstant(rs, "created_at"))
                 .withSelectable(rs.getBoolean("selectable"))
                 .withAllowChange(rs.getBoolean("allow_change"))
+                .withValue(rs.getString("value"))
                 .build();
         }
     }

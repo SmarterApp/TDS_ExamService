@@ -14,6 +14,7 @@ public class ExamAccommodation {
     private String segmentKey;
     private String type;
     private String code;
+    private String value;
     private String description;
     private boolean selectable;
     private boolean allowChange;
@@ -33,6 +34,7 @@ public class ExamAccommodation {
         private Instant deletedAt;
         private boolean selectable;
         private boolean allowChange;
+        private String value;
 
         public Builder withId(long id) {
             this.id = id;
@@ -108,6 +110,11 @@ public class ExamAccommodation {
             return this;
         }
 
+        public Builder withValue(String value) {
+            this.value = value;
+            return this;
+        }
+
         public Builder fromExamAccommodation(final ExamAccommodation accommodation) {
             id = accommodation.getId();
             examId = accommodation.getExamId();
@@ -120,6 +127,7 @@ public class ExamAccommodation {
             deletedAt = accommodation.getDeletedAt();
             selectable = accommodation.isSelectable();
             allowChange = accommodation.isAllowChange();
+            value = accommodation.getValue();
             return this;
         }
 
@@ -140,6 +148,7 @@ public class ExamAccommodation {
         deletedAt = builder.deletedAt;
         selectable = builder.selectable;
         allowChange = builder.allowChange;
+        value = builder.value;
     }
 
     /**
@@ -226,6 +235,10 @@ public class ExamAccommodation {
 
     public boolean isAllowChange() {
         return allowChange;
+    }
+
+    public String getValue() {
+        return value;
     }
 
     @Override

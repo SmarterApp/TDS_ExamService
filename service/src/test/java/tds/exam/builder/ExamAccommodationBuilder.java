@@ -15,6 +15,7 @@ public class ExamAccommodationBuilder {
         public static final String DEFAULT_SEGMENT_KEY = "segment-1";
         public static final String DEFAULT_ACCOMMODATION_TYPE = "language";
         public static final String DEFAULT_ACCOMMODATION_CODE = "ENU";
+        public static final String DEFAULT_ACCOMMODATION_VALUE = "English";
     }
 
     private long id = 0L;
@@ -28,6 +29,7 @@ public class ExamAccommodationBuilder {
     private Instant deletedAt = null;
     private boolean selectable = false;
     private boolean allowChange = false;
+    private String value = SampleData.DEFAULT_ACCOMMODATION_VALUE;
 
     public ExamAccommodation build() {
         return new ExamAccommodation.Builder()
@@ -42,6 +44,7 @@ public class ExamAccommodationBuilder {
             .withDeletedAt(deletedAt)
             .withSelectable(selectable)
             .withAllowChange(allowChange)
+            .withValue(value)
             .build();
     }
 
@@ -97,6 +100,11 @@ public class ExamAccommodationBuilder {
 
     public ExamAccommodationBuilder withAllowChange(boolean allowChange) {
         this.allowChange = allowChange;
+        return this;
+    }
+
+    public ExamAccommodationBuilder withValue(String value) {
+        this.value = value;
         return this;
     }
 }
