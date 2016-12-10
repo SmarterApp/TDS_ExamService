@@ -52,6 +52,7 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
             .withCode("TDS_ClosedCap0")
             .withAllowChange(true)
             .withSelectable(true)
+            .withSegmentPosition(5)
             .build());
 
         // Accommodation in second segment that is denied
@@ -106,6 +107,7 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
         assertThat(firstExamAccommodation.isApproved()).isTrue();
         assertThat(firstExamAccommodation.isSelectable()).isTrue();
         assertThat(firstExamAccommodation.isAllowChange()).isTrue();
+        assertThat(firstExamAccommodation.getSegmentPosition()).isEqualTo(5);
 
         ExamAccommodation secondAccommodation = result.get(1);
         assertThat(secondAccommodation.getId()).isGreaterThan(0);
@@ -187,6 +189,7 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
         assertThat(examAccommodation.getDeniedAt()).isNotNull();
         assertThat(examAccommodation.getDeniedAt()).isLessThan(Instant.now());
         assertThat(examAccommodation.isApproved()).isFalse();
+        assertThat(examAccommodation.getSegmentPosition()).isEqualTo(1);
     }
 
     @Test

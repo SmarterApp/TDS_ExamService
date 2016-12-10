@@ -30,6 +30,7 @@ public class ExamAccommodationBuilder {
     private boolean selectable = false;
     private boolean allowChange = false;
     private String value = SampleData.DEFAULT_ACCOMMODATION_VALUE;
+    private int segmentPosition = 1;
 
     public ExamAccommodation build() {
         return new ExamAccommodation.Builder()
@@ -45,6 +46,7 @@ public class ExamAccommodationBuilder {
             .withSelectable(selectable)
             .withAllowChange(allowChange)
             .withValue(value)
+            .withSegmentPosition(segmentPosition)
             .build();
     }
 
@@ -105,6 +107,11 @@ public class ExamAccommodationBuilder {
 
     public ExamAccommodationBuilder withValue(String value) {
         this.value = value;
+        return this;
+    }
+
+    public ExamAccommodationBuilder withSegmentPosition(int segmentPosition) {
+        this.segmentPosition = segmentPosition;
         return this;
     }
 }

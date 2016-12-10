@@ -47,6 +47,7 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
             "   ea.created_at, \n" +
             "   ea.allow_change, \n" +
             "   ea.value, \n" +
+            "   ea.segment_position, \n" +
             "   eae.selectable \n" +
             "FROM \n" +
             "   exam_accommodation ea \n" +
@@ -88,6 +89,7 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
                 "   ea.created_at, \n" +
                 "   ea.allow_change, \n" +
                 "   ea.value, \n" +
+                "   ea.segment_position, \n" +
                 "   eae.selectable \n" +
                 "FROM \n" +
                 "   exam_accommodation ea \n" +
@@ -126,6 +128,7 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
                 .withSelectable(rs.getBoolean("selectable"))
                 .withAllowChange(rs.getBoolean("allow_change"))
                 .withValue(rs.getString("value"))
+                .withSegmentPosition(rs.getInt("segment_position"))
                 .build();
         }
     }

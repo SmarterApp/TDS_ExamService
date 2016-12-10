@@ -12,6 +12,7 @@ public class ExamAccommodation {
     private long id;
     private UUID examId;
     private String segmentKey;
+    private int segmentPosition;
     private String type;
     private String code;
     private String value;
@@ -35,6 +36,7 @@ public class ExamAccommodation {
         private boolean selectable;
         private boolean allowChange;
         private String value;
+        private int segmentPosition = 1;
 
         public Builder withId(long id) {
             this.id = id;
@@ -115,6 +117,11 @@ public class ExamAccommodation {
             return this;
         }
 
+        public Builder withSegmentPosition(int segmentPosition) {
+            this.segmentPosition = segmentPosition;
+            return this;
+        }
+
         public Builder fromExamAccommodation(final ExamAccommodation accommodation) {
             id = accommodation.getId();
             examId = accommodation.getExamId();
@@ -149,6 +156,7 @@ public class ExamAccommodation {
         selectable = builder.selectable;
         allowChange = builder.allowChange;
         value = builder.value;
+        segmentPosition = builder.segmentPosition;
     }
 
     /**
@@ -239,6 +247,10 @@ public class ExamAccommodation {
 
     public String getValue() {
         return value;
+    }
+
+    public int getSegmentPosition() {
+        return segmentPosition;
     }
 
     @Override

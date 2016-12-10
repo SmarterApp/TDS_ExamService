@@ -28,8 +28,8 @@ public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodation
 
     @Override
     public void insert(List<ExamAccommodation> accommodations) {
-        String SQL = "INSERT INTO exam_accommodation(exam_id, segment_key, type, code, description, allow_change, value) \n" +
-            "VALUES(:examId, :segmentKey, :type, :code, :description, :allowChange, :value)";
+        String SQL = "INSERT INTO exam_accommodation(exam_id, segment_key, type, code, description, allow_change, value, segment_position) \n" +
+            "VALUES(:examId, :segmentKey, :type, :code, :description, :allowChange, :value, :segmentPosition)";
 
         accommodations.forEach(examAccommodation -> {
             SqlParameterSource parameters = new MapSqlParameterSource("examId", UuidAdapter.getBytesFromUUID(examAccommodation.getExamId()))
@@ -38,6 +38,7 @@ public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodation
                 .addValue("code", examAccommodation.getCode())
                 .addValue("allowChange", examAccommodation.isAllowChange())
                 .addValue("value", examAccommodation.getValue())
+                .addValue("segmentPosition", examAccommodation.getSegmentPosition())
                 .addValue("description", examAccommodation.getDescription());
 
             KeyHolder keyHolder = new GeneratedKeyHolder();
