@@ -3,6 +3,7 @@ package tds.exam.services;
 import java.util.List;
 import java.util.UUID;
 
+import tds.assessment.Assessment;
 import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
 
@@ -34,4 +35,6 @@ public interface ExamAccommodationService {
      * @param exam exam to use to initialize the {@link tds.exam.ExamAccommodation}
      */
     List<ExamAccommodation> initializeExamAccommodations(Exam exam);
+
+    void initializePreviousAccommodations(Exam exam, Assessment assessment, int segmentPosition, boolean restoreRts, String guestAccommodations);
 }

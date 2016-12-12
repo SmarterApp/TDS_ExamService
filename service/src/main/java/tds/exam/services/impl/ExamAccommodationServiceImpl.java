@@ -5,9 +5,12 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import tds.assessment.Assessment;
 import tds.config.Accommodation;
 import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
@@ -16,8 +19,15 @@ import tds.exam.repositories.ExamAccommodationQueryRepository;
 import tds.exam.services.ConfigService;
 import tds.exam.services.ExamAccommodationService;
 
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+
 @Service
 class ExamAccommodationServiceImpl implements ExamAccommodationService {
+    private static final String OTHER_ACCOMMODATION_VALUE = "TDS_Other#";
+    public static final String OTHER_ACCOMMODATION_CODE = "TDS_Other";
+    public static final String OTHER_ACCOMMODATION_NAME = "Other";
+
     private final ExamAccommodationQueryRepository examAccommodationQueryRepository;
     private final ExamAccommodationCommandRepository examAccommodationCommandRepository;
     private final ConfigService configService;
@@ -41,7 +51,8 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
 
     @Override
     public List<ExamAccommodation> initializeExamAccommodations(Exam exam) {
-        // This method replaces StudentDLL._InitOpportunityAccommodations_SP.
+        // This method replaces StudentDLL._InitOpportunityAccommodations_SP.  One note is that the calls to testopporunity_readonly were not implemented because
+        // these tables are only used for proctor and that is handled via the proctor related endpoints.
 
         // StudentDLL fetches the key accommodations via CommonDLL.TestKeyAccommodations_FN which this call replicates.  The legacy application leverages
         // temporary tables for most of its data structures which is unnecessary in this case so a collection is returned.
@@ -60,6 +71,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                 .withType(accommodation.getAccommodationType())
                 .withDescription(accommodation.getAccommodationValue())
                 .withSegmentKey(accommodation.getSegmentKey())
+                .withValue(accommodation.getAccommodationValue())
                 .build();
 
             examAccommodations.add(examAccommodation);
@@ -69,5 +81,119 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
         examAccommodationCommandRepository.insert(examAccommodations);
 
         return examAccommodations;
+    }
+
+    @Override
+    public void initializePreviousAccommodations(Exam exam, Assessment assessment, int segmentPosition, boolean restoreRts, String guestAccommodations) {
+        /*
+            This block replaces CommonDLL._UpdateOpportunityAccommodations_SP.
+         */
+
+        //CommonDLL line 2590 - gets the accommodation codes based on guest accommodations and the accommodation family for the assessment
+        List<String> accommodationCodes = splitAccommodationCodes(assessment.getAccommodationFamily(), guestAccommodations);
+
+        // CommonDLL line 2593 fetches the key accommodations via CommonDLL.TestKeyAccommodations_FN which this call replicates.  The legacy application leverages
+        // temporary tables for most of its data structures which is unnecessary in this case so a collection is returned.
+        List<Accommodation> assessmentAccommodations = configService.findAssessmentAccommodations(exam.getAssessmentKey());
+
+        List<Accommodation> accommodationsToAdd = assessmentAccommodations.stream()
+            .filter(accommodation ->
+                accommodationCodes.contains(accommodation.getAccommodationCode())
+                    && accommodation.getSegmentPosition() == segmentPosition
+                    && accommodation.isEntryControl()
+                    && (exam.getDateStarted() != null && !accommodation.isAllowChange())
+                    && (restoreRts && accommodation.isSelectable())
+            ).collect(Collectors.toList());
+
+        Set<String> accommodationTypes = accommodationsToAdd.stream()
+            .map(Accommodation::getAccommodationType)
+            .collect(Collectors.toSet());
+
+        List<ExamAccommodation> examAccommodations = findAllAccommodations(exam.getId());
+
+        List<ExamAccommodation> examAccommodationsToDelete = examAccommodations.stream()
+            .filter(accommodation -> accommodationTypes.contains(accommodation.getType()))
+            .collect(Collectors.toList());
+
+        //CommonDLL line 2677.  We delete the exam accommodations because this seems like the only
+        //way in the current system to update the exam accommodations between exam runs.
+        examAccommodationCommandRepository.delete(examAccommodationsToDelete);
+
+        ExamAccommodation otherExamAccommodation = null;
+
+        for(String code : accommodationCodes) {
+            if (code.startsWith(OTHER_ACCOMMODATION_VALUE)) {
+                otherExamAccommodation = new ExamAccommodation.Builder()
+                    .withExamId(exam.getId())
+                    .withType(OTHER_ACCOMMODATION_NAME)
+                    .withCode(OTHER_ACCOMMODATION_CODE)
+                    .withValue(getOtherAccommodationValue(code))
+                    .withAllowChange(false)
+                    .withSelectable(false)
+                    .withSegmentPosition(segmentPosition)
+                    .build();
+
+                break;
+            }
+        }
+
+        final Optional<ExamAccommodation> maybeOtherExamAccommodation = Optional.ofNullable(otherExamAccommodation);
+
+        /*
+           CommonDLL line 2684 - 2716 - Convert the Accommodations to ExamAccommodations and remove the exam accommodation that
+           matches the other accommodation value type.
+         */
+        List<ExamAccommodation> examAccommodationsToInsert = accommodationsToAdd.stream()
+            .map(accommodation -> new ExamAccommodation.Builder()
+                .withExamId(exam.getId())
+                .withCode(accommodation.getAccommodationCode())
+                .withType(accommodation.getAccommodationType())
+                .withDescription(accommodation.getAccommodationValue())
+                .withSegmentKey(accommodation.getSegmentKey())
+                .withAllowChange(accommodation.isAllowChange())
+                .withSelectable(accommodation.isSelectable())
+                .withValue(accommodation.getAccommodationValue())
+                .withSegmentPosition(segmentPosition)
+                .build())
+            .filter(accommodation -> !maybeOtherExamAccommodation.isPresent() ||
+                accommodation.getType().equals(maybeOtherExamAccommodation.get().getType()))
+            .collect(Collectors.toList());
+
+        examAccommodationCommandRepository.insert(examAccommodationsToInsert);
+    }
+
+    private List<String> splitAccommodationCodes(String accommodationFamily, String guestAccommodations) {
+        /*
+            This replaces CommonDLL._SplitAccomCodes_FN.  It takes the accommodation family from an Assessment (via configs.client_testproperties)
+            and the guest accommodations, which are both delimited Strings, and creates a List of code strings.  The existing code creates a
+            temporary table with an additional 'idx' column that is never used upstream.
+        */
+        if (isEmpty(guestAccommodations) || isEmpty(accommodationFamily)) {
+            return new ArrayList<>();
+        }
+
+        accommodationFamily += ":";
+
+        List<String> accommodationCodes = new ArrayList<>();
+        for (String guestAccommodation : guestAccommodations.split(";")) {
+            String accommodationCode = "";
+            if (guestAccommodation.indexOf(':') > -1 && !guestAccommodation.contains(accommodationFamily)) {
+                accommodationCode = guestAccommodation;
+            }
+
+            if (guestAccommodation.contains(accommodationFamily)) {
+                accommodationCode = guestAccommodation.substring(accommodationFamily.length() + 1);
+            }
+
+            if (isNotEmpty(accommodationCode)) {
+                accommodationCodes.add(accommodationCode.length() > 100 ? accommodationCode.substring(0, 100) : accommodationCode);
+            }
+        }
+
+        return accommodationCodes;
+    }
+
+    private static String getOtherAccommodationValue(String formattedValue) {
+        return formattedValue.substring("TDS_Other#".length());
     }
 }
