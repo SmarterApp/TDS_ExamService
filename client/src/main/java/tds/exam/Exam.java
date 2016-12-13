@@ -35,6 +35,8 @@ public class Exam {
     private int abnormalStarts;
     private boolean waitingForSegmentApproval;
     private int currentSegmentPosition;
+    private String language;
+    private boolean customAccommodations;
 
     public static class Builder {
         private UUID id;
@@ -64,7 +66,8 @@ public class Exam {
         private int abnormalStarts;
         private boolean waitingForSegmentApproval;
         private int currentSegmentPosition;
-
+        private String language;
+        private boolean customAccommodations;
 
         public Builder withSegmented(boolean segmented) {
             this.segmented = segmented;
@@ -201,6 +204,16 @@ public class Exam {
             return this;
         }
 
+        public Builder withCustomAccommodation(boolean customAccommodation) {
+            this.customAccommodations = customAccommodation;
+            return this;
+        }
+
+        public Builder withLanguage(String language) {
+            this.language = language;
+            return this;
+        }
+
         public Builder fromExam(Exam exam) {
             id = exam.id;
             sessionId = exam.sessionId;
@@ -229,6 +242,8 @@ public class Exam {
             abnormalStarts = exam.abnormalStarts;
             waitingForSegmentApproval = exam.waitingForSegmentApproval;
             currentSegmentPosition = exam.currentSegmentPosition;
+            language = exam.getLanguage();
+            customAccommodations = exam.isCustomAccommodations();
             return this;
         }
 
@@ -265,6 +280,8 @@ public class Exam {
         abnormalStarts = builder.abnormalStarts;
         waitingForSegmentApproval = builder.waitingForSegmentApproval;
         currentSegmentPosition = builder.currentSegmentPosition;
+        language = builder.language;
+        customAccommodations = builder.customAccommodations;
     }
 
     /**
@@ -462,5 +479,19 @@ public class Exam {
      */
     public int getCurrentSegmentPosition() {
         return currentSegmentPosition;
+    }
+
+    /**
+     * @return the language for the exam
+     */
+    public String getLanguage() {
+        return language;
+    }
+
+    /**
+     * @return {@code true} if exam accommodations are not defaults
+     */
+    public boolean isCustomAccommodations() {
+        return customAccommodations;
     }
 }

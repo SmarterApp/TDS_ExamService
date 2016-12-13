@@ -43,7 +43,6 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
         String querySQL = "SELECT \n" +
             "   e.id, \n" +
             "   e.session_id, \n" +
-            "   ee.browser_id, \n" +
             "   e.assessment_id, \n" +
             "   e.student_id, \n" +
             "   e.client_name, \n" +
@@ -56,6 +55,8 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
             "   e.assessment_window_id,\n" +
             "   e.assessment_algorithm,\n" +
             "   e.segmented,\n" +
+            "   e.created_at, \n" +
+            "   ee.browser_id, \n" +
             "   ee.attempts, \n" +
             "   ee.status, \n" +
             "   ee.status_change_reason, \n" +
@@ -67,7 +68,8 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
             "   ee.abnormal_starts, \n" +
             "   ee.waiting_for_segment_approval, \n" +
             "   ee.current_segment_position, \n" +
-            "   e.created_at, \n" +
+            "   ee.custom_accommodations, \n" +
+            "   ee.language, \n" +
             "   esc.description, \n" +
             "   esc.status, \n" +
             "   esc.stage\n" +
@@ -111,7 +113,6 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
             "SELECT " +
                 "   e.id, \n" +
                 "   e.session_id, \n" +
-                "   ee.browser_id, \n" +
                 "   e.assessment_id, \n" +
                 "   e.student_id, \n" +
                 "   e.client_name, \n" +
@@ -125,6 +126,8 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "   e.assessment_algorithm,\n" +
                 "   e.segmented,\n" +
                 "   ee.attempts, \n" +
+                "   e.created_at, \n" +
+                "   ee.browser_id, \n" +
                 "   ee.status, \n" +
                 "   ee.status_change_reason, \n" +
                 "   ee.date_deleted, \n" +
@@ -135,7 +138,8 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "   ee.abnormal_starts, \n" +
                 "   ee.current_segment_position, \n" +
                 "   ee.waiting_for_segment_approval, \n" +
-                "   e.created_at, \n" +
+                "   ee.custom_accommodations, \n" +
+                "   ee.language, \n" +
                 "   esc.description, \n" +
                 "   esc.status, \n" +
                 "   esc.stage\n" +
@@ -266,6 +270,8 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 .withAbnormalStarts(rs.getInt("abnormal_starts"))
                 .withWaitingForSegmentApproval(rs.getBoolean("waiting_for_segment_approval"))
                 .withCurrentSegmentPosition(rs.getInt("current_segment_position"))
+                .withCustomAccommodation(rs.getBoolean("custom_accommodations"))
+                .withLanguage(rs.getString("language"))
                 .build();
         }
     }
