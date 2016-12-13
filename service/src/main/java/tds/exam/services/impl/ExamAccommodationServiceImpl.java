@@ -101,8 +101,8 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                 accommodationCodes.contains(accommodation.getAccommodationCode())
                     && accommodation.getSegmentPosition() == segmentPosition
                     && accommodation.isEntryControl()
-                    && (exam.getDateStarted() != null && !accommodation.isAllowChange())
-                    && (restoreRts && accommodation.isSelectable())
+                    && (exam.getDateStarted() == null || !accommodation.isAllowChange())
+                    && (!restoreRts || accommodation.isSelectable())
             ).collect(Collectors.toList());
 
         Set<String> accommodationTypes = accommodationsToAdd.stream()
@@ -117,7 +117,9 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
 
         //CommonDLL line 2677.  We delete the exam accommodations because this seems like the only
         //way in the current system to update the exam accommodations between exam runs.
-        examAccommodationCommandRepository.delete(examAccommodationsToDelete);
+        if(!examAccommodationsToDelete.isEmpty()) {
+            examAccommodationCommandRepository.delete(examAccommodationsToDelete);
+        }
 
         ExamAccommodation otherExamAccommodation = null;
 
@@ -159,7 +161,9 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                 accommodation.getType().equals(maybeOtherExamAccommodation.get().getType()))
             .collect(Collectors.toList());
 
-        examAccommodationCommandRepository.insert(examAccommodationsToInsert);
+        if (!examAccommodationsToInsert.isEmpty()) {
+            examAccommodationCommandRepository.insert(examAccommodationsToInsert);
+        }
     }
 
     private List<String> splitAccommodationCodes(String accommodationFamily, String guestAccommodations) {
@@ -182,7 +186,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
             }
 
             if (guestAccommodation.contains(accommodationFamily)) {
-                accommodationCode = guestAccommodation.substring(accommodationFamily.length() + 1);
+                accommodationCode = guestAccommodation.substring(accommodationFamily.length());
             }
 
             if (isNotEmpty(accommodationCode)) {
