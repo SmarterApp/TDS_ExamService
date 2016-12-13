@@ -67,9 +67,9 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
         accommodations.forEach(accommodation -> {
             ExamAccommodation examAccommodation = new ExamAccommodation.Builder()
                 .withExamId(exam.getId())
-                .withCode(accommodation.getAccommodationCode())
-                .withType(accommodation.getAccommodationType())
-                .withDescription(accommodation.getAccommodationValue())
+                .withCode(accommodation.getCode())
+                .withType(accommodation.getType())
+                .withDescription(accommodation.getValue())
                 .withSegmentKey(accommodation.getSegmentKey())
                 .withValue(accommodation.getAccommodationValue())
                 .build();
