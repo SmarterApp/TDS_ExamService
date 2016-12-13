@@ -71,7 +71,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                 .withType(accommodation.getType())
                 .withDescription(accommodation.getValue())
                 .withSegmentKey(accommodation.getSegmentKey())
-                .withValue(accommodation.getAccommodationValue())
+                .withValue(accommodation.getValue())
                 .build();
 
             examAccommodations.add(examAccommodation);
@@ -98,7 +98,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
 
         List<Accommodation> accommodationsToAdd = assessmentAccommodations.stream()
             .filter(accommodation ->
-                accommodationCodes.contains(accommodation.getAccommodationCode())
+                accommodationCodes.contains(accommodation.getCode())
                     && accommodation.getSegmentPosition() == segmentPosition
                     && accommodation.isEntryControl()
                     && (exam.getDateStarted() == null || !accommodation.isAllowChange())
@@ -106,7 +106,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
             ).collect(Collectors.toList());
 
         Set<String> accommodationTypes = accommodationsToAdd.stream()
-            .map(Accommodation::getAccommodationType)
+            .map(Accommodation::getType)
             .collect(Collectors.toSet());
 
         List<ExamAccommodation> examAccommodations = findAllAccommodations(exam.getId());
@@ -148,13 +148,13 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
         List<ExamAccommodation> examAccommodationsToInsert = accommodationsToAdd.stream()
             .map(accommodation -> new ExamAccommodation.Builder()
                 .withExamId(exam.getId())
-                .withCode(accommodation.getAccommodationCode())
-                .withType(accommodation.getAccommodationType())
-                .withDescription(accommodation.getAccommodationValue())
+                .withCode(accommodation.getCode())
+                .withType(accommodation.getType())
+                .withDescription(accommodation.getValue())
                 .withSegmentKey(accommodation.getSegmentKey())
                 .withAllowChange(accommodation.isAllowChange())
                 .withSelectable(accommodation.isSelectable())
-                .withValue(accommodation.getAccommodationValue())
+                .withValue(accommodation.getValue())
                 .withSegmentPosition(segmentPosition)
                 .build())
             .filter(accommodation -> !maybeOtherExamAccommodation.isPresent() ||

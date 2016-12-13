@@ -194,12 +194,12 @@ public class ExamAccommodationServiceImplTest {
 
         assertThat(examAccommodation.getExamId()).isEqualTo(exam.getId());
         assertThat(examAccommodation.getCode()).isEqualTo("ENU");
-        assertThat(examAccommodation.getType()).isEqualTo(accommodation.getAccommodationType());
-        assertThat(examAccommodation.getDescription()).isEqualTo(accommodation.getAccommodationValue());
+        assertThat(examAccommodation.getType()).isEqualTo(accommodation.getType());
+        assertThat(examAccommodation.getDescription()).isEqualTo(accommodation.getValue());
         assertThat(examAccommodation.getSegmentKey()).isEqualTo(accommodation.getSegmentKey());
         assertThat(examAccommodation.getSegmentPosition()).isEqualTo(0);
         assertThat(examAccommodation.isAllowChange()).isFalse();
-        assertThat(examAccommodation.getValue()).isEqualTo(accommodation.getAccommodationValue());
+        assertThat(examAccommodation.getValue()).isEqualTo(accommodation.getValue());
         assertThat(examAccommodation.isSelectable()).isTrue();
     }
 }
