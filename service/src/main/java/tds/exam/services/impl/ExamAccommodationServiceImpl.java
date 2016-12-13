@@ -25,8 +25,8 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 @Service
 class ExamAccommodationServiceImpl implements ExamAccommodationService {
     private static final String OTHER_ACCOMMODATION_VALUE = "TDS_Other#";
-    public static final String OTHER_ACCOMMODATION_CODE = "TDS_Other";
-    public static final String OTHER_ACCOMMODATION_NAME = "Other";
+    private static final String OTHER_ACCOMMODATION_CODE = "TDS_Other";
+    private static final String OTHER_ACCOMMODATION_NAME = "Other";
 
     private final ExamAccommodationQueryRepository examAccommodationQueryRepository;
     private final ExamAccommodationCommandRepository examAccommodationCommandRepository;
