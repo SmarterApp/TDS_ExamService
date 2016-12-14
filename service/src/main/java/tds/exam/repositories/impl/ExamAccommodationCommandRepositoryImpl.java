@@ -52,7 +52,7 @@ public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodation
     }
 
     @Override
-    public void update(ExamAccommodation examAccommodation) {
+    public void update(ExamAccommodation... examAccommodation) {
         updateEvent(examAccommodation);
     }
 

@@ -84,10 +84,26 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
     }
 
     @Override
-    public void initializePreviousAccommodations(Exam exam, Assessment assessment, int segmentPosition, boolean restoreRts, String guestAccommodations) {
-        /*
-            This block replaces CommonDLL._UpdateOpportunityAccommodations_SP.
-         */
+    public void initializeAccommodationsOnPreviousExam(Exam exam, Assessment assessment, int segmentPosition, boolean restoreRts, String guestAccommodations) {
+        List<ExamAccommodation> examAccommodations = findAllAccommodations(exam.getId());
+        if(examAccommodations.isEmpty()) {
+            examAccommodations = initializeExamAccommodations(exam);
+        } else {
+            examAccommodations = initializePreviousAccommodations(exam, assessment, segmentPosition, restoreRts, guestAccommodations, examAccommodations);
+        }
+
+        ExamAccommodation[] disapproveAccommodations = examAccommodations.stream()
+            .filter(accommodation -> accommodation.isSelectable() && accommodation.isAllowChange())
+            .map(accommodation -> new ExamAccommodation.Builder().fromExamAccommodation(accommodation).build())
+            .toArray(ExamAccommodation[]::new);
+
+        examAccommodationCommandRepository.update(disapproveAccommodations);
+    }
+
+    private List<ExamAccommodation> initializePreviousAccommodations(Exam exam, Assessment assessment, int segmentPosition, boolean restoreRts, String guestAccommodations, List<ExamAccommodation> examAccommodations) {
+    /*
+        This block replaces CommonDLL._UpdateOpportunityAccommodations_SP.
+     */
 
         //CommonDLL line 2590 - gets the accommodation codes based on guest accommodations and the accommodation family for the assessment
         List<String> accommodationCodes = splitAccommodationCodes(assessment.getAccommodationFamily(), guestAccommodations);
@@ -108,8 +124,6 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
         Set<String> accommodationTypes = accommodationsToAdd.stream()
             .map(Accommodation::getType)
             .collect(Collectors.toSet());
-
-        List<ExamAccommodation> examAccommodations = findAllAccommodations(exam.getId());
 
         List<ExamAccommodation> examAccommodationsToDelete = examAccommodations.stream()
             .filter(accommodation -> accommodationTypes.contains(accommodation.getType()))
@@ -164,6 +178,8 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
         if (!examAccommodationsToInsert.isEmpty()) {
             examAccommodationCommandRepository.insert(examAccommodationsToInsert);
         }
+
+        return examAccommodationsToInsert;
     }
 
     private List<String> splitAccommodationCodes(String accommodationFamily, String guestAccommodations) {

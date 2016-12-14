@@ -20,7 +20,7 @@ public interface ExamAccommodationCommandRepository {
      *
      * @param accommodation {@link tds.exam.ExamAccommodation} to update
      */
-    void update(ExamAccommodation accommodation);
+    void update(ExamAccommodation... accommodation);
 
     /**
      * Deletes the exam accommodations for the exam

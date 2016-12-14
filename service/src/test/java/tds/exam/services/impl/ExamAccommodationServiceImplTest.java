@@ -181,7 +181,7 @@ public class ExamAccommodationServiceImplTest {
 
         when(mockConfigService.findAssessmentAccommodations(assessment.getKey())).thenReturn(Collections.singletonList(accommodation));
         when(mockExamAccommodationQueryRepository.findAccommodations(exam.getId())).thenReturn(Collections.singletonList(examAccommodationToDelete));
-        examAccommodationService.initializePreviousAccommodations(exam ,assessment, 0, true, guestAccommodations);
+        examAccommodationService.initializeAccommodationsOnPreviousExam(exam ,assessment, 0, true, guestAccommodations);
 
         verify(mockExamAccommodationCommandRepository).delete(Collections.singletonList(examAccommodationToDelete));
         verify(mockExamAccommodationCommandRepository).insert(examAccommodationCaptor.capture());
