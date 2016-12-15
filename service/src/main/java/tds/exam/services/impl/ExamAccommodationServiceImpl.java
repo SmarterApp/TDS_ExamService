@@ -86,21 +86,49 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
     @Override
     public void initializeAccommodationsOnPreviousExam(Exam exam, Assessment assessment, int segmentPosition, boolean restoreRts, String guestAccommodations) {
         List<ExamAccommodation> examAccommodations = findAllAccommodations(exam.getId());
-        if(examAccommodations.isEmpty()) {
-            examAccommodations = initializeExamAccommodations(exam);
+        if (examAccommodations.isEmpty()) {
+            initializeExamAccommodations(exam);
         } else {
-            examAccommodations = initializePreviousAccommodations(exam, assessment, segmentPosition, restoreRts, guestAccommodations, examAccommodations);
+            initializePreviousAccommodations(exam, assessment, segmentPosition, restoreRts, guestAccommodations, examAccommodations);
         }
-
-        ExamAccommodation[] disapproveAccommodations = examAccommodations.stream()
-            .filter(accommodation -> accommodation.isSelectable() && accommodation.isAllowChange())
-            .map(accommodation -> new ExamAccommodation.Builder().fromExamAccommodation(accommodation).build())
-            .toArray(ExamAccommodation[]::new);
-
-        examAccommodationCommandRepository.update(disapproveAccommodations);
     }
 
-    private List<ExamAccommodation> initializePreviousAccommodations(Exam exam, Assessment assessment, int segmentPosition, boolean restoreRts, String guestAccommodations, List<ExamAccommodation> examAccommodations) {
+    private static String getOtherAccommodationValue(String formattedValue) {
+        return formattedValue.substring("TDS_Other#".length());
+    }
+
+    private List<String> splitAccommodationCodes(String accommodationFamily, String guestAccommodations) {
+        /*
+            This replaces CommonDLL._SplitAccomCodes_FN.  It takes the accommodation family from an Assessment (via configs.client_testproperties)
+            and the guest accommodations, which are both delimited Strings, and creates a List of code strings.  The existing code creates a
+            temporary table with an additional 'idx' column that is never used upstream.
+        */
+        if (isEmpty(guestAccommodations) || isEmpty(accommodationFamily)) {
+            return new ArrayList<>();
+        }
+
+        accommodationFamily += ":";
+
+        List<String> accommodationCodes = new ArrayList<>();
+        for (String guestAccommodation : guestAccommodations.split(";")) {
+            String accommodationCode = "";
+            if (guestAccommodation.indexOf(':') > -1 && !guestAccommodation.contains(accommodationFamily)) {
+                accommodationCode = guestAccommodation;
+            }
+
+            if (guestAccommodation.contains(accommodationFamily)) {
+                accommodationCode = guestAccommodation.substring(accommodationFamily.length());
+            }
+
+            if (isNotEmpty(accommodationCode)) {
+                accommodationCodes.add(accommodationCode.length() > 100 ? accommodationCode.substring(0, 100) : accommodationCode);
+            }
+        }
+
+        return accommodationCodes;
+    }
+
+    private List<ExamAccommodation> initializePreviousAccommodations(Exam exam, Assessment assessment, int segmentPosition, boolean restoreRts, String guestAccommodations, List<ExamAccommodation> existingExamAccommodations) {
     /*
         This block replaces CommonDLL._UpdateOpportunityAccommodations_SP.
      */
@@ -125,19 +153,19 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
             .map(Accommodation::getType)
             .collect(Collectors.toSet());
 
-        List<ExamAccommodation> examAccommodationsToDelete = examAccommodations.stream()
+        List<ExamAccommodation> examAccommodationsToDelete = existingExamAccommodations.stream()
             .filter(accommodation -> accommodationTypes.contains(accommodation.getType()))
             .collect(Collectors.toList());
 
         //CommonDLL line 2677.  We delete the exam accommodations because this seems like the only
         //way in the current system to update the exam accommodations between exam runs.
-        if(!examAccommodationsToDelete.isEmpty()) {
+        if (!examAccommodationsToDelete.isEmpty()) {
             examAccommodationCommandRepository.delete(examAccommodationsToDelete);
         }
 
         ExamAccommodation otherExamAccommodation = null;
 
-        for(String code : accommodationCodes) {
+        for (String code : accommodationCodes) {
             if (code.startsWith(OTHER_ACCOMMODATION_VALUE)) {
                 otherExamAccommodation = new ExamAccommodation.Builder()
                     .withExamId(exam.getId())
@@ -180,40 +208,5 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
         }
 
         return examAccommodationsToInsert;
-    }
-
-    private List<String> splitAccommodationCodes(String accommodationFamily, String guestAccommodations) {
-        /*
-            This replaces CommonDLL._SplitAccomCodes_FN.  It takes the accommodation family from an Assessment (via configs.client_testproperties)
-            and the guest accommodations, which are both delimited Strings, and creates a List of code strings.  The existing code creates a
-            temporary table with an additional 'idx' column that is never used upstream.
-        */
-        if (isEmpty(guestAccommodations) || isEmpty(accommodationFamily)) {
-            return new ArrayList<>();
-        }
-
-        accommodationFamily += ":";
-
-        List<String> accommodationCodes = new ArrayList<>();
-        for (String guestAccommodation : guestAccommodations.split(";")) {
-            String accommodationCode = "";
-            if (guestAccommodation.indexOf(':') > -1 && !guestAccommodation.contains(accommodationFamily)) {
-                accommodationCode = guestAccommodation;
-            }
-
-            if (guestAccommodation.contains(accommodationFamily)) {
-                accommodationCode = guestAccommodation.substring(accommodationFamily.length());
-            }
-
-            if (isNotEmpty(accommodationCode)) {
-                accommodationCodes.add(accommodationCode.length() > 100 ? accommodationCode.substring(0, 100) : accommodationCode);
-            }
-        }
-
-        return accommodationCodes;
-    }
-
-    private static String getOtherAccommodationValue(String formattedValue) {
-        return formattedValue.substring("TDS_Other#".length());
     }
 }
