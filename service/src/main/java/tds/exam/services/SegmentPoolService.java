@@ -3,6 +3,7 @@ package tds.exam.services;
 import java.util.List;
 import java.util.UUID;
 
+import tds.assessment.AdaptiveSegment;
 import tds.assessment.ItemConstraint;
 import tds.assessment.Segment;
 import tds.exam.Exam;

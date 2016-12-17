@@ -1,9 +1,11 @@
 package tds.exam.models;
 
+import tds.assessment.Algorithm;
 import tds.exam.Exam;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -12,35 +14,33 @@ import java.util.UUID;
  */
 public class ExamSegment {
     private UUID examId;
-    private String assessmentSegmentKey;
-    private String assessmentSegmentId;
+    private String segmentKey;
+    private String segmentId;
     private int segmentPosition;
     private String formKey;
     private String formId;
-    private String algorithm;
+    private Algorithm algorithm;
     private int examItemCount;
     private int fieldTestItemCount;
-    private List<String> fieldTestItems;
     private boolean isPermeable;
     private String restorePermeableCondition;
     private String formCohort;
     private boolean isSatisfied;
     private Instant dateExited;
-    private List<String> itemPool;
+    private Set<String> itemPool;
     private int poolCount;
     private Instant createdAt;
 
     public ExamSegment(Builder builder) {
         this.examId = builder.examId;
-        this.assessmentSegmentKey = builder.assessmentSegmentKey;
-        this.assessmentSegmentId = builder.assessmentSegmentId;
+        this.segmentKey = builder.segmentKey;
+        this.segmentId = builder.segmentId;
         this.segmentPosition = builder.segmentPosition;
         this.formKey = builder.formKey;
         this.formId = builder.formId;
         this.algorithm = builder.algorithm;
         this.examItemCount = builder.examItemCount;
         this.fieldTestItemCount = builder.fieldTestItemCount;
-        this.fieldTestItems = builder.fieldTestItems;
         this.isPermeable = builder.isPermeable;
         this.restorePermeableCondition = builder.restorePermeableCondition;
         this.formCohort = builder.formCohort;
@@ -53,21 +53,20 @@ public class ExamSegment {
 
     public static class Builder {
         private UUID examId;
-        private String assessmentSegmentKey;
-        private String assessmentSegmentId;
+        private String segmentKey;
+        private String segmentId;
         private int segmentPosition;
         private String formKey;
         private String formId;
-        private String algorithm;
+        private Algorithm algorithm;
         private int examItemCount;
         private int fieldTestItemCount;
-        private List<String> fieldTestItems;
         private boolean isPermeable;
         private String restorePermeableCondition;
         private String formCohort;
         private boolean isSatisfied;
         private Instant dateExited;
-        private List<String> itemPool;
+        private Set<String> itemPool;
         private int poolCount;
         private Instant createdAt;
 
@@ -76,13 +75,13 @@ public class ExamSegment {
             return this;
         }
 
-        public Builder withAssessmentSegmentKey(String newAssessmentSegmentKey) {
-            this.assessmentSegmentKey = newAssessmentSegmentKey;
+        public Builder withSegmentKey(String segmentKey) {
+            this.segmentKey = segmentKey;
             return this;
         }
 
-        public Builder withAssessmentSegmentId(String newAssessmentSegmentId) {
-            this.assessmentSegmentId = newAssessmentSegmentId;
+        public Builder withSegmentId(String segmentId) {
+            this.segmentId = segmentId;
             return this;
         }
 
@@ -101,7 +100,7 @@ public class ExamSegment {
             return this;
         }
 
-        public Builder withAlgorithm(String newAlgorithm) {
+        public Builder withAlgorithm(Algorithm newAlgorithm) {
             this.algorithm = newAlgorithm;
             return this;
         }
@@ -113,11 +112,6 @@ public class ExamSegment {
 
         public Builder withFieldTestItemCount(int newFieldTestItemCount) {
             this.fieldTestItemCount = newFieldTestItemCount;
-            return this;
-        }
-
-        public Builder withFieldTestItems(List<String> newFieldTestItems) {
-            this.fieldTestItems = newFieldTestItems;
             return this;
         }
 
@@ -146,7 +140,7 @@ public class ExamSegment {
             return this;
         }
 
-        public Builder withItemPool(List<String> newItemPool) {
+        public Builder withItemPool(Set<String> newItemPool) {
             this.itemPool = newItemPool;
             return this;
         }
@@ -183,15 +177,15 @@ public class ExamSegment {
     /**
      * @return the key of the assessment segment
      */
-    public String getAssessmentSegmentKey() {
-        return assessmentSegmentKey;
+    public String getSegmentKey() {
+        return segmentKey;
     }
 
     /**
      * @return the id of the assessment segment
      */
-    public String getAssessmentSegmentId() {
-        return assessmentSegmentId;
+    public String getSegmentId() {
+        return segmentId;
     }
 
     /**
@@ -211,7 +205,7 @@ public class ExamSegment {
     /**
      * @return the algorithm used by the segment for item selection
      */
-    public String getAlgorithm() {
+    public Algorithm getAlgorithm() {
         return algorithm;
     }
 
@@ -227,13 +221,6 @@ public class ExamSegment {
      */
     public int getFieldTestItemCount() {
         return fieldTestItemCount;
-    }
-
-    /**
-     * @return the list of field test item ids, comma delimited.
-     */
-    public List<String> getFieldTestItems() {
-        return fieldTestItems;
     }
 
     /**
@@ -274,7 +261,7 @@ public class ExamSegment {
     /**
      * @return the list of item ids in the item pool, comma delimited
      */
-    public List<String> getItemPool() {
+    public Set<String> getItemPool() {
         return itemPool;
     }
 

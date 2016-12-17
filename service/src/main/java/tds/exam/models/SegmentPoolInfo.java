@@ -21,7 +21,7 @@ public class SegmentPoolInfo {
     /**
      * @return the length (number of items to be selected) for the exam segment
      */
-    public long getLength() {
+    public int getLength() {
         return length;
     }
 

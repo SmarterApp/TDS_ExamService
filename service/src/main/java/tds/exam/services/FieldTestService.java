@@ -18,4 +18,6 @@ public interface FieldTestService {
      * @return  true if the the exam segment is eligible for a field test, false otherwise
      */
     boolean isFieldTestEligible(Exam exam, Assessment assessment, String segmentKey, String languageCode);
+
+    int selectItemGroups(Exam exam, Assessment assessment, String segmentKey, String languageCode);
 }

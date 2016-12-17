@@ -5,17 +5,21 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
+import tds.assessment.Algorithm;
 import tds.common.data.mapping.ResultSetMapperUtility;
 import tds.common.data.mysql.UuidAdapter;
 import tds.exam.models.ExamSegment;
@@ -24,6 +28,7 @@ import tds.exam.repositories.ExamSegmentQueryRepository;
 /**
  * Repository implementation for reading from the {@link ExamSegment} related tables.
  */
+@Repository
 public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
@@ -106,7 +111,6 @@ public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepositor
                 "   s.algorithm, \n" +
                 "   s.exam_item_count, \n" +
                 "   s.field_test_item_count, \n" +
-                "   s.field_test_items, \n" +
                 "   se.permeable, \n" +
                 "   se.restore_permeable_condition, \n" +
                 "   s.form_cohort, \n" +
@@ -139,9 +143,9 @@ public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepositor
         return maybeExamSegment;
     }
 
-    private List<String> createItemListFromString(String itemListStr) {
-        // Check if the value is an empty string - otherwise, the split returns an empty string (non-empty list)
-        return itemListStr.equals("") ? new ArrayList<>() : Arrays.asList(itemListStr.split(","));
+    private Set<String> createItemSetFromString(String itemListStr) {
+        // Check if the value is an empty string - otherwise, return a set of
+        return itemListStr.equals("") ? new HashSet<>() : new HashSet<>(Arrays.asList(itemListStr.split(",")));
     }
 
     private class ExamSegmentRowMapper implements RowMapper<ExamSegment> {
@@ -149,21 +153,20 @@ public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepositor
         public ExamSegment mapRow(ResultSet rs, int rowNum) throws SQLException {
             return new ExamSegment.Builder()
                     .withExamId(UuidAdapter.getUUIDFromBytes(rs.getBytes("exam_id")))
-                    .withAssessmentSegmentId(rs.getString("segment_id"))
-                    .withAssessmentSegmentKey(rs.getString("segment_key"))
+                    .withSegmentId(rs.getString("segment_id"))
+                    .withSegmentKey(rs.getString("segment_key"))
                     .withSegmentPosition(rs.getInt("segment_position"))
                     .withFormKey(rs.getString("form_key"))
                     .withFormId(rs.getString("form_id"))
-                    .withAlgorithm(rs.getString("algorithm"))
+                    .withAlgorithm(Algorithm.fromType(rs.getString("algorithm")))
                     .withExamItemCount(rs.getInt("exam_item_count"))
                     .withFieldTestItemCount(rs.getInt("field_test_item_count"))
-                    .withFieldTestItems(createItemListFromString(rs.getString("field_test_items")))
                     .withIsPermeable(rs.getBoolean("permeable"))
                     .withRestorePermeableCondition(rs.getString("restore_permeable_condition"))
                     .withFormCohort(rs.getString("form_cohort"))
                     .withIsSatisfied(rs.getBoolean("satisfied"))
                     .withDateExited(ResultSetMapperUtility.mapTimestampToInstant(rs, "date_exited"))
-                    .withItemPool(createItemListFromString(rs.getString("item_pool")))
+                    .withItemPool(createItemSetFromString(rs.getString("item_pool")))
                     .withPoolCount(rs.getInt("pool_count"))
                     .withCreatedAt(ResultSetMapperUtility.mapTimestampToInstant(rs, "created_at"))
                     .build();
