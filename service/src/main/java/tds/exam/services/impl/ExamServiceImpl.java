@@ -439,7 +439,7 @@ class ExamServiceImpl implements ExamService {
             }
         }
 
-
+        examAccommodationService.initializeAccommodationsOnPreviousExam(previousExam, assessment, 0, restoreAccommodations, guestAccommodations);
 
         return new Response<>(currentExam);
     }

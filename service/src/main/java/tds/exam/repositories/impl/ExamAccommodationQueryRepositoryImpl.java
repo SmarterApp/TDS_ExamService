@@ -48,7 +48,8 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
             "   ea.allow_change, \n" +
             "   ea.value, \n" +
             "   ea.segment_position, \n" +
-            "   eae.selectable \n" +
+            "   eae.selectable, \n" +
+            "   eae.multiple_tool_types \n" +
             "FROM \n" +
             "   exam_accommodation ea \n" +
             "JOIN ( \n" +
@@ -90,7 +91,8 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
                 "   ea.allow_change, \n" +
                 "   ea.value, \n" +
                 "   ea.segment_position, \n" +
-                "   eae.selectable \n" +
+                "   eae.selectable, \n" +
+                "   eae.multiple_tool_types \n" +
                 "FROM \n" +
                 "   exam_accommodation ea \n" +
                 "JOIN ( \n" +
@@ -129,6 +131,7 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
                 .withAllowChange(rs.getBoolean("allow_change"))
                 .withValue(rs.getString("value"))
                 .withSegmentPosition(rs.getInt("segment_position"))
+                .withMultipleToolTypes(rs.getBoolean("multiple_tool_types"))
                 .build();
         }
     }

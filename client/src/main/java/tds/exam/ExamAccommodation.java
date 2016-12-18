@@ -22,6 +22,7 @@ public class ExamAccommodation {
     private Instant deniedAt;
     private Instant createdAt;
     private Instant deletedAt;
+    private boolean multipleToolTypes;
 
     public static class Builder {
         private long id;
@@ -37,6 +38,7 @@ public class ExamAccommodation {
         private boolean allowChange;
         private String value;
         private int segmentPosition = 1;
+        private boolean multipleToolTypes;
 
         public Builder withId(long id) {
             this.id = id;
@@ -122,6 +124,11 @@ public class ExamAccommodation {
             return this;
         }
 
+        public Builder withMultipleToolTypes(boolean multipleToolTypes) {
+            this.multipleToolTypes = multipleToolTypes;
+            return this;
+        }
+
         public Builder fromExamAccommodation(final ExamAccommodation accommodation) {
             id = accommodation.getId();
             examId = accommodation.getExamId();
@@ -135,6 +142,7 @@ public class ExamAccommodation {
             selectable = accommodation.isSelectable();
             allowChange = accommodation.isAllowChange();
             value = accommodation.getValue();
+            multipleToolTypes = accommodation.multipleToolTypes;
             return this;
         }
 
@@ -157,6 +165,7 @@ public class ExamAccommodation {
         allowChange = builder.allowChange;
         value = builder.value;
         segmentPosition = builder.segmentPosition;
+        multipleToolTypes = builder.multipleToolTypes;
     }
 
     /**
@@ -251,6 +260,10 @@ public class ExamAccommodation {
 
     public int getSegmentPosition() {
         return segmentPosition;
+    }
+
+    public boolean isMultipleToolTypes() {
+        return multipleToolTypes;
     }
 
     @Override

@@ -57,8 +57,18 @@ public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodation
     }
 
     private void updateEvent(ExamAccommodation... examAccommodations) {
-        String SQL = "INSERT INTO exam_accommodation_event(exam_accommodation_id, denied_at, deleted_at, selectable) \n" +
-            "VALUES(:examAccommodationId, :deniedAt, :deletedAt, :selectable);";
+        String SQL = "INSERT INTO exam_accommodation_event(" +
+            "exam_accommodation_id, " +
+            "denied_at, " +
+            "deleted_at, " +
+            "selectable," +
+            "multiple_tool_types) \n" +
+            "VALUES(" +
+            ":examAccommodationId, " +
+            ":deniedAt, " +
+            ":deletedAt, " +
+            ":selectable," +
+            ":multipleToolTypes);";
 
         SqlParameterSource[] parameterSources = new SqlParameterSource[examAccommodations.length];
 
@@ -67,6 +77,7 @@ public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodation
             SqlParameterSource parameters = new MapSqlParameterSource("examAccommodationId", examAccommodation.getId())
                 .addValue("deniedAt", mapJodaInstantToTimestamp(examAccommodation.getDeniedAt()))
                 .addValue("selectable", examAccommodation.isSelectable())
+                .addValue("multipleToolTypes", examAccommodation.isMultipleToolTypes())
                 .addValue("deletedAt", mapJodaInstantToTimestamp(examAccommodation.getDeletedAt()));
 
             parameterSources[i] = parameters;

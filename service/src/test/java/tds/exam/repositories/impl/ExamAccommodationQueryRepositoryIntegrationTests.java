@@ -53,6 +53,7 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
             .withAllowChange(true)
             .withSelectable(true)
             .withSegmentPosition(5)
+            .withMultipleToolTypes(true)
             .build());
 
         // Accommodation in second segment that is denied
@@ -107,6 +108,7 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
         assertThat(firstExamAccommodation.isApproved()).isTrue();
         assertThat(firstExamAccommodation.isSelectable()).isTrue();
         assertThat(firstExamAccommodation.isAllowChange()).isTrue();
+        assertThat(firstExamAccommodation.isMultipleToolTypes()).isTrue();
         assertThat(firstExamAccommodation.getSegmentPosition()).isEqualTo(5);
 
         ExamAccommodation secondAccommodation = result.get(1);
@@ -120,6 +122,7 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
         assertThat(secondAccommodation.getCreatedAt()).isLessThan(Instant.now());
         assertThat(secondAccommodation.isSelectable()).isFalse();
         assertThat(secondAccommodation.isAllowChange()).isFalse();
+        assertThat(firstExamAccommodation.isMultipleToolTypes()).isTrue();
         assertThat(secondAccommodation.isApproved()).isTrue();
     }
 

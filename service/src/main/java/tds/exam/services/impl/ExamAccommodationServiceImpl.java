@@ -1,5 +1,6 @@
 package tds.exam.services.impl;
 
+import org.joda.time.Instant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -72,6 +73,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                 .withDescription(accommodation.getValue())
                 .withSegmentKey(accommodation.getSegmentKey())
                 .withValue(accommodation.getValue())
+                .withMultipleToolTypes(accommodation.getTypeTotal() > 1)
                 .build();
 
             examAccommodations.add(examAccommodation);
@@ -85,12 +87,32 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
 
     @Override
     public void initializeAccommodationsOnPreviousExam(Exam exam, Assessment assessment, int segmentPosition, boolean restoreRts, String guestAccommodations) {
+        /*
+         This replaces the functionality of the following bits of code
+         - StudentDLL 6834 - 6843
+         - StudentDLL _InitOpportunityAccommodations_SP
+         - CommonDLL _UpdateOpportunityAccommodations_SP
+         */
         List<ExamAccommodation> examAccommodations = findAllAccommodations(exam.getId());
         if (examAccommodations.isEmpty()) {
             initializeExamAccommodations(exam);
         } else {
             initializePreviousAccommodations(exam, assessment, segmentPosition, restoreRts, guestAccommodations, examAccommodations);
         }
+
+        //Fetch the updated exam accommodations
+        examAccommodations = findAllAccommodations(exam.getId());
+
+        ExamAccommodation[] examAccommodationsToDenyApproval = examAccommodations.stream()
+            .filter(ExamAccommodation::isMultipleToolTypes)
+            .map(accommodation -> new ExamAccommodation
+                .Builder()
+                .fromExamAccommodation(accommodation)
+                .withDeniedAt(Instant.now())
+                .build())
+            .toArray(ExamAccommodation[]::new);
+
+        examAccommodationCommandRepository.update(examAccommodationsToDenyApproval);
     }
 
     private static String getOtherAccommodationValue(String formattedValue) {
@@ -198,6 +220,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                 .withSelectable(accommodation.isSelectable())
                 .withValue(accommodation.getValue())
                 .withSegmentPosition(segmentPosition)
+                .withMultipleToolTypes(accommodation.getTypeTotal() > 1)
                 .build())
             .filter(accommodation -> !maybeOtherExamAccommodation.isPresent() ||
                 accommodation.getType().equals(maybeOtherExamAccommodation.get().getType()))
