@@ -103,6 +103,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
         //Fetch the updated exam accommodations
         examAccommodations = findAllAccommodations(exam.getId());
 
+        //StudentDLL lines 6967 - 6875
         ExamAccommodation[] examAccommodationsToDenyApproval = examAccommodations.stream()
             .filter(ExamAccommodation::isMultipleToolTypes)
             .map(accommodation -> new ExamAccommodation
