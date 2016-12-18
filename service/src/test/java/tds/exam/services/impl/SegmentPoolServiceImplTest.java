@@ -39,8 +39,7 @@ public class SegmentPoolServiceImplTest {
         final UUID examId = UUID.randomUUID();
         final String assessmentId = "my-assessment-id";
         final String segmentKey = "my-segment-key";
-        Segment segment = new Segment(segmentKey);
-        segment.setSelectionAlgorithm(Algorithm.ADAPTIVE_2);
+        Segment segment = new Segment(segmentKey, Algorithm.ADAPTIVE_2);
         segment.setMinItems(5);
         segment.setMaxItems(13);
 
@@ -182,7 +181,7 @@ public class SegmentPoolServiceImplTest {
                 .build());
 
         when(mockItemPoolService.getItemPool(examId, itemConstraints, items)).thenReturn(new HashSet<>(items));
-        SegmentPoolInfo segmentPoolInfo = segmentPoolService.computeSegmentPool(examId, segment, itemConstraints);
+        SegmentPoolInfo segmentPoolInfo = segmentPoolService.computeSegmentPool(examId, segment, itemConstraints, "ENU");
         assertThat(segmentPoolInfo).isNotNull();
         assertThat(segmentPoolInfo.getPoolCount()).isEqualTo(6);
         assertThat(segmentPoolInfo.getLength()).isEqualTo(6);
@@ -196,8 +195,7 @@ public class SegmentPoolServiceImplTest {
         final UUID examId = UUID.randomUUID();
         final String assessmentId = "my-assessment-id";
         final String segmentKey = "my-segment-key";
-        Segment segment = new Segment(segmentKey);
-        segment.setSelectionAlgorithm(Algorithm.ADAPTIVE_2);
+        Segment segment = new Segment(segmentKey, Algorithm.ADAPTIVE_2);
         segment.setMinItems(5);
         segment.setMaxItems(6);
 
@@ -339,7 +337,7 @@ public class SegmentPoolServiceImplTest {
             .build());
 
         when(mockItemPoolService.getItemPool(examId, itemConstraints, items)).thenReturn(new HashSet<>(items));
-        SegmentPoolInfo segmentPoolInfo = segmentPoolService.computeSegmentPool(examId, segment, itemConstraints);
+        SegmentPoolInfo segmentPoolInfo = segmentPoolService.computeSegmentPool(examId, segment, itemConstraints, "ENU");
         assertThat(segmentPoolInfo).isNotNull();
         assertThat(segmentPoolInfo.getPoolCount()).isEqualTo(6);
         assertThat(segmentPoolInfo.getLength()).isEqualTo(4L);

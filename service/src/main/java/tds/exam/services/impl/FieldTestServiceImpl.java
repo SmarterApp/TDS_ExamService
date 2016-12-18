@@ -25,14 +25,8 @@ public class FieldTestServiceImpl implements FieldTestService {
         if (currentSegment.getFieldTestMinItems() > 0) {
             // Check if there exists at least one field test item in the segment with the selected language
             /* StudentDLL [4430] */
-            Optional<Item> fieldTestItem = currentSegment.getItems().stream()
-                .filter(item ->
-                    item.isFieldTest() &&
-                        item.getItemProperties().stream()
-                            .filter(prop ->
-                                prop.getName().equalsIgnoreCase(Accommodation.ACCOMMODATION_TYPE_LANGUAGE) &&
-                                    prop.getValue().equalsIgnoreCase(languageCode))
-                            .findFirst().isPresent())
+            Optional<Item> fieldTestItem = currentSegment.getItems(languageCode).stream()
+                .filter(item -> item.isFieldTest())
                 .findFirst();
 
              /* [4430 - 4442] checks to see if the segment contains at least one FT item */

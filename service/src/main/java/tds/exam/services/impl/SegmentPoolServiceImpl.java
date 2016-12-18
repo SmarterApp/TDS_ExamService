@@ -35,9 +35,9 @@ public class SegmentPoolServiceImpl implements SegmentPoolService {
 
     @Override
     public SegmentPoolInfo computeSegmentPool(final UUID examId, final Segment segment,
-                                              final List<ItemConstraint> itemConstraints) {
+                                              final List<ItemConstraint> itemConstraints, String languageCode) {
         // Get the list of eligible items based on constraints and exam accommodations
-        Set<Item> itemPool = itemPoolService.getItemPool(examId, itemConstraints, segment.getItems());
+        Set<Item> itemPool = itemPoolService.getItemPool(examId, itemConstraints, segment.getItems(languageCode));
         /* getItemPool selects the items that are eligible for the segment pool we are constructing.
            In legacy code, we can skip a lot of the temp-table initialization logic because of this */
         Set<Strand> strands = segment.getStrands();

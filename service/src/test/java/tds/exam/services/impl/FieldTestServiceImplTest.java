@@ -7,6 +7,7 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 
+import tds.assessment.Algorithm;
 import tds.assessment.Assessment;
 import tds.assessment.Item;
 import tds.assessment.ItemProperty;
@@ -34,7 +35,7 @@ public class FieldTestServiceImplTest {
         final Exam exam = new ExamBuilder().build();
         List<Item> items = createTestItems(false);
 
-        Segment seg1 = new Segment(segmentKey);
+        Segment seg1 = new Segment(segmentKey, Algorithm.ADAPTIVE_2);
         seg1.setItems(items);
         seg1.setFieldTestMinItems(1);
 
@@ -59,7 +60,7 @@ public class FieldTestServiceImplTest {
 
         List<Item> items = createTestItems(true);
 
-        Segment seg1 = new Segment(segmentKey);
+        Segment seg1 = new Segment(segmentKey, Algorithm.ADAPTIVE_2);
         seg1.setFieldTestMinItems(1);
         seg1.setItems(items);
 
@@ -82,7 +83,7 @@ public class FieldTestServiceImplTest {
 
         List<Item> items = createTestItems(true);
 
-        Segment seg1 = new Segment(segmentKey);
+        Segment seg1 = new Segment(segmentKey, Algorithm.ADAPTIVE_2);
         seg1.setFieldTestMinItems(1);
         seg1.setItems(items);
 
@@ -105,7 +106,7 @@ public class FieldTestServiceImplTest {
 
         List<Item> items = createTestItems(true);
 
-        Segment seg1 = new Segment(segmentKey);
+        Segment seg1 = new Segment(segmentKey, Algorithm.ADAPTIVE_2);
         seg1.setFieldTestMinItems(1);
         seg1.setItems(items);
 
@@ -129,7 +130,7 @@ public class FieldTestServiceImplTest {
         final Exam exam = new ExamBuilder().build();
         List<Item> items = createTestItems(true);
 
-        Segment seg1 = new Segment(segmentKey);
+        Segment seg1 = new Segment(segmentKey, Algorithm.ADAPTIVE_2);
         seg1.setFieldTestMinItems(1);
         seg1.setItems(items);
 
@@ -154,7 +155,7 @@ public class FieldTestServiceImplTest {
 
         List<Item> items = createTestItems(true);
 
-        Segment seg1 = new Segment(segmentKey);
+        Segment seg1 = new Segment(segmentKey, Algorithm.ADAPTIVE_2);
         seg1.setFieldTestMinItems(1);
         seg1.setItems(items);
 
@@ -178,7 +179,7 @@ public class FieldTestServiceImplTest {
         final Exam exam = new ExamBuilder().build();
         List<Item> items = createTestItems(true);
 
-        Segment seg1 = new Segment(segmentKey);
+        Segment seg1 = new Segment(segmentKey, Algorithm.ADAPTIVE_2);
         seg1.setFieldTestMinItems(1);
         seg1.setItems(items);
 
@@ -204,7 +205,7 @@ public class FieldTestServiceImplTest {
         final Exam exam = new ExamBuilder().build();
         List<Item> items = createTestItems(true);
 
-        Segment seg1 = new Segment(segmentKey);
+        Segment seg1 = new Segment(segmentKey, Algorithm.ADAPTIVE_2);
         seg1.setSegmentId(segmentId);
         seg1.setFieldTestMinItems(1);
         seg1.setItems(items);
@@ -212,7 +213,7 @@ public class FieldTestServiceImplTest {
         seg1.setFieldTestStartDate(Instant.now().minus(100000));
         seg1.setFieldTestEndDate(Instant.now().minus(2000000));
 
-        Segment seg2 = new Segment("anotherSegment");
+        Segment seg2 = new Segment("anotherSegment", Algorithm.ADAPTIVE_2);
 
         List<Segment> segments = new ArrayList<>();
         segments.add(seg1);
@@ -238,12 +239,12 @@ public class FieldTestServiceImplTest {
         List<Item> items = createTestItems(true);
 
         // Null field test start/end dates - eligible FT window
-        Segment seg1 = new Segment(segmentKey);
+        Segment seg1 = new Segment(segmentKey, Algorithm.ADAPTIVE_2);
         seg1.setSegmentId(segmentId);
         seg1.setFieldTestMinItems(1);
         seg1.setItems(items);
 
-        Segment seg2 = new Segment("anotherSegment");
+        Segment seg2 = new Segment("anotherSegment", Algorithm.ADAPTIVE_2);
 
         List<Segment> segments = new ArrayList<>();
         segments.add(seg1);
@@ -269,12 +270,12 @@ public class FieldTestServiceImplTest {
 
         List<Item> items = createTestItems(true);
 
-        Segment seg1 = new Segment(segmentKey);
+        Segment seg1 = new Segment(segmentKey, Algorithm.ADAPTIVE_2);
         seg1.setFieldTestMinItems(1);
         seg1.setItems(items);
         seg1.setFieldTestStartDate(Instant.now().minus(100000));
         seg1.setFieldTestEndDate(Instant.now().plus(2000000));
-        Segment seg2 = new Segment("anotherSegment");
+        Segment seg2 = new Segment("anotherSegment", Algorithm.ADAPTIVE_2);
 
         List<Segment> segments = new ArrayList<>();
         segments.add(seg1);

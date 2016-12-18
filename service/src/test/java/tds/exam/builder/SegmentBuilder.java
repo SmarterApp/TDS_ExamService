@@ -12,9 +12,8 @@ public class SegmentBuilder {
     private String assessmentKey = "(SBAC_PT)IRP-Perf-ELA-3-Summer-2015-2016";
 
     public Segment build() {
-        Segment segment = new Segment(key);
+        Segment segment = new Segment(key, selectionAlgorithm);
         segment.setSegmentId(segmentId);
-        segment.setSelectionAlgorithm(selectionAlgorithm);
         segment.setStartAbility(startAbility);
         segment.setSubject(subjectName);
         segment.setAssessmentKey(assessmentKey);

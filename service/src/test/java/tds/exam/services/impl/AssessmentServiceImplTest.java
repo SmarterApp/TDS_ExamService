@@ -37,10 +37,9 @@ public class AssessmentServiceImplTest {
     @Test
     public void shouldFindSetOfAdminSubjectsByKey() {
         List<Segment> segments = new ArrayList<>();
-        Segment segment = new Segment("segkey");
+        Segment segment = new Segment("segkey", Algorithm.FIXED_FORM);
         segment.setSegmentId("segid");
         segment.setAssessmentKey("key");
-        segment.setSelectionAlgorithm(Algorithm.FIXED_FORM);
         segment.setStartAbility(0);
         segments.add(segment);
 
