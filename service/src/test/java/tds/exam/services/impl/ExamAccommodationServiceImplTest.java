@@ -142,7 +142,7 @@ public class ExamAccommodationServiceImplTest {
             .withDependsOnToolType("dependingSoCool")
             .build();
 
-        when(mockConfigService.findAssessmentAccommodations(exam.getAssessmentKey())).thenReturn(Arrays.asList(accommodation, nonDefaultAccommodation, dependsOnToolTypeAccommodation));
+        when(mockConfigService.findAssessmentAccommodationsByKey(exam.getClientName(), exam.getAssessmentKey())).thenReturn(Arrays.asList(accommodation, nonDefaultAccommodation, dependsOnToolTypeAccommodation));
         examAccommodationService.initializeExamAccommodations(exam);
         verify(mockExamAccommodationCommandRepository).insert(examAccommodationCaptor.capture());
 
@@ -179,7 +179,7 @@ public class ExamAccommodationServiceImplTest {
 
         String guestAccommodations = "ELA;ELA:ENU;Language:ENU";
 
-        when(mockConfigService.findAssessmentAccommodations(assessment.getKey())).thenReturn(Collections.singletonList(accommodation));
+        when(mockConfigService.findAssessmentAccommodationsByKey(exam.getClientName(), assessment.getKey())).thenReturn(Collections.singletonList(accommodation));
         when(mockExamAccommodationQueryRepository.findAccommodations(exam.getId())).thenReturn(Collections.singletonList(examAccommodationToDelete));
         examAccommodationService.initializeAccommodationsOnPreviousExam(exam ,assessment, 0, true, guestAccommodations);
 
