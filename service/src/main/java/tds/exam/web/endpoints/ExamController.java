@@ -5,7 +5,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.MatrixVariable;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,17 +12,14 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
 import java.util.UUID;
 
 import tds.common.Response;
 import tds.common.web.exceptions.NotFoundException;
 import tds.exam.ApprovalRequest;
 import tds.exam.Exam;
-import tds.exam.ExamAccommodation;
 import tds.exam.ExamApproval;
 import tds.exam.OpenExamRequest;
-import tds.exam.services.ExamAccommodationService;
 import tds.exam.services.ExamService;
 import tds.exam.web.resources.ExamApprovalResource;
 import tds.exam.web.resources.ExamResource;
@@ -32,12 +28,10 @@ import tds.exam.web.resources.ExamResource;
 @RequestMapping("/exam")
 public class ExamController {
     private final ExamService examService;
-    private final ExamAccommodationService examAccommodationService;
 
     @Autowired
-    public ExamController(ExamService examService, ExamAccommodationService examAccommodationService) {
+    public ExamController(ExamService examService) {
         this.examService = examService;
-        this.examAccommodationService = examAccommodationService;
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -54,7 +48,7 @@ public class ExamController {
 
         ExamResource resource = new ExamResource(exam);
 
-        if(!exam.getData().isPresent()) {
+        if (!exam.getData().isPresent()) {
             return new ResponseEntity<>(new ExamResource(exam), HttpStatus.UNPROCESSABLE_ENTITY);
         }
 
@@ -73,17 +67,6 @@ public class ExamController {
         }
 
         return ResponseEntity.ok(new ExamApprovalResource(examApproval));
-    }
-
-    @RequestMapping(value = "/{id}/{segmentId}/accommodations/{accommodationTypes}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<ExamAccommodation>> getAccommodations(@PathVariable final UUID id,
-                                                                     @PathVariable final String segmentId,
-                                                                     @MatrixVariable(required = false) final String[] accommodationTypes) {
-        if (accommodationTypes == null || accommodationTypes.length == 0) {
-            throw new IllegalArgumentException("accommodation types with values are required");
-        }
-
-        return ResponseEntity.ok(examAccommodationService.findAccommodations(id, segmentId, accommodationTypes));
     }
 }
 
