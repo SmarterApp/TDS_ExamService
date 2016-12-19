@@ -23,7 +23,7 @@ public interface ExamService {
      * @param uuid id for the exam
      * @return {@link Exam} otherwise null
      */
-    Optional<Exam> getExam(UUID uuid);
+    Optional<Exam> findExam(UUID uuid);
 
     /**
      * Opens a new exam
