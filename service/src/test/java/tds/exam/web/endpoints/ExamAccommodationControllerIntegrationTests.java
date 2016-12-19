@@ -85,6 +85,4 @@ public class ExamAccommodationControllerIntegrationTests {
 
         verify(mockExamAccommodationService).findApprovedAccommodations(examId);
     }
-
-
 }
