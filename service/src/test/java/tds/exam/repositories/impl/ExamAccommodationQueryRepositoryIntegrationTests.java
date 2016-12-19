@@ -242,4 +242,20 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
         examAccommodationCommandRepository.update(examAccommodation);
         assertThat(examAccommodationQueryRepository.findAccommodations(examId)).hasSize(1);
     }
+
+    @Test
+    public void shouldRetrieveApprovedAccommodations() {
+        List<ExamAccommodation> allExamAccommodations = examAccommodationQueryRepository.findAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID);
+        assertThat(allExamAccommodations).hasSize(3);
+
+        List<ExamAccommodation> approvedExamAccommodations = examAccommodationQueryRepository.findApprovedAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID);
+        assertThat(approvedExamAccommodations).hasSize(2);
+
+        approvedExamAccommodations.forEach(accommodation -> {
+                assertThat(accommodation.isApproved()).isTrue();
+                //segment-2 is the key for the denied accommodation in the before block
+                assertThat(accommodation.getSegmentKey()).doesNotMatch("segment-2");
+            }
+        );
+    }
 }

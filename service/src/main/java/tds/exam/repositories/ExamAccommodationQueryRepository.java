@@ -26,4 +26,12 @@ public interface ExamAccommodationQueryRepository {
      * @return list of {@link tds.exam.ExamAccommodation}
      */
     List<ExamAccommodation> findAccommodations(UUID examId);
+
+    /**
+     * Retrieves all the approved {@link tds.exam.ExamAccommodation} associated with the exam
+     *
+     * @param examId the unique id for the exam
+     * @return list containing approved {@link tds.exam.ExamAccommodation}
+     */
+    List<ExamAccommodation> findApprovedAccommodations(UUID examId);
 }

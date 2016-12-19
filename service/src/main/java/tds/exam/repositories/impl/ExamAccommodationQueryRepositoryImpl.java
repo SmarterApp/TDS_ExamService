@@ -71,9 +71,18 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
 
     @Override
     public List<ExamAccommodation> findAccommodations(UUID examId) {
+        return getExamAccommodations(examId, false);
+    }
+
+    @Override
+    public List<ExamAccommodation> findApprovedAccommodations(UUID examId) {
+        return getExamAccommodations(examId, true);
+    }
+
+    private List<ExamAccommodation> getExamAccommodations(UUID examId, boolean excludeDenied) {
         final SqlParameterSource parameters = new MapSqlParameterSource("examId", UuidAdapter.getBytesFromUUID(examId));
 
-        final String SQL =
+        String SQL =
             "SELECT \n" +
                 "   ea.id, \n" +
                 "   ea.exam_id, \n" +
@@ -98,7 +107,11 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
                 "  ON last_event.id = eae.id \n" +
                 "WHERE \n" +
                 "   ea.exam_id = :examId" +
-                "   AND eae.deleted_at IS NULL;";
+                "   AND eae.deleted_at IS NULL";
+
+        if (excludeDenied) {
+            SQL += "\n AND eae.denied_at IS NULL";
+        }
 
         return jdbcTemplate.query(SQL,
             parameters,
