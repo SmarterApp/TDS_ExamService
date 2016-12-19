@@ -11,6 +11,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import tds.config.Accommodation;
@@ -148,5 +149,18 @@ public class ExamAccommodationServiceImplTest {
         assertThat(examAccommodation.getCode()).isEqualTo("code");
         assertThat(examAccommodation.getType()).isEqualTo("type");
         assertThat(examAccommodation.getSegmentKey()).isEqualTo("segmentKey");
+    }
+
+    @Test
+    public void shouldFindApprovedExamAccommodations() {
+        ExamAccommodation accommodation = new ExamAccommodationBuilder().build();
+
+        when(mockExamAccommodationQueryRepository.findApprovedAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID)).thenReturn(Collections.singletonList(accommodation));
+
+        List<ExamAccommodation> approvedExamAccommodations = accommodationService.findApprovedAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID);
+
+        verify(mockExamAccommodationQueryRepository).findApprovedAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID);
+
+        assertThat(approvedExamAccommodations).containsExactly(accommodation);
     }
 }

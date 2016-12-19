@@ -34,4 +34,12 @@ public interface ExamAccommodationService {
      * @param exam exam to use to initialize the {@link tds.exam.ExamAccommodation}
      */
     List<ExamAccommodation> initializeExamAccommodations(Exam exam);
+
+    /**
+     * Finds the approved {@link tds.exam.ExamAccommodation}
+     *
+     * @param examId the exam id
+     * @return list of approved {@link tds.exam.ExamAccommodation}
+     */
+    List<ExamAccommodation> findApprovedAccommodations(UUID examId);
 }
