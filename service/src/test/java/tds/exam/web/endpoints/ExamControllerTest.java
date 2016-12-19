@@ -32,15 +32,11 @@ import tds.exam.OpenExamRequest;
 import tds.exam.builder.OpenExamRequestBuilder;
 import tds.exam.error.ValidationErrorCode;
 import tds.exam.services.ExamService;
-import tds.exam.web.resources.ExamApprovalResource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static tds.exam.ExamStatusCode.STATUS_APPROVED;
-import static tds.exam.ExamStatusCode.STATUS_DENIED;
-import static tds.exam.ExamStatusCode.STATUS_PAUSED;
-import static tds.exam.ExamStatusCode.STATUS_PENDING;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ExamControllerTest {
@@ -116,7 +112,7 @@ public class ExamControllerTest {
         ExamApproval mockExamApproval = new ExamApproval(examId, new ExamStatusCode(STATUS_APPROVED, ExamStatusStage.OPEN), null);
         when(mockExamService.getApproval(Matchers.isA(ApprovalRequest.class))).thenReturn(new Response<>(mockExamApproval));
 
-        ResponseEntity<ExamApprovalResource> response = controller.getApproval(
+        ResponseEntity<Response<ExamApproval>> response = controller.getApproval(
             approvalRequest.getExamId(),
             approvalRequest.getSessionId(),
             approvalRequest.getBrowserId(),
@@ -124,85 +120,9 @@ public class ExamControllerTest {
         verify(mockExamService).getApproval(Matchers.isA(ApprovalRequest.class));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody().getErrors()).isNull();
-        assertThat(response.getBody().getExamApproval()).isNotNull();
-        assertThat(response.getBody().getExamApproval().getExamApprovalStatus()).isEqualTo(ExamApprovalStatus.APPROVED);
-        assertThat(response.getBody().getLink("exam").getHref()).isEqualTo("http://localhost/exam/" + examId.toString());
-    }
-
-    @Test
-    public void shouldGetAnExamApprovalRequestThatIsWaiting() {
-        UUID examId = UUID.randomUUID();
-        UUID sessionId = UUID.randomUUID();
-        UUID browserId = UUID.randomUUID();
-        String clientName = "UNIT_TEST";
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserId, clientName);
-
-        when(mockExamService.getApproval(Matchers.isA(ApprovalRequest.class))).thenReturn(
-            new Response<>(new ExamApproval(examId, new ExamStatusCode(STATUS_PENDING, null), null)));
-
-        ResponseEntity<ExamApprovalResource> response = controller.getApproval(
-            approvalRequest.getExamId(),
-            approvalRequest.getSessionId(),
-            approvalRequest.getBrowserId(),
-            approvalRequest.getClientName());
-        verify(mockExamService).getApproval(Matchers.isA(ApprovalRequest.class));
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody().getErrors()).isNull();
-        assertThat(response.getBody().getExamApproval()).isNotNull();
-        assertThat(response.getBody().getExamApproval().getExamApprovalStatus()).isEqualTo(ExamApprovalStatus.WAITING);
-        assertThat(response.getBody().getLink("exam").getHref()).isEqualTo("http://localhost/exam/" + examId.toString());
-    }
-
-    @Test
-    public void shouldGetAnExamApprovalRequestThatIsLogout() {
-        UUID examId = UUID.randomUUID();
-        UUID sessionId = UUID.randomUUID();
-        UUID browserId = UUID.randomUUID();
-        String clientName = "UNIT_TEST";
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserId, clientName);
-
-        when(mockExamService.getApproval(Matchers.isA(ApprovalRequest.class))).thenReturn(
-            new Response<>(new ExamApproval(examId, new ExamStatusCode(STATUS_PAUSED, null), null)));
-
-        ResponseEntity<ExamApprovalResource> response = controller.getApproval(
-            approvalRequest.getExamId(),
-            approvalRequest.getSessionId(),
-            approvalRequest.getBrowserId(),
-            approvalRequest.getClientName());
-        verify(mockExamService).getApproval(Matchers.isA(ApprovalRequest.class));
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody().getErrors()).isNull();
-        assertThat(response.getBody().getExamApproval()).isNotNull();
-        assertThat(response.getBody().getExamApproval().getExamApprovalStatus()).isEqualTo(ExamApprovalStatus.LOGOUT);
-        assertThat(response.getBody().getLink("exam").getHref()).isEqualTo("http://localhost/exam/" + examId.toString());
-    }
-
-    @Test
-    public void shouldGetAnExamApprovalRequestThatIsDenied() {
-        UUID examId = UUID.randomUUID();
-        UUID sessionId = UUID.randomUUID();
-        UUID browserId = UUID.randomUUID();
-        String clientName = "UNIT_TEST";
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserId, clientName);
-
-        when(mockExamService.getApproval(Matchers.isA(ApprovalRequest.class))).thenReturn(
-            new Response<>(new ExamApproval(examId, new ExamStatusCode(STATUS_DENIED, null), null)));
-
-        ResponseEntity<ExamApprovalResource> response = controller.getApproval(
-            approvalRequest.getExamId(),
-            approvalRequest.getSessionId(),
-            approvalRequest.getBrowserId(),
-            approvalRequest.getClientName());
-        verify(mockExamService).getApproval(Matchers.isA(ApprovalRequest.class));
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody().getErrors()).isNull();
-        assertThat(response.getBody().getExamApproval()).isNotNull();
-        assertThat(response.getBody().getExamApproval().getExamApprovalStatus()).isEqualTo(ExamApprovalStatus.DENIED);
-        assertThat(response.getBody().getLink("exam").getHref()).isEqualTo("http://localhost/exam/" + examId.toString());
+        assertThat(response.getBody().getErrors()).isNotPresent();
+        assertThat(response.getBody().getData()).isPresent();
+        assertThat(response.getBody().getData().get().getExamApprovalStatus()).isEqualTo(ExamApprovalStatus.APPROVED);
     }
 
     @Test
@@ -216,7 +136,7 @@ public class ExamControllerTest {
         Response<ExamApproval> errorResponse = new Response<ExamApproval>(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_BROWSER_ID_MISMATCH, "foo"));
         when(mockExamService.getApproval(Matchers.isA(ApprovalRequest.class))).thenReturn(errorResponse);
 
-        ResponseEntity<ExamApprovalResource> response = controller.getApproval(
+        ResponseEntity<Response<ExamApproval>> response = controller.getApproval(
             approvalRequest.getExamId(),
             approvalRequest.getSessionId(),
             approvalRequest.getBrowserId(),
@@ -224,10 +144,10 @@ public class ExamControllerTest {
         verify(mockExamService).getApproval(Matchers.isA(ApprovalRequest.class));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
-        assertThat(response.getBody().getErrors()).isNotNull();
-        assertThat(response.getBody().getErrors()).hasSize(1);
-        assertThat(response.getBody().getErrors()[0].getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_BROWSER_ID_MISMATCH);
-        assertThat(response.getBody().getErrors()[0].getMessage()).isEqualTo("foo");
-        assertThat(response.getBody().getExamApproval()).isNull();
+        assertThat(response.getBody().getErrors()).isPresent();
+        assertThat(response.getBody().getErrors().get()).hasSize(1);
+        assertThat(response.getBody().getErrors().get()[0].getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_BROWSER_ID_MISMATCH);
+        assertThat(response.getBody().getErrors().get()[0].getMessage()).isEqualTo("foo");
+        assertThat(response.getBody().getData()).isNotPresent();
     }
 }

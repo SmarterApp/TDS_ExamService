@@ -22,7 +22,6 @@ import tds.exam.Exam;
 import tds.exam.ExamApproval;
 import tds.exam.OpenExamRequest;
 import tds.exam.services.ExamService;
-import tds.exam.web.resources.ExamApprovalResource;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
@@ -64,15 +63,15 @@ public class ExamController {
     }
 
     @RequestMapping(value = "/{id}/get-approval", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<ExamApprovalResource> getApproval(@PathVariable final UUID examId, @RequestParam final UUID sessionId, @RequestParam final UUID browserId, final String clientName) {
+    ResponseEntity<Response<ExamApproval>> getApproval(@PathVariable final UUID examId, @RequestParam final UUID sessionId, @RequestParam final UUID browserId, final String clientName) {
         ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserId, clientName);
         Response<ExamApproval> examApproval = examService.getApproval(approvalRequest);
 
         if (examApproval.getErrors().isPresent()) {
-            return new ResponseEntity<>(new ExamApprovalResource(examApproval), HttpStatus.UNPROCESSABLE_ENTITY);
+            return new ResponseEntity<>(examApproval, HttpStatus.UNPROCESSABLE_ENTITY);
         }
 
-        return ResponseEntity.ok(new ExamApprovalResource(examApproval));
+        return ResponseEntity.ok(examApproval);
     }
 }
 
