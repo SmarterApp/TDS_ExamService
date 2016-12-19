@@ -424,7 +424,9 @@ public class ExamServiceImplTest {
 
     @Test
     public void shouldAllowPreviousExamToOpenIfDayHasPassed() {
-        OpenExamRequest request = new OpenExamRequestBuilder().build();
+        OpenExamRequest request = new OpenExamRequestBuilder()
+            .withGuestAccommodations("guest")
+            .build();
 
         Session currentSession = new SessionBuilder()
             .withType(2)
@@ -466,6 +468,7 @@ public class ExamServiceImplTest {
         Response<Exam> examResponse = examService.openExam(request);
 
         verify(mockExamCommandRepository).update(isA(Exam.class));
+        verify(mockExamAccommodationService).initializeAccommodationsOnPreviousExam(isA(Exam.class), isA(Assessment.class), isA(Integer.class), isA(Boolean.class), isA(String.class));
 
         assertThat(examResponse.getErrors()).isNotPresent();
 
