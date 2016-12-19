@@ -1,6 +1,7 @@
 package tds.exam.web.endpoints;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.Link;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -22,7 +23,9 @@ import tds.exam.ExamApproval;
 import tds.exam.OpenExamRequest;
 import tds.exam.services.ExamService;
 import tds.exam.web.resources.ExamApprovalResource;
-import tds.exam.web.resources.ExamResource;
+
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/exam")
@@ -35,30 +38,33 @@ public class ExamController {
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ExamResource> getExamById(@PathVariable UUID id) {
-        final Exam exam = examService.getExam(id)
+    public ResponseEntity<Exam> getExamById(@PathVariable UUID id) {
+        final Exam exam = examService.findExam(id)
             .orElseThrow(() -> new NotFoundException("Could not find exam for %s", id));
 
-        return ResponseEntity.ok(new ExamResource(exam));
+        return ResponseEntity.ok(exam);
     }
 
     @RequestMapping(method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ExamResource> openExam(@RequestBody final OpenExamRequest openExamRequest) {
+    ResponseEntity<Response<Exam>> openExam(@RequestBody final OpenExamRequest openExamRequest) {
         Response<Exam> exam = examService.openExam(openExamRequest);
 
-        ExamResource resource = new ExamResource(exam);
-
         if (!exam.getData().isPresent()) {
-            return new ResponseEntity<>(new ExamResource(exam), HttpStatus.UNPROCESSABLE_ENTITY);
+            return new ResponseEntity<>(exam, HttpStatus.UNPROCESSABLE_ENTITY);
         }
 
+        Link link = linkTo(
+            methodOn(ExamController.class)
+                .getExamById(exam.getData().get().getId()))
+            .withSelfRel();
+
         final HttpHeaders headers = new HttpHeaders();
-        headers.add("Location", resource.getLink("self").getHref());
-        return new ResponseEntity<>(resource, headers, HttpStatus.OK);
+        headers.add("Location", link.getHref());
+        return new ResponseEntity<>(exam, headers, HttpStatus.OK);
     }
 
     @RequestMapping(value = "/{id}/get-approval", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ExamApprovalResource> getApproval(@PathVariable final UUID examId, @RequestParam final UUID sessionId, @RequestParam final UUID browserId, final String clientName) {
+    ResponseEntity<ExamApprovalResource> getApproval(@PathVariable final UUID examId, @RequestParam final UUID sessionId, @RequestParam final UUID browserId, final String clientName) {
         ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserId, clientName);
         Response<ExamApproval> examApproval = examService.getApproval(approvalRequest);
 

@@ -33,7 +33,6 @@ import tds.exam.builder.OpenExamRequestBuilder;
 import tds.exam.error.ValidationErrorCode;
 import tds.exam.services.ExamService;
 import tds.exam.web.resources.ExamApprovalResource;
-import tds.exam.web.resources.ExamResource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
@@ -66,19 +65,18 @@ public class ExamControllerTest {
     @Test
     public void shouldReturnExam() {
         UUID uuid = UUID.randomUUID();
-        when(mockExamService.getExam(uuid)).thenReturn(Optional.of(new Exam.Builder().withId(uuid).build()));
+        when(mockExamService.findExam(uuid)).thenReturn(Optional.of(new Exam.Builder().withId(uuid).build()));
 
-        ResponseEntity<ExamResource> response = controller.getExamById(uuid);
-        verify(mockExamService).getExam(uuid);
+        ResponseEntity<Exam> response = controller.getExamById(uuid);
+        verify(mockExamService).findExam(uuid);
 
-        assertThat(response.getBody().getExam().getId()).isEqualTo(uuid);
-        assertThat(response.getBody().getId().getHref()).isEqualTo("http://localhost/exam/" + uuid.toString());
+        assertThat(response.getBody().getId()).isEqualTo(uuid);
     }
 
     @Test(expected = NotFoundException.class)
     public void shouldReturnNotFoundWhenExamCannotBeFoundById() {
         UUID uuid = UUID.randomUUID();
-        when(mockExamService.getExam(uuid)).thenReturn(Optional.empty());
+        when(mockExamService.findExam(uuid)).thenReturn(Optional.empty());
         controller.getExamById(uuid);
     }
 
@@ -87,11 +85,11 @@ public class ExamControllerTest {
         OpenExamRequest openExamRequest = new OpenExamRequestBuilder().build();
         when(mockExamService.openExam(openExamRequest)).thenReturn(new Response<Exam>(new ValidationError(ValidationErrorCode.SESSION_TYPE_MISMATCH, "Session mismatch")));
 
-        ResponseEntity<ExamResource> response = controller.openExam(openExamRequest);
+        ResponseEntity<Response<Exam>> response = controller.openExam(openExamRequest);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
-        assertThat(response.getBody().getErrors()).hasSize(1);
-        assertThat(response.getBody().getErrors()[0].getCode()).isEqualTo(ValidationErrorCode.SESSION_TYPE_MISMATCH);
+        assertThat(response.getBody().getErrors().get()).hasSize(1);
+        assertThat(response.getBody().getErrors().get()[0].getCode()).isEqualTo(ValidationErrorCode.SESSION_TYPE_MISMATCH);
     }
 
     @Test
@@ -101,7 +99,7 @@ public class ExamControllerTest {
         UUID examId = UUID.randomUUID();
         when(mockExamService.openExam(openExamRequest)).thenReturn(new Response<>(new Exam.Builder().withId(examId).build()));
 
-        ResponseEntity<ExamResource> response = controller.openExam(openExamRequest);
+        ResponseEntity<Response<Exam>> response = controller.openExam(openExamRequest);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getHeaders().getLocation()).isEqualTo(new URI("http://localhost/exam/" + examId));
