@@ -56,7 +56,7 @@ public class ExamAccommodationCommandRepositoryIntegrationTests {
 
         examAccommodationCommandRepository.insert(mockExamAccommodations);
 
-        List<ExamAccommodation> accommodations = accommodationQueryRepository.findAccommodations(examId, "segment", new String[]{"language", "closed captioning"});
+        List<ExamAccommodation> accommodations = accommodationQueryRepository.findAccommodations(examId, "segment", "language", "closed captioning");
 
         assertThat(accommodations).hasSize(2);
     }

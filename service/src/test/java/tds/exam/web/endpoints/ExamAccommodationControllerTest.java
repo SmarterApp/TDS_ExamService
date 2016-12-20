@@ -42,7 +42,7 @@ public class ExamAccommodationControllerTest {
 
         when(mockExamAccommodationService.findAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
             ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_KEY,
-            new String[]{ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE}))
+            ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE))
             .thenReturn(mockExamAccommodations);
 
         ResponseEntity<List<ExamAccommodation>> response = controller.findAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
@@ -50,7 +50,7 @@ public class ExamAccommodationControllerTest {
             new String[]{ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE});
         verify(mockExamAccommodationService).findAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
             ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_KEY,
-            new String[]{ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE});
+            ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).hasSize(1);
@@ -72,9 +72,8 @@ public class ExamAccommodationControllerTest {
 
         when(mockExamAccommodationService.findAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
             ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_KEY,
-            new String[]{
-                ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE,
-                "closed captioning"}))
+            ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE,
+            "closed captioning"))
             .thenReturn(mockExamAccommodations);
 
         ResponseEntity<List<ExamAccommodation>> response = controller.findAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
@@ -111,9 +110,8 @@ public class ExamAccommodationControllerTest {
 
         when(mockExamAccommodationService.findAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
             ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_KEY,
-            new String[]{
-                ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE,
-                "closed captioning"}))
+            ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE,
+            "closed captioning"))
             .thenReturn(mockExamAccommodations);
 
         ResponseEntity<List<ExamAccommodation>> response = controller.findAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
@@ -136,13 +134,6 @@ public class ExamAccommodationControllerTest {
         assertThat(secondResult.getSegmentKey()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_KEY);
         assertThat(secondResult.getCode()).isEqualTo("TDS_ClosedCap0");
         assertThat(secondResult.isApproved()).isFalse();
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void shouldThrowIllegalArgumentExceptionWhenAccommodationTypesIsEmpty() {
-        controller.findAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
-            ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_KEY,
-            new String[]{});
     }
 
     @Test

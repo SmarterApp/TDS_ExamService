@@ -18,7 +18,7 @@ public interface ExamAccommodationService {
      * @param accommodationTypes The types of {@link tds.exam.ExamAccommodation}s to find
      * @return An {@link tds.exam.ExamAccommodation} if one exists for the specified exam id and accommodation type; otherwise empty
      */
-    List<ExamAccommodation> findAccommodations(UUID examId, String segmentId, String[] accommodationTypes);
+    List<ExamAccommodation> findAccommodations(UUID examId, String segmentId, String... accommodationTypes);
 
     /**
      * Find the {@link tds.exam.ExamAccommodation}(s) of the specified types that is/are approved for an {@link tds.exam.Exam}.

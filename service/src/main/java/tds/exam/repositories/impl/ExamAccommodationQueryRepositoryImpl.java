@@ -31,11 +31,10 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
 
     @Override
     public List<ExamAccommodation> findAccommodations(UUID examId, String segmentKey, String[] accommodationTypes) {
-        final SqlParameterSource parameters = new MapSqlParameterSource("examId", UuidAdapter.getBytesFromUUID(examId))
-            .addValue("segmentKey", segmentKey)
-            .addValue("accommodationTypes", Arrays.asList(accommodationTypes));
+        final MapSqlParameterSource parameters = new MapSqlParameterSource("examId", UuidAdapter.getBytesFromUUID(examId))
+            .addValue("segmentKey", segmentKey);
 
-        final String SQL =
+        String SQL =
             "SELECT \n" +
             "   ea.id, \n" +
             "   ea.exam_id, \n" +
@@ -61,8 +60,12 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
             "WHERE \n" +
             "   ea.exam_id = :examId \n" +
             "   AND ea.segment_key = :segmentKey \n" +
-            "   AND ea.`type` IN (:accommodationTypes)" +
             "   AND eae.deleted_at IS NULL";
+
+        if(accommodationTypes.length > 0) {
+            parameters.addValue("accommodationTypes", Arrays.asList(accommodationTypes));
+            SQL +="   AND ea.`type` IN (:accommodationTypes)";
+        }
 
         return jdbcTemplate.query(SQL,
                 parameters,
