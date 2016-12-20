@@ -79,12 +79,10 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
     }
 
     @Test
-    public void shouldGetTwoAccommodationsForExamAndSegmentAndTwoDifferentAccommodationTypes() {
+    public void shouldGetTwoAccommodationsForExamAndSegmentAndNoTypes() {
         List<ExamAccommodation> result = examAccommodationQueryRepository.findAccommodations(
             ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
-            ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_KEY,
-            ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE,
-            "closed captioning");
+            ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_KEY);
 
         assertThat(result).hasSize(2);
         ExamAccommodation firstExamAccommodation = null;
@@ -141,6 +139,9 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
                 secondExamAccommodation = accommodation;
             }
         }
+
+        assertThat(examAccommodation).isNotNull();
+        assertThat(secondExamAccommodation).isNotNull();
 
         assertThat(examAccommodation.getId()).isGreaterThan(0);
         assertThat(examAccommodation.getExamId()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID);
