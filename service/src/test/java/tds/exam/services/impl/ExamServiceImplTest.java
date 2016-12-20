@@ -129,7 +129,7 @@ public class ExamServiceImplTest {
         UUID examId = UUID.randomUUID();
         when(mockExamQueryRepository.getExamById(examId)).thenReturn(Optional.of(new Exam.Builder().withId(examId).build()));
 
-        assertThat(examService.getExam(examId).get().getId()).isEqualTo(examId);
+        assertThat(examService.findExam(examId).get().getId()).isEqualTo(examId);
     }
 
     @Test(expected = IllegalArgumentException.class)

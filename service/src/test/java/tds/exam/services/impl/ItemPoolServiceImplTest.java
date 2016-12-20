@@ -286,13 +286,102 @@ public class ItemPoolServiceImplTest {
     }
 
     @Test
-    public void shouldReturnZeroItemsForNoENUConstraint() {
+    public void shouldFilterByFieldTest() {
         final UUID examId = UUID.randomUUID();
         final String segmentKey = "my-segment-key";
         final String assessmentId = "my-assessment-id";
         final String itemId1 = "item-1";
         final String itemId2 = "item-2";
         final String itemId3 = "item-3";
+
+        List<ItemProperty> itemProperties1 = new ArrayList<>();
+        itemProperties1.add(new ItemProperty("Language", "ENU", "English", itemId1));
+        itemProperties1.add(new ItemProperty("--ITEMTYPE--", "ER", "Extended Response", itemId1));
+
+        List<ItemProperty> itemProperties2 = new ArrayList<>();
+        itemProperties1.add(new ItemProperty("Language", "ENU", "English", itemId2));
+        itemProperties1.add(new ItemProperty("--ITEMTYPE--", "ER", "Extended Response", itemId2));
+
+        List<ItemProperty> itemProperties3 = new ArrayList<>();
+        itemProperties1.add(new ItemProperty("Language", "ENU", "English", itemId3));
+        itemProperties1.add(new ItemProperty("--ITEMTYPE--", "ER", "Extended Response", itemId3));
+
+        List<Item> items = new ArrayList<>();
+        Item ftItem1 = new Item(itemId1);
+        ftItem1.setFieldTest(true);
+        ftItem1.setItemProperties(itemProperties1);
+
+        Item ftItem2 = new Item(itemId2);
+        ftItem2.setFieldTest(true);
+        ftItem2.setItemProperties(itemProperties2);
+
+        Item regularItem = new Item(itemId3);
+        regularItem.setFieldTest(false);
+        regularItem.setItemProperties(itemProperties3);
+
+        items.add(ftItem1);
+        items.add(ftItem2);
+        items.add(regularItem);
+
+        List<ItemConstraint> itemConstraints = new ArrayList<>();
+        itemConstraints.add(new ItemConstraint.Builder()
+            .withAssessmentId(assessmentId)
+            .withToolType("Language")
+            .withToolValue("ENU")
+            .withPropertyName("Language")
+            .withPropertyValue("ENU")
+            .withInclusive(true)
+            .build());
+
+        List<ExamAccommodation> examAccommodations = new ArrayList<>();
+        examAccommodations.add(new ExamAccommodation.Builder()
+            .withExamId(examId)
+            .withType("Language")
+            .withCode("ENU")
+            .withDescription("English")
+            .withSegmentKey(segmentKey)
+            .build());
+
+        when(mockExamAccommodationService.findAllAccommodations(examId)).thenReturn(examAccommodations);
+        Set<Item> retFtItems = itemPoolService.getItemPool(examId, itemConstraints, items, true);
+        verify(mockExamAccommodationService).findAllAccommodations(examId);
+        assertThat(retFtItems).hasSize(2);
+
+        Item retItem1 = null;
+        Item retItem2 = null;
+
+        for (Item item : retFtItems) {
+            if (item.getId().equals(itemId1)) {
+                retItem1 = item;
+            } else if (item.getId().equals(itemId2)) {
+                retItem2 = item;
+            }
+        }
+
+        assertThat(retItem1).isNotNull();
+        assertThat(retItem2).isNotNull();
+
+        Set<Item> nonFtItems = itemPoolService.getItemPool(examId, itemConstraints, items, false);
+        assertThat(nonFtItems).hasSize(1);
+
+        Item nonFtItem = null;
+
+        for (Item item : nonFtItems) {
+            if (item.getId().equals(itemId3)) {
+                nonFtItem = item;
+            }
+        }
+
+        assertThat(nonFtItem).isNotNull();
+    }
+
+    @Test
+    public void shouldReturnZeroItemsForNoENUConstraint() {
+        final UUID examId = UUID.randomUUID();
+        final String segmentKey = "my-segment-key";
+        final String assessmentId = "my-assessment-id";
+        final String itemId1 = "item-1";
+        final String itemId2 = "item-2";
 
         List<ItemProperty> itemProperties1 = new ArrayList<>();
         itemProperties1.add(new ItemProperty("Language", "ENU", "English", itemId1));
@@ -314,44 +403,44 @@ public class ItemPoolServiceImplTest {
 
         List<ItemConstraint> itemConstraints = new ArrayList<>();
         itemConstraints.add(new ItemConstraint.Builder()
-                .withAssessmentId(assessmentId)
-                .withToolType("--ITEMTYPE--")
-                .withToolValue("ER")
-                .withPropertyName("--ITEMTYPE")
-                .withPropertyValue("ENU")
-                .withInclusive(false)
-                .build());
+            .withAssessmentId(assessmentId)
+            .withToolType("--ITEMTYPE--")
+            .withToolValue("ER")
+            .withPropertyName("--ITEMTYPE")
+            .withPropertyValue("ENU")
+            .withInclusive(false)
+            .build());
         itemConstraints.add(new ItemConstraint.Builder()
-                .withAssessmentId(assessmentId)
-                .withToolType("Language")
-                .withToolValue("ESN")
-                .withPropertyName("Language")
-                .withPropertyValue("ESN")
-                .withInclusive(true)
-                .build());
+            .withAssessmentId(assessmentId)
+            .withToolType("Language")
+            .withToolValue("ESN")
+            .withPropertyName("Language")
+            .withPropertyValue("ESN")
+            .withInclusive(true)
+            .build());
 
         List<ExamAccommodation> examAccommodations = new ArrayList<>();
         examAccommodations.add(new ExamAccommodation.Builder()
-                .withExamId(examId)
-                .withType("Language")
-                .withCode("ENU")
-                .withDescription("English")
-                .withSegmentKey(segmentKey)
-                .build());
+            .withExamId(examId)
+            .withType("Language")
+            .withCode("ENU")
+            .withDescription("English")
+            .withSegmentKey(segmentKey)
+            .build());
         examAccommodations.add(new ExamAccommodation.Builder()
-                .withExamId(examId)
-                .withType("type1")
-                .withCode("TDS_T1")
-                .withDescription("type 1 desc")
-                .withSegmentKey(segmentKey)
-                .build());
+            .withExamId(examId)
+            .withType("type1")
+            .withCode("TDS_T1")
+            .withDescription("type 1 desc")
+            .withSegmentKey(segmentKey)
+            .build());
         examAccommodations.add(new ExamAccommodation.Builder()
-                .withExamId(examId)
-                .withType("type1")
-                .withCode("TDS_T1")
-                .withDescription("type 1 desc")
-                .withSegmentKey(segmentKey)
-                .build());
+            .withExamId(examId)
+            .withType("type1")
+            .withCode("TDS_T1")
+            .withDescription("type 1 desc")
+            .withSegmentKey(segmentKey)
+            .build());
 
         when(mockExamAccommodationService.findAllAccommodations(examId)).thenReturn(examAccommodations);
         Set<Item> retItemIds = itemPoolService.getItemPool(examId, itemConstraints, items);

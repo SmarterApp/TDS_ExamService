@@ -180,7 +180,7 @@ public class SegmentPoolServiceImplTest {
                 .withSegmentKey(segmentKey)
                 .build());
 
-        when(mockItemPoolService.getItemPool(examId, itemConstraints, items)).thenReturn(new HashSet<>(items));
+        when(mockItemPoolService.getItemPool(examId, itemConstraints, segment.getItems("ENU"))).thenReturn(new HashSet<>(items));
         SegmentPoolInfo segmentPoolInfo = segmentPoolService.computeSegmentPool(examId, segment, itemConstraints, "ENU");
         assertThat(segmentPoolInfo).isNotNull();
         assertThat(segmentPoolInfo.getPoolCount()).isEqualTo(6);
@@ -336,11 +336,11 @@ public class SegmentPoolServiceImplTest {
             .withSegmentKey(segmentKey)
             .build());
 
-        when(mockItemPoolService.getItemPool(examId, itemConstraints, items)).thenReturn(new HashSet<>(items));
+        when(mockItemPoolService.getItemPool(examId, itemConstraints, segment.getItems("ENU"))).thenReturn(new HashSet<>(items));
         SegmentPoolInfo segmentPoolInfo = segmentPoolService.computeSegmentPool(examId, segment, itemConstraints, "ENU");
         assertThat(segmentPoolInfo).isNotNull();
         assertThat(segmentPoolInfo.getPoolCount()).isEqualTo(6);
-        assertThat(segmentPoolInfo.getLength()).isEqualTo(4L);
+        assertThat(segmentPoolInfo.getLength()).isEqualTo(4);
 
         List<String> itemIds = segmentPoolInfo.getItemPool().stream().map(Item::getId).collect(Collectors.toList());
         assertThat(itemIds).contains(itemId1, itemId2, excludedStrandItemId, ftItemId);

@@ -19,7 +19,7 @@ public interface ExamAccommodationService {
      * @param accommodationTypes The types of {@link tds.exam.ExamAccommodation}s to find
      * @return An {@link tds.exam.ExamAccommodation} if one exists for the specified exam id and accommodation type; otherwise empty
      */
-    List<ExamAccommodation> findAccommodations(UUID examId, String segmentId, String[] accommodationTypes);
+    List<ExamAccommodation> findAccommodations(UUID examId, String segmentId, String... accommodationTypes);
 
     /**
      * Find the {@link tds.exam.ExamAccommodation}(s) of the specified types that is/are approved for an {@link tds.exam.Exam}.
@@ -35,6 +35,14 @@ public interface ExamAccommodationService {
      * @param exam exam to use to initialize the {@link tds.exam.ExamAccommodation}
      */
     List<ExamAccommodation> initializeExamAccommodations(Exam exam);
+
+    /**
+     * Finds the approved {@link tds.exam.ExamAccommodation}
+     *
+     * @param examId the exam id
+     * @return list of approved {@link tds.exam.ExamAccommodation}
+     */
+    List<ExamAccommodation> findApprovedAccommodations(UUID examId);
 
     /**
      * Initializes accommodations on a previous exam

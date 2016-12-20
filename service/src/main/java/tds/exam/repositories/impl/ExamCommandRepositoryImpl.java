@@ -88,11 +88,14 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
             .addValue("attempts", exam.getAttempts())
             .addValue("status", exam.getStatus().getStatus())
             .addValue("browserId", getBytesFromUUID(exam.getBrowserId()))
+            .addValue("maxItems", exam.getMaxItems())
+            .addValue("languageCode", exam.getLanguageCode())
             .addValue("statusChangeReason", exam.getStatusChangeReason())
             .addValue("dateChanged", mapJodaInstantToTimestamp(exam.getDateChanged()))
             .addValue("dateDeleted", mapJodaInstantToTimestamp(exam.getDateDeleted()))
             .addValue("dateCompleted", mapJodaInstantToTimestamp(exam.getDateCompleted()))
             .addValue("dateScored", mapJodaInstantToTimestamp(exam.getDateScored()))
+            .addValue("expireFrom", mapJodaInstantToTimestamp(exam.getExpireFrom()))
             .addValue("abnormalStarts", exam.getAbnormalStarts())
             .addValue("waitingForSegmentApproval", exam.isWaitingForSegmentApproval())
             .addValue("currentSegmentPosition", exam.getCurrentSegmentPosition())
@@ -103,6 +106,9 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
         String examEventInsertSQL = "INSERT INTO exam_event (\n" +
             "  exam_id,\n" +
             "  attempts, \n" +
+            "  max_items, \n" +
+            "  language_code, \n" +
+            "  expire_from, \n" +
             "  browser_id, \n" +
             "  status,\n" +
             "  status_change_reason,\n" +
@@ -121,6 +127,9 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
             "(\n" +
             "  :examId,\n" +
             "  :attempts,\n" +
+            "  :maxItems,\n" +
+            "  :languageCode,\n" +
+            "  :expireFrom, \n" +
             "  :browserId,\n" +
             "  :status,\n" +
             "  :statusChangeReason,\n" +

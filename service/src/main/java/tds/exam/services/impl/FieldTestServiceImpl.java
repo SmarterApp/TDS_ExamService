@@ -1,19 +1,18 @@
 package tds.exam.services.impl;
 
 import org.joda.time.Instant;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
 import tds.assessment.Assessment;
 import tds.assessment.Item;
 import tds.assessment.Segment;
-import tds.config.Accommodation;
 import tds.exam.Exam;
 import tds.exam.services.FieldTestService;
 import tds.session.ExternalSessionConfiguration;
 
-@Component
+@Service
 public class FieldTestServiceImpl implements FieldTestService {
 
     @Override
@@ -52,6 +51,15 @@ public class FieldTestServiceImpl implements FieldTestService {
         }
 
         return isEligible;
+    }
+
+    /*
+        This code covers legacy StudentDLL._FT_SelectItemgroups_SP [line 3033] and is called by _InitializeTestSegments_SP [4704]
+     */
+    @Override
+    public int selectItemGroups(Exam exam, Assessment assessment, String segmentKey, String language) {
+        //TODO: Implement. Adding stub to prevent compilation errors
+        return 0;
     }
 
     /*

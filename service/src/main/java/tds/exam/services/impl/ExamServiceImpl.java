@@ -95,7 +95,7 @@ class ExamServiceImpl implements ExamService {
     }
 
     @Override
-    public Optional<Exam> getExam(UUID id) {
+    public Optional<Exam> findExam(UUID id) {
         return examQueryRepository.getExamById(id);
     }
 

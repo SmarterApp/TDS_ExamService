@@ -57,11 +57,11 @@ public class ExamAccommodationServiceImplTest {
         mockExamAccommodations.add(new ExamAccommodationBuilder().build());
         when(mockExamAccommodationQueryRepository.findAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
             ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_KEY,
-            new String[] { ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE})).thenReturn(mockExamAccommodations);
+            ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE)).thenReturn(mockExamAccommodations);
 
         List<ExamAccommodation> results = examAccommodationService.findAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
             ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_KEY,
-            new String[] { ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE});
+            ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE);
 
         assertThat(results).hasSize(1);
         ExamAccommodation examAccommodation = results.get(0);
@@ -80,16 +80,14 @@ public class ExamAccommodationServiceImplTest {
             .build());
         when(mockExamAccommodationQueryRepository.findAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
             ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_KEY,
-            new String[] {
-                ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE,
-                "closed captioning" }))
+            ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE,
+            "closed captioning"))
             .thenReturn(mockExamAccommodations);
 
         List<ExamAccommodation> results = examAccommodationService.findAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
             ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_KEY,
-            new String[] {
-                ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE,
-                "closed captioning" });
+            ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE,
+            "closed captioning");
 
         assertThat(results).hasSize(2);
 
@@ -109,12 +107,10 @@ public class ExamAccommodationServiceImplTest {
     @Test
     public void shouldReturnAnEmptyListWhenSearchingForAccommodationsThatDoNotExist() {
         when(mockExamAccommodationQueryRepository.findAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
-            ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_KEY,
-            new String[] { "foo", "bar" })).thenReturn(Lists.emptyList());
+            ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_KEY, "foo", "bar")).thenReturn(Lists.emptyList());
 
         List<ExamAccommodation> result = examAccommodationService.findAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID,
-            ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_KEY,
-            new String[] { "foo", "bar" });
+            ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_KEY, "foo", "bar");
 
         assertThat(result).isNotNull();
         assertThat(result).hasSize(0);
@@ -181,7 +177,7 @@ public class ExamAccommodationServiceImplTest {
 
         when(mockConfigService.findAssessmentAccommodationsByKey(exam.getClientName(), assessment.getKey())).thenReturn(Collections.singletonList(accommodation));
         when(mockExamAccommodationQueryRepository.findAccommodations(exam.getId())).thenReturn(Collections.singletonList(examAccommodationToDelete));
-        examAccommodationService.initializeAccommodationsOnPreviousExam(exam ,assessment, 0, true, guestAccommodations);
+        examAccommodationService.initializeAccommodationsOnPreviousExam(exam, assessment, 0, true, guestAccommodations);
 
         verify(mockExamAccommodationCommandRepository).delete(Collections.singletonList(examAccommodationToDelete));
         verify(mockExamAccommodationCommandRepository).insert(examAccommodationCaptor.capture());
@@ -201,5 +197,18 @@ public class ExamAccommodationServiceImplTest {
         assertThat(examAccommodation.isAllowChange()).isFalse();
         assertThat(examAccommodation.getValue()).isEqualTo(accommodation.getValue());
         assertThat(examAccommodation.isSelectable()).isTrue();
+    }
+
+    @Test
+    public void shouldFindApprovedExamAccommodations() {
+        ExamAccommodation accommodation = new ExamAccommodationBuilder().build();
+
+        when(mockExamAccommodationQueryRepository.findApprovedAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID)).thenReturn(Collections.singletonList(accommodation));
+
+        List<ExamAccommodation> approvedExamAccommodations = examAccommodationService.findApprovedAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID);
+
+        verify(mockExamAccommodationQueryRepository).findApprovedAccommodations(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID);
+
+        assertThat(approvedExamAccommodations).containsExactly(accommodation);
     }
 }
