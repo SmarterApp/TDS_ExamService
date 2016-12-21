@@ -40,7 +40,7 @@ public interface ConfigService {
      * @param assessmentKey the assessment key
      * @return {@link tds.config.Accommodation} for the assessment key
      */
-    List<Accommodation> findAssessmentAccommodationsByKey(final String clientName, final String assessmentKey);
+    List<Accommodation> findAssessmentAccommodationsByAssessmentKey(final String clientName, final String assessmentKey);
 
     /**
      * Finds the {@link tds.config.Accommodation} for the assessment id
@@ -48,5 +48,5 @@ public interface ConfigService {
      * @param assessmentId the assessment id
      * @return {@link tds.config.Accommodation} for the assessment id
      */
-    List<Accommodation> findAssessmentAccommodationsById(final String clientName, final String assessmentId);
+    List<Accommodation> findAssessmentAccommodationsByAssessmentId(final String clientName, final String assessmentId);
 }

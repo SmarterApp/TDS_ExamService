@@ -79,15 +79,15 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
 
     @Override
     public List<ExamAccommodation> findAccommodations(UUID examId) {
-        return getExamAccommodations(examId, false);
+        return getAccommodations(examId, false);
     }
 
     @Override
     public List<ExamAccommodation> findApprovedAccommodations(UUID examId) {
-        return getExamAccommodations(examId, true);
+        return getAccommodations(examId, true);
     }
 
-    private List<ExamAccommodation> getExamAccommodations(UUID examId, boolean excludeDenied) {
+    private List<ExamAccommodation> getAccommodations(UUID examId, boolean excludeDenied) {
         final SqlParameterSource parameters = new MapSqlParameterSource("examId", UuidAdapter.getBytesFromUUID(examId));
 
         String SQL =

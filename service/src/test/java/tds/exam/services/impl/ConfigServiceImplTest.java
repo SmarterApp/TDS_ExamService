@@ -113,7 +113,7 @@ public class ConfigServiceImplTest {
         when(restTemplate.exchange(String.format("%s/SBAC/accommodations/key", BASE_URL), GET, null, new ParameterizedTypeReference<List<Accommodation>>() {
         })).thenReturn(entity);
 
-        List<Accommodation> accommodations = configService.findAssessmentAccommodationsByKey("SBAC", "key");
+        List<Accommodation> accommodations = configService.findAssessmentAccommodationsByAssessmentKey("SBAC", "key");
 
         assertThat(accommodations).containsExactly(accommodation);
     }
@@ -126,7 +126,7 @@ public class ConfigServiceImplTest {
         when(restTemplate.exchange(String.format("%s/SBAC/accommodations?assessmentId=id", BASE_URL), GET, null, new ParameterizedTypeReference<List<Accommodation>>() {
         })).thenReturn(entity);
 
-        List<Accommodation> accommodations = configService.findAssessmentAccommodationsById("SBAC", "id");
+        List<Accommodation> accommodations = configService.findAssessmentAccommodationsByAssessmentId("SBAC", "id");
 
         assertThat(accommodations).containsExactly(accommodation);
     }

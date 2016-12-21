@@ -82,7 +82,7 @@ class ConfigServiceImpl implements ConfigService {
     }
 
     @Override
-    public List<Accommodation> findAssessmentAccommodationsByKey(final String clientName, final String assessmentKey) {
+    public List<Accommodation> findAssessmentAccommodationsByAssessmentKey(final String clientName, final String assessmentKey) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
                 .fromHttpUrl(String.format("%s/%s/accommodations/%s", examServiceProperties.getConfigUrl(), clientName, assessmentKey));
@@ -95,7 +95,7 @@ class ConfigServiceImpl implements ConfigService {
     }
 
     @Override
-    public List<Accommodation> findAssessmentAccommodationsById(String clientName, String assessmentId) {
+    public List<Accommodation> findAssessmentAccommodationsByAssessmentId(String clientName, String assessmentId) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
                 .fromHttpUrl(String.format("%s/%s/accommodations?assessmentId=%s", examServiceProperties.getConfigUrl(), clientName, assessmentId));
