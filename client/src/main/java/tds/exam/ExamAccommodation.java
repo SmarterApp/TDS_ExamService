@@ -22,7 +22,7 @@ public class ExamAccommodation {
     private Instant deniedAt;
     private Instant createdAt;
     private Instant deletedAt;
-    private boolean multipleToolTypes;
+    private int totalTypeCount;
 
     public static class Builder {
         private long id;
@@ -38,7 +38,7 @@ public class ExamAccommodation {
         private boolean allowChange;
         private String value;
         private int segmentPosition = 1;
-        private boolean multipleToolTypes;
+        private int totalTypeCount;
 
         public Builder withId(long id) {
             this.id = id;
@@ -124,8 +124,8 @@ public class ExamAccommodation {
             return this;
         }
 
-        public Builder withMultipleToolTypes(boolean multipleToolTypes) {
-            this.multipleToolTypes = multipleToolTypes;
+        public Builder withTotalTypeCount(int totalTypeCount) {
+            this.totalTypeCount = totalTypeCount;
             return this;
         }
 
@@ -142,7 +142,7 @@ public class ExamAccommodation {
             selectable = accommodation.isSelectable();
             allowChange = accommodation.isAllowChange();
             value = accommodation.getValue();
-            multipleToolTypes = accommodation.multipleToolTypes;
+            totalTypeCount = accommodation.getTotalTypeCount();
             return this;
         }
 
@@ -262,8 +262,8 @@ public class ExamAccommodation {
         return segmentPosition;
     }
 
-    public boolean isMultipleToolTypes() {
-        return multipleToolTypes;
+    public int getTotalTypeCount() {
+        return totalTypeCount;
     }
 
     @Override
@@ -273,16 +273,18 @@ public class ExamAccommodation {
 
         ExamAccommodation that = (ExamAccommodation) o;
 
+        if (segmentPosition != that.segmentPosition) return false;
         if (!examId.equals(that.examId)) return false;
-        if (!segmentKey.equals(that.segmentKey)) return false;
-        return type.equals(that.type);
+        if (!type.equals(that.type)) return false;
+        return code.equals(that.code);
     }
 
     @Override
     public int hashCode() {
         int result = examId.hashCode();
-        result = 31 * result + segmentKey.hashCode();
+        result = 31 * result + segmentPosition;
         result = 31 * result + type.hashCode();
+        result = 31 * result + code.hashCode();
         return result;
     }
 }

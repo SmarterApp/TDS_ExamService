@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -157,7 +158,12 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
         return accommodationCodes;
     }
 
-    private List<ExamAccommodation> initializePreviousAccommodations(Exam exam, Assessment assessment, int segmentPosition, boolean restoreRts, String guestAccommodations, List<ExamAccommodation> existingExamAccommodations) {
+    private List<ExamAccommodation> initializePreviousAccommodations(Exam exam,
+                                                                     Assessment assessment,
+                                                                     int segmentPosition,
+                                                                     boolean restoreRts,
+                                                                     String guestAccommodations,
+                                                                     List<ExamAccommodation> existingExamAccommodations) {
     /*
         This block replaces CommonDLL._UpdateOpportunityAccommodations_SP.
      */
@@ -171,15 +177,38 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
         // temporary tables for most of its data structures which is unnecessary in this case so a collection is returned.
         List<Accommodation> assessmentAccommodations = configService.findAssessmentAccommodationsByAssessmentKey(exam.getClientName(), exam.getAssessmentKey());
 
-        //TODO - look into Distinct on this like on line 2637
-        List<Accommodation> accommodationsToAdd = assessmentAccommodations.stream()
+        /*
+        This is the accumulation of many different queries on lines CommonDLL.UpdateOpportunityAccommodations_SP()
+        2616 - 2667.  Accommodations are kept if:
+
+        1. Accommodation code is in the accommodation codes based on the split accommodation logic
+        2. segment position must be the same as the passed in position
+        3. isEntryControl must be false
+        4. if the exam is started the accommodation must allow change.
+        5. If restoreRts is true then the accommodation must be selectable.
+        6. Exam accommodations must be distinct
+         */
+        Set<ExamAccommodation> accommodationsToAdd = assessmentAccommodations.stream()
             .filter(accommodation ->
                 accommodationCodes.contains(accommodation.getCode())
                     && accommodation.getSegmentPosition() == segmentPosition
-                    && accommodation.isEntryControl()
+                    && !accommodation.isEntryControl()
                     && (exam.getDateStarted() == null || accommodation.isAllowChange())
                     && (!restoreRts || accommodation.isSelectable())
-            ).collect(Collectors.toList());
+            ).map(accommodation -> new ExamAccommodation.Builder()
+                .withExamId(exam.getId())
+                .withCode(accommodation.getCode())
+                .withType(accommodation.getType())
+                .withDescription(accommodation.getValue())
+                .withSegmentKey(accommodation.getSegmentKey())
+                .withAllowChange(accommodation.isAllowChange())
+                .withSelectable(accommodation.isSelectable())
+                .withValue(accommodation.getValue())
+                .withSegmentPosition(segmentPosition)
+                .withTotalTypeCount(accommodation.getTypeTotal())
+                .build())
+            .distinct()
+            .collect(Collectors.toSet());
 
 //Do these steps
 //1. Find the default accommodations
@@ -187,16 +216,16 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
 //3. If ExamAccommodations are present but no longer in accommodations remove
 // Three lists - insert new, replace existing, delete those no longer on it
 
-        //CommonDLL lines 2677 - 2684
-        Set<String> accommodationTypes = accommodationsToAdd.stream()
-            .filter(accommodation -> accommodation.getSegmentPosition() == segmentPosition)
-            .map(Accommodation::getType)
-            .collect(Collectors.toSet());
+        List<ExamAccommodation> examAccommodationsToDelete = new ArrayList<>();
+        List<ExamAccommodation> examAccommodationsToInsert = new ArrayList<>();
+        List<ExamAccommodation> examAccommodationsToUpdate = new ArrayList<>();
 
-        List<ExamAccommodation> examAccommodationsToDelete = existingExamAccommodations.stream()
-            .filter(accommodation ->
-                accommodationTypes.contains(accommodation.getType()))
-            .collect(Collectors.toList());
+        for (ExamAccommodation examAccommodation : accommodationsToAdd) {
+            if (existingExamAccommodations.contains(examAccommodation)) {
+                ExamAccommodation existingAccommodation = existingExamAccommodations.get(existingExamAccommodations.indexOf(examAccommodation));
+                Comparator.comparing(existingAccommodation -> examAccommodation.getSegmentPosition())
+            }
+        }
 
         //CommonDLL line 2677.  We delete the exam accommodations because this seems like the only
         //way in the current system to update the exam accommodations between exam runs.
@@ -230,18 +259,6 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
         List<ExamAccommodation> examAccommodationsToInsert = accommodationsToAdd.stream()
             .filter(accommodation -> otherExamAccommodation == null ||
                 accommodation.getType().equals(otherExamAccommodation.getType()))
-            .map(accommodation -> new ExamAccommodation.Builder()
-                .withExamId(exam.getId())
-                .withCode(accommodation.getCode())
-                .withType(accommodation.getType())
-                .withDescription(accommodation.getValue())
-                .withSegmentKey(accommodation.getSegmentKey())
-                .withAllowChange(accommodation.isAllowChange())
-                .withSelectable(accommodation.isSelectable())
-                .withValue(accommodation.getValue())
-                .withSegmentPosition(segmentPosition)
-                .withMultipleToolTypes(accommodation.getTypeTotal() > 1)
-                .build())
             .collect(Collectors.toList());
 
         //add the other accommodation to insert.  The maybe other accommodation never gets added to the list to insert
