@@ -9,7 +9,10 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -219,6 +222,18 @@ class ExamServiceImpl implements ExamService {
         }
 
         return ability;
+    }
+
+    @Override
+    public void updateStatus(UUID examId, String newStatus) {
+        Exam exam = examQueryRepository.getExamById(examId)
+            .orElseThrow(() -> new IllegalArgumentException(String.format("Exam could not be found for id %s", examId)));
+
+        if (ExamStatusTransitionHandler.canTransition(exam.getStatus().getStatus(), newStatus)) {
+            // do something
+        } else {
+            // do something else
+        }
     }
 
     @Override

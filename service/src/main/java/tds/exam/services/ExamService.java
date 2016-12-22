@@ -55,6 +55,14 @@ public interface ExamService {
     Optional<Double> getInitialAbility(Exam exam, Assessment assessment);
 
     /**
+     * Change the {@link tds.exam.Exam}'s status to a new value.
+     *
+     * @param examId The id of the exam whose status is being changed
+     * @param newStatus The new status of the exam
+     */
+    void updateStatus(UUID examId, String newStatus);
+
+    /**
      * Verify all the rules for granting approval to an {@link Exam} are satisfied.
      * <p>
      * The rules are:
