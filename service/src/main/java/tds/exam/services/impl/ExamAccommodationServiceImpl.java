@@ -1,11 +1,12 @@
 package tds.exam.services.impl;
 
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.Instant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -73,7 +74,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                 .withDescription(accommodation.getValue())
                 .withSegmentKey(accommodation.getSegmentKey())
                 .withValue(accommodation.getValue())
-                .withMultipleToolTypes(accommodation.getTypeTotal() > 1)
+                .withTotalTypeCount(accommodation.getTypeTotal())
                 .build();
 
             examAccommodations.add(examAccommodation);
@@ -210,29 +211,6 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
             .distinct()
             .collect(Collectors.toSet());
 
-//Do these steps
-//1. Find the default accommodations
-//2. If ExamAccommodations aren't present then add
-//3. If ExamAccommodations are present but no longer in accommodations remove
-// Three lists - insert new, replace existing, delete those no longer on it
-
-        List<ExamAccommodation> examAccommodationsToDelete = new ArrayList<>();
-        List<ExamAccommodation> examAccommodationsToInsert = new ArrayList<>();
-        List<ExamAccommodation> examAccommodationsToUpdate = new ArrayList<>();
-
-        for (ExamAccommodation examAccommodation : accommodationsToAdd) {
-            if (existingExamAccommodations.contains(examAccommodation)) {
-                ExamAccommodation existingAccommodation = existingExamAccommodations.get(existingExamAccommodations.indexOf(examAccommodation));
-                Comparator.comparing(existingAccommodation -> examAccommodation.getSegmentPosition())
-            }
-        }
-
-        //CommonDLL line 2677.  We delete the exam accommodations because this seems like the only
-        //way in the current system to update the exam accommodations between exam runs.
-        if (!examAccommodationsToDelete.isEmpty()) {
-            examAccommodationCommandRepository.delete(examAccommodationsToDelete);
-        }
-
         ExamAccommodation otherAccommodation = null;
 
         for (String code : accommodationCodes) {
@@ -247,29 +225,76 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                     .withSegmentPosition(segmentPosition)
                     .build();
 
+                accommodationsToAdd = accommodationsToAdd.stream().
+                    filter(examAccommodation -> examAccommodation.getCode().startsWith(OTHER_ACCOMMODATION_VALUE))
+                    .collect(Collectors.toSet());
+
                 break;
             }
+        }
+
+//Do these steps
+//1. Find the default accommodations
+//2. If ExamAccommodations aren't present then add
+//3. If ExamAccommodations are present but no longer in accommodations remove
+// Three lists - insert new, replace existing, delete those no longer on it
+
+        Set<ExamAccommodation> examAccommodationsToInsert = new HashSet<>();
+        Set<ExamAccommodation> examAccommodationsToUpdate = new HashSet<>();
+
+        for (ExamAccommodation examAccommodation : accommodationsToAdd) {
+            if (existingExamAccommodations.contains(examAccommodation)) {
+                ExamAccommodation existingAccommodation = existingExamAccommodations.get(existingExamAccommodations.indexOf(examAccommodation));
+                if (!isEqual(existingAccommodation, examAccommodation)) {
+                    examAccommodationsToUpdate.add(examAccommodation);
+                }
+            } else {
+                examAccommodationsToInsert.add(examAccommodation);
+            }
+        }
+
+        if (otherAccommodation != null) {
+            examAccommodationsToInsert.add(otherAccommodation);
+        }
+
+        List<ExamAccommodation> examAccommodationsToDelete = existingExamAccommodations
+            .stream()
+            .filter(examAccommodation -> !accommodationsToAdd.contains(examAccommodation))
+            .collect(Collectors.toList());
+
+        //CommonDLL line 2677.  We delete the exam accommodations because this seems like the only
+        //way in the current system to update the exam accommodations between exam runs.
+        if (!examAccommodationsToDelete.isEmpty()) {
+            examAccommodationCommandRepository.delete(examAccommodationsToDelete);
         }
 
         /*
            CommonDLL line 2684 - 2716 - Convert the Accommodations to ExamAccommodations and remove the exam accommodation that
            matches the other accommodation value type.
          */
-        final ExamAccommodation otherExamAccommodation = otherAccommodation;
-        List<ExamAccommodation> examAccommodationsToInsert = accommodationsToAdd.stream()
-            .filter(accommodation -> otherExamAccommodation == null ||
-                accommodation.getType().equals(otherExamAccommodation.getType()))
-            .collect(Collectors.toList());
-
         //add the other accommodation to insert.  The maybe other accommodation never gets added to the list to insert
-        if (otherExamAccommodation != null) {
-            examAccommodationsToInsert.add(otherAccommodation);
-        }
-
         if (!examAccommodationsToInsert.isEmpty()) {
             examAccommodationCommandRepository.insert(examAccommodationsToInsert);
         }
 
         return examAccommodationsToInsert;
+    }
+
+    private static boolean isEqual(ExamAccommodation ea1, ExamAccommodation ea2) {
+        return ea1.getSegmentPosition() == ea2.getSegmentPosition()
+            && StringUtils.equals(ea1.getSegmentKey(), ea2.getSegmentKey())
+            && StringUtils.equals(ea1.getCode(), ea2.getCode())
+            && StringUtils.equals(ea1.getValue(), ea2.getValue())
+            && StringUtils.equals(ea1.getType(), ea2.getType())
+            && ea1.getExamId().equals(ea2.getExamId())
+            && ea1.getTotalTypeCount() == ea2.getTotalTypeCount()
+            && isEqual(ea1.getDeniedAt(), ea2.getDeniedAt());
+    }
+
+    private static boolean isEqual(Instant instant, Instant instant2) {
+        return (instant == null && instant2 == null)
+            || !(instant != null && instant2 == null)
+            && instant != null
+            && instant.equals(instant2);
     }
 }
