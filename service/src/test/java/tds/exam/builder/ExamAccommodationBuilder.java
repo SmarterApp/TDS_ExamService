@@ -31,7 +31,7 @@ public class ExamAccommodationBuilder {
     private boolean allowChange = false;
     private String value = SampleData.DEFAULT_ACCOMMODATION_VALUE;
     private int segmentPosition = 1;
-    private boolean multipleToolTypes = false;
+    private int totalTypeCount = 1;
 
     public ExamAccommodation build() {
         return new ExamAccommodation.Builder()
@@ -48,7 +48,7 @@ public class ExamAccommodationBuilder {
             .withAllowChange(allowChange)
             .withValue(value)
             .withSegmentPosition(segmentPosition)
-            .withMultipleToolTypes(multipleToolTypes)
+            .withTotalTypeCount(totalTypeCount)
             .build();
     }
 
@@ -117,8 +117,8 @@ public class ExamAccommodationBuilder {
         return this;
     }
 
-    public ExamAccommodationBuilder withMultipleToolTypes(boolean multipleToolTypes) {
-        this.multipleToolTypes = multipleToolTypes;
+    public ExamAccommodationBuilder withTotalTypeCount(int totalTypeCount) {
+        this.totalTypeCount = totalTypeCount;
         return this;
     }
 }

@@ -62,13 +62,13 @@ public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodation
             "denied_at, " +
             "deleted_at, " +
             "selectable," +
-            "multiple_tool_types) \n" +
+            "total_type_count) \n" +
             "VALUES(" +
             ":examAccommodationId, " +
             ":deniedAt, " +
             ":deletedAt, " +
             ":selectable," +
-            ":multipleToolTypes);";
+            ":totalTypeCount);";
 
         SqlParameterSource[] parameterSources = new SqlParameterSource[examAccommodations.length];
 
@@ -77,7 +77,7 @@ public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodation
             SqlParameterSource parameters = new MapSqlParameterSource("examAccommodationId", examAccommodation.getId())
                 .addValue("deniedAt", mapJodaInstantToTimestamp(examAccommodation.getDeniedAt()))
                 .addValue("selectable", examAccommodation.isSelectable())
-                .addValue("multipleToolTypes", examAccommodation.isMultipleToolTypes())
+                .addValue("totalTypeCount", examAccommodation.getTotalTypeCount())
                 .addValue("deletedAt", mapJodaInstantToTimestamp(examAccommodation.getDeletedAt()));
 
             parameterSources[i] = parameters;

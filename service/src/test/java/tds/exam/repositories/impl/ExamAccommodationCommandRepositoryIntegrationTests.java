@@ -80,7 +80,7 @@ public class ExamAccommodationCommandRepositoryIntegrationTests {
             .withSegmentKey("segment")
             .withType("closed captioning")
             .withCode("TDS_ClosedCap0")
-            .withMultipleToolTypes(true)
+            .withTotalTypeCount(5)
             .build());
 
         examAccommodationCommandRepository.insert(mockExamAccommodations);

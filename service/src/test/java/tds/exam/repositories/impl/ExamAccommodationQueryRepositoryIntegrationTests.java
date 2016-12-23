@@ -52,7 +52,7 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
             .withAllowChange(true)
             .withSelectable(true)
             .withSegmentPosition(5)
-            .withMultipleToolTypes(true)
+            .withTotalTypeCount(5)
             .build());
 
         // Accommodation in second segment that is denied

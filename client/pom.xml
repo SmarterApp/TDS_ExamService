@@ -23,6 +23,13 @@
     </properties>
 
     <dependencies>
+        <!-- Common -->
+        <dependency>
+            <groupId>org.opentestsystem.common</groupId>
+            <artifactId>tds-common-legacy</artifactId>
+            <version>${tds-common.version}</version>
+        </dependency>
+
         <!-- Validation -->
         <dependency>
             <groupId>org.hibernate</groupId>

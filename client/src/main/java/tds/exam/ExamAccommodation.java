@@ -5,6 +5,8 @@ import org.joda.time.Instant;
 
 import java.util.UUID;
 
+import static tds.common.util.Preconditions.checkNotNull;
+
 /**
  * An accommodation that is approved for use during an {@link Exam}.
  */
@@ -46,38 +48,22 @@ public class ExamAccommodation {
         }
 
         public Builder withExamId(UUID examId) {
-            if (examId == null) {
-                throw new IllegalArgumentException("examId cannot be null");
-            }
-
-            this.examId = examId;
+            this.examId = checkNotNull(examId, "exam id cannot be null");
             return this;
         }
 
         public Builder withSegmentKey(String segmentKey) {
-            if (segmentKey == null) {
-                throw new IllegalArgumentException("segmentKey cannot be null");
-            }
-
-            this.segmentKey = segmentKey;
+            this.segmentKey = checkNotNull(segmentKey, "segmentKey cannot be null");
             return this;
         }
 
         public Builder withType(String type) {
-            if (type == null) {
-                throw new IllegalArgumentException("type cannot be null");
-            }
-
-            this.type = type;
+            this.type = checkNotNull(type);
             return this;
         }
 
         public Builder withCode(String code) {
-            if (code == null) {
-                throw new IllegalArgumentException("code cannot be null");
-            }
-
-            this.code = code;
+            this.code = checkNotNull(code, "code cannot be null");
             return this;
         }
 
@@ -92,10 +78,7 @@ public class ExamAccommodation {
         }
 
         public Builder withCreatedAt(Instant createdAt) {
-            if (createdAt == null) {
-                throw new IllegalArgumentException("createdAt cannot be null");
-            }
-            this.createdAt = createdAt;
+            this.createdAt = checkNotNull(createdAt, "createdAt cannot be null");
             return this;
         }
 
@@ -165,7 +148,7 @@ public class ExamAccommodation {
         allowChange = builder.allowChange;
         value = builder.value;
         segmentPosition = builder.segmentPosition;
-        multipleToolTypes = builder.multipleToolTypes;
+        totalTypeCount = builder.totalTypeCount;
     }
 
     /**
