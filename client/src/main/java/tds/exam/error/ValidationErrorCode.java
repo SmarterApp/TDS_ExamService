@@ -17,4 +17,7 @@ public class ValidationErrorCode {
     public static final String EXAM_APPROVAL_SESSION_ID_MISMATCH = "sessionIdMismatch";
     public static final String EXAM_APPROVAL_SESSION_CLOSED = "sessionClosed";
     public static final String EXAM_APPROVAL_TA_CHECKIN_TIMEOUT = "TACheckin TIMEOUT";
+
+    // Exam status transition error codes
+    public static final String EXAM_STATUS_TRANSITION_FAILURE = "badStatusTransition";
 }

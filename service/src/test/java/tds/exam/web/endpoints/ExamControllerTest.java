@@ -19,6 +19,7 @@ import java.net.URISyntaxException;
 import java.util.Optional;
 import java.util.UUID;
 
+import tds.common.NoContentResponse;
 import tds.common.Response;
 import tds.common.ValidationError;
 import tds.common.web.exceptions.NotFoundException;
@@ -149,5 +150,42 @@ public class ExamControllerTest {
         assertThat(response.getBody().getErrors().get()[0].getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_BROWSER_ID_MISMATCH);
         assertThat(response.getBody().getErrors().get()[0].getMessage()).isEqualTo("foo");
         assertThat(response.getBody().getData()).isNotPresent();
+    }
+
+    @Test
+    public void shouldPauseAnExam() throws Exception {
+        UUID examId = UUID.randomUUID();
+
+        when(mockExamService.pauseExam(examId)).thenReturn(Optional.empty());
+
+        ResponseEntity<?> response = controller.pauseExam(examId);
+
+        verify(mockExamService).pauseExam(examId);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+        assertThat(response.getHeaders()).hasSize(1);
+        assertThat(response.getHeaders().getLocation()).isEqualTo(new URI(String.format("http://localhost/exam/%s", examId)));
+        assertThat(response.getBody()).isNull();
+    }
+
+    @Test
+    public void shouldNotPauseAnExam() {
+        UUID examId = UUID.randomUUID();
+
+        when(mockExamService.pauseExam(examId))
+            .thenReturn(Optional.of(new ValidationError(ValidationErrorCode.EXAM_STATUS_TRANSITION_FAILURE, "Bad transition from foo to bar")));
+
+        ResponseEntity<NoContentResponse> response = controller.pauseExam(examId);
+
+        verify(mockExamService).pauseExam(examId);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getErrors()).isPresent();
+        assertThat(response.getBody().getErrors().get()).hasSize(1);
+
+        ValidationError error = response.getBody().getErrors().get()[0];
+        assertThat(error.getCode()).isEqualTo(ValidationErrorCode.EXAM_STATUS_TRANSITION_FAILURE);
+        assertThat(error.getMessage()).isEqualTo("Bad transition from foo to bar");
     }
 }

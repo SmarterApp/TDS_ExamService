@@ -10,9 +10,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -225,15 +223,35 @@ class ExamServiceImpl implements ExamService {
     }
 
     @Override
-    public void updateStatus(UUID examId, String newStatus) {
+    public Optional<ValidationError> pauseExam(UUID examId) {
         Exam exam = examQueryRepository.getExamById(examId)
             .orElseThrow(() -> new IllegalArgumentException(String.format("Exam could not be found for id %s", examId)));
 
-        if (ExamStatusTransitionHandler.canTransition(exam.getStatus().getStatus(), newStatus)) {
-            // do something
-        } else {
-            // do something else
+        // From CommondDLL._IsValidStatusTransition_FN(): a collection of all the statuses that can transition to
+        // "paused".  That is, each of these status values has a nested switch statement that contains the "paused"
+        // status.
+        final List<String> statusesThatCanTransitionToPaused = Arrays.asList(ExamStatusCode.STATUS_PAUSED,
+            ExamStatusCode.STATUS_PENDING,
+            ExamStatusCode.STATUS_SUSPENDED,
+            ExamStatusCode.STATUS_STARTED,
+            ExamStatusCode.STATUS_APPROVED,
+            ExamStatusCode.STATUS_REVIEW,
+            ExamStatusCode.STATUS_INITIALIZING);
+
+        if (!statusesThatCanTransitionToPaused.contains(exam.getStatus().getStatus())) {
+            return Optional.of(new ValidationError(ValidationErrorCode.EXAM_STATUS_TRANSITION_FAILURE,
+                String.format("Bad status transition from %s to %s", exam.getStatus().getStatus(), ExamStatusCode.STATUS_PAUSED)));
         }
+
+        // A status change reason is not required for pausing an exam.
+        Exam pausedExam = new Exam.Builder()
+            .fromExam(exam)
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE))
+            .build();
+
+        examCommandRepository.update(pausedExam);
+
+        return Optional.empty();
     }
 
     @Override

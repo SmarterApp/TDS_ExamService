@@ -1160,6 +1160,41 @@ public class ExamServiceImplTest {
         assertThat(result.getErrors().get()[0].getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_TA_CHECKIN_TIMEOUT);
     }
 
+    @Test
+    public void shouldPauseAnExam() {
+        UUID examId = UUID.randomUUID();
+        Exam mockExam = new Exam.Builder()
+            .withId(examId)
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_PENDING, ExamStatusStage.INUSE))
+            .build();
+
+        when(mockExamQueryRepository.getExamById(examId))
+            .thenReturn(Optional.of(mockExam));
+
+        Optional<ValidationError> maybeStatusTransitionFailure = examService.pauseExam(examId);
+
+        assertThat(maybeStatusTransitionFailure).isNotPresent();
+    }
+
+    @Test
+    public void shouldNotPauseAnExamDueToInvalidStatusTransition() {
+        UUID examId = UUID.randomUUID();
+        Exam mockExam = new Exam.Builder()
+            .withId(examId)
+            .withStatus(new ExamStatusCode("foo", ExamStatusStage.INACTIVE))
+            .build();
+
+        when(mockExamQueryRepository.getExamById(examId))
+            .thenReturn(Optional.of(mockExam));
+
+        Optional<ValidationError> maybeStatusTransitionFailure = examService.pauseExam(examId);
+
+        assertThat(maybeStatusTransitionFailure).isPresent();
+        ValidationError statusTransitionFailure = maybeStatusTransitionFailure.get();
+        assertThat(statusTransitionFailure.getCode()).isEqualTo(ValidationErrorCode.EXAM_STATUS_TRANSITION_FAILURE);
+        assertThat(statusTransitionFailure.getMessage()).isEqualTo("Bad status transition from foo to paused");
+    }
+
     @Test(expected = IllegalArgumentException.class)
     public void shouldThrowIllegalArgumentExceptionWhenExamIsNotPresent() {
         UUID examId = UUID.randomUUID();
@@ -1298,6 +1333,15 @@ public class ExamServiceImplTest {
         ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey, clientName);
 
         examService.getApproval(approvalRequest);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldThrowIllegalArgumentExceptionWhenPausingAnExamThatCannotBeFound() {
+        UUID examId = UUID.randomUUID();
+
+        when(mockExamQueryRepository.getExamById(examId)).thenReturn(Optional.empty());
+
+        examService.pauseExam(examId);
     }
 
     private Exam createExam(UUID sessionId, UUID thisExamId, String assessmentId, String clientName, long studentId) {

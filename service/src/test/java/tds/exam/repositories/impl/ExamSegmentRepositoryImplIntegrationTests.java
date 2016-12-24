@@ -12,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -79,47 +78,47 @@ public class ExamSegmentRepositoryImplIntegrationTests {
         final String item = "item1";
         Set<String> itemPool = new HashSet<>();
         itemPool.add(item);
-        final String condition = "on pause";
+        final String condition = "on pauseExam";
         final String formId = "form-id-1";
         final String formKey = "form-key-1";
 
         ExamSegment segment1 = new ExamSegment.Builder()
-                .withSegmentId(segmentId1)
-                .withSegmentKey(segmentKey1)
-                .withSegmentPosition(segmentPos1)
-                .withAlgorithm(algorithm)
-                .withDateExited(dateExited)
-                .withExamId(examId)
-                .withExamItemCount(examItemCount)
-                .withFieldTestItemCount(ftItemCount)
-                .withFormCohort(cohort)
-                .withIsPermeable(permeable)
-                .withIsSatisfied(satisfied)
-                .withPoolCount(poolCount)
-                .withItemPool(itemPool)
-                .withRestorePermeableCondition(condition)
-                .withFormKey(formKey)
-                .withFormId(formId)
-                .build();
+            .withSegmentId(segmentId1)
+            .withSegmentKey(segmentKey1)
+            .withSegmentPosition(segmentPos1)
+            .withAlgorithm(algorithm)
+            .withDateExited(dateExited)
+            .withExamId(examId)
+            .withExamItemCount(examItemCount)
+            .withFieldTestItemCount(ftItemCount)
+            .withFormCohort(cohort)
+            .withIsPermeable(permeable)
+            .withIsSatisfied(satisfied)
+            .withPoolCount(poolCount)
+            .withItemPool(itemPool)
+            .withRestorePermeableCondition(condition)
+            .withFormKey(formKey)
+            .withFormId(formId)
+            .build();
 
         ExamSegment segment2 = new ExamSegment.Builder()
-                .withSegmentId(segmentId2)
-                .withSegmentKey(segmentKey2)
-                .withSegmentPosition(segmentPos2)
-                .withAlgorithm(algorithm)
-                .withDateExited(dateExited)
-                .withExamId(examId)
-                .withExamItemCount(examItemCount)
-                .withFieldTestItemCount(ftItemCount)
-                .withFormCohort(cohort)
-                .withIsPermeable(permeable)
-                .withIsSatisfied(satisfied)
-                .withPoolCount(poolCount)
-                .withItemPool(itemPool)
-                .withFormKey(formKey)
-                .withFormId(formId)
-                .withRestorePermeableCondition(condition)
-                .build();
+            .withSegmentId(segmentId2)
+            .withSegmentKey(segmentKey2)
+            .withSegmentPosition(segmentPos2)
+            .withAlgorithm(algorithm)
+            .withDateExited(dateExited)
+            .withExamId(examId)
+            .withExamItemCount(examItemCount)
+            .withFieldTestItemCount(ftItemCount)
+            .withFormCohort(cohort)
+            .withIsPermeable(permeable)
+            .withIsSatisfied(satisfied)
+            .withPoolCount(poolCount)
+            .withItemPool(itemPool)
+            .withFormKey(formKey)
+            .withFormId(formId)
+            .withRestorePermeableCondition(condition)
+            .build();
 
         commandRepository.insert(Arrays.asList(segment1, segment2));
 
@@ -159,27 +158,27 @@ public class ExamSegmentRepositoryImplIntegrationTests {
         final String item = "item1";
         Set<String> itemPool = new HashSet<>();
         itemPool.add(item);
-        final String condition = "on pause";
+        final String condition = "on pauseExam";
         final String formId = "form-id-1";
         final String formKey = "form-key-1";
 
         ExamSegment segment1 = new ExamSegment.Builder()
-                .withSegmentId(segmentId)
-                .withSegmentKey(segmentKey)
-                .withSegmentPosition(segmentPos)
-                .withAlgorithm(algorithm)
-                .withExamId(examId)
-                .withExamItemCount(examItemCount)
-                .withFieldTestItemCount(ftItemCount)
-                .withFormCohort(cohort)
-                .withIsPermeable(false)
-                .withIsSatisfied(false)
-                .withPoolCount(poolCount)
-                .withItemPool(itemPool)
-                .withRestorePermeableCondition(condition)
-                .withFormKey(formKey)
-                .withFormId(formId)
-                .build();
+            .withSegmentId(segmentId)
+            .withSegmentKey(segmentKey)
+            .withSegmentPosition(segmentPos)
+            .withAlgorithm(algorithm)
+            .withExamId(examId)
+            .withExamItemCount(examItemCount)
+            .withFieldTestItemCount(ftItemCount)
+            .withFormCohort(cohort)
+            .withIsPermeable(false)
+            .withIsSatisfied(false)
+            .withPoolCount(poolCount)
+            .withItemPool(itemPool)
+            .withRestorePermeableCondition(condition)
+            .withFormKey(formKey)
+            .withFormId(formId)
+            .build();
 
         commandRepository.insert(Arrays.asList(segment1));
         itemPool.add("item2");
@@ -187,23 +186,23 @@ public class ExamSegmentRepositoryImplIntegrationTests {
         final boolean newPermeable = true;
 
         ExamSegment updatedSegment = new ExamSegment.Builder()
-                .withSegmentId(segmentId)
-                .withSegmentKey(segmentKey)
-                .withSegmentPosition(segmentPos)
-                .withAlgorithm(algorithm)
-                .withDateExited(dateExited)
-                .withExamId(examId)
-                .withExamItemCount(examItemCount)
-                .withFieldTestItemCount(ftItemCount)
-                .withFormCohort(cohort)
-                .withIsPermeable(newSatisfied)
-                .withIsSatisfied(newPermeable)
-                .withPoolCount(poolCount)
-                .withItemPool(itemPool)
-                .withFormKey(formKey)
-                .withFormId(formId)
-                .withRestorePermeableCondition("new condition")
-                .build();
+            .withSegmentId(segmentId)
+            .withSegmentKey(segmentKey)
+            .withSegmentPosition(segmentPos)
+            .withAlgorithm(algorithm)
+            .withDateExited(dateExited)
+            .withExamId(examId)
+            .withExamItemCount(examItemCount)
+            .withFieldTestItemCount(ftItemCount)
+            .withFormCohort(cohort)
+            .withIsPermeable(newSatisfied)
+            .withIsSatisfied(newPermeable)
+            .withPoolCount(poolCount)
+            .withItemPool(itemPool)
+            .withFormKey(formKey)
+            .withFormId(formId)
+            .withRestorePermeableCondition("new condition")
+            .build();
 
         commandRepository.update(updatedSegment);
 
@@ -250,108 +249,108 @@ public class ExamSegmentRepositoryImplIntegrationTests {
         final String item = "item1";
         Set<String> itemPool = new HashSet<>();
         itemPool.add(item);
-        final String condition = "on pause";
+        final String condition = "on pauseExam";
         final String formId = "form-id-1";
         final String formKey = "form-key-1";
 
         ExamSegment segment1 = new ExamSegment.Builder()
-                .withSegmentId(segmentId1)
-                .withSegmentKey(segmentKey1)
-                .withSegmentPosition(segmentPos1)
-                .withAlgorithm(algorithm1)
-                .withDateExited(dateExited)
-                .withExamId(examId)
-                .withExamItemCount(examItemCount)
-                .withFieldTestItemCount(ftItemCount)
-                .withFormCohort(cohort)
-                .withIsPermeable(permeable)
-                .withIsSatisfied(satisfied)
-                .withPoolCount(poolCount)
-                .withItemPool(itemPool)
-                .withRestorePermeableCondition(condition)
-                .withFormKey(formKey)
-                .withFormId(formId)
-                .build();
+            .withSegmentId(segmentId1)
+            .withSegmentKey(segmentKey1)
+            .withSegmentPosition(segmentPos1)
+            .withAlgorithm(algorithm1)
+            .withDateExited(dateExited)
+            .withExamId(examId)
+            .withExamItemCount(examItemCount)
+            .withFieldTestItemCount(ftItemCount)
+            .withFormCohort(cohort)
+            .withIsPermeable(permeable)
+            .withIsSatisfied(satisfied)
+            .withPoolCount(poolCount)
+            .withItemPool(itemPool)
+            .withRestorePermeableCondition(condition)
+            .withFormKey(formKey)
+            .withFormId(formId)
+            .build();
 
         ExamSegment segment2 = new ExamSegment.Builder()
-                .withSegmentId(segmentId2)
-                .withSegmentKey(segmentKey2)
-                .withSegmentPosition(segmentPos2)
-                .withAlgorithm(algorithm2)
-                .withDateExited(dateExited)
-                .withExamId(examId)
-                .withExamItemCount(examItemCount)
-                .withFieldTestItemCount(ftItemCount)
-                .withFormCohort(cohort)
-                .withIsPermeable(permeable)
-                .withIsSatisfied(satisfied)
-                .withPoolCount(poolCount)
-                .withItemPool(itemPool)
-                .withFormKey(formKey)
-                .withFormId(formId)
-                .withRestorePermeableCondition(condition)
-                .build();
+            .withSegmentId(segmentId2)
+            .withSegmentKey(segmentKey2)
+            .withSegmentPosition(segmentPos2)
+            .withAlgorithm(algorithm2)
+            .withDateExited(dateExited)
+            .withExamId(examId)
+            .withExamItemCount(examItemCount)
+            .withFieldTestItemCount(ftItemCount)
+            .withFormCohort(cohort)
+            .withIsPermeable(permeable)
+            .withIsSatisfied(satisfied)
+            .withPoolCount(poolCount)
+            .withItemPool(itemPool)
+            .withFormKey(formKey)
+            .withFormId(formId)
+            .withRestorePermeableCondition(condition)
+            .build();
 
         ExamSegment segment3 = new ExamSegment.Builder()
-                .withSegmentId(segmentId2)
-                .withSegmentKey(segmentKey2)
-                .withSegmentPosition(segmentPos2)
-                .withAlgorithm(algorithm2)
-                .withDateExited(dateExited)
-                .withExamId(differentExamid)
-                .withExamItemCount(examItemCount)
-                .withFieldTestItemCount(ftItemCount)
-                .withFormCohort(cohort)
-                .withIsPermeable(permeable)
-                .withIsSatisfied(satisfied)
-                .withPoolCount(poolCount)
-                .withItemPool(itemPool)
-                .withFormKey(formKey)
-                .withFormId(formId)
-                .withRestorePermeableCondition(condition)
-                .build();
+            .withSegmentId(segmentId2)
+            .withSegmentKey(segmentKey2)
+            .withSegmentPosition(segmentPos2)
+            .withAlgorithm(algorithm2)
+            .withDateExited(dateExited)
+            .withExamId(differentExamid)
+            .withExamItemCount(examItemCount)
+            .withFieldTestItemCount(ftItemCount)
+            .withFormCohort(cohort)
+            .withIsPermeable(permeable)
+            .withIsSatisfied(satisfied)
+            .withPoolCount(poolCount)
+            .withItemPool(itemPool)
+            .withFormKey(formKey)
+            .withFormId(formId)
+            .withRestorePermeableCondition(condition)
+            .build();
 
         commandRepository.insert(Arrays.asList(segment1, segment2, segment3));
 
         ExamSegment segment1Updated = new ExamSegment.Builder()
-                .withSegmentId(segmentId1)
-                .withSegmentKey(segmentKey1)
-                .withSegmentPosition(segmentPos1)
-                .withAlgorithm(algorithm1)
-                .withDateExited(dateExited)
-                .withExamId(examId)
-                .withExamItemCount(examItemCount)
-                .withFieldTestItemCount(ftItemCount)
-                .withFormCohort(cohort)
-                .withIsPermeable(true)
-                .withIsSatisfied(true)
-                .withPoolCount(poolCount)
-                .withItemPool(itemPool)
-                .withRestorePermeableCondition(condition)
-                .withFormKey(formKey)
-                .withFormId(formId)
-                .build();
+            .withSegmentId(segmentId1)
+            .withSegmentKey(segmentKey1)
+            .withSegmentPosition(segmentPos1)
+            .withAlgorithm(algorithm1)
+            .withDateExited(dateExited)
+            .withExamId(examId)
+            .withExamItemCount(examItemCount)
+            .withFieldTestItemCount(ftItemCount)
+            .withFormCohort(cohort)
+            .withIsPermeable(true)
+            .withIsSatisfied(true)
+            .withPoolCount(poolCount)
+            .withItemPool(itemPool)
+            .withRestorePermeableCondition(condition)
+            .withFormKey(formKey)
+            .withFormId(formId)
+            .build();
 
         itemPool.add("another item");
 
         ExamSegment segment2Updated = new ExamSegment.Builder()
-                .withSegmentId(segmentId2)
-                .withSegmentKey(segmentKey2)
-                .withSegmentPosition(segmentPos2)
-                .withAlgorithm(algorithm2)
-                .withDateExited(dateExited)
-                .withExamId(examId)
-                .withExamItemCount(examItemCount)
-                .withFieldTestItemCount(ftItemCount)
-                .withFormCohort(cohort)
-                .withIsPermeable(true)
-                .withIsSatisfied(false)
-                .withPoolCount(poolCount)
-                .withItemPool(itemPool)
-                .withRestorePermeableCondition(condition)
-                .withFormKey(formKey)
-                .withFormId(formId)
-                .build();
+            .withSegmentId(segmentId2)
+            .withSegmentKey(segmentKey2)
+            .withSegmentPosition(segmentPos2)
+            .withAlgorithm(algorithm2)
+            .withDateExited(dateExited)
+            .withExamId(examId)
+            .withExamItemCount(examItemCount)
+            .withFieldTestItemCount(ftItemCount)
+            .withFormCohort(cohort)
+            .withIsPermeable(true)
+            .withIsSatisfied(false)
+            .withPoolCount(poolCount)
+            .withItemPool(itemPool)
+            .withRestorePermeableCondition(condition)
+            .withFormKey(formKey)
+            .withFormId(formId)
+            .build();
 
         commandRepository.update(Arrays.asList(segment1Updated, segment2Updated));
 

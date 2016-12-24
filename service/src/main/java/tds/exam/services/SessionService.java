@@ -31,7 +31,7 @@ public interface SessionService {
     /**
      * Pause a {@link Session}
      *
-     * @param sessionId The id of the {@link Session} to pause.
+     * @param sessionId The id of the {@link Session} to pauseExam.
      * @param newStatus The new status of the {@link Session}.
      * @return A {@link PauseSessionResponse} indicating the {@link Session} has been paused; otherwise empty.
      */

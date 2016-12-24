@@ -23,6 +23,8 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -62,5 +64,19 @@ public class ExamControllerIntegrationTests {
             .andExpect(status().isNotFound());
 
         verify(mockExamService).findExam(examId);
+    }
+
+    @Test
+    public void shouldPauseAnExam() throws Exception {
+        UUID examId = UUID.randomUUID();
+
+        when(mockExamService.pauseExam(examId)).thenReturn(Optional.empty());
+
+        http.perform(put(new URI(String.format("/exam/%s/pause", examId)))
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNoContent())
+            .andExpect(header().string("Location", String.format("http://localhost/exam/%s", examId)));
+
+        verify(mockExamService).pauseExam(examId);
     }
 }
