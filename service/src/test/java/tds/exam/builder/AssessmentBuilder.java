@@ -14,6 +14,7 @@ public class AssessmentBuilder {
     private String assessmentId = "IRP-Perf-ELA-3";
     private Algorithm selectionAlgorithm = Algorithm.FIXED_FORM;
     private float startAbility = 0;
+    private int prefetch = 2;
     private String subject = "ENGLISH";
     private List<Segment> segments;
     private boolean initialAbilityBySubject;

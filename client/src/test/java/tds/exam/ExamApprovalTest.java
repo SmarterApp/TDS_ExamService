@@ -6,7 +6,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static tds.exam.ExamStatusStage.CLOSED;
-import static tds.exam.ExamStatusStage.INUSE;
+import static tds.exam.ExamStatusStage.IN_USE;
 import static tds.exam.ExamStatusStage.OPEN;
 
 public class ExamApprovalTest {
@@ -46,7 +46,7 @@ public class ExamApprovalTest {
     @Test
     public void shouldCreateAnExamApprovalWithLogoutStatus() {
         UUID mockExamId = UUID.randomUUID();
-        ExamStatusCode mockExamStatusCode = new ExamStatusCode("paused", INUSE);
+        ExamStatusCode mockExamStatusCode = new ExamStatusCode("paused", IN_USE);
         ExamApproval examApproval = new ExamApproval(mockExamId, mockExamStatusCode, "unit test");
 
         assertThat(examApproval.getExamId()).isEqualTo(mockExamId);

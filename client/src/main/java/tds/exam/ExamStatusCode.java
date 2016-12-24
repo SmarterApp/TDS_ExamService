@@ -5,9 +5,10 @@ public class ExamStatusCode {
     public static final String STATUS_PENDING = "pending";
     public static final String STATUS_APPROVED = "approved";
     public static final String STATUS_SUSPENDED = "suspended";
-    public static final String STATUS_STARTED = "started";
     public static final String STATUS_REVIEW = "review";
     public static final String STATUS_INITIALIZING = "initializing";
+    public static final String STATUS_STARTED = "started";
+    public static final String STATUS_FAILED = "failed";
 
     private String status;
     private ExamStatusStage stage;

@@ -27,9 +27,11 @@ import tds.exam.ApprovalRequest;
 import tds.exam.Exam;
 import tds.exam.ExamApproval;
 import tds.exam.ExamApprovalStatus;
+import tds.exam.ExamConfiguration;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
 import tds.exam.OpenExamRequest;
+import tds.exam.builder.ExamBuilder;
 import tds.exam.builder.OpenExamRequestBuilder;
 import tds.exam.error.ValidationErrorCode;
 import tds.exam.services.ExamService;
@@ -124,6 +126,38 @@ public class ExamControllerTest {
         assertThat(response.getBody().getErrors()).isNotPresent();
         assertThat(response.getBody().getData()).isPresent();
         assertThat(response.getBody().getData().get().getExamApprovalStatus()).isEqualTo(ExamApprovalStatus.APPROVED);
+    }
+
+    @Test
+    public void shouldReturnExamConfiguration() {
+        Exam exam = new ExamBuilder().build();
+        ExamConfiguration mockExamConfig = new ExamConfiguration.Builder()
+            .withExam(exam)
+            .withStatus("started")
+            .build();
+        when(mockExamService.startExam(exam.getId())).thenReturn(
+            new Response<>(mockExamConfig));
+
+        ResponseEntity<Response<ExamConfiguration>> response = controller.startExam(exam.getId());
+        verify(mockExamService).startExam(exam.getId());
+
+        assertThat(response.getBody().getData().get().getExam().getId()).isEqualTo(exam.getId());
+        assertThat(response.getBody().getData().get().getStatus()).isEqualTo("started");
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody().getErrors()).isNotPresent();
+    }
+
+    @Test
+    public void shouldCreateErrorResponseWhenStartExamValidationError() {
+        final UUID examId = UUID.randomUUID();
+        when(mockExamService.startExam(examId)).thenReturn(
+            new Response<ExamConfiguration>(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_SESSION_ID_MISMATCH, "Session mismatch")));
+
+        ResponseEntity<Response<ExamConfiguration>> response = controller.startExam(examId);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        assertThat(response.getBody().getErrors().get()).hasSize(1);
+        assertThat(response.getBody().getErrors().get()[0].getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_SESSION_ID_MISMATCH);
     }
 
     @Test

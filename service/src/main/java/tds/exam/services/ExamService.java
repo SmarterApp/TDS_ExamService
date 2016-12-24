@@ -9,6 +9,7 @@ import tds.common.ValidationError;
 import tds.exam.ApprovalRequest;
 import tds.exam.Exam;
 import tds.exam.ExamApproval;
+import tds.exam.ExamConfiguration;
 import tds.exam.OpenExamRequest;
 import tds.session.Session;
 
@@ -44,6 +45,14 @@ public interface ExamService {
      * @return {@link ExamApproval} describing whether the exam is approved to be opened.
      */
     Response<ExamApproval> getApproval(ApprovalRequest approvalRequest);
+
+    /**
+     * Starts a new or existing exam.
+     *
+     * @param examId The exam to start
+     * @return {@link tds.common.Response<tds.exam.Exam>} containing the exam's configuration or errors.
+     */
+    Response<ExamConfiguration> startExam(UUID examId);
 
     /**
      * Retrieves the initial ability value for an {@link Exam}.
