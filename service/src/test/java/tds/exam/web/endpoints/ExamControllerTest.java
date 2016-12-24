@@ -214,11 +214,9 @@ public class ExamControllerTest {
         verify(mockExamService).pauseExam(examId);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getErrors()).isPresent();
-        assertThat(response.getBody().getErrors().get()).hasSize(1);
+        assertThat(response.getBody().getErrors()).hasSize(1);
 
-        ValidationError error = response.getBody().getErrors().get()[0];
+        ValidationError error = response.getBody().getErrors()[0];
         assertThat(error.getCode()).isEqualTo(ValidationErrorCode.EXAM_STATUS_TRANSITION_FAILURE);
         assertThat(error.getMessage()).isEqualTo("Bad transition from foo to bar");
     }
