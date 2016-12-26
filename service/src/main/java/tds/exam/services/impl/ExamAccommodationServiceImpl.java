@@ -101,17 +101,14 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
          */
         List<ExamAccommodation> examAccommodations = findAllAccommodations(exam.getId());
         if (examAccommodations.isEmpty()) {
-            initializeExamAccommodations(exam);
+            examAccommodations = initializeExamAccommodations(exam);
         } else {
-            initializePreviousAccommodations(exam, assessment, segmentPosition, restoreRts, guestAccommodations, examAccommodations);
+            examAccommodations = initializePreviousAccommodations(exam, assessment, segmentPosition, restoreRts, guestAccommodations, examAccommodations);
         }
-
-        //Fetch the updated exam accommodations
-        examAccommodations = findAllAccommodations(exam.getId());
 
         //StudentDLL lines 6967 - 6875
         ExamAccommodation[] examAccommodationsToDenyApproval = examAccommodations.stream()
-            .filter(ExamAccommodation::isMultipleToolTypes)
+            .filter(examAccommodation -> examAccommodation.getTotalTypeCount() > 1)
             .map(accommodation -> new ExamAccommodation
                 .Builder()
                 .fromExamAccommodation(accommodation)
@@ -126,29 +123,27 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
         return formattedValue.substring("TDS_Other#".length());
     }
 
-    private List<String> splitAccommodationCodes(String accommodationFamily, String guestAccommodations) {
+    private List<String> splitAccommodationCodes(String accommodationFamily, String accommodationsAsConcatenatedString) {
         /*
             This replaces CommonDLL._SplitAccomCodes_FN.  It takes the accommodation family from an Assessment (via configs.client_testproperties)
             and the guest accommodations, which are both delimited Strings, and creates a List of code strings.  The existing code creates a
             temporary table with an additional 'idx' column that is never used upstream.
         */
-        if (isEmpty(guestAccommodations) || isEmpty(accommodationFamily)) {
+        if (isEmpty(accommodationsAsConcatenatedString) || isEmpty(accommodationFamily)) {
             return new ArrayList<>();
         }
 
         accommodationFamily += ":";
 
-        //TODO - Guest accommodations isn't correct.  This should be found student package
-
         List<String> accommodationCodes = new ArrayList<>();
-        for (String guestAccommodation : guestAccommodations.split(";")) {
+        for (String accommodation : accommodationsAsConcatenatedString.split(";")) {
             String accommodationCode = "";
-            if (guestAccommodation.indexOf(':') > -1 && !guestAccommodation.contains(accommodationFamily)) {
-                accommodationCode = guestAccommodation;
+            if (accommodation.indexOf(':') > -1 && !accommodation.contains(accommodationFamily)) {
+                accommodationCode = accommodation;
             }
 
-            if (guestAccommodation.contains(accommodationFamily)) {
-                accommodationCode = guestAccommodation.substring(accommodationFamily.length());
+            if (accommodation.contains(accommodationFamily)) {
+                accommodationCode = accommodation.substring(accommodationFamily.length());
             }
 
             if (isNotEmpty(accommodationCode)) {
@@ -165,9 +160,8 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                                                                      boolean restoreRts,
                                                                      String guestAccommodations,
                                                                      List<ExamAccommodation> existingExamAccommodations) {
-    /*
-        This block replaces CommonDLL._UpdateOpportunityAccommodations_SP.
-     */
+        //This method replaces CommonDLL._UpdateOpportunityAccommodations_SP.
+
 
         //TODO - Find out what `customAccommodations`
 
@@ -211,11 +205,13 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
             .distinct()
             .collect(Collectors.toSet());
 
-        ExamAccommodation otherAccommodation = null;
-
         for (String code : accommodationCodes) {
             if (code.startsWith(OTHER_ACCOMMODATION_VALUE)) {
-                otherAccommodation = new ExamAccommodation.Builder()
+                accommodationsToAdd = accommodationsToAdd.stream().
+                    filter(examAccommodation -> examAccommodation.getCode().startsWith(OTHER_ACCOMMODATION_VALUE))
+                    .collect(Collectors.toSet());
+
+                accommodationsToAdd.add(new ExamAccommodation.Builder()
                     .withExamId(exam.getId())
                     .withType(OTHER_ACCOMMODATION_NAME)
                     .withCode(OTHER_ACCOMMODATION_CODE)
@@ -223,24 +219,15 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                     .withAllowChange(false)
                     .withSelectable(false)
                     .withSegmentPosition(segmentPosition)
-                    .build();
-
-                accommodationsToAdd = accommodationsToAdd.stream().
-                    filter(examAccommodation -> examAccommodation.getCode().startsWith(OTHER_ACCOMMODATION_VALUE))
-                    .collect(Collectors.toSet());
+                    .build()
+                );
 
                 break;
             }
         }
 
-//Do these steps
-//1. Find the default accommodations
-//2. If ExamAccommodations aren't present then add
-//3. If ExamAccommodations are present but no longer in accommodations remove
-// Three lists - insert new, replace existing, delete those no longer on it
-
-        Set<ExamAccommodation> examAccommodationsToInsert = new HashSet<>();
-        Set<ExamAccommodation> examAccommodationsToUpdate = new HashSet<>();
+        List<ExamAccommodation> examAccommodationsToInsert = new ArrayList<>();
+        List<ExamAccommodation> examAccommodationsToUpdate = new ArrayList<>();
 
         for (ExamAccommodation examAccommodation : accommodationsToAdd) {
             if (existingExamAccommodations.contains(examAccommodation)) {
@@ -253,31 +240,21 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
             }
         }
 
-        if (otherAccommodation != null) {
-            examAccommodationsToInsert.add(otherAccommodation);
-        }
-
-        List<ExamAccommodation> examAccommodationsToDelete = existingExamAccommodations
-            .stream()
-            .filter(examAccommodation -> !accommodationsToAdd.contains(examAccommodation))
-            .collect(Collectors.toList());
-
-        //CommonDLL line 2677.  We delete the exam accommodations because this seems like the only
-        //way in the current system to update the exam accommodations between exam runs.
-        if (!examAccommodationsToDelete.isEmpty()) {
-            examAccommodationCommandRepository.delete(examAccommodationsToDelete);
-        }
-
-        /*
-           CommonDLL line 2684 - 2716 - Convert the Accommodations to ExamAccommodations and remove the exam accommodation that
-           matches the other accommodation value type.
-         */
-        //add the other accommodation to insert.  The maybe other accommodation never gets added to the list to insert
         if (!examAccommodationsToInsert.isEmpty()) {
             examAccommodationCommandRepository.insert(examAccommodationsToInsert);
         }
 
-        return examAccommodationsToInsert;
+        if (!examAccommodationsToUpdate.isEmpty()) {
+            examAccommodationCommandRepository.update(examAccommodationsToUpdate.toArray(new ExamAccommodation[examAccommodationsToUpdate.size()]));
+        }
+
+        Set<ExamAccommodation> examAccommodations = new HashSet<>(examAccommodationsToInsert);
+        examAccommodations.addAll(examAccommodationsToUpdate);
+
+        //Add all the exam accommodations that were not updated or inserted.
+        examAccommodations.addAll(existingExamAccommodations);
+
+        return examAccommodations.stream().collect(Collectors.toList());
     }
 
     private static boolean isEqual(ExamAccommodation ea1, ExamAccommodation ea2) {
