@@ -178,8 +178,8 @@ public class ExamServiceImplTest {
 
         Response<Exam> response = examService.openExam(openExamRequest);
 
-        assertThat(response.getData()).isNotPresent();
-        assertThat(response.getErrors().get()[0].getCode()).isEqualTo(ValidationErrorCode.SESSION_NOT_OPEN);
+        assertThat(response.getData().isPresent()).isFalse();
+        assertThat(response.getErrors()[0].getCode()).isEqualTo(ValidationErrorCode.SESSION_NOT_OPEN);
     }
 
     @Test
@@ -216,10 +216,10 @@ public class ExamServiceImplTest {
 
         Response<Exam> examResponse = examService.openExam(openExamRequest);
 
-        assertThat(examResponse.getData()).isNotPresent();
-        assertThat(examResponse.getErrors().get()).hasSize(1);
+        assertThat(examResponse.getData().isPresent()).isFalse();
+        assertThat(examResponse.getErrors()).hasSize(1);
 
-        ValidationError validationError = examResponse.getErrors().get()[0];
+        ValidationError validationError = examResponse.getErrors()[0];
         assertThat(validationError.getCode()).isEqualTo(ValidationErrorCode.SESSION_TYPE_MISMATCH);
     }
 
@@ -264,10 +264,10 @@ public class ExamServiceImplTest {
 
         Response<Exam> examResponse = examService.openExam(openExamRequest);
 
-        assertThat(examResponse.getData()).isNotPresent();
-        assertThat(examResponse.getErrors().get()).hasSize(1);
+        assertThat(examResponse.getData().isPresent()).isFalse();
+        assertThat(examResponse.getErrors()).hasSize(1);
 
-        ValidationError validationError = examResponse.getErrors().get()[0];
+        ValidationError validationError = examResponse.getErrors()[0];
         assertThat(validationError.getCode()).isEqualTo(ValidationErrorCode.CURRENT_EXAM_OPEN);
     }
 
@@ -476,7 +476,7 @@ public class ExamServiceImplTest {
 
         verify(mockExamCommandRepository).update(isA(Exam.class));
 
-        assertThat(examResponse.getErrors()).isNotPresent();
+        assertThat(examResponse.getErrors()).isEmpty();
 
         Exam savedExam = examResponse.getData().get();
 
@@ -577,7 +577,7 @@ public class ExamServiceImplTest {
 
         Response<Exam> examResponse = examService.openExam(request);
 
-        assertThat(examResponse.getErrors()).isNotPresent();
+        assertThat(examResponse.getErrors()).isEmpty();
 
         Exam savedExam = examResponse.getData().get();
         assertThat(savedExam.getId()).isEqualTo(previousExam.getId());
@@ -626,7 +626,7 @@ public class ExamServiceImplTest {
 
         Response<Exam> examResponse = examService.openExam(request);
 
-        assertThat(examResponse.getErrors()).isNotPresent();
+        assertThat(examResponse.getErrors()).isEmpty();
 
         Exam savedExam = examResponse.getData().get();
         assertThat(savedExam.getId()).isEqualTo(previousExam.getId());
@@ -870,8 +870,8 @@ public class ExamServiceImplTest {
 
         Response<ExamApproval> result = examService.getApproval(approvalRequest);
 
-        assertThat(result.getErrors()).isNotPresent();
-        assertThat(result.getData()).isPresent();
+        assertThat(result.getErrors()).isEmpty();
+        assertThat(result.getData().isPresent()).isTrue();
         assertThat(result.getData().get().getExamId()).isEqualTo(examId);
         assertThat(result.getData().get().getExamApprovalStatus()).isEqualTo(ExamApprovalStatus.APPROVED);
     }
@@ -915,8 +915,8 @@ public class ExamServiceImplTest {
 
         Response<ExamApproval> result = examService.getApproval(approvalRequest);
 
-        assertThat(result.getErrors()).isNotPresent();
-        assertThat(result.getData()).isPresent();
+        assertThat(result.getErrors()).isEmpty();
+        assertThat(result.getData().isPresent()).isTrue();
         assertThat(result.getData().get().getExamId()).isEqualTo(examId);
         assertThat(result.getData().get().getExamApprovalStatus()).isEqualTo(ExamApprovalStatus.WAITING);
     }
@@ -960,8 +960,8 @@ public class ExamServiceImplTest {
 
         Response<ExamApproval> result = examService.getApproval(approvalRequest);
 
-        assertThat(result.getErrors()).isNotPresent();
-        assertThat(result.getData()).isPresent();
+        assertThat(result.getErrors()).isEmpty();
+        assertThat(result.getData().isPresent()).isTrue();
         assertThat(result.getData().get().getExamId()).isEqualTo(examId);
         assertThat(result.getData().get().getExamApprovalStatus()).isEqualTo(ExamApprovalStatus.APPROVED);
     }
@@ -1005,8 +1005,8 @@ public class ExamServiceImplTest {
 
         Response<ExamApproval> result = examService.getApproval(approvalRequest);
 
-        assertThat(result.getErrors()).isNotPresent();
-        assertThat(result.getData()).isPresent();
+        assertThat(result.getErrors()).isEmpty();
+        assertThat(result.getData().isPresent()).isTrue();
         assertThat(result.getData().get().getExamId()).isEqualTo(examId);
         assertThat(result.getData().get().getExamApprovalStatus()).isEqualTo(ExamApprovalStatus.APPROVED);
     }
@@ -1049,9 +1049,8 @@ public class ExamServiceImplTest {
 
         Response<ExamApproval> result = examService.getApproval(approvalRequest);
 
-        assertThat(result.getErrors()).isPresent();
-        assertThat(result.getErrors().get().length).isEqualTo(1);
-        assertThat(result.getErrors().get()[0].getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_BROWSER_ID_MISMATCH);
+        assertThat(result.getErrors()).hasSize(1);
+        assertThat(result.getErrors()[0].getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_BROWSER_ID_MISMATCH);
     }
 
     @Test
@@ -1092,9 +1091,8 @@ public class ExamServiceImplTest {
 
         Response<ExamApproval> result = examService.getApproval(approvalRequest);
 
-        assertThat(result.getErrors()).isPresent();
-        assertThat(result.getErrors().get().length).isEqualTo(1);
-        assertThat(result.getErrors().get()[0].getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_SESSION_ID_MISMATCH);
+        assertThat(result.getErrors()).hasSize(1);
+        assertThat(result.getErrors()[0].getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_SESSION_ID_MISMATCH);
     }
 
     @Test
@@ -1135,9 +1133,8 @@ public class ExamServiceImplTest {
 
         Response<ExamApproval> result = examService.getApproval(approvalRequest);
 
-        assertThat(result.getErrors()).isPresent();
-        assertThat(result.getErrors().get().length).isEqualTo(1);
-        assertThat(result.getErrors().get()[0].getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_SESSION_CLOSED);
+        assertThat(result.getErrors()).hasSize(1);
+        assertThat(result.getErrors()[0].getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_SESSION_CLOSED);
     }
 
     @Test
@@ -1178,9 +1175,8 @@ public class ExamServiceImplTest {
 
         Response<ExamApproval> result = examService.getApproval(approvalRequest);
 
-        assertThat(result.getErrors()).isPresent();
-        assertThat(result.getErrors().get().length).isEqualTo(1);
-        assertThat(result.getErrors().get()[0].getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_TA_CHECKIN_TIMEOUT);
+        assertThat(result.getErrors()).hasSize(1);
+        assertThat(result.getErrors()[0].getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_TA_CHECKIN_TIMEOUT);
     }
 
     @Test
@@ -1363,8 +1359,8 @@ public class ExamServiceImplTest {
         UUID examID = UUID.randomUUID();
         when(mockExamQueryRepository.getExamById(examID)).thenReturn(Optional.empty());
         Response<ExamConfiguration> response = examService.startExam(examID);
-        assertThat(response.getErrors()).isPresent();
-        ValidationError error = response.getErrors().get()[0];
+        assertThat(response.getErrors()).hasSize(1);
+        ValidationError error = response.getErrors()[0];
         assertThat(error.getCode()).isEqualTo(ExamStatusCode.STATUS_FAILED);
         assertThat(error.getMessage()).isNotNull();
     }
@@ -1376,8 +1372,8 @@ public class ExamServiceImplTest {
         when(mockExamQueryRepository.getExamById(exam.getId())).thenReturn(Optional.of(exam));
         when(mockSessionService.findSessionById(exam.getSessionId())).thenReturn(Optional.empty());
         Response<ExamConfiguration> response = examService.startExam(exam.getId());
-        assertThat(response.getErrors()).isPresent();
-        ValidationError error = response.getErrors().get()[0];
+        assertThat(response.getErrors()).hasSize(1);
+        ValidationError error = response.getErrors()[0];
         assertThat(error.getCode()).isEqualTo(ExamStatusCode.STATUS_FAILED);
         assertThat(error.getMessage()).isNotNull();
     }
@@ -1390,8 +1386,8 @@ public class ExamServiceImplTest {
         when(mockExamQueryRepository.getExamById(exam.getId())).thenReturn(Optional.of(exam));
         when(mockSessionService.findSessionById(exam.getSessionId())).thenReturn(Optional.empty());
         Response<ExamConfiguration> response = examService.startExam(exam.getId());
-        assertThat(response.getErrors()).isPresent();
-        ValidationError error = response.getErrors().get()[0];
+        assertThat(response.getErrors()).hasSize(1);
+        ValidationError error = response.getErrors()[0];
         assertThat(error.getCode()).isEqualTo(ExamStatusCode.STATUS_FAILED);
         assertThat(error.getMessage()).isNotNull();
     }
@@ -1419,8 +1415,8 @@ public class ExamServiceImplTest {
         when(mockSessionService.findSessionById(exam.getSessionId())).thenReturn(Optional.of(session));
         when(mockAssessmentService.findAssessment(exam.getClientName(), exam.getAssessmentKey())).thenReturn(Optional.empty());
         Response<ExamConfiguration> response = examService.startExam(exam.getId());
-        assertThat(response.getErrors()).isPresent();
-        ValidationError error = response.getErrors().get()[0];
+        assertThat(response.getErrors()).hasSize(1);
+        ValidationError error = response.getErrors()[0];
         assertThat(error.getCode()).isEqualTo(ExamStatusCode.STATUS_FAILED);
         assertThat(error.getMessage()).isNotNull();
     }
@@ -1462,7 +1458,7 @@ public class ExamServiceImplTest {
         verify(mockTimeLimitConfigurationService).findTimeLimitConfiguration(exam.getClientName(), assessment.getAssessmentId());
         verify(mockExamCommandRepository).update(examArgumentCaptor.capture());
 
-        assertThat(examConfigurationResponse.getData()).isPresent();
+        assertThat(examConfigurationResponse.getData().isPresent()).isTrue();
         ExamConfiguration examConfiguration = examConfigurationResponse.getData().get();
         assertThat(examConfiguration.getAttempt()).isEqualTo(0);
         assertThat(examConfiguration.getContentLoadTimeoutMinutes()).isEqualTo(120);
