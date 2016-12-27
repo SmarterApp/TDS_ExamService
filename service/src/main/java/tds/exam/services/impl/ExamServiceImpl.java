@@ -10,8 +10,10 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
 
@@ -19,6 +21,7 @@ import tds.assessment.Assessment;
 import tds.common.Response;
 import tds.common.ValidationError;
 import tds.common.data.legacy.LegacyComparer;
+import tds.common.web.exceptions.NotFoundException;
 import tds.config.AssessmentWindow;
 import tds.config.ClientSystemFlag;
 import tds.config.TimeLimitConfiguration;
@@ -75,6 +78,8 @@ class ExamServiceImpl implements ExamService {
     private final ExamStatusQueryRepository examStatusQueryRepository;
     private final ExamAccommodationService examAccommodationService;
 
+    private final Set<String> statusesThatCanTransitionToPaused;
+
     @Autowired
     public ExamServiceImpl(ExamQueryRepository examQueryRepository,
                            HistoryQueryRepository historyQueryRepository,
@@ -98,6 +103,17 @@ class ExamServiceImpl implements ExamService {
         this.examCommandRepository = examCommandRepository;
         this.examStatusQueryRepository = examStatusQueryRepository;
         this.examAccommodationService = examAccommodationService;
+
+        // From CommondDLL._IsValidStatusTransition_FN(): a collection of all the statuses that can transition to
+        // "paused".  That is, each of these status values has a nested switch statement that contains the "paused"
+        // status.
+        statusesThatCanTransitionToPaused = new HashSet<>(Arrays.asList(ExamStatusCode.STATUS_PAUSED,
+            ExamStatusCode.STATUS_PENDING,
+            ExamStatusCode.STATUS_SUSPENDED,
+            ExamStatusCode.STATUS_STARTED,
+            ExamStatusCode.STATUS_APPROVED,
+            ExamStatusCode.STATUS_REVIEW,
+            ExamStatusCode.STATUS_INITIALIZING));
     }
 
     @Override
@@ -228,18 +244,7 @@ class ExamServiceImpl implements ExamService {
     @Override
     public Optional<ValidationError> pauseExam(UUID examId) {
         Exam exam = examQueryRepository.getExamById(examId)
-            .orElseThrow(() -> new IllegalArgumentException(String.format("Exam could not be found for id %s", examId)));
-
-        // From CommondDLL._IsValidStatusTransition_FN(): a collection of all the statuses that can transition to
-        // "paused".  That is, each of these status values has a nested switch statement that contains the "paused"
-        // status.
-        final List<String> statusesThatCanTransitionToPaused = Arrays.asList(ExamStatusCode.STATUS_PAUSED,
-            ExamStatusCode.STATUS_PENDING,
-            ExamStatusCode.STATUS_SUSPENDED,
-            ExamStatusCode.STATUS_STARTED,
-            ExamStatusCode.STATUS_APPROVED,
-            ExamStatusCode.STATUS_REVIEW,
-            ExamStatusCode.STATUS_INITIALIZING);
+            .orElseThrow(() -> new NotFoundException(String.format("Exam could not be found for id %s", examId)));
 
         if (!statusesThatCanTransitionToPaused.contains(exam.getStatus().getStatus())) {
             return Optional.of(new ValidationError(ValidationErrorCode.EXAM_STATUS_TRANSITION_FAILURE,
@@ -249,7 +254,7 @@ class ExamServiceImpl implements ExamService {
         // A status change reason is not required for pausing an exam.
         Exam pausedExam = new Exam.Builder()
             .fromExam(exam)
-            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE))
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE), org.joda.time.Instant.now())
             .build();
 
         examCommandRepository.update(pausedExam);
@@ -378,7 +383,7 @@ class ExamServiceImpl implements ExamService {
          * The testoppabilityestimate table written to here is only read from in SimDLL.java  */
         Exam initializedExam = new Exam.Builder()
             .fromExam(exam)
-            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_STARTED, ExamStatusStage.IN_PROGRESS))
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_STARTED, ExamStatusStage.IN_PROGRESS), org.joda.time.Instant.now())
             .withDateStarted(now)
             .withDateChanged(now)
             .withExpireFrom(now)
@@ -415,9 +420,9 @@ class ExamServiceImpl implements ExamService {
 
         //From OpenTestServiceImpl lines 160 -163
         if (openExamRequest.getProctorId() == null) {
-            examBuilder.withStatus(examStatusQueryRepository.findExamStatusCode(ExamStatusCode.STATUS_APPROVED));
+            examBuilder.withStatus(examStatusQueryRepository.findExamStatusCode(ExamStatusCode.STATUS_APPROVED), org.joda.time.Instant.now());
         } else {
-            examBuilder.withStatus(examStatusQueryRepository.findExamStatusCode(ExamStatusCode.STATUS_PENDING));
+            examBuilder.withStatus(examStatusQueryRepository.findExamStatusCode(ExamStatusCode.STATUS_PENDING), org.joda.time.Instant.now());
         }
 
         String guestAccommodations = openExamRequest.getGuestAccommodations();
@@ -552,7 +557,7 @@ class ExamServiceImpl implements ExamService {
 
         Exam currentExam = new Exam.Builder()
             .fromExam(previousExam)
-            .withStatus(status)
+            .withStatus(status, org.joda.time.Instant.now())
             .withBrowserId(openExamRequest.getBrowserId())
             .withDateChanged(org.joda.time.Instant.now())
             .withAbnormalStarts(previousExam.getAbnormalStarts() + abnormalIncrement)

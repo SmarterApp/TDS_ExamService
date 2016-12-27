@@ -87,6 +87,7 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
         SqlParameterSource examEventParameters = new MapSqlParameterSource("examId", getBytesFromUUID(exam.getId()))
             .addValue("attempts", exam.getAttempts())
             .addValue("status", exam.getStatus().getStatus())
+            .addValue("statusChangeDate", mapJodaInstantToTimestamp(exam.getStatusChangeDate()))
             .addValue("browserId", getBytesFromUUID(exam.getBrowserId()))
             .addValue("maxItems", exam.getMaxItems())
             .addValue("languageCode", exam.getLanguageCode())
@@ -109,6 +110,7 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
             "  expire_from, \n" +
             "  browser_id, \n" +
             "  status,\n" +
+            "  status_change_date, \n" +
             "  status_change_reason,\n" +
             "  date_changed,\n" +
             "  date_deleted,\n" +
@@ -128,6 +130,7 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
             "  :expireFrom, \n" +
             "  :browserId,\n" +
             "  :status,\n" +
+            "  :statusChangeDate, \n" +
             "  :statusChangeReason,\n" +
             "  :dateChanged,\n" +
             "  :dateDeleted,\n" +

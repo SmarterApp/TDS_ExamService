@@ -19,10 +19,10 @@ import java.net.URISyntaxException;
 import java.util.Optional;
 import java.util.UUID;
 
-import tds.common.NoContentResponse;
 import tds.common.Response;
 import tds.common.ValidationError;
 import tds.common.web.exceptions.NotFoundException;
+import tds.common.web.resources.NoContentResponseResource;
 import tds.exam.ApprovalRequest;
 import tds.exam.Exam;
 import tds.exam.ExamApproval;
@@ -209,7 +209,7 @@ public class ExamControllerTest {
         when(mockExamService.pauseExam(examId))
             .thenReturn(Optional.of(new ValidationError(ValidationErrorCode.EXAM_STATUS_TRANSITION_FAILURE, "Bad transition from foo to bar")));
 
-        ResponseEntity<NoContentResponse> response = controller.pauseExam(examId);
+        ResponseEntity<NoContentResponseResource> response = controller.pauseExam(examId);
 
         verify(mockExamService).pauseExam(examId);
 

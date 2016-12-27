@@ -58,6 +58,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
             "   e.segmented,\n" +
             "   ee.attempts, \n" +
             "   ee.status, \n" +
+            "   ee.status_change_date, \n" +
             "   ee.max_items, \n" +
             "   ee.expire_from, \n" +
             "   ee.language_code, \n" +
@@ -129,6 +130,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "   e.segmented,\n" +
                 "   ee.attempts, \n" +
                 "   ee.status, \n" +
+                "   ee.status_change_date, \n" +
                 "   ee.status_change_reason, \n" +
                 "   ee.max_items, \n" +
                 "   ee.expire_from, \n" +
@@ -270,7 +272,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 .withStatus(new ExamStatusCode(
                     rs.getString("status"),
                     ExamStatusStage.fromType(rs.getString("stage"))
-                ))
+                ), mapTimestampToJodaInstant(rs, "status_change_date"))
                 .withStatusChangeReason(rs.getString("status_change_reason"))
                 .withAbnormalStarts(rs.getInt("abnormal_starts"))
                 .withWaitingForSegmentApproval(rs.getBoolean("waiting_for_segment_approval"))

@@ -4,6 +4,7 @@ import org.joda.time.Instant;
 
 import java.util.UUID;
 
+import tds.common.util.Preconditions;
 import tds.exam.Exam;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
@@ -29,6 +30,7 @@ public class ExamBuilder {
     private Instant dateCompleted = null;
     private Instant expireFrom = null;
     private ExamStatusCode status = new ExamStatusCode(STATUS_PENDING, ExamStatusStage.IN_USE);
+    private Instant statusChangeDate = Instant.now();
     private String subject = "ELA";
     private String studentKey = "ADV001";
     private String studentName = "Darth";
@@ -57,7 +59,7 @@ public class ExamBuilder {
             .withDateChanged(dateChanged)
             .withDateStarted(dateStarted)
             .withDateCompleted(dateCompleted)
-            .withStatus(status)
+            .withStatus(status, statusChangeDate)
             .withSubject(subject)
             .withLoginSSID(studentKey)
             .withDateJoined(dateJoined)
@@ -181,8 +183,12 @@ public class ExamBuilder {
         return this;
     }
 
-    public ExamBuilder withStatus(ExamStatusCode status) {
+    public ExamBuilder withStatus(ExamStatusCode status, Instant statusChangeDate) {
+        Preconditions.checkNotNull(status, "status cannot be null");
+        Preconditions.checkNotNull(statusChangeDate, "status change date cannot be null");
+
         this.status = status;
+        this.statusChangeDate = statusChangeDate;
         return this;
     }
 

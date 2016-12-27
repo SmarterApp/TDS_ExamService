@@ -16,10 +16,10 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Optional;
 import java.util.UUID;
 
-import tds.common.NoContentResponse;
 import tds.common.Response;
 import tds.common.ValidationError;
 import tds.common.web.exceptions.NotFoundException;
+import tds.common.web.resources.NoContentResponseResource;
 import tds.exam.ApprovalRequest;
 import tds.exam.Exam;
 import tds.exam.ExamApproval;
@@ -90,11 +90,11 @@ public class ExamController {
     }
 
     @RequestMapping(value = "/{examId}/pause", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<NoContentResponse> pauseExam(@PathVariable final UUID examId) {
+    ResponseEntity<NoContentResponseResource> pauseExam(@PathVariable final UUID examId) {
         final Optional<ValidationError> maybeStatusTransitionFailure = examService.pauseExam(examId);
 
         if (maybeStatusTransitionFailure.isPresent()) {
-            NoContentResponse response = new NoContentResponse(maybeStatusTransitionFailure.get());
+            NoContentResponseResource response = new NoContentResponseResource(maybeStatusTransitionFailure.get());
             return new ResponseEntity<>(response, HttpStatus.UNPROCESSABLE_ENTITY);
         }
 
@@ -105,4 +105,3 @@ public class ExamController {
         return new ResponseEntity<>(headers, HttpStatus.NO_CONTENT);
     }
 }
-

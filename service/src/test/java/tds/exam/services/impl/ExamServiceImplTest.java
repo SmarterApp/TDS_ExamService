@@ -23,6 +23,7 @@ import tds.assessment.Algorithm;
 import tds.assessment.Assessment;
 import tds.common.Response;
 import tds.common.ValidationError;
+import tds.common.web.exceptions.NotFoundException;
 import tds.config.Accommodation;
 import tds.config.AssessmentWindow;
 import tds.config.ClientSystemFlag;
@@ -199,7 +200,7 @@ public class ExamServiceImplTest {
         Exam previousExam = new Exam.Builder()
             .withId(UUID.randomUUID())
             .withSessionId(previousSession.getId())
-            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.INACTIVE))
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.INACTIVE), Instant.now())
             .build();
 
         ExternalSessionConfiguration extSessionConfig = new ExternalSessionConfiguration(openExamRequest.getClientName(), SIMULATION_ENVIRONMENT, 0, 0, 0, 0);
@@ -248,7 +249,7 @@ public class ExamServiceImplTest {
         Exam previousExam = new Exam.Builder()
             .withId(UUID.randomUUID())
             .withSessionId(previousSession.getId())
-            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN))
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN), Instant.now())
             .build();
 
         Assessment assessment = new AssessmentBuilder().build();
@@ -448,10 +449,11 @@ public class ExamServiceImplTest {
 
         Student student = new Student(1, "loginSSD", "CA", request.getClientName());
 
+        Instant approvedStatusDate = org.joda.time.Instant.now().minus(5000);
         Exam previousExam = new Exam.Builder()
             .withId(UUID.randomUUID())
             .withSessionId(previousSession.getId())
-            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN))
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN), approvedStatusDate)
             .withBrowserId(UUID.randomUUID())
             .withDateChanged(Instant.now().minus(Days.days(2).toStandardDuration()))
             .build();
@@ -482,6 +484,7 @@ public class ExamServiceImplTest {
         assertThat(savedExam.getBrowserId()).isEqualTo(request.getBrowserId());
         assertThat(savedExam.getBrowserId()).isNotEqualTo(previousExam.getBrowserId());
         assertThat(savedExam.getStatus().getStatus()).isEqualTo(STATUS_PENDING);
+        assertThat(savedExam.getStatusChangeDate()).isGreaterThan(approvedStatusDate);
         assertThat(savedExam.getDateChanged()).isNotNull();
         assertThat(savedExam.getDateStarted()).isEqualTo(previousExam.getDateStarted());
     }
@@ -504,10 +507,11 @@ public class ExamServiceImplTest {
 
         Student student = new Student(request.getStudentId(), "testId", "CA", request.getClientName());
 
+        Instant approvedStatusDate = org.joda.time.Instant.now().minus(5000);
         Exam previousExam = new Exam.Builder()
             .withId(UUID.randomUUID())
             .withSessionId(previousSession.getId())
-            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN))
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN), approvedStatusDate)
             .withDateChanged(Instant.now())
             .build();
         Assessment assessment = new AssessmentBuilder().build();
@@ -529,6 +533,7 @@ public class ExamServiceImplTest {
         assertThat(savedExam.getBrowserId()).isEqualTo(request.getBrowserId());
         assertThat(savedExam.getBrowserId()).isNotEqualTo(previousExam.getBrowserId());
         assertThat(savedExam.getStatus().getStatus()).isEqualTo(STATUS_PENDING);
+        assertThat(savedExam.getStatusChangeDate()).isGreaterThan(approvedStatusDate);
         assertThat(savedExam.getDateChanged()).isNotNull();
         assertThat(savedExam.getDateStarted()).isEqualTo(previousExam.getDateStarted());
     }
@@ -548,10 +553,11 @@ public class ExamServiceImplTest {
 
         Student student = new Student(1, "testId", "CA", request.getClientName());
 
+        Instant approvedStatusDate = org.joda.time.Instant.now().minus(5000);
         Exam previousExam = new Exam.Builder()
             .withId(UUID.randomUUID())
             .withSessionId(previousSession.getId())
-            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN))
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN), approvedStatusDate)
             .withDateChanged(Instant.now())
             .build();
         Assessment assessment = new AssessmentBuilder().build();
@@ -578,6 +584,7 @@ public class ExamServiceImplTest {
         assertThat(savedExam.getBrowserId()).isEqualTo(request.getBrowserId());
         assertThat(savedExam.getBrowserId()).isNotEqualTo(previousExam.getBrowserId());
         assertThat(savedExam.getStatus().getStatus()).isEqualTo(STATUS_PENDING);
+        assertThat(savedExam.getStatusChangeDate()).isGreaterThan(approvedStatusDate);
         assertThat(savedExam.getDateChanged()).isNotNull();
         assertThat(savedExam.getDateStarted()).isEqualTo(previousExam.getDateStarted());
     }
@@ -598,10 +605,11 @@ public class ExamServiceImplTest {
 
         Student student = new Student(1, "testId", "CA", "clientName");
 
+        Instant approvedStatusDate = org.joda.time.Instant.now().minus(5000);
         Exam previousExam = new Exam.Builder()
             .withId(UUID.randomUUID())
             .withSessionId(previousSession.getId())
-            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN))
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN), approvedStatusDate)
             .withDateChanged(Instant.now())
             .build();
 
@@ -625,6 +633,7 @@ public class ExamServiceImplTest {
         assertThat(savedExam.getBrowserId()).isEqualTo(request.getBrowserId());
         assertThat(savedExam.getBrowserId()).isNotEqualTo(previousExam.getBrowserId());
         assertThat(savedExam.getStatus().getStatus()).isEqualTo(STATUS_PENDING);
+        assertThat(savedExam.getStatusChangeDate()).isGreaterThan(approvedStatusDate);
         assertThat(savedExam.getDateChanged()).isNotNull();
         assertThat(savedExam.getDateStarted()).isEqualTo(previousExam.getDateStarted());
     }
@@ -645,10 +654,11 @@ public class ExamServiceImplTest {
             .withDateEnd(Instant.now().minus(Days.days(1).toStandardDuration()))
             .build();
 
+        Instant approvedStatusDate = org.joda.time.Instant.now().minus(5000);
         Exam previousExam = new Exam.Builder()
             .withId(UUID.randomUUID())
             .withSessionId(previousSession.getId())
-            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.INACTIVE))
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.INACTIVE), approvedStatusDate)
             .withDateStarted(Instant.now())
             .build();
         ExternalSessionConfiguration externalSessionConfiguration = new ExternalSessionConfiguration(request.getClientName(), SIMULATION_ENVIRONMENT, 0, 0, 0, 0);
@@ -669,6 +679,7 @@ public class ExamServiceImplTest {
         assertThat(savedExam.getBrowserId()).isEqualTo(request.getBrowserId());
         assertThat(savedExam.getBrowserId()).isNotEqualTo(previousExam.getBrowserId());
         assertThat(savedExam.getStatus().getStatus()).isEqualTo(STATUS_SUSPENDED);
+        assertThat(savedExam.getStatusChangeDate()).isGreaterThan(approvedStatusDate);
         assertThat(savedExam.getDateChanged()).isNotNull();
         assertThat(savedExam.getDateStarted()).isEqualTo(previousExam.getDateStarted());
     }
@@ -835,7 +846,7 @@ public class ExamServiceImplTest {
                 .withSessionId(sessionId)
                 .withBrowserId(browserKey)
                 .withAssessmentId(mockAssessmentId)
-                .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN))
+                .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN), Instant.now())
                 .build()));
         when(mockSessionService.findSessionById(sessionId))
             .thenReturn(Optional.of(new Session.Builder()
@@ -880,7 +891,7 @@ public class ExamServiceImplTest {
                 .withSessionId(sessionId)
                 .withBrowserId(browserKey)
                 .withAssessmentId(mockAssessmentId)
-                .withStatus(new ExamStatusCode(STATUS_PENDING, OPEN))
+                .withStatus(new ExamStatusCode(STATUS_PENDING, OPEN), Instant.now())
                 .build()));
         when(mockSessionService.findSessionById(sessionId))
             .thenReturn(Optional.of(new Session.Builder()
@@ -925,7 +936,7 @@ public class ExamServiceImplTest {
                 .withSessionId(sessionId)
                 .withBrowserId(browserKey)
                 .withAssessmentId(mockAssessmentId)
-                .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN))
+                .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN), Instant.now())
                 .build()));
         when(mockSessionService.findSessionById(sessionId))
             .thenReturn(Optional.of(new Session.Builder()
@@ -970,7 +981,7 @@ public class ExamServiceImplTest {
                 .withSessionId(sessionId)
                 .withBrowserId(browserKey)
                 .withAssessmentId(mockAssessmentId)
-                .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN))
+                .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN), Instant.now())
                 .build()));
         when(mockSessionService.findSessionById(sessionId))
             .thenReturn(Optional.of(new Session.Builder()
@@ -1177,7 +1188,7 @@ public class ExamServiceImplTest {
         UUID examId = UUID.randomUUID();
         Exam mockExam = new Exam.Builder()
             .withId(examId)
-            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_PENDING, ExamStatusStage.IN_USE))
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_PENDING, ExamStatusStage.IN_USE), Instant.now())
             .build();
 
         when(mockExamQueryRepository.getExamById(examId))
@@ -1193,7 +1204,7 @@ public class ExamServiceImplTest {
         UUID examId = UUID.randomUUID();
         Exam mockExam = new Exam.Builder()
             .withId(examId)
-            .withStatus(new ExamStatusCode("foo", ExamStatusStage.INACTIVE))
+            .withStatus(new ExamStatusCode("foo", ExamStatusStage.INACTIVE), Instant.now())
             .build();
 
         when(mockExamQueryRepository.getExamById(examId))
@@ -1374,7 +1385,7 @@ public class ExamServiceImplTest {
     @Test
     public void shouldReturnFailureExamConfigForNoSessionFound() {
         Exam exam = new ExamBuilder()
-            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.OPEN))
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.OPEN), Instant.now())
             .build();
         when(mockExamQueryRepository.getExamById(exam.getId())).thenReturn(Optional.of(exam));
         when(mockSessionService.findSessionById(exam.getSessionId())).thenReturn(Optional.empty());
@@ -1390,7 +1401,7 @@ public class ExamServiceImplTest {
         Session session = new SessionBuilder().build();
         Exam exam = new ExamBuilder()
             .withSessionId(session.getId())
-            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.OPEN))
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.OPEN), Instant.now())
             .build();
         TimeLimitConfiguration timeLimitConfiguration = new TimeLimitConfiguration.Builder()
             .withTaCheckinTimeMinutes(3)
@@ -1417,8 +1428,9 @@ public class ExamServiceImplTest {
     @Test
     public void shouldStartNewExam() throws InterruptedException {
         Session session = new SessionBuilder().build();
+        Instant approvedStatusDate = org.joda.time.Instant.now().minus(5000);
         Exam exam = new ExamBuilder()
-            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.OPEN))
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.OPEN), approvedStatusDate)
             .withSessionId(session.getId())
             .withDateChanged(Instant.now().minus(50000))
             .withDateStarted(null)
@@ -1473,9 +1485,10 @@ public class ExamServiceImplTest {
         assertThat(updatedExam.getExpireFrom()).isNotNull();
         assertThat(updatedExam.getStatus().getStage()).isEqualTo(ExamStatusStage.IN_PROGRESS);
         assertThat(updatedExam.getStatus().getStatus()).isEqualTo(ExamStatusCode.STATUS_STARTED);
+        assertThat(updatedExam.getStatusChangeDate()).isGreaterThan(approvedStatusDate);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = NotFoundException.class)
     public void shouldThrowIllegalArgumentExceptionWhenPausingAnExamThatCannotBeFound() {
         UUID examId = UUID.randomUUID();
 
@@ -1492,7 +1505,7 @@ public class ExamServiceImplTest {
             .withAssessmentId(assessmentId)
             .withSubject("ELA")
             .withStudentId(studentId)
-            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN))
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN), Instant.now())
             .withDateChanged(Instant.now())
             .withDateScored(Instant.now())
             .build();

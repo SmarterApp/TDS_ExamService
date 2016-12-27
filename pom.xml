@@ -27,6 +27,7 @@
         <integration-tests.skip>true</integration-tests.skip>
 
         <tds-common.version>0.0.1-SNAPSHOT</tds-common.version>
+        <tds-common-legacy.version>0.0.1-SNAPSHOT</tds-common-legacy.version>
         <tds-exam-client.version>0.0.1-SNAPSHOT</tds-exam-client.version>
         <tds-session.version>0.0.1-SNAPSHOT</tds-session.version>
         <tds-assessment-client.version>0.0.1-SNAPSHOT</tds-assessment-client.version>

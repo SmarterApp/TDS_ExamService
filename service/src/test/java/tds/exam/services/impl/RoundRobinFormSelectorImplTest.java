@@ -1,6 +1,7 @@
 package tds.exam.services.impl;
 
 
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -14,9 +15,13 @@ import tds.exam.services.FormSelector;
 import static org.assertj.core.api.Assertions.assertThat;
 
 
-
 public class RoundRobinFormSelectorImplTest {
-    private FormSelector formSelector = new RoundRobinFormSelectorImpl();
+    private FormSelector formSelector;
+
+    @Before
+    public void setUp() {
+        formSelector = new RoundRobinFormSelectorImpl();
+    }
 
     @Test
     public void shouldReturnFormsRoundRobin() {

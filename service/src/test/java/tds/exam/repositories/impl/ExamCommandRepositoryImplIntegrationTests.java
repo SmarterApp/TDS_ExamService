@@ -93,9 +93,10 @@ public class ExamCommandRepositoryImplIntegrationTests {
         Exam insertedExam = maybeExam.get();
 
         ExamStatusCode pausedStatus = new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE);
+        Instant pausedStatusDate = Instant.now();
         Exam examWithChanges = new Exam.Builder()
             .fromExam(insertedExam)
-            .withStatus(pausedStatus)
+            .withStatus(pausedStatus, pausedStatusDate)
             .build();
 
         examCommandRepository.update(examWithChanges);
@@ -105,5 +106,6 @@ public class ExamCommandRepositoryImplIntegrationTests {
 
         Exam updatedExam = maybeUpdatedExam.get();
         assertThat(updatedExam.getStatus()).isEqualTo(pausedStatus);
+        assertThat(updatedExam.getStatusChangeDate()).isEqualTo(pausedStatusDate);
     }
 }
