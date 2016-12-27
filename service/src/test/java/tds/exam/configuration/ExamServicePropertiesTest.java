@@ -1,10 +1,8 @@
-package tds.exam.config;
+package tds.exam.configuration;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import tds.exam.configuration.ExamServiceProperties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
