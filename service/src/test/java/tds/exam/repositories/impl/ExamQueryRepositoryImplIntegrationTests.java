@@ -79,14 +79,25 @@ public class ExamQueryRepositoryImplIntegrationTests {
 
         // Build exams that belong to the same session
         List<Exam> examsInSession = new ArrayList<>();
-        examsInSession.add(new ExamBuilder().withSessionId(mockSessionId).build());
         examsInSession.add(new ExamBuilder().withSessionId(mockSessionId)
+            .withStudentId(5L)
+            .withAssessmentId("assessmentId5")
+            .build());
+        examsInSession.add(new ExamBuilder().withSessionId(mockSessionId)
+            .withStudentId(6L)
+            .withAssessmentId("assessmentId5")
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.INACTIVE), Instant.now())
+            .withStudentId(7L)
+            .withAssessmentId("assessmentId5")
             .build());
         examsInSession.add(new ExamBuilder().withSessionId(mockSessionId)
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_STARTED, ExamStatusStage.INACTIVE), Instant.now())
+            .withStudentId(8L)
+            .withAssessmentId("assessmentId6")
             .build());
         examsInSession.add(new ExamBuilder().withSessionId(mockSessionId)
+            .withStudentId(9L)
+            .withAssessmentId("assessmentId6")
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_FAILED, ExamStatusStage.INACTIVE), Instant.now())
             .build());
 
