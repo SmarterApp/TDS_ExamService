@@ -1,7 +1,6 @@
 package tds.exam.services;
 
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 import tds.assessment.Assessment;

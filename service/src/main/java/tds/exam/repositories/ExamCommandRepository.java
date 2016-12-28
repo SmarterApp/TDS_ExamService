@@ -24,6 +24,7 @@ public interface ExamCommandRepository {
 
     /**
      * Update a collection of {@link tds.exam.Exam}s
+     *
      * @param exams The collection of exams to update
      */
     void update(List<Exam> exams);

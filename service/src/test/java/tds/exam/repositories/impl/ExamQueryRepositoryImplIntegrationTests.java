@@ -143,7 +143,7 @@ public class ExamQueryRepositoryImplIntegrationTests {
     @Test
     public void shouldReturnEmptyListOfAbilities() {
         List<Ability> noAbilities = examQueryRepository.findAbilities(UUID.fromString("12345678-d1d2-4c24-805c-0dfdb45a0999"),
-                "otherclient", "ELA", 9999L);
+            "otherclient", "ELA", 9999L);
         assertThat(noAbilities).isEmpty();
     }
 
@@ -151,7 +151,7 @@ public class ExamQueryRepositoryImplIntegrationTests {
     public void shouldReturnSingleAbility() {
         UUID examId = UUID.randomUUID();
         List<Ability> oneAbility = examQueryRepository.findAbilities(examId,
-                "clientName", "ELA", 9999L);
+            "clientName", "ELA", 9999L);
         assertThat(oneAbility).hasSize(1);
         Ability myAbility = oneAbility.get(0);
         // Should not be the same exam
@@ -188,8 +188,8 @@ public class ExamQueryRepositoryImplIntegrationTests {
 
         final String SQL =
             "INSERT INTO" +
-            "   exam_scores (exam_id, measure_label, value, measure_of, use_for_ability) " +
-            "VALUES(:examId, :measureLabel, :value, :measureOf, :useForAbility)";
+                "   exam_scores (exam_id, measure_label, value, measure_of, use_for_ability) " +
+                "VALUES(:examId, :measureLabel, :value, :measureOf, :useForAbility)";
 
         jdbcTemplate.update(SQL, parameters);
     }
