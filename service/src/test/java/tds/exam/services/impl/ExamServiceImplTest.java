@@ -1,5 +1,6 @@
 package tds.exam.services.impl;
 
+import org.assertj.core.util.Lists;
 import org.joda.time.Days;
 import org.joda.time.Instant;
 import org.joda.time.Minutes;
@@ -9,6 +10,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
@@ -64,7 +66,7 @@ import tds.student.Student;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.stub;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static tds.config.ClientSystemFlag.ALLOW_ANONYMOUS_STUDENT_FLAG_TYPE;
@@ -1499,7 +1501,13 @@ public class ExamServiceImplTest {
     @Test
     public void shouldPauseAllExamsInSession() {
         UUID mockSessionId = UUID.randomUUID();
-        Set<String> mockStatusTransitionSet = new HashSet<>(Arrays.asList("pending", "approved", "started"));
+        Set<String> mockStatusTransitionSet = new HashSet<>(Arrays.asList(ExamStatusCode.STATUS_PAUSED,
+            ExamStatusCode.STATUS_PENDING,
+            ExamStatusCode.STATUS_SUSPENDED,
+            ExamStatusCode.STATUS_STARTED,
+            ExamStatusCode.STATUS_APPROVED,
+            ExamStatusCode.STATUS_REVIEW,
+            ExamStatusCode.STATUS_INITIALIZING));
         List<Exam> examsInSession = Arrays.asList(
             new ExamBuilder().withSessionId(mockSessionId)
                 .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.IN_USE), Instant.now())
@@ -1516,7 +1524,20 @@ public class ExamServiceImplTest {
 
         examService.pauseAllExamsInSession(mockSessionId);
 
-        verify(mockExamCommandRepository).update(examsInSession);
+        verify(mockExamCommandRepository).update(Matchers.anyListOf(Exam.class));
+    }
+
+    @Test
+    public void shouldNotCallUpdateWhenThereAreNoExamsToPauseInTheSession() {
+        UUID mockSessionId = UUID.randomUUID();
+        Set<String> mockStatusTransitionSet = new HashSet<>();
+
+        when(mockExamQueryRepository.findAllExamsInSessionWithStatus(mockSessionId, mockStatusTransitionSet))
+            .thenReturn(Lists.emptyList());
+
+        examService.pauseAllExamsInSession(mockSessionId);
+
+        verify(mockExamCommandRepository, times(0)).update(Matchers.anyListOf(Exam.class));
     }
 
     private Exam createExam(UUID sessionId, UUID thisExamId, String assessmentId, String clientName, long studentId) {
