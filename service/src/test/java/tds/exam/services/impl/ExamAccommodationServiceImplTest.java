@@ -2,7 +2,6 @@ package tds.exam.services.impl;
 
 import org.assertj.core.util.Lists;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -45,7 +44,7 @@ public class ExamAccommodationServiceImplTest {
     private ConfigService mockConfigService;
 
     @Captor
-    private ArgumentCaptor<List<ExamAccommodation>> examAccommodationCaptor;
+    private ArgumentCaptor<List<ExamAccommodation>> examAccommodationInsertCaptor;
 
     @Before
     public void setUp() {
@@ -141,9 +140,9 @@ public class ExamAccommodationServiceImplTest {
 
         when(mockConfigService.findAssessmentAccommodationsByAssessmentKey(exam.getClientName(), exam.getAssessmentKey())).thenReturn(Arrays.asList(accommodation, nonDefaultAccommodation, dependsOnToolTypeAccommodation));
         examAccommodationService.initializeExamAccommodations(exam);
-        verify(mockExamAccommodationCommandRepository).insert(examAccommodationCaptor.capture());
+        verify(mockExamAccommodationCommandRepository).insert(examAccommodationInsertCaptor.capture());
 
-        List<ExamAccommodation> accommodations = examAccommodationCaptor.getValue();
+        List<ExamAccommodation> accommodations = examAccommodationInsertCaptor.getValue();
         assertThat(accommodations).hasSize(1);
         ExamAccommodation examAccommodation = accommodations.get(0);
         assertThat(examAccommodation.getCode()).isEqualTo("code");
@@ -152,7 +151,6 @@ public class ExamAccommodationServiceImplTest {
     }
 
     @Test
-    @Ignore
     public void shouldUpdateExamAccommodations() {
         Assessment assessment = new AssessmentBuilder()
             .build();
@@ -160,31 +158,100 @@ public class ExamAccommodationServiceImplTest {
         Exam exam = new ExamBuilder()
             .withAssessmentId(assessment.getAssessmentId())
             .withAssessmentKey(assessment.getKey())
+            .withDateStarted(null)
             .build();
 
-        Accommodation accommodation = new AccommodationBuilder()
-            .withAccommodationCode("ENU")
-            .withSegmentPosition(0)
-            .withEntryControl(true)
-            .withSelectable(true)
-            .withAllowChange(false)
-            .build();
-
-        ExamAccommodation examAccommodationToDelete = new ExamAccommodationBuilder()
-            .withExamId(exam.getId())
+        Accommodation accommodationThatShouldBePresent = new AccommodationBuilder()
+            .withCode("ENU")
             .withType("Language")
+            .withValue("English")
+            .withSegmentPosition(0)
+            .withEntryControl(false)
+            .withAllowChange(true)
+            .withSelectable(true)
+            .build();
+
+        Accommodation accommodationFrench = new AccommodationBuilder()
+            .withCode("FRN")
+            .withType("Language")
+            .withValue("French")
+            .withSegmentPosition(0)
+            .withEntryControl(false)
+            .withAllowChange(true)
+            .withSelectable(true)
+            .build();
+
+        Accommodation accommodationWorkWithNonStartExam = new AccommodationBuilder()
+            .withCode("ENU")
+            .withType("Language")
+            .withValue("English")
+            .withSegmentPosition(0)
+            .withEntryControl(false)
+            .withAllowChange(false)
+            .withSelectable(true)
+            .build();
+
+        Accommodation accommodationWithIncorrectSegmentPosition = new AccommodationBuilder()
+            .withSegmentPosition(99)
+            .withCode("ENU")
+            .withType("Language")
+            .withValue("English")
+            .withEntryControl(false)
+            .withAllowChange(true)
+            .withSelectable(true)
+            .build();
+
+        Accommodation accommodationWithRestoreRts = new AccommodationBuilder()
+            .withCode("ENU")
+            .withType("Language")
+            .withValue("English")
+            .withSegmentPosition(0)
+            .withEntryControl(false)
+            .withAllowChange(true)
+            .withSelectable(false)
             .build();
 
         String guestAccommodations = "ELA;ELA:ENU;Language:ENU";
 
-        when(mockConfigService.findAssessmentAccommodationsByAssessmentKey(exam.getClientName(), assessment.getKey())).thenReturn(Collections.singletonList(accommodation));
-        when(mockExamAccommodationQueryRepository.findAccommodations(exam.getId())).thenReturn(Collections.singletonList(examAccommodationToDelete));
-        examAccommodationService.initializeAccommodationsOnPreviousExam(exam, assessment, 0, true, guestAccommodations);
+        List<Accommodation> assessmentAccommodations = Arrays.asList(accommodationThatShouldBePresent,
+            accommodationWorkWithNonStartExam,
+            accommodationWithIncorrectSegmentPosition,
+            accommodationWithRestoreRts,
+            accommodationFrench);
 
-        verify(mockExamAccommodationCommandRepository).delete(Collections.singletonList(examAccommodationToDelete));
-        verify(mockExamAccommodationCommandRepository).insert(examAccommodationCaptor.capture());
+        ExamAccommodation existingFrenchExamAccommodation = new ExamAccommodation.Builder()
+            .withExamId(exam.getId())
+            .withCode("FRN")
+            .withType("Language")
+            .withDescription("French")
+            .withAllowChange(false)
+            .withSelectable(false)
+            .withValue("French")
+            .withSegmentPosition(0)
+            .withTotalTypeCount(2)
+            .build();
 
-        List<ExamAccommodation> examAccommodations = examAccommodationCaptor.getValue();
+        ExamAccommodation existingEnglishExamAccommodation = new ExamAccommodation.Builder()
+            .withExamId(exam.getId())
+            .withCode("FRN")
+            .withType("Language")
+            .withDescription("French")
+            .withAllowChange(false)
+            .withSelectable(false)
+            .withValue("French")
+            .withSegmentPosition(0)
+            .withTotalTypeCount(2)
+            .build();
+
+
+        when(mockConfigService.findAssessmentAccommodationsByAssessmentKey(exam.getClientName(), assessment.getKey())).thenReturn(assessmentAccommodations);
+        when(mockExamAccommodationQueryRepository.findAccommodations(exam.getId())).thenReturn(Arrays.asList(existingFrenchExamAccommodation, existingEnglishExamAccommodation));
+
+        examAccommodationService.initializeAccommodationsOnPreviousExam(exam, assessment, 0, false, guestAccommodations);
+
+        verify(mockExamAccommodationCommandRepository).insert(examAccommodationInsertCaptor.capture());
+
+        List<ExamAccommodation> examAccommodations = examAccommodationInsertCaptor.getValue();
 
         assertThat(examAccommodations).hasSize(1);
 
@@ -192,12 +259,12 @@ public class ExamAccommodationServiceImplTest {
 
         assertThat(examAccommodation.getExamId()).isEqualTo(exam.getId());
         assertThat(examAccommodation.getCode()).isEqualTo("ENU");
-        assertThat(examAccommodation.getType()).isEqualTo(accommodation.getType());
-        assertThat(examAccommodation.getDescription()).isEqualTo(accommodation.getValue());
-        assertThat(examAccommodation.getSegmentKey()).isEqualTo(accommodation.getSegmentKey());
+        assertThat(examAccommodation.getType()).isEqualTo(accommodationThatShouldBePresent.getType());
+        assertThat(examAccommodation.getDescription()).isEqualTo(accommodationThatShouldBePresent.getValue());
+        assertThat(examAccommodation.getSegmentKey()).isEqualTo(accommodationThatShouldBePresent.getSegmentKey());
         assertThat(examAccommodation.getSegmentPosition()).isEqualTo(0);
-        assertThat(examAccommodation.isAllowChange()).isFalse();
-        assertThat(examAccommodation.getValue()).isEqualTo(accommodation.getValue());
+        assertThat(examAccommodation.isAllowChange()).isTrue();
+        assertThat(examAccommodation.getValue()).isEqualTo(accommodationThatShouldBePresent.getValue());
         assertThat(examAccommodation.isSelectable()).isTrue();
     }
 
