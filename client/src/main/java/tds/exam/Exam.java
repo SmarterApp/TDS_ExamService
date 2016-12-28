@@ -4,6 +4,8 @@ import org.joda.time.Instant;
 
 import java.util.UUID;
 
+import tds.common.util.Preconditions;
+
 /**
  * Class representing an exam
  */
@@ -17,6 +19,7 @@ public class Exam {
     private int maxItems;
     private ExamStatusCode status;
     private String statusChangeReason;
+    private Instant statusChangeDate;
     private String clientName;
     private String subject;
     private Instant dateStarted;
@@ -51,6 +54,7 @@ public class Exam {
         private int maxItems;
         private ExamStatusCode status;
         private String statusChangeReason;
+        private Instant statusChangeDate;
         private String clientName;
         private String subject;
         private Instant dateStarted;
@@ -150,8 +154,12 @@ public class Exam {
             return this;
         }
 
-        public Builder withStatus(ExamStatusCode newStatus) {
+        public Builder withStatus(ExamStatusCode newStatus, Instant newStatusChangeDate) {
+            Preconditions.checkNotNull(newStatus, "status cannot be null");
+            Preconditions.checkNotNull(newStatusChangeDate, "status change date cannot be null");
+
             status = newStatus;
+            statusChangeDate = newStatusChangeDate;
             return this;
         }
 
@@ -245,6 +253,7 @@ public class Exam {
             maxItems = exam.maxItems;
             status = exam.status;
             statusChangeReason = exam.statusChangeReason;
+            statusChangeDate = exam.statusChangeDate;
             subject = exam.subject;
             clientName = exam.clientName;
             dateStarted = exam.dateStarted;
@@ -286,6 +295,7 @@ public class Exam {
         maxItems = builder.maxItems;
         status = builder.status;
         statusChangeReason = builder.statusChangeReason;
+        statusChangeDate = builder.statusChangeDate;
         subject = builder.subject;
         clientName = builder.clientName;
         dateStarted = builder.dateStarted;
@@ -378,6 +388,13 @@ public class Exam {
      */
     public String getStatusChangeReason() {
         return statusChangeReason;
+    }
+
+    /**
+     * @return The date when the {@link tds.exam.Exam}'s status changed.
+     */
+    public Instant getStatusChangeDate() {
+        return statusChangeDate;
     }
 
     /**

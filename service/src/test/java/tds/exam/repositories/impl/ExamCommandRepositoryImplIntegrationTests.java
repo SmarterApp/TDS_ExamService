@@ -14,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 import tds.exam.Exam;
+import tds.exam.ExamStatusCode;
+import tds.exam.ExamStatusStage;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.repositories.ExamCommandRepository;
 import tds.exam.repositories.ExamQueryRepository;
@@ -78,5 +80,34 @@ public class ExamCommandRepositoryImplIntegrationTests {
         assertThat(savedExam.getCurrentSegmentPosition()).isEqualTo(exam.getCurrentSegmentPosition());
         assertThat(savedExam.isCustomAccommodations()).isEqualTo(exam.isCustomAccommodations());
         assertThat(savedExam.getLanguage()).isEqualTo(exam.getLanguage());
+    }
+
+    @Test
+    public void shouldUpdateAnExam() {
+        Exam mockExam = new ExamBuilder().build();
+        assertThat(examQueryRepository.getExamById(mockExam.getId())).isNotPresent();
+
+        examCommandRepository.insert(mockExam);
+
+        Optional<Exam> maybeExam = examQueryRepository.getExamById(mockExam.getId());
+        assertThat(maybeExam).isPresent();
+
+        Exam insertedExam = maybeExam.get();
+
+        ExamStatusCode pausedStatus = new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE);
+        Instant pausedStatusDate = Instant.now();
+        Exam examWithChanges = new Exam.Builder()
+            .fromExam(insertedExam)
+            .withStatus(pausedStatus, pausedStatusDate)
+            .build();
+
+        examCommandRepository.update(examWithChanges);
+
+        Optional<Exam> maybeUpdatedExam = examQueryRepository.getExamById(examWithChanges.getId());
+        assertThat(maybeUpdatedExam).isPresent();
+
+        Exam updatedExam = maybeUpdatedExam.get();
+        assertThat(updatedExam.getStatus()).isEqualTo(pausedStatus);
+        assertThat(updatedExam.getStatusChangeDate()).isEqualTo(pausedStatusDate);
     }
 }

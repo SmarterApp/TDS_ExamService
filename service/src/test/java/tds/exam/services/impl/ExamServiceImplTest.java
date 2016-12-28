@@ -7,6 +7,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
@@ -21,6 +23,7 @@ import tds.assessment.Algorithm;
 import tds.assessment.Assessment;
 import tds.common.Response;
 import tds.common.ValidationError;
+import tds.common.web.exceptions.NotFoundException;
 import tds.config.Accommodation;
 import tds.config.AssessmentWindow;
 import tds.config.ClientSystemFlag;
@@ -29,10 +32,12 @@ import tds.exam.ApprovalRequest;
 import tds.exam.Exam;
 import tds.exam.ExamApproval;
 import tds.exam.ExamApprovalStatus;
+import tds.exam.ExamConfiguration;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
 import tds.exam.OpenExamRequest;
 import tds.exam.builder.AssessmentBuilder;
+import tds.exam.builder.ExamBuilder;
 import tds.exam.builder.ExternalSessionConfigurationBuilder;
 import tds.exam.builder.OpenExamRequestBuilder;
 import tds.exam.builder.SessionBuilder;
@@ -45,6 +50,7 @@ import tds.exam.repositories.HistoryQueryRepository;
 import tds.exam.services.AssessmentService;
 import tds.exam.services.ConfigService;
 import tds.exam.services.ExamAccommodationService;
+import tds.exam.services.ExamSegmentService;
 import tds.exam.services.ExamService;
 import tds.exam.services.SessionService;
 import tds.exam.services.StudentService;
@@ -63,7 +69,7 @@ import static tds.config.ClientSystemFlag.RESTORE_ACCOMMODATIONS_TYPE;
 import static tds.exam.ExamStatusCode.STATUS_APPROVED;
 import static tds.exam.ExamStatusCode.STATUS_PENDING;
 import static tds.exam.ExamStatusCode.STATUS_SUSPENDED;
-import static tds.exam.ExamStatusStage.INUSE;
+import static tds.exam.ExamStatusStage.IN_USE;
 import static tds.exam.ExamStatusStage.OPEN;
 import static tds.session.ExternalSessionConfiguration.DEVELOPMENT_ENVIRONMENT;
 import static tds.session.ExternalSessionConfiguration.SIMULATION_ENVIRONMENT;
@@ -103,6 +109,12 @@ public class ExamServiceImplTest {
     @Mock
     private ExamStatusQueryRepository mockExamStatusQueryRepository;
 
+    @Mock
+    private ExamSegmentService mockExamSegmentService;
+
+    @Captor
+    private ArgumentCaptor<Exam> examArgumentCaptor;
+
     private ExamService examService;
 
     @Before
@@ -112,6 +124,7 @@ public class ExamServiceImplTest {
             mockHistoryRepository,
             mockSessionService,
             mockStudentService,
+            mockExamSegmentService,
             mockAssessmentService,
             mockTimeLimitConfigurationService,
             mockConfigService,
@@ -166,8 +179,8 @@ public class ExamServiceImplTest {
 
         Response<Exam> response = examService.openExam(openExamRequest);
 
-        assertThat(response.getData()).isNotPresent();
-        assertThat(response.getErrors().get()[0].getCode()).isEqualTo(ValidationErrorCode.SESSION_NOT_OPEN);
+        assertThat(response.getData().isPresent()).isFalse();
+        assertThat(response.getErrors()[0].getCode()).isEqualTo(ValidationErrorCode.SESSION_NOT_OPEN);
     }
 
     @Test
@@ -188,7 +201,7 @@ public class ExamServiceImplTest {
         Exam previousExam = new Exam.Builder()
             .withId(UUID.randomUUID())
             .withSessionId(previousSession.getId())
-            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.INACTIVE))
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.INACTIVE), Instant.now())
             .build();
 
         ExternalSessionConfiguration extSessionConfig = new ExternalSessionConfiguration(openExamRequest.getClientName(), SIMULATION_ENVIRONMENT, 0, 0, 0, 0);
@@ -204,10 +217,10 @@ public class ExamServiceImplTest {
 
         Response<Exam> examResponse = examService.openExam(openExamRequest);
 
-        assertThat(examResponse.getData()).isNotPresent();
-        assertThat(examResponse.getErrors().get()).hasSize(1);
+        assertThat(examResponse.getData().isPresent()).isFalse();
+        assertThat(examResponse.getErrors()).hasSize(1);
 
-        ValidationError validationError = examResponse.getErrors().get()[0];
+        ValidationError validationError = examResponse.getErrors()[0];
         assertThat(validationError.getCode()).isEqualTo(ValidationErrorCode.SESSION_TYPE_MISMATCH);
     }
 
@@ -237,7 +250,7 @@ public class ExamServiceImplTest {
         Exam previousExam = new Exam.Builder()
             .withId(UUID.randomUUID())
             .withSessionId(previousSession.getId())
-            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN))
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN), Instant.now())
             .build();
 
         Assessment assessment = new AssessmentBuilder().build();
@@ -252,10 +265,10 @@ public class ExamServiceImplTest {
 
         Response<Exam> examResponse = examService.openExam(openExamRequest);
 
-        assertThat(examResponse.getData()).isNotPresent();
-        assertThat(examResponse.getErrors().get()).hasSize(1);
+        assertThat(examResponse.getData().isPresent()).isFalse();
+        assertThat(examResponse.getErrors()).hasSize(1);
 
-        ValidationError validationError = examResponse.getErrors().get()[0];
+        ValidationError validationError = examResponse.getErrors()[0];
         assertThat(validationError.getCode()).isEqualTo(ValidationErrorCode.CURRENT_EXAM_OPEN);
     }
 
@@ -439,10 +452,11 @@ public class ExamServiceImplTest {
 
         Student student = new Student(1, "loginSSD", "CA", request.getClientName());
 
+        Instant approvedStatusDate = org.joda.time.Instant.now().minus(5000);
         Exam previousExam = new Exam.Builder()
             .withId(UUID.randomUUID())
             .withSessionId(previousSession.getId())
-            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN))
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN), approvedStatusDate)
             .withBrowserId(UUID.randomUUID())
             .withDateChanged(Instant.now().minus(Days.days(2).toStandardDuration()))
             .build();
@@ -470,7 +484,7 @@ public class ExamServiceImplTest {
         verify(mockExamCommandRepository).update(isA(Exam.class));
         verify(mockExamAccommodationService).initializeAccommodationsOnPreviousExam(isA(Exam.class), isA(Assessment.class), isA(Integer.class), isA(Boolean.class), isA(String.class));
 
-        assertThat(examResponse.getErrors()).isNotPresent();
+        assertThat(examResponse.getErrors()).isEmpty();
 
         Exam savedExam = examResponse.getData().get();
 
@@ -478,6 +492,7 @@ public class ExamServiceImplTest {
         assertThat(savedExam.getBrowserId()).isEqualTo(request.getBrowserId());
         assertThat(savedExam.getBrowserId()).isNotEqualTo(previousExam.getBrowserId());
         assertThat(savedExam.getStatus().getStatus()).isEqualTo(STATUS_PENDING);
+        assertThat(savedExam.getStatusChangeDate()).isGreaterThan(approvedStatusDate);
         assertThat(savedExam.getDateChanged()).isNotNull();
         assertThat(savedExam.getDateStarted()).isEqualTo(previousExam.getDateStarted());
     }
@@ -500,10 +515,11 @@ public class ExamServiceImplTest {
 
         Student student = new Student(request.getStudentId(), "testId", "CA", request.getClientName());
 
+        Instant approvedStatusDate = org.joda.time.Instant.now().minus(5000);
         Exam previousExam = new Exam.Builder()
             .withId(UUID.randomUUID())
             .withSessionId(previousSession.getId())
-            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN))
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN), approvedStatusDate)
             .withDateChanged(Instant.now())
             .build();
         Assessment assessment = new AssessmentBuilder().build();
@@ -530,6 +546,7 @@ public class ExamServiceImplTest {
         assertThat(savedExam.getBrowserId()).isEqualTo(request.getBrowserId());
         assertThat(savedExam.getBrowserId()).isNotEqualTo(previousExam.getBrowserId());
         assertThat(savedExam.getStatus().getStatus()).isEqualTo(STATUS_PENDING);
+        assertThat(savedExam.getStatusChangeDate()).isGreaterThan(approvedStatusDate);
         assertThat(savedExam.getDateChanged()).isNotNull();
         assertThat(savedExam.getDateStarted()).isEqualTo(previousExam.getDateStarted());
     }
@@ -549,10 +566,11 @@ public class ExamServiceImplTest {
 
         Student student = new Student(1, "testId", "CA", request.getClientName());
 
+        Instant approvedStatusDate = org.joda.time.Instant.now().minus(5000);
         Exam previousExam = new Exam.Builder()
             .withId(UUID.randomUUID())
             .withSessionId(previousSession.getId())
-            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN))
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN), approvedStatusDate)
             .withDateChanged(Instant.now())
             .build();
         Assessment assessment = new AssessmentBuilder().build();
@@ -576,13 +594,14 @@ public class ExamServiceImplTest {
 
         Response<Exam> examResponse = examService.openExam(request);
 
-        assertThat(examResponse.getErrors()).isNotPresent();
+        assertThat(examResponse.getErrors()).isEmpty();
 
         Exam savedExam = examResponse.getData().get();
         assertThat(savedExam.getId()).isEqualTo(previousExam.getId());
         assertThat(savedExam.getBrowserId()).isEqualTo(request.getBrowserId());
         assertThat(savedExam.getBrowserId()).isNotEqualTo(previousExam.getBrowserId());
         assertThat(savedExam.getStatus().getStatus()).isEqualTo(STATUS_PENDING);
+        assertThat(savedExam.getStatusChangeDate()).isGreaterThan(approvedStatusDate);
         assertThat(savedExam.getDateChanged()).isNotNull();
         assertThat(savedExam.getDateStarted()).isEqualTo(previousExam.getDateStarted());
     }
@@ -603,10 +622,11 @@ public class ExamServiceImplTest {
 
         Student student = new Student(1, "testId", "CA", "clientName");
 
+        Instant approvedStatusDate = org.joda.time.Instant.now().minus(5000);
         Exam previousExam = new Exam.Builder()
             .withId(UUID.randomUUID())
             .withSessionId(previousSession.getId())
-            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN))
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN), approvedStatusDate)
             .withDateChanged(Instant.now())
             .build();
 
@@ -629,13 +649,14 @@ public class ExamServiceImplTest {
 
         Response<Exam> examResponse = examService.openExam(request);
 
-        assertThat(examResponse.getErrors()).isNotPresent();
+        assertThat(examResponse.getErrors()).isEmpty();
 
         Exam savedExam = examResponse.getData().get();
         assertThat(savedExam.getId()).isEqualTo(previousExam.getId());
         assertThat(savedExam.getBrowserId()).isEqualTo(request.getBrowserId());
         assertThat(savedExam.getBrowserId()).isNotEqualTo(previousExam.getBrowserId());
         assertThat(savedExam.getStatus().getStatus()).isEqualTo(STATUS_PENDING);
+        assertThat(savedExam.getStatusChangeDate()).isGreaterThan(approvedStatusDate);
         assertThat(savedExam.getDateChanged()).isNotNull();
         assertThat(savedExam.getDateStarted()).isEqualTo(previousExam.getDateStarted());
     }
@@ -656,10 +677,11 @@ public class ExamServiceImplTest {
             .withDateEnd(Instant.now().minus(Days.days(1).toStandardDuration()))
             .build();
 
+        Instant approvedStatusDate = org.joda.time.Instant.now().minus(5000);
         Exam previousExam = new Exam.Builder()
             .withId(UUID.randomUUID())
             .withSessionId(previousSession.getId())
-            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.INACTIVE))
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.INACTIVE), approvedStatusDate)
             .withDateStarted(Instant.now())
             .build();
         ExternalSessionConfiguration externalSessionConfiguration = new ExternalSessionConfiguration(request.getClientName(), SIMULATION_ENVIRONMENT, 0, 0, 0, 0);
@@ -676,7 +698,8 @@ public class ExamServiceImplTest {
         when(mockSessionService.findSessionById(previousSession.getId())).thenReturn(Optional.of(previousSession));
         when(mockSessionService.findExternalSessionConfigurationByClientName(request.getClientName())).thenReturn(Optional.of(externalSessionConfiguration));
         when(mockAssessmentService.findAssessment(request.getClientName(), request.getAssessmentKey())).thenReturn(Optional.of(assessment));
-        when(mockExamStatusQueryRepository.findExamStatusCode(STATUS_SUSPENDED)).thenReturn(new ExamStatusCode(STATUS_SUSPENDED, INUSE));
+        when(mockExamStatusQueryRepository.findExamStatusCode(STATUS_SUSPENDED)).thenReturn(new ExamStatusCode(STATUS_SUSPENDED, IN_USE));
+        when(mockExamStatusQueryRepository.findExamStatusCode(STATUS_SUSPENDED)).thenReturn(new ExamStatusCode(STATUS_SUSPENDED, IN_USE));
         when(mockConfigService.findClientSystemFlag(request.getClientName(), RESTORE_ACCOMMODATIONS_TYPE)).thenReturn(Optional.of(restoreAccommodations));
 
         Response<Exam> examResponse = examService.openExam(request);
@@ -686,6 +709,7 @@ public class ExamServiceImplTest {
         assertThat(savedExam.getBrowserId()).isEqualTo(request.getBrowserId());
         assertThat(savedExam.getBrowserId()).isNotEqualTo(previousExam.getBrowserId());
         assertThat(savedExam.getStatus().getStatus()).isEqualTo(STATUS_SUSPENDED);
+        assertThat(savedExam.getStatusChangeDate()).isGreaterThan(approvedStatusDate);
         assertThat(savedExam.getDateChanged()).isNotNull();
         assertThat(savedExam.getDateStarted()).isEqualTo(previousExam.getDateStarted());
     }
@@ -852,7 +876,7 @@ public class ExamServiceImplTest {
                 .withSessionId(sessionId)
                 .withBrowserId(browserKey)
                 .withAssessmentId(mockAssessmentId)
-                .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN))
+                .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN), Instant.now())
                 .build()));
         when(mockSessionService.findSessionById(sessionId))
             .thenReturn(Optional.of(new Session.Builder()
@@ -876,8 +900,8 @@ public class ExamServiceImplTest {
 
         Response<ExamApproval> result = examService.getApproval(approvalRequest);
 
-        assertThat(result.getErrors()).isNotPresent();
-        assertThat(result.getData()).isPresent();
+        assertThat(result.getErrors()).isEmpty();
+        assertThat(result.getData().isPresent()).isTrue();
         assertThat(result.getData().get().getExamId()).isEqualTo(examId);
         assertThat(result.getData().get().getExamApprovalStatus()).isEqualTo(ExamApprovalStatus.APPROVED);
     }
@@ -897,7 +921,7 @@ public class ExamServiceImplTest {
                 .withSessionId(sessionId)
                 .withBrowserId(browserKey)
                 .withAssessmentId(mockAssessmentId)
-                .withStatus(new ExamStatusCode(STATUS_PENDING, OPEN))
+                .withStatus(new ExamStatusCode(STATUS_PENDING, OPEN), Instant.now())
                 .build()));
         when(mockSessionService.findSessionById(sessionId))
             .thenReturn(Optional.of(new Session.Builder()
@@ -921,8 +945,8 @@ public class ExamServiceImplTest {
 
         Response<ExamApproval> result = examService.getApproval(approvalRequest);
 
-        assertThat(result.getErrors()).isNotPresent();
-        assertThat(result.getData()).isPresent();
+        assertThat(result.getErrors()).isEmpty();
+        assertThat(result.getData().isPresent()).isTrue();
         assertThat(result.getData().get().getExamId()).isEqualTo(examId);
         assertThat(result.getData().get().getExamApprovalStatus()).isEqualTo(ExamApprovalStatus.WAITING);
     }
@@ -942,7 +966,7 @@ public class ExamServiceImplTest {
                 .withSessionId(sessionId)
                 .withBrowserId(browserKey)
                 .withAssessmentId(mockAssessmentId)
-                .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN))
+                .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN), Instant.now())
                 .build()));
         when(mockSessionService.findSessionById(sessionId))
             .thenReturn(Optional.of(new Session.Builder()
@@ -966,8 +990,8 @@ public class ExamServiceImplTest {
 
         Response<ExamApproval> result = examService.getApproval(approvalRequest);
 
-        assertThat(result.getErrors()).isNotPresent();
-        assertThat(result.getData()).isPresent();
+        assertThat(result.getErrors()).isEmpty();
+        assertThat(result.getData().isPresent()).isTrue();
         assertThat(result.getData().get().getExamId()).isEqualTo(examId);
         assertThat(result.getData().get().getExamApprovalStatus()).isEqualTo(ExamApprovalStatus.APPROVED);
     }
@@ -987,7 +1011,7 @@ public class ExamServiceImplTest {
                 .withSessionId(sessionId)
                 .withBrowserId(browserKey)
                 .withAssessmentId(mockAssessmentId)
-                .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN))
+                .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN), Instant.now())
                 .build()));
         when(mockSessionService.findSessionById(sessionId))
             .thenReturn(Optional.of(new Session.Builder()
@@ -1011,8 +1035,8 @@ public class ExamServiceImplTest {
 
         Response<ExamApproval> result = examService.getApproval(approvalRequest);
 
-        assertThat(result.getErrors()).isNotPresent();
-        assertThat(result.getData()).isPresent();
+        assertThat(result.getErrors()).isEmpty();
+        assertThat(result.getData().isPresent()).isTrue();
         assertThat(result.getData().get().getExamId()).isEqualTo(examId);
         assertThat(result.getData().get().getExamApprovalStatus()).isEqualTo(ExamApprovalStatus.APPROVED);
     }
@@ -1055,9 +1079,8 @@ public class ExamServiceImplTest {
 
         Response<ExamApproval> result = examService.getApproval(approvalRequest);
 
-        assertThat(result.getErrors()).isPresent();
-        assertThat(result.getErrors().get().length).isEqualTo(1);
-        assertThat(result.getErrors().get()[0].getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_BROWSER_ID_MISMATCH);
+        assertThat(result.getErrors()).hasSize(1);
+        assertThat(result.getErrors()[0].getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_BROWSER_ID_MISMATCH);
     }
 
     @Test
@@ -1098,9 +1121,8 @@ public class ExamServiceImplTest {
 
         Response<ExamApproval> result = examService.getApproval(approvalRequest);
 
-        assertThat(result.getErrors()).isPresent();
-        assertThat(result.getErrors().get().length).isEqualTo(1);
-        assertThat(result.getErrors().get()[0].getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_SESSION_ID_MISMATCH);
+        assertThat(result.getErrors()).hasSize(1);
+        assertThat(result.getErrors()[0].getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_SESSION_ID_MISMATCH);
     }
 
     @Test
@@ -1141,9 +1163,8 @@ public class ExamServiceImplTest {
 
         Response<ExamApproval> result = examService.getApproval(approvalRequest);
 
-        assertThat(result.getErrors()).isPresent();
-        assertThat(result.getErrors().get().length).isEqualTo(1);
-        assertThat(result.getErrors().get()[0].getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_SESSION_CLOSED);
+        assertThat(result.getErrors()).hasSize(1);
+        assertThat(result.getErrors()[0].getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_SESSION_CLOSED);
     }
 
     @Test
@@ -1184,9 +1205,43 @@ public class ExamServiceImplTest {
 
         Response<ExamApproval> result = examService.getApproval(approvalRequest);
 
-        assertThat(result.getErrors()).isPresent();
-        assertThat(result.getErrors().get().length).isEqualTo(1);
-        assertThat(result.getErrors().get()[0].getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_TA_CHECKIN_TIMEOUT);
+        assertThat(result.getErrors()).hasSize(1);
+        assertThat(result.getErrors()[0].getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_TA_CHECKIN_TIMEOUT);
+    }
+
+    @Test
+    public void shouldPauseAnExam() {
+        UUID examId = UUID.randomUUID();
+        Exam mockExam = new Exam.Builder()
+            .withId(examId)
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_PENDING, ExamStatusStage.IN_USE), Instant.now())
+            .build();
+
+        when(mockExamQueryRepository.getExamById(examId))
+            .thenReturn(Optional.of(mockExam));
+
+        Optional<ValidationError> maybeStatusTransitionFailure = examService.pauseExam(examId);
+
+        assertThat(maybeStatusTransitionFailure).isNotPresent();
+    }
+
+    @Test
+    public void shouldNotPauseAnExamDueToInvalidStatusTransition() {
+        UUID examId = UUID.randomUUID();
+        Exam mockExam = new Exam.Builder()
+            .withId(examId)
+            .withStatus(new ExamStatusCode("foo", ExamStatusStage.INACTIVE), Instant.now())
+            .build();
+
+        when(mockExamQueryRepository.getExamById(examId))
+            .thenReturn(Optional.of(mockExam));
+
+        Optional<ValidationError> maybeStatusTransitionFailure = examService.pauseExam(examId);
+
+        assertThat(maybeStatusTransitionFailure).isPresent();
+        ValidationError statusTransitionFailure = maybeStatusTransitionFailure.get();
+        assertThat(statusTransitionFailure.getCode()).isEqualTo(ValidationErrorCode.EXAM_STATUS_TRANSITION_FAILURE);
+        assertThat(statusTransitionFailure.getMessage()).isEqualTo("Bad status transition from foo to paused");
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -1329,6 +1384,145 @@ public class ExamServiceImplTest {
         examService.getApproval(approvalRequest);
     }
 
+    @Test
+    public void shouldReturnFailureExamConfigForNoExamFound() {
+        UUID examID = UUID.randomUUID();
+        when(mockExamQueryRepository.getExamById(examID)).thenReturn(Optional.empty());
+        Response<ExamConfiguration> response = examService.startExam(examID);
+        assertThat(response.getErrors()).hasSize(1);
+        ValidationError error = response.getErrors()[0];
+        assertThat(error.getCode()).isEqualTo(ExamStatusCode.STATUS_FAILED);
+        assertThat(error.getMessage()).isNotNull();
+    }
+
+    @Test
+    public void shouldReturnFailureExamConfigForExamStatusNotApproved() {
+        Exam exam = new ExamBuilder()
+            .build();
+        when(mockExamQueryRepository.getExamById(exam.getId())).thenReturn(Optional.of(exam));
+        when(mockSessionService.findSessionById(exam.getSessionId())).thenReturn(Optional.empty());
+        Response<ExamConfiguration> response = examService.startExam(exam.getId());
+        assertThat(response.getErrors()).hasSize(1);
+        ValidationError error = response.getErrors()[0];
+        assertThat(error.getCode()).isEqualTo(ExamStatusCode.STATUS_FAILED);
+        assertThat(error.getMessage()).isNotNull();
+    }
+
+    @Test
+    public void shouldReturnFailureExamConfigForNoSessionFound() {
+        Exam exam = new ExamBuilder()
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.OPEN), Instant.now())
+            .build();
+        when(mockExamQueryRepository.getExamById(exam.getId())).thenReturn(Optional.of(exam));
+        when(mockSessionService.findSessionById(exam.getSessionId())).thenReturn(Optional.empty());
+        Response<ExamConfiguration> response = examService.startExam(exam.getId());
+        assertThat(response.getErrors()).hasSize(1);
+        ValidationError error = response.getErrors()[0];
+        assertThat(error.getCode()).isEqualTo(ExamStatusCode.STATUS_FAILED);
+        assertThat(error.getMessage()).isNotNull();
+    }
+
+    @Test
+    public void shouldReturnFailureExamConfigForNoAssessmentFound() {
+        Session session = new SessionBuilder().build();
+        Exam exam = new ExamBuilder()
+            .withSessionId(session.getId())
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.OPEN), Instant.now())
+            .build();
+        TimeLimitConfiguration timeLimitConfiguration = new TimeLimitConfiguration.Builder()
+            .withTaCheckinTimeMinutes(3)
+            .withAssessmentId("assessmentId")
+            .withExamDelayDays(2)
+            .withExamRestartWindowMinutes(2)
+            .withInterfaceTimeoutMinutes(4)
+            .withRequestInterfaceTimeoutMinutes(5)
+            .build();
+        ExternalSessionConfiguration extSessionConfig = new ExternalSessionConfiguration(exam.getClientName(), SIMULATION_ENVIRONMENT, 0, 0, 0, 0);
+        when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(exam.getClientName(), "assessmentId"))
+            .thenReturn(Optional.of(timeLimitConfiguration));
+        when(mockSessionService.findExternalSessionConfigurationByClientName(exam.getClientName())).thenReturn(Optional.of(extSessionConfig));
+        when(mockExamQueryRepository.getExamById(exam.getId())).thenReturn(Optional.of(exam));
+        when(mockSessionService.findSessionById(exam.getSessionId())).thenReturn(Optional.of(session));
+        when(mockAssessmentService.findAssessment(exam.getClientName(), exam.getAssessmentKey())).thenReturn(Optional.empty());
+        Response<ExamConfiguration> response = examService.startExam(exam.getId());
+        assertThat(response.getErrors()).hasSize(1);
+        ValidationError error = response.getErrors()[0];
+        assertThat(error.getCode()).isEqualTo(ExamStatusCode.STATUS_FAILED);
+        assertThat(error.getMessage()).isNotNull();
+    }
+
+    @Test
+    public void shouldStartNewExam() throws InterruptedException {
+        Session session = new SessionBuilder().build();
+        Instant approvedStatusDate = org.joda.time.Instant.now().minus(5000);
+        Exam exam = new ExamBuilder()
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.OPEN), approvedStatusDate)
+            .withSessionId(session.getId())
+            .withDateChanged(Instant.now().minus(50000))
+            .withDateStarted(null)
+            .build();
+        Assessment assessment = new AssessmentBuilder().build();
+        TimeLimitConfiguration timeLimitConfiguration = new TimeLimitConfiguration.Builder()
+            .withTaCheckinTimeMinutes(3)
+            .withAssessmentId(assessment.getAssessmentId())
+            .withExamDelayDays(2)
+            .withExamRestartWindowMinutes(2)
+            .withInterfaceTimeoutMinutes(4)
+            .withRequestInterfaceTimeoutMinutes(5)
+            .build();
+        ExternalSessionConfiguration extSessionConfig = new ExternalSessionConfiguration(exam.getClientName(), SIMULATION_ENVIRONMENT, 0, 0, 0, 0);
+        final int testLength = 10;
+
+        when(mockSessionService.findExternalSessionConfigurationByClientName(exam.getClientName())).thenReturn(Optional.of(extSessionConfig));
+        when(mockExamQueryRepository.getExamById(exam.getId())).thenReturn(Optional.of(exam));
+        when(mockSessionService.findSessionById(exam.getSessionId())).thenReturn(Optional.of(session));
+        when(mockAssessmentService.findAssessment(exam.getClientName(), exam.getAssessmentKey()))
+            .thenReturn(Optional.of(assessment));
+        when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(exam.getClientName(), assessment.getAssessmentId()))
+            .thenReturn(Optional.of(timeLimitConfiguration));
+        when(mockExamSegmentService.initializeExamSegments(exam, assessment)).thenReturn(testLength);
+        Response<ExamConfiguration> examConfigurationResponse = examService.startExam(exam.getId());
+        verify(mockExamQueryRepository).getExamById(exam.getId());
+        verify(mockSessionService).findSessionById(exam.getSessionId());
+        verify(mockAssessmentService).findAssessment(exam.getClientName(), exam.getAssessmentKey());
+        verify(mockTimeLimitConfigurationService).findTimeLimitConfiguration(exam.getClientName(), assessment.getAssessmentId());
+        verify(mockExamCommandRepository).update(examArgumentCaptor.capture());
+
+        assertThat(examConfigurationResponse.getData().isPresent()).isTrue();
+        ExamConfiguration examConfiguration = examConfigurationResponse.getData().get();
+        assertThat(examConfiguration.getAttempt()).isEqualTo(0);
+        assertThat(examConfiguration.getContentLoadTimeoutMinutes()).isEqualTo(120);
+        assertThat(examConfiguration.getExam().getId()).isEqualTo(exam.getId());
+        assertThat(examConfiguration.getExamRestartWindowMinutes()).isEqualTo(timeLimitConfiguration.getExamRestartWindowMinutes());
+        assertThat(examConfiguration.getInterfaceTimeoutMinutes()).isEqualTo(timeLimitConfiguration.getInterfaceTimeoutMinutes());
+        assertThat(examConfiguration.getPrefetch()).isEqualTo(assessment.getPrefetch());
+
+        assertThat(examConfiguration.getStartPosition()).isEqualTo(1);
+        assertThat(examConfiguration.getTestLength()).isEqualTo(testLength);
+
+        // Sleep a bit to prevent intermittent test failures due to timing
+        Exam updatedExam = examArgumentCaptor.getValue();
+        assertThat(updatedExam).isNotNull();
+        assertThat(updatedExam.getAttempts()).isEqualTo(0);
+        assertThat(updatedExam.getId()).isEqualTo(exam.getId());
+        assertThat(updatedExam.getMaxItems()).isEqualTo(testLength);
+        assertThat(updatedExam.getDateStarted()).isNotNull();
+        assertThat(updatedExam.getDateChanged()).isGreaterThan(exam.getDateChanged());
+        assertThat(updatedExam.getExpireFrom()).isNotNull();
+        assertThat(updatedExam.getStatus().getStage()).isEqualTo(ExamStatusStage.IN_PROGRESS);
+        assertThat(updatedExam.getStatus().getStatus()).isEqualTo(ExamStatusCode.STATUS_STARTED);
+        assertThat(updatedExam.getStatusChangeDate()).isGreaterThan(approvedStatusDate);
+    }
+
+    @Test(expected = NotFoundException.class)
+    public void shouldThrowIllegalArgumentExceptionWhenPausingAnExamThatCannotBeFound() {
+        UUID examId = UUID.randomUUID();
+
+        when(mockExamQueryRepository.getExamById(examId)).thenReturn(Optional.empty());
+
+        examService.pauseExam(examId);
+    }
+
     private Exam createExam(UUID sessionId, UUID thisExamId, String assessmentId, String clientName, long studentId) {
         return new Exam.Builder()
             .withId(thisExamId)
@@ -1337,7 +1531,7 @@ public class ExamServiceImplTest {
             .withAssessmentId(assessmentId)
             .withSubject("ELA")
             .withStudentId(studentId)
-            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN))
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN), Instant.now())
             .withDateChanged(Instant.now())
             .withDateScored(Instant.now())
             .build();

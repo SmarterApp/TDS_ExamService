@@ -13,13 +13,17 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import tds.common.Response;
+import tds.common.ValidationError;
 import tds.common.web.exceptions.NotFoundException;
+import tds.common.web.resources.NoContentResponseResource;
 import tds.exam.ApprovalRequest;
 import tds.exam.Exam;
 import tds.exam.ExamApproval;
+import tds.exam.ExamConfiguration;
 import tds.exam.OpenExamRequest;
 import tds.exam.services.ExamService;
 
@@ -62,16 +66,42 @@ public class ExamController {
         return new ResponseEntity<>(exam, headers, HttpStatus.OK);
     }
 
+    @RequestMapping(value = "/{examId}/start", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<Response<ExamConfiguration>> startExam(@PathVariable final UUID examId) {
+        Response<ExamConfiguration> examConfiguration = examService.startExam(examId);
+
+        if (examConfiguration.getErrors().length > 0) {
+            return new ResponseEntity<>(examConfiguration, HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+
+        return ResponseEntity.ok(examConfiguration);
+    }
+
     @RequestMapping(value = "/{id}/get-approval", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<Response<ExamApproval>> getApproval(@PathVariable final UUID examId, @RequestParam final UUID sessionId, @RequestParam final UUID browserId, final String clientName) {
         ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserId, clientName);
         Response<ExamApproval> examApproval = examService.getApproval(approvalRequest);
 
-        if (examApproval.getErrors().isPresent()) {
+        if (examApproval.getErrors().length > 0) {
             return new ResponseEntity<>(examApproval, HttpStatus.UNPROCESSABLE_ENTITY);
         }
 
         return ResponseEntity.ok(examApproval);
     }
-}
 
+    @RequestMapping(value = "/{examId}/pause", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<NoContentResponseResource> pauseExam(@PathVariable final UUID examId) {
+        final Optional<ValidationError> maybeStatusTransitionFailure = examService.pauseExam(examId);
+
+        if (maybeStatusTransitionFailure.isPresent()) {
+            NoContentResponseResource response = new NoContentResponseResource(maybeStatusTransitionFailure.get());
+            return new ResponseEntity<>(response, HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+
+        Link link = linkTo(methodOn(ExamController.class).getExamById(examId)).withSelfRel();
+        final HttpHeaders headers = new HttpHeaders();
+        headers.add("Location", link.getHref());
+
+        return new ResponseEntity<>(headers, HttpStatus.NO_CONTENT);
+    }
+}

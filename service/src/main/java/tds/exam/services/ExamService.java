@@ -9,6 +9,7 @@ import tds.common.ValidationError;
 import tds.exam.ApprovalRequest;
 import tds.exam.Exam;
 import tds.exam.ExamApproval;
+import tds.exam.ExamConfiguration;
 import tds.exam.OpenExamRequest;
 import tds.session.Session;
 
@@ -46,6 +47,14 @@ public interface ExamService {
     Response<ExamApproval> getApproval(ApprovalRequest approvalRequest);
 
     /**
+     * Starts a new or existing exam.
+     *
+     * @param examId The exam to start
+     * @return {@link tds.common.Response<tds.exam.Exam>} containing the exam's configuration or errors.
+     */
+    Response<ExamConfiguration> startExam(UUID examId);
+
+    /**
      * Retrieves the initial ability value for an {@link Exam}.
      *
      * @param exam       the exam to retrieve an ability for.
@@ -53,6 +62,15 @@ public interface ExamService {
      * @return the initial ability for an {@link Exam}.
      */
     Optional<Double> getInitialAbility(Exam exam, Assessment assessment);
+
+    /**
+     * Change the {@link tds.exam.Exam}'s status to paused.
+     *
+     * @param examId The id of the exam whose status is being changed
+     * @return {@code Optional<ValidationError>} if the {@link tds.exam.Exam} cannot be updated from its current status
+     * to the new status; otherwise {@code Optional.empty()}.\
+     */
+    Optional<ValidationError> pauseExam(UUID examId);
 
     /**
      * Verify all the rules for granting approval to an {@link Exam} are satisfied.

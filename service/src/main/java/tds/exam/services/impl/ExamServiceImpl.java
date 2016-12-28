@@ -9,8 +9,11 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
 
@@ -18,12 +21,14 @@ import tds.assessment.Assessment;
 import tds.common.Response;
 import tds.common.ValidationError;
 import tds.common.data.legacy.LegacyComparer;
+import tds.common.web.exceptions.NotFoundException;
 import tds.config.AssessmentWindow;
 import tds.config.ClientSystemFlag;
 import tds.config.TimeLimitConfiguration;
 import tds.exam.ApprovalRequest;
 import tds.exam.Exam;
 import tds.exam.ExamApproval;
+import tds.exam.ExamConfiguration;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
 import tds.exam.OpenExamRequest;
@@ -36,6 +41,7 @@ import tds.exam.repositories.HistoryQueryRepository;
 import tds.exam.services.AssessmentService;
 import tds.exam.services.ConfigService;
 import tds.exam.services.ExamAccommodationService;
+import tds.exam.services.ExamSegmentService;
 import tds.exam.services.ExamService;
 import tds.exam.services.SessionService;
 import tds.exam.services.StudentService;
@@ -59,23 +65,28 @@ import static tds.student.RtsStudentPackageAttribute.EXTERNAL_ID;
 @Service
 class ExamServiceImpl implements ExamService {
     private static final Logger LOG = LoggerFactory.getLogger(ExamServiceImpl.class);
+    private static final int CONTENT_LOAD_TIMEOUT = 120;
 
     private final ExamQueryRepository examQueryRepository;
     private final ExamCommandRepository examCommandRepository;
     private final HistoryQueryRepository historyQueryRepository;
     private final SessionService sessionService;
     private final StudentService studentService;
+    private final ExamSegmentService examSegmentService;
     private final AssessmentService assessmentService;
     private final TimeLimitConfigurationService timeLimitConfigurationService;
     private final ConfigService configService;
     private final ExamStatusQueryRepository examStatusQueryRepository;
     private final ExamAccommodationService examAccommodationService;
 
+    private final Set<String> statusesThatCanTransitionToPaused;
+
     @Autowired
     public ExamServiceImpl(ExamQueryRepository examQueryRepository,
                            HistoryQueryRepository historyQueryRepository,
                            SessionService sessionService,
                            StudentService studentService,
+                           ExamSegmentService examSegmentService,
                            AssessmentService assessmentService,
                            TimeLimitConfigurationService timeLimitConfigurationService,
                            ConfigService configService,
@@ -86,12 +97,24 @@ class ExamServiceImpl implements ExamService {
         this.historyQueryRepository = historyQueryRepository;
         this.sessionService = sessionService;
         this.studentService = studentService;
+        this.examSegmentService = examSegmentService;
         this.assessmentService = assessmentService;
         this.timeLimitConfigurationService = timeLimitConfigurationService;
         this.configService = configService;
         this.examCommandRepository = examCommandRepository;
         this.examStatusQueryRepository = examStatusQueryRepository;
         this.examAccommodationService = examAccommodationService;
+
+        // From CommondDLL._IsValidStatusTransition_FN(): a collection of all the statuses that can transition to
+        // "paused".  That is, each of these status values has a nested switch statement that contains the "paused"
+        // status.
+        statusesThatCanTransitionToPaused = new HashSet<>(Arrays.asList(ExamStatusCode.STATUS_PAUSED,
+            ExamStatusCode.STATUS_PENDING,
+            ExamStatusCode.STATUS_SUSPENDED,
+            ExamStatusCode.STATUS_STARTED,
+            ExamStatusCode.STATUS_APPROVED,
+            ExamStatusCode.STATUS_REVIEW,
+            ExamStatusCode.STATUS_INITIALIZING));
     }
 
     @Override
@@ -182,9 +205,6 @@ class ExamServiceImpl implements ExamService {
             : new Response<>(new ExamApproval(approvalRequest.getExamId(), exam.getStatus(), exam.getStatusChangeReason()));
     }
 
-    /**
-     * @inheritDoc
-     */
     @Override
     public Optional<Double> getInitialAbility(Exam exam, Assessment assessment) {
         Optional<Double> ability = Optional.empty();
@@ -220,6 +240,27 @@ class ExamServiceImpl implements ExamService {
         }
 
         return ability;
+    }
+
+    @Override
+    public Optional<ValidationError> pauseExam(UUID examId) {
+        Exam exam = examQueryRepository.getExamById(examId)
+            .orElseThrow(() -> new NotFoundException(String.format("Exam could not be found for id %s", examId)));
+
+        if (!statusesThatCanTransitionToPaused.contains(exam.getStatus().getStatus())) {
+            return Optional.of(new ValidationError(ValidationErrorCode.EXAM_STATUS_TRANSITION_FAILURE,
+                String.format("Bad status transition from %s to %s", exam.getStatus().getStatus(), ExamStatusCode.STATUS_PAUSED)));
+        }
+
+        // A status change reason is not required for pausing an exam.
+        Exam pausedExam = new Exam.Builder()
+            .fromExam(exam)
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE), org.joda.time.Instant.now())
+            .build();
+
+        examCommandRepository.update(pausedExam);
+
+        return Optional.empty();
     }
 
     @Override
@@ -274,14 +315,115 @@ class ExamServiceImpl implements ExamService {
         return Optional.empty();
     }
 
+    @Override
+    public Response<ExamConfiguration> startExam(final UUID examId) {
+        ExamConfiguration examConfig = null;
+        Optional<Exam> maybeExam = examQueryRepository.getExamById(examId);
+        if (!maybeExam.isPresent()) {
+            return new Response<ExamConfiguration>(new ValidationError(
+                ExamStatusCode.STATUS_FAILED, String.format("No exam found for id %s", examId)
+            ));
+        }
+        Exam exam = maybeExam.get();
+
+        /* TestOpportunityServiceImpl [155] No need to go any further, so moving before service calls */
+        if (!exam.getStatus().getStatus().equalsIgnoreCase(ExamStatusCode.STATUS_APPROVED)) {
+            return new Response<ExamConfiguration>(new ValidationError(
+                ExamStatusCode.STATUS_FAILED, String.format("Cannot start exam %s: Exam was not approved.", examId)
+            ));
+        }
+
+        /* TestOpportunityServiceImpl [131] */
+        Optional<Session> maybeSession = sessionService.findSessionById(exam.getSessionId());
+        if (!maybeSession.isPresent()) {
+            return new Response<ExamConfiguration>(new ValidationError(
+                ExamStatusCode.STATUS_FAILED, String.format("No session found for session id %s", exam.getSessionId())));
+        }
+        Session session = maybeSession.get();
+
+        /* StudentDLL [5269] / TestOpportunityServiceImpl [137] */
+        Optional<ValidationError> maybeAccessViolation = verifyAccess(new ApprovalRequest(examId, session.getId(), exam.getBrowserId(), exam.getClientName()), exam);
+        if (maybeAccessViolation.isPresent()) {
+            return new Response<ExamConfiguration>(maybeAccessViolation.get());
+        }
+        /* TestOpportunityServiceImpl [147] */
+        Optional<Assessment> maybeAssessment = assessmentService.findAssessment(exam.getClientName(), exam.getAssessmentKey());
+        if (!maybeAssessment.isPresent()) {
+            return new Response<ExamConfiguration>(new ValidationError(
+                ExamStatusCode.STATUS_FAILED, String.format("No assessment found for assessment key '%s'.", exam.getAssessmentKey())
+            ));
+        }
+        Assessment assessment = maybeAssessment.get();
+
+        TimeLimitConfiguration timeLimitConfiguration =
+            timeLimitConfigurationService.findTimeLimitConfiguration(exam.getClientName(), assessment.getAssessmentId())
+                .orElseThrow(() ->
+                    new IllegalStateException(String.format("No time limit configurations found for clientName '%s' and assessment id '%s'.",
+                        exam.getClientName(), assessment.getAssessmentId())));
+
+        /* StudentDLL [5344] Skipping getInitialAbility() call here - the ability is retrieved in legacy but never set on TestConfig */
+        int testLength;
+
+        if (exam.getDateStarted() == null) { // Start a new exam
+            // Initialize the segments in the exam and get the testlength.
+            Exam initializedExam = initializeExam(exam, assessment);
+            /* StudentDLL [5367] and TestOppServiceImpl [167] */
+            examConfig = initializeDefaultExamConfiguration(initializedExam, assessment, timeLimitConfiguration);
+        } else { //Restart the most recent exam
+            //TODO: Start existing opportunity [TDS-350]
+        }
+
+        return new Response<>(examConfig);
+    }
+
+    private Exam initializeExam(final Exam exam, final Assessment assessment) {
+        /* TestOpportunityServiceImpl [435] + [470] */
+        int testLength = examSegmentService.initializeExamSegments(exam, assessment);
+        org.joda.time.Instant now = org.joda.time.Instant.now();
+        /* TODO: Skipping [451-469] until Simulation mode is investigated and implemented
+         * The testoppabilityestimate table written to here is only read from in SimDLL.java  */
+        Exam initializedExam = new Exam.Builder()
+            .fromExam(exam)
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_STARTED, ExamStatusStage.IN_PROGRESS), org.joda.time.Instant.now())
+            .withDateStarted(now)
+            .withDateChanged(now)
+            .withExpireFrom(now)
+            .withMaxItems(testLength)
+            .build();
+
+        examCommandRepository.update(initializedExam);
+
+        return initializedExam;
+    }
+
+    /*
+        This method mimics the legacy TestConfigHelper.getNew().
+        - scoreByTds has been removed as it is unused by the application.
+    */
+    private static ExamConfiguration initializeDefaultExamConfiguration(Exam exam, Assessment assessment, TimeLimitConfiguration timeLimitConfiguration) {
+        return new ExamConfiguration.Builder()
+            .withExam(exam)
+            .withContentLoadTimeout(CONTENT_LOAD_TIMEOUT)
+            .withInterfaceTimeout(timeLimitConfiguration.getInterfaceTimeoutMinutes())
+            .withExamRestartWindowMinutes(timeLimitConfiguration.getExamRestartWindowMinutes())
+            .withPrefetch(assessment.getPrefetch())
+            .withValidateCompleteness(assessment.isValidateCompleteness())
+            .withRequestInterfaceTimeout(timeLimitConfiguration.getRequestInterfaceTimeoutMinutes())
+            .withAttempt(0)
+            .withStartPosition(1)
+            .withStatus(ExamStatusCode.STATUS_STARTED)
+            .withTestLength(exam.getMaxItems())
+            .build();
+    }
+
     private Response<Exam> createExam(OpenExamRequest openExamRequest, Session session, Assessment assessment, ExternalSessionConfiguration externalSessionConfiguration, Exam previousExam) {
         Exam.Builder examBuilder = new Exam.Builder();
 
         //From OpenTestServiceImpl lines 160 -163
         if (openExamRequest.getProctorId() == null) {
-            examBuilder.withStatus(examStatusQueryRepository.findExamStatusCode(ExamStatusCode.STATUS_APPROVED));
+            examBuilder.withStatus(examStatusQueryRepository.findExamStatusCode(ExamStatusCode.STATUS_APPROVED), org.joda.time.Instant.now());
         } else {
-            examBuilder.withStatus(examStatusQueryRepository.findExamStatusCode(ExamStatusCode.STATUS_PENDING));
+            examBuilder.withStatus(examStatusQueryRepository.findExamStatusCode(ExamStatusCode.STATUS_PENDING), org.joda.time.Instant.now());
         }
 
         String guestAccommodations = openExamRequest.getGuestAccommodations();
@@ -412,11 +554,11 @@ class ExamServiceImpl implements ExamService {
         //If for some reason the previous exam is in an inuse stage then we still allow the prevous exam to
         //be opened but we mark it as an abnormal start.  This should not happen very often as it most likely
         //is some type of bug in the legacy Web app and its processing of requests.
-        int abnormalIncrement = ExamStatusStage.INUSE.equals(previousExam.getStatus().getStage()) ? 1 : 0;
+        int abnormalIncrement = ExamStatusStage.IN_USE.equals(previousExam.getStatus().getStage()) ? 1 : 0;
 
         Exam currentExam = new Exam.Builder()
             .fromExam(previousExam)
-            .withStatus(status)
+            .withStatus(status, org.joda.time.Instant.now())
             .withBrowserId(openExamRequest.getBrowserId())
             .withDateChanged(org.joda.time.Instant.now())
             .withAbnormalStarts(previousExam.getAbnormalStarts() + abnormalIncrement)

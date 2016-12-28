@@ -5,7 +5,10 @@ public class ExamStatusCode {
     public static final String STATUS_PENDING = "pending";
     public static final String STATUS_APPROVED = "approved";
     public static final String STATUS_SUSPENDED = "suspended";
-    public static final String STATUS_DENIED = "denied";
+    public static final String STATUS_REVIEW = "review";
+    public static final String STATUS_INITIALIZING = "initializing";
+    public static final String STATUS_STARTED = "started";
+    public static final String STATUS_FAILED = "failed";
 
     private String status;
     private ExamStatusStage stage;
@@ -21,7 +24,8 @@ public class ExamStatusCode {
     /**
      * For Frameworks
      */
-    private ExamStatusCode(){}
+    private ExamStatusCode() {
+    }
 
     public ExamStatusCode(String status, ExamStatusStage stage) {
         this.status = status;

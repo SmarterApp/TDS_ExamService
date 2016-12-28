@@ -38,7 +38,7 @@ public class ExamStatusQueryRepositoryImplIntegrationTests {
         ExamStatusCode code = examStatusQueryRepository.findExamStatusCode("started");
 
         assertThat(code.getStatus()).isEqualTo("started");
-        assertThat(code.getStage()).isEqualTo(ExamStatusStage.INUSE);
+        assertThat(code.getStage()).isEqualTo(ExamStatusStage.IN_USE);
     }
 
     @Test(expected = EmptyResultDataAccessException.class)
