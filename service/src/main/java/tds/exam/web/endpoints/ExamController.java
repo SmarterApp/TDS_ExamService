@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Optional;
@@ -103,5 +104,11 @@ public class ExamController {
         headers.add("Location", link.getHref());
 
         return new ResponseEntity<>(headers, HttpStatus.NO_CONTENT);
+    }
+
+    @RequestMapping(value = "/pause/{sessionId}", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void pauseExamsInSession(@PathVariable final UUID sessionId) {
+        examService.pauseAllExamsInSession(sessionId);
     }
 }

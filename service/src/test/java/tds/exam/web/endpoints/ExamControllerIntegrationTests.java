@@ -11,6 +11,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.net.URI;
+import java.sql.SQLException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -22,6 +23,8 @@ import tds.exam.error.ValidationErrorCode;
 import tds.exam.services.ExamService;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -96,5 +99,29 @@ public class ExamControllerIntegrationTests {
             .andExpect(jsonPath("errors").isArray())
             .andExpect(jsonPath("errors[0].code", is("badStatusTransition")))
             .andExpect(jsonPath("errors[0].message", is("Bad transition from foo to bar")));
+    }
+
+    @Test
+    public void shouldPauseAllExamsInASession() throws Exception {
+        UUID sessionId = UUID.randomUUID();
+        doNothing().when(mockExamService).pauseAllExamsInSession(sessionId);
+
+        http.perform(put(new URI(String.format("/exam/pause/%s", sessionId)))
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNoContent());
+
+        verify(mockExamService).pauseAllExamsInSession(sessionId);
+    }
+
+    @Test
+    public void shouldReturn500WhenAnExceptionIsThrownWhilePausingExamsInASession() throws Exception {
+        UUID sessionId = UUID.randomUUID();
+        doThrow(SQLException.class).when(mockExamService).pauseAllExamsInSession(sessionId);
+
+        http.perform(put(new URI(String.format("/exam/pause/%s", sessionId)))
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isInternalServerError());
+
+        verify(mockExamService).pauseAllExamsInSession(sessionId);
     }
 }

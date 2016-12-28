@@ -1499,7 +1499,7 @@ public class ExamServiceImplTest {
     }
 
     @Test
-    public void shouldPauseAllExamsInSession() {
+    public void shouldPauseAllExamsInASession() {
         UUID mockSessionId = UUID.randomUUID();
         Set<String> mockStatusTransitionSet = new HashSet<>(Arrays.asList(ExamStatusCode.STATUS_PAUSED,
             ExamStatusCode.STATUS_PENDING,
