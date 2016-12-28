@@ -44,17 +44,17 @@ public class AccommodationBuilder {
         return this;
     }
 
-    public AccommodationBuilder withAccommodationType(String accType) {
+    public AccommodationBuilder withType(String accType) {
         builder.withAccommodationType(accType);
         return this;
     }
 
-    public AccommodationBuilder withAccommodationValue(String accValue) {
+    public AccommodationBuilder withValue(String accValue) {
         builder.withAccommodationValue(accValue);
         return this;
     }
 
-    public AccommodationBuilder withAccommodationCode(String accCode) {
+    public AccommodationBuilder withCode(String accCode) {
         builder.withAccommodationCode(accCode);
         return this;
     }
