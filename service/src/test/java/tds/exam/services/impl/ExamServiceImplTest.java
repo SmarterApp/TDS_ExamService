@@ -15,8 +15,10 @@ import org.mockito.runners.MockitoJUnitRunner;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import tds.assessment.Algorithm;
@@ -62,6 +64,7 @@ import tds.student.Student;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.stub;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static tds.config.ClientSystemFlag.ALLOW_ANONYMOUS_STUDENT_FLAG_TYPE;
@@ -1491,6 +1494,29 @@ public class ExamServiceImplTest {
         when(mockExamQueryRepository.getExamById(examId)).thenReturn(Optional.empty());
 
         examService.pauseExam(examId);
+    }
+
+    @Test
+    public void shouldPauseAllExamsInSession() {
+        UUID mockSessionId = UUID.randomUUID();
+        Set<String> mockStatusTransitionSet = new HashSet<>(Arrays.asList("pending", "approved", "started"));
+        List<Exam> examsInSession = Arrays.asList(
+            new ExamBuilder().withSessionId(mockSessionId)
+                .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.IN_USE), Instant.now())
+                .build(),
+            new ExamBuilder().withSessionId(mockSessionId)
+                .build(),
+            new ExamBuilder().withSessionId(mockSessionId)
+                .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_STARTED, ExamStatusStage.IN_USE), Instant.now())
+                .build()
+        );
+
+        when(mockExamQueryRepository.findAllExamsInSessionWithStatus(mockSessionId, mockStatusTransitionSet))
+            .thenReturn(examsInSession);
+
+        examService.pauseAllExamsInSession(mockSessionId);
+
+        verify(mockExamCommandRepository).update(examsInSession);
     }
 
     private Exam createExam(UUID sessionId, UUID thisExamId, String assessmentId, String clientName, long studentId) {
