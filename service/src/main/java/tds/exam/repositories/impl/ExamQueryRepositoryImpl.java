@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import tds.common.data.mapping.ResultSetMapperUtility;
@@ -178,6 +179,68 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
         }
 
         return examOptional;
+    }
+
+    @Override
+    public List<Exam> findAllExamsInSessionWithStatus(UUID sessionId, Set<String> statusSet) {
+        final SqlParameterSource parameters = new MapSqlParameterSource("sessionId", UuidAdapter.getBytesFromUUID(sessionId))
+            .addValue("statusSet", statusSet);
+
+        final String SQL =
+            "SELECT \n" +
+                "e.id, \n" +
+                "e.session_id, \n" +
+                "ee.browser_id, \n" +
+                "e.assessment_id, \n" +
+                "e.student_id, \n" +
+                "e.client_name, \n" +
+                "e.environment, \n" +
+                "e.subject, \n" +
+                "e.login_ssid, \n" +
+                "e.student_name, \n" +
+                "e.date_joined, \n" +
+                "e.assessment_key,\n" +
+                "e.assessment_window_id, \n" +
+                "e.assessment_algorithm, \n" +
+                "e.segmented, \n" +
+                "ee.attempts, \n" +
+                "ee.status, \n" +
+                "ee.status_change_date, \n" +
+                "ee.max_items, \n" +
+                "ee.expire_from, \n" +
+                "ee.language_code, \n" +
+                "ee.status_change_reason, \n" +
+                "ee.date_deleted, \n" +
+                "ee.date_changed, \n" +
+                "ee.date_completed, \n" +
+                "ee.date_started,    \n" +
+                "ee.date_scored, \n" +
+                "ee.abnormal_starts, \n" +
+                "ee.waiting_for_segment_approval, \n" +
+                "ee.current_segment_position, \n" +
+                "e.created_at, \n" +
+                "esc.description, \n" +
+                "esc.status, \n" +
+                "esc.stage\n" +
+                "FROM exam.exam e \n" +
+                "JOIN ( \n" +
+                "   SELECT \n" +
+                "       exam_id, \n" +
+                "       MAX(id) AS id \n" +
+                "   FROM \n" +
+                "       exam.exam_event \n" +
+                "   GROUP BY exam_id \n" +
+                ") last_event \n" +
+                "  ON e.id = last_event.exam_id \n" +
+                "JOIN exam.exam_event ee \n" +
+                "  ON last_event.exam_id = ee.exam_id AND \n" +
+                "     last_event.id = ee.id\n" +
+                "JOIN exam.exam_status_codes esc \n" +
+                "  ON esc.status = ee.status \n" +
+                "WHERE e.session_id = :sessionId \n" +
+                "AND ee.status IN (:statusSet)";
+
+        return jdbcTemplate.query(SQL, parameters, new ExamRowMapper());
     }
 
     @Override

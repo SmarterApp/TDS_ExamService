@@ -4,7 +4,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.jdbc.core.namedparam.SqlParameterSourceUtils;
 import org.springframework.stereotype.Repository;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import tds.common.data.CreateRecordException;
 import tds.exam.Exam;
@@ -147,5 +152,71 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
         if (insertCount != 1) {
             throw new CreateRecordException("Failed to insert exam event");
         }
+    }
+
+    @Override
+    public void update(List<Exam> exams) {
+        SqlParameterSource[] batchParameters = exams.stream()
+            .map(exam -> new MapSqlParameterSource("examId", getBytesFromUUID(exam.getId()))
+                .addValue("attempts", exam.getAttempts())
+                .addValue("status", exam.getStatus().getStatus())
+                .addValue("statusChangeDate", mapJodaInstantToTimestamp(exam.getStatusChangeDate()))
+                .addValue("browserId", getBytesFromUUID(exam.getBrowserId()))
+                .addValue("maxItems", exam.getMaxItems())
+                .addValue("languageCode", exam.getLanguageCode())
+                .addValue("statusChangeReason", exam.getStatusChangeReason())
+                .addValue("dateChanged", mapJodaInstantToTimestamp(exam.getDateChanged()))
+                .addValue("dateDeleted", mapJodaInstantToTimestamp(exam.getDateDeleted()))
+                .addValue("dateCompleted", mapJodaInstantToTimestamp(exam.getDateCompleted()))
+                .addValue("dateScored", mapJodaInstantToTimestamp(exam.getDateScored()))
+                .addValue("expireFrom", mapJodaInstantToTimestamp(exam.getExpireFrom()))
+                .addValue("abnormalStarts", exam.getAbnormalStarts())
+                .addValue("waitingForSegmentApproval", exam.isWaitingForSegmentApproval())
+                .addValue("currentSegmentPosition", exam.getCurrentSegmentPosition())
+                .addValue("dateStarted", mapJodaInstantToTimestamp(exam.getDateStarted())))
+            .toArray(MapSqlParameterSource[]::new);
+
+        final String SQL =
+            "INSERT INTO exam_event (\n" +
+                "exam_id, \n" +
+                "attempts, \n" +
+                "max_items, \n" +
+                "language_code, \n" +
+                "expire_from, \n" +
+                "browser_id, \n" +
+                "status, \n" +
+                "status_change_date, \n" +
+                "status_change_reason, \n" +
+                "date_changed, \n" +
+                "date_deleted, \n" +
+                "date_completed, \n" +
+                "date_scored, \n" +
+                "date_started, \n" +
+                "waiting_for_segment_approval, \n" +
+                "current_segment_position, \n" +
+                "abnormal_starts \n" +
+                ") \n" +
+                "VALUES \n" +
+                "( \n" +
+                ":examId, \n" +
+                ":attempts, \n" +
+                ":maxItems, \n" +
+                ":languageCode, \n" +
+                ":expireFrom, \n" +
+                ":browserId, \n" +
+                ":status, \n" +
+                ":statusChangeDate, \n" +
+                ":statusChangeReason, \n" +
+                ":dateChanged, \n" +
+                ":dateDeleted, \n" +
+                ":dateCompleted, \n" +
+                ":dateScored, \n" +
+                ":dateStarted, \n" +
+                ":waitingForSegmentApproval,\n" +
+                ":currentSegmentPosition, \n" +
+                ":abnormalStarts \n" +
+                ")";
+
+        jdbcTemplate.batchUpdate(SQL, batchParameters);
     }
 }

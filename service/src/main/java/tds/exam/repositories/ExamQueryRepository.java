@@ -2,6 +2,7 @@ package tds.exam.repositories;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import tds.exam.Exam;
@@ -28,6 +29,15 @@ public interface ExamQueryRepository {
      * @return the {@link tds.exam.Exam Exam} if found otherwise empty
      */
     Optional<Exam> getLastAvailableExam(long studentId, String assessmentId, String clientName);
+
+    /**
+     * Find all {@link tds.exam.Exam}s that belong to a {@link tds.session.Session} so they can be paused.
+     *
+     * @param sessionId The unique identifier of the session
+     * @param statusSet A {@code java.util.Set} of statuses that can transition to "paused"
+     * @return A collection of exams that are assigned to the specified session
+     */
+    List<Exam> findAllExamsInSessionWithStatus(UUID sessionId, Set<String> statusSet);
 
     /**
      * Retrieves a listing of all ability records for the specified exam and student.

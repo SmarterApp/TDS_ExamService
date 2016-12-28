@@ -1,6 +1,7 @@
 package tds.exam.services;
 
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import tds.assessment.Assessment;
@@ -71,6 +72,13 @@ public interface ExamService {
      * to the new status; otherwise {@code Optional.empty()}.\
      */
     Optional<ValidationError> pauseExam(UUID examId);
+
+    /**
+     * Update the status of all {@link tds.exam.Exam}s in the specified {@link tds.session.Session} to "paused"
+     *
+     * @param sessionId The unique identifier of the session that has been closed
+     */
+    void pauseAllExamsInSession(UUID sessionId);
 
     /**
      * Verify all the rules for granting approval to an {@link Exam} are satisfied.
