@@ -40,7 +40,7 @@ public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodation
 
             jdbcTemplate.update(SQL, parameters, keyHolder);
 
-            examAccommodation.setId(keyHolder.getKey().intValue());
+            examAccommodation.setId(keyHolder.getKey().longValue());
 
             update(examAccommodation);
         });

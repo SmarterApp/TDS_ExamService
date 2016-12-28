@@ -70,7 +70,7 @@ public class ExamController {
     ResponseEntity<Response<ExamConfiguration>> startExam(@PathVariable final UUID examId) {
         Response<ExamConfiguration> examConfiguration = examService.startExam(examId);
 
-        if (examConfiguration.getErrors().isPresent()) {
+        if (examConfiguration.getErrors().length > 0) {
             return new ResponseEntity<>(examConfiguration, HttpStatus.UNPROCESSABLE_ENTITY);
         }
 
@@ -82,7 +82,7 @@ public class ExamController {
         ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserId, clientName);
         Response<ExamApproval> examApproval = examService.getApproval(approvalRequest);
 
-        if (examApproval.getErrors().isPresent()) {
+        if (examApproval.getErrors().length > 0) {
             return new ResponseEntity<>(examApproval, HttpStatus.UNPROCESSABLE_ENTITY);
         }
 

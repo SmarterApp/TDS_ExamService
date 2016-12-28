@@ -87,8 +87,8 @@ public class ExamControllerTest {
         ResponseEntity<Response<Exam>> response = controller.openExam(openExamRequest);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
-        assertThat(response.getBody().getErrors().get()).hasSize(1);
-        assertThat(response.getBody().getErrors().get()[0].getCode()).isEqualTo(ValidationErrorCode.SESSION_TYPE_MISMATCH);
+        assertThat(response.getBody().getErrors()).hasSize(1);
+        assertThat(response.getBody().getErrors()[0].getCode()).isEqualTo(ValidationErrorCode.SESSION_TYPE_MISMATCH);
     }
 
     @Test
@@ -123,8 +123,8 @@ public class ExamControllerTest {
         verify(mockExamService).getApproval(Matchers.isA(ApprovalRequest.class));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody().getErrors()).isNotPresent();
-        assertThat(response.getBody().getData()).isPresent();
+        assertThat(response.getBody().getErrors()).isEmpty();
+        assertThat(response.getBody().getData().isPresent()).isTrue();
         assertThat(response.getBody().getData().get().getExamApprovalStatus()).isEqualTo(ExamApprovalStatus.APPROVED);
     }
 
@@ -144,7 +144,7 @@ public class ExamControllerTest {
         assertThat(response.getBody().getData().get().getExam().getId()).isEqualTo(exam.getId());
         assertThat(response.getBody().getData().get().getStatus()).isEqualTo("started");
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody().getErrors()).isNotPresent();
+        assertThat(response.getBody().getErrors()).isEmpty();
     }
 
     @Test
@@ -156,8 +156,8 @@ public class ExamControllerTest {
         ResponseEntity<Response<ExamConfiguration>> response = controller.startExam(examId);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
-        assertThat(response.getBody().getErrors().get()).hasSize(1);
-        assertThat(response.getBody().getErrors().get()[0].getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_SESSION_ID_MISMATCH);
+        assertThat(response.getBody().getErrors()).hasSize(1);
+        assertThat(response.getBody().getErrors()[0].getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_SESSION_ID_MISMATCH);
     }
 
     @Test
@@ -179,11 +179,10 @@ public class ExamControllerTest {
         verify(mockExamService).getApproval(Matchers.isA(ApprovalRequest.class));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
-        assertThat(response.getBody().getErrors()).isPresent();
-        assertThat(response.getBody().getErrors().get()).hasSize(1);
-        assertThat(response.getBody().getErrors().get()[0].getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_BROWSER_ID_MISMATCH);
-        assertThat(response.getBody().getErrors().get()[0].getMessage()).isEqualTo("foo");
-        assertThat(response.getBody().getData()).isNotPresent();
+        assertThat(response.getBody().getErrors()).hasSize(1);
+        assertThat(response.getBody().getErrors()[0].getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_BROWSER_ID_MISMATCH);
+        assertThat(response.getBody().getErrors()[0].getMessage()).isEqualTo("foo");
+        assertThat(response.getBody().getData().isPresent()).isFalse();
     }
 
     @Test
