@@ -268,7 +268,6 @@ class ExamServiceImpl implements ExamService {
         List<Exam> examsInSession = examQueryRepository.findAllExamsInSessionWithStatus(sessionId,
             statusesThatCanTransitionToPaused);
 
-        // TODO:  What should the response be if the examsToPause list is empty?
         if (examsInSession.size() == 0) {
             return;
         }
