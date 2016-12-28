@@ -143,7 +143,7 @@ public class ExamCommandRepositoryImplIntegrationTests {
 
         examCommandRepository.update(examsWithChanges);
 
-        // Verify first exam was updated
+        // Verify the first exam was updated
         Optional<Exam> maybeMockFirstExamAfterUpdate = examQueryRepository.getExamById(mockFirstExam.getId());
 
         assertThat(maybeMockFirstExamAfterUpdate).isPresent();
