@@ -79,7 +79,6 @@ public class ExamCommandRepositoryImplIntegrationTests {
         assertThat(savedExam.isWaitingForSegmentApproval()).isEqualTo(exam.isWaitingForSegmentApproval());
         assertThat(savedExam.getCurrentSegmentPosition()).isEqualTo(exam.getCurrentSegmentPosition());
         assertThat(savedExam.isCustomAccommodations()).isEqualTo(exam.isCustomAccommodations());
-        assertThat(savedExam.getLanguage()).isEqualTo(exam.getLanguage());
     }
 
     @Test

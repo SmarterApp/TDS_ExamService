@@ -77,7 +77,6 @@ public class ExamBuilder {
             .withExpireFrom(expireFrom)
             .withWaitingForSegmentApproval(waitingForSegmentApproval)
             .withCurrentSegmentPosition(currentSegmentPosition)
-            .withLanguage(language)
             .withCustomAccommodation(customAccommodations)
             .build();
     }

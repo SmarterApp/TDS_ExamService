@@ -73,7 +73,6 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
             "   ee.waiting_for_segment_approval, \n" +
             "   ee.current_segment_position, \n" +
             "   ee.custom_accommodations, \n" +
-            "   ee.language, \n" +
             "   esc.description, \n" +
             "   esc.status, \n" +
             "   esc.stage\n" +
@@ -147,7 +146,6 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "   ee.current_segment_position, \n" +
                 "   ee.waiting_for_segment_approval, \n" +
                 "   ee.custom_accommodations, \n" +
-                "   ee.language, \n" +
                 "   esc.description, \n" +
                 "   esc.status, \n" +
                 "   esc.stage\n" +
@@ -282,7 +280,6 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 .withWaitingForSegmentApproval(rs.getBoolean("waiting_for_segment_approval"))
                 .withCurrentSegmentPosition(rs.getInt("current_segment_position"))
                 .withCustomAccommodation(rs.getBoolean("custom_accommodations"))
-                .withLanguage(rs.getString("language"))
                 .build();
         }
     }

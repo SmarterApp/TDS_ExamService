@@ -101,7 +101,6 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
             .addValue("waitingForSegmentApproval", exam.isWaitingForSegmentApproval())
             .addValue("currentSegmentPosition", exam.getCurrentSegmentPosition())
             .addValue("dateStarted", mapJodaInstantToTimestamp(exam.getDateStarted()))
-            .addValue("language", exam.getLanguage())
             .addValue("customAccommodations", exam.isCustomAccommodations());
 
         String examEventInsertSQL = "INSERT INTO exam_event (\n" +
@@ -122,7 +121,6 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
             "  waiting_for_segment_approval,\n" +
             "  current_segment_position,\n" +
             "  abnormal_starts\n," +
-            "  language\n," +
             "  custom_accommodations\n" +
             ")\n" +
             "VALUES\n" +
@@ -144,7 +142,6 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
             "  :waitingForSegmentApproval,\n" +
             "  :currentSegmentPosition,\n" +
             "  :abnormalStarts,\n" +
-            "  :language,\n" +
             "  :customAccommodations\n" +
             ");";
 
