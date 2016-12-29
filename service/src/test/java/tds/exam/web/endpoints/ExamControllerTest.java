@@ -16,7 +16,6 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.sql.SQLException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -39,7 +38,6 @@ import tds.exam.services.ExamService;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static tds.exam.ExamStatusCode.STATUS_APPROVED;
@@ -227,16 +225,6 @@ public class ExamControllerTest {
     public void shouldPauseAllExamsInASession() {
         UUID sessionId = UUID.randomUUID();
         doNothing().when(mockExamService).pauseAllExamsInSession(sessionId);
-
-        controller.pauseExamsInSession(sessionId);
-
-        verify(mockExamService).pauseAllExamsInSession(sessionId);
-    }
-
-    @Test(expected = SQLException.class)
-    public void shouldThrowExceptionWhenSqlFails() {
-        UUID sessionId = UUID.randomUUID();
-        doThrow(SQLException.class).when(mockExamService).pauseAllExamsInSession(sessionId);
 
         controller.pauseExamsInSession(sessionId);
 

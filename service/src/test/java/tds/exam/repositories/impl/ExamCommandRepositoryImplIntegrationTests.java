@@ -115,12 +115,10 @@ public class ExamCommandRepositoryImplIntegrationTests {
     public void shouldUpdateManyExams() {
         Exam mockFirstExam = new ExamBuilder().build();
         Exam mockSecondExam = new ExamBuilder().build();
-        Exam mockThirdExam = new ExamBuilder().build();
 
         List<Exam> exams = new ArrayList<>();
         exams.add(mockFirstExam);
         exams.add(mockSecondExam);
-        exams.add(mockThirdExam);
 
         exams.forEach(e -> examCommandRepository.insert(e));
 
@@ -135,13 +133,8 @@ public class ExamCommandRepositoryImplIntegrationTests {
             .withStatusChangeReason("unit test 2")
             .withMaxItems(600)
             .build());
-        examsWithChanges.add(new Exam.Builder().fromExam(mockThirdExam)
-            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE), Instant.now().plus(60000))
-            .withStatusChangeReason("unit test 3")
-            .withClientName("unit test")
-            .build());
 
-        examCommandRepository.update(examsWithChanges);
+        examCommandRepository.update(examsWithChanges.toArray(new Exam[examsWithChanges.size()]));
 
         // Verify the first exam was updated
         Optional<Exam> maybeMockFirstExamAfterUpdate = examQueryRepository.getExamById(mockFirstExam.getId());
@@ -162,14 +155,5 @@ public class ExamCommandRepositoryImplIntegrationTests {
         assertThat(mockSecondExamAfterUpdate.getStatusChangeDate().getMillis()).isGreaterThan(mockSecondExam.getStatusChangeDate().getMillis());
         assertThat(mockSecondExamAfterUpdate.getMaxItems()).isEqualTo(600);
         assertThat(mockSecondExamAfterUpdate.getStatusChangeReason()).isEqualTo("unit test 2");
-
-        // Verify the third exam was updated
-        Optional<Exam> maybeMockThirdExamAfterUpdate = examQueryRepository.getExamById(mockThirdExam.getId());
-
-        assertThat(maybeMockThirdExamAfterUpdate).isPresent();
-        Exam mockThirdExamAfterUpdate = maybeMockThirdExamAfterUpdate.get();
-        assertThat(mockThirdExamAfterUpdate.getStatus().getStatus()).isEqualTo(ExamStatusCode.STATUS_PAUSED);
-        assertThat(mockThirdExamAfterUpdate.getStatusChangeDate().getMillis()).isGreaterThan(mockThirdExam.getStatusChangeDate().getMillis());
-        assertThat(mockThirdExamAfterUpdate.getStatusChangeReason()).isEqualTo("unit test 3");
     }
 }

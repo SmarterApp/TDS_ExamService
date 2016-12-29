@@ -1,7 +1,5 @@
 package tds.exam.repositories;
 
-import java.util.List;
-
 import tds.exam.Exam;
 
 /**
@@ -16,16 +14,9 @@ public interface ExamCommandRepository {
     void insert(Exam exam);
 
     /**
-     * Updates the exam
-     *
-     * @param exam a non null {@link tds.exam.Exam}
-     */
-    void update(Exam exam);
-
-    /**
      * Update a collection of {@link tds.exam.Exam}s
      *
      * @param exams The collection of exams to update
      */
-    void update(List<Exam> exams);
+    void update(Exam... exams);
 }

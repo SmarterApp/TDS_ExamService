@@ -1524,7 +1524,7 @@ public class ExamServiceImplTest {
 
         examService.pauseAllExamsInSession(mockSessionId);
 
-        verify(mockExamCommandRepository).update(Matchers.anyListOf(Exam.class));
+        verify(mockExamCommandRepository).update(Matchers.<Exam>anyVararg());
     }
 
     @Test
@@ -1537,7 +1537,7 @@ public class ExamServiceImplTest {
 
         examService.pauseAllExamsInSession(mockSessionId);
 
-        verify(mockExamCommandRepository, times(0)).update(Matchers.anyListOf(Exam.class));
+        verify(mockExamCommandRepository, times(0)).update(Matchers.<Exam>anyVararg());
     }
 
     private Exam createExam(UUID sessionId, UUID thisExamId, String assessmentId, String clientName, long studentId) {

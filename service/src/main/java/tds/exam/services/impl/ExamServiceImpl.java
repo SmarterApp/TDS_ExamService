@@ -268,7 +268,7 @@ class ExamServiceImpl implements ExamService {
         List<Exam> examsInSession = examQueryRepository.findAllExamsInSessionWithStatus(sessionId,
             statusesThatCanTransitionToPaused);
 
-        if (examsInSession.size() == 0) {
+        if (examsInSession.isEmpty()) {
             return;
         }
 
@@ -280,7 +280,7 @@ class ExamServiceImpl implements ExamService {
                 .build())
             .collect(Collectors.toList());
 
-        examCommandRepository.update(pausedExams);
+        examCommandRepository.update(pausedExams.toArray(new Exam[pausedExams.size()]));
     }
 
     @Override

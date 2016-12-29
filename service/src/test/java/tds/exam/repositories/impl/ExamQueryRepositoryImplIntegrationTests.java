@@ -48,6 +48,8 @@ public class ExamQueryRepositoryImplIntegrationTests {
     private UUID mockSessionId = UUID.randomUUID();
     private Set<String> statusesThatCanTransitionToPaused;
 
+    private List<Exam> examsInSession;
+
     @Before
     public void setUp() {
         examQueryRepository = new ExamQueryRepositoryImpl(jdbcTemplate);
@@ -78,7 +80,7 @@ public class ExamQueryRepositoryImplIntegrationTests {
         insertExamScoresData();
 
         // Build exams that belong to the same session
-        List<Exam> examsInSession = new ArrayList<>();
+        examsInSession = new ArrayList<>();
         examsInSession.add(new ExamBuilder().withSessionId(mockSessionId)
             .withStudentId(5L)
             .withAssessmentId("assessmentId5")
@@ -166,10 +168,7 @@ public class ExamQueryRepositoryImplIntegrationTests {
         List<Exam> exams = examQueryRepository.findAllExamsInSessionWithStatus(mockSessionId, statusesThatCanTransitionToPaused);
 
         assertThat(exams).hasSize(3);
-        assertThat(exams.stream().filter(exam -> exam.getStatus().getStatus().equals(ExamStatusCode.STATUS_PENDING)).findAny()).isPresent();
-        assertThat(exams.stream().filter(exam -> exam.getStatus().getStatus().equals(ExamStatusCode.STATUS_APPROVED)).findAny()).isPresent();
-        assertThat(exams.stream().filter(exam -> exam.getStatus().getStatus().equals(ExamStatusCode.STATUS_STARTED)).findAny()).isPresent();
-        assertThat(exams.stream().filter(exam -> exam.getStatus().getStatus().equals(ExamStatusCode.STATUS_FAILED)).findAny()).isNotPresent();
+        assertThat(exams).doesNotContain(examsInSession.stream().filter(exam -> exam.getStatus().getStatus().equals(ExamStatusCode.STATUS_FAILED)).findAny().get());
     }
 
     @Test
