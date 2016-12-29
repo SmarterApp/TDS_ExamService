@@ -566,8 +566,6 @@ class ExamServiceImpl implements ExamService {
 
         examCommandRepository.update(currentExam);
 
-        //TODO - START OF IN PERSON REVIEW
-
         //The next block replaces OpenTestServiceImpl lines 194-202 fetching the guest accommodations if not a guest student
         //Fetches the client system flag for restoring accommodations StudentDLL._RestoreRTSAccommodations_FN
         String guestAccommodations = openExamRequest.getGuestAccommodations();
