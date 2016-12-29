@@ -106,15 +106,27 @@ public class ConfigServiceImplTest {
     }
 
     @Test
-    public void shouldFindAssessmentAccommodations() {
+    public void shouldFindAssessmentAccommodationsByKey() {
         Accommodation accommodation = new Accommodation.Builder().build();
         ResponseEntity<List<Accommodation>> entity = new ResponseEntity<>(Collections.singletonList(accommodation), HttpStatus.OK);
 
-        when(restTemplate.exchange(String.format("%s/accommodations/key", BASE_URL), GET, null, new ParameterizedTypeReference<List<Accommodation>>() {
-        }))
-            .thenReturn(entity);
+        when(restTemplate.exchange(String.format("%s/SBAC/accommodations/key", BASE_URL), GET, null, new ParameterizedTypeReference<List<Accommodation>>() {
+        })).thenReturn(entity);
 
-        List<Accommodation> accommodations = configService.findAssessmentAccommodations("key");
+        List<Accommodation> accommodations = configService.findAssessmentAccommodationsByAssessmentKey("SBAC", "key");
+
+        assertThat(accommodations).containsExactly(accommodation);
+    }
+
+    @Test
+    public void shouldFindAssessmentAccommodationsById() {
+        Accommodation accommodation = new Accommodation.Builder().build();
+        ResponseEntity<List<Accommodation>> entity = new ResponseEntity<>(Collections.singletonList(accommodation), HttpStatus.OK);
+
+        when(restTemplate.exchange(String.format("%s/SBAC/accommodations?assessmentId=id", BASE_URL), GET, null, new ParameterizedTypeReference<List<Accommodation>>() {
+        })).thenReturn(entity);
+
+        List<Accommodation> accommodations = configService.findAssessmentAccommodationsByAssessmentId("SBAC", "id");
 
         assertThat(accommodations).containsExactly(accommodation);
     }

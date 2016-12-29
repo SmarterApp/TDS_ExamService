@@ -54,6 +54,7 @@ import tds.student.RtsStudentPackageAttribute;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static tds.common.time.JodaTimeConverter.convertJodaInstant;
 import static tds.config.ClientSystemFlag.ALLOW_ANONYMOUS_STUDENT_FLAG_TYPE;
+import static tds.config.ClientSystemFlag.RESTORE_ACCOMMODATIONS_TYPE;
 import static tds.exam.ExamStatusCode.STATUS_PENDING;
 import static tds.exam.ExamStatusCode.STATUS_SUSPENDED;
 import static tds.exam.error.ValidationErrorCode.ANONYMOUS_STUDENT_NOT_ALLOWED;
@@ -585,6 +586,25 @@ class ExamServiceImpl implements ExamService {
             .build();
 
         examCommandRepository.update(currentExam);
+
+        //The next block replaces OpenTestServiceImpl lines 194-202 fetching the guest accommodations if not a guest student
+        //Fetches the client system flag for restoring accommodations StudentDLL._RestoreRTSAccommodations_FN
+        String guestAccommodations = openExamRequest.getGuestAccommodations();
+        Optional<ClientSystemFlag> maybeRestoreAccommodations = configService.findClientSystemFlag(openExamRequest.getClientName(), RESTORE_ACCOMMODATIONS_TYPE);
+        boolean restoreAccommodations = maybeRestoreAccommodations.isPresent() && maybeRestoreAccommodations.get().isEnabled();
+        if(restoreAccommodations && !openExamRequest.isGuestStudent()) {
+            List<RtsStudentPackageAttribute> attributes = studentService.findStudentPackageAttributes(openExamRequest.getStudentId(), openExamRequest.getClientName(), ACCOMMODATIONS);
+
+            if(!attributes.isEmpty()) {
+                //If there are any attributes returned it should only be the one for restore accommodations
+                RtsStudentPackageAttribute restoreAccommodationAttribute = attributes.get(0);
+                guestAccommodations = restoreAccommodationAttribute.getValue();
+            }
+        }
+
+        examAccommodationService.initializeAccommodationsOnPreviousExam(previousExam, assessment, 0, restoreAccommodations, guestAccommodations);
+
+        //TODO - Custom accommodations?
 
         return new Response<>(currentExam);
     }

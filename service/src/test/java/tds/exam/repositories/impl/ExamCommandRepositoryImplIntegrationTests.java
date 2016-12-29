@@ -80,6 +80,7 @@ public class ExamCommandRepositoryImplIntegrationTests {
         assertThat(savedExam.getAbnormalStarts()).isEqualTo(5);
         assertThat(savedExam.isWaitingForSegmentApproval()).isEqualTo(exam.isWaitingForSegmentApproval());
         assertThat(savedExam.getCurrentSegmentPosition()).isEqualTo(exam.getCurrentSegmentPosition());
+        assertThat(savedExam.isCustomAccommodations()).isEqualTo(exam.isCustomAccommodations());
     }
 
     @Test

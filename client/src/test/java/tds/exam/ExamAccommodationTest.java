@@ -81,7 +81,7 @@ public class ExamAccommodationTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldThrowIllegalArgumentExceptionBecauseTypeCannotBeNull() {
-        ExamAccommodation examAccommodation = new ExamAccommodation.Builder()
+        new ExamAccommodation.Builder()
             .withId(1L)
             .withExamId(UUID.randomUUID())
             .withSegmentKey("Segment 1")
@@ -93,7 +93,7 @@ public class ExamAccommodationTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldThrowIllegalArgumentExceptionBecauseCodeCannotBeNull() {
-        ExamAccommodation examAccommodation = new ExamAccommodation.Builder()
+        new ExamAccommodation.Builder()
             .withId(1L)
             .withExamId(UUID.randomUUID())
             .withSegmentKey("Segment 1")
@@ -105,7 +105,7 @@ public class ExamAccommodationTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldThrowIllegalArgumentExceptionBecauseCreatedAtCannotBeNull() {
-        ExamAccommodation examAccommodation = new ExamAccommodation.Builder()
+        new ExamAccommodation.Builder()
             .withId(1L)
             .withExamId(UUID.randomUUID())
             .withSegmentKey("Segment 1")

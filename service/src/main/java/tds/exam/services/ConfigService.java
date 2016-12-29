@@ -34,10 +34,19 @@ public interface ConfigService {
     Optional<ClientSystemFlag> findClientSystemFlag(final String clientName, final String auditObject);
 
     /**
-     * Finds the {@link tds.config.Accommodation} for the assessment
+     * Finds the {@link tds.config.Accommodation} for the assessment key
      *
+     * @param clientName the client name associated with the assessment
      * @param assessmentKey the assessment key
-     * @return {@link tds.config.Accommodation} for the assessment
+     * @return {@link tds.config.Accommodation} for the assessment key
      */
-    List<Accommodation> findAssessmentAccommodations(final String assessmentKey);
+    List<Accommodation> findAssessmentAccommodationsByAssessmentKey(final String clientName, final String assessmentKey);
+
+    /**
+     * Finds the {@link tds.config.Accommodation} for the assessment id
+     * @param clientName the client name associated with the assessment
+     * @param assessmentId the assessment id
+     * @return {@link tds.config.Accommodation} for the assessment id
+     */
+    List<Accommodation> findAssessmentAccommodationsByAssessmentId(final String clientName, final String assessmentId);
 }

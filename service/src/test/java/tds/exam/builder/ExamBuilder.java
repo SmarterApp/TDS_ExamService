@@ -44,6 +44,8 @@ public class ExamBuilder {
     private int abnormalStarts = 1;
     private boolean waitingForSegmentApproval = false;
     private int currentSegmentPosition = 1;
+    private boolean customAccommodations = true;
+    private String language = "English";
 
     public Exam build() {
         return new Exam.Builder()
@@ -75,6 +77,7 @@ public class ExamBuilder {
             .withExpireFrom(expireFrom)
             .withWaitingForSegmentApproval(waitingForSegmentApproval)
             .withCurrentSegmentPosition(currentSegmentPosition)
+            .withCustomAccommodation(customAccommodations)
             .build();
     }
 
@@ -214,6 +217,16 @@ public class ExamBuilder {
 
     public ExamBuilder withCurrentSegmentPosition(int currentSegmentPosition) {
         this.currentSegmentPosition = currentSegmentPosition;
+        return this;
+    }
+
+    public ExamBuilder withCustomAccommodations(boolean customAccommodations) {
+        this.customAccommodations = customAccommodations;
+        return this;
+    }
+
+    public ExamBuilder withLanguage(String language) {
+        this.language = language;
         return this;
     }
 }

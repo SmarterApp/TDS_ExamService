@@ -9,7 +9,6 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -153,12 +152,12 @@ public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepositor
         public ExamSegment mapRow(ResultSet rs, int rowNum) throws SQLException {
             return new ExamSegment.Builder()
                     .withExamId(UuidAdapter.getUUIDFromBytes(rs.getBytes("exam_id")))
-                    .withSegmentId(rs.getString("segment_id"))
-                    .withSegmentKey(rs.getString("segment_key"))
+                .withSegmentId(rs.getString("segment_id"))
+                .withSegmentKey(rs.getString("segment_key"))
                     .withSegmentPosition(rs.getInt("segment_position"))
                     .withFormKey(rs.getString("form_key"))
                     .withFormId(rs.getString("form_id"))
-                    .withAlgorithm(Algorithm.fromType(rs.getString("algorithm")))
+                .withAlgorithm(Algorithm.fromType(rs.getString("algorithm")))
                     .withExamItemCount(rs.getInt("exam_item_count"))
                     .withFieldTestItemCount(rs.getInt("field_test_item_count"))
                     .withIsPermeable(rs.getBoolean("permeable"))
@@ -166,7 +165,7 @@ public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepositor
                     .withFormCohort(rs.getString("form_cohort"))
                     .withIsSatisfied(rs.getBoolean("satisfied"))
                     .withDateExited(ResultSetMapperUtility.mapTimestampToInstant(rs, "date_exited"))
-                    .withItemPool(createItemsFromString(rs.getString("item_pool")))
+                .withItemPool(createItemsFromString(rs.getString("item_pool")))
                     .withPoolCount(rs.getInt("pool_count"))
                     .withCreatedAt(ResultSetMapperUtility.mapTimestampToInstant(rs, "created_at"))
                     .build();

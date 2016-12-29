@@ -31,10 +31,10 @@ public class ExamSegmentServiceImpl implements ExamSegmentService {
     private final FieldTestService fieldTestService;
 
     @Autowired
-    public ExamSegmentServiceImpl (ExamSegmentCommandRepository commandRepository,
-                                   SegmentPoolService segmentPoolService,
-                                   FormSelector formSelector,
-                                   FieldTestService fieldTestService) {
+    public ExamSegmentServiceImpl(ExamSegmentCommandRepository commandRepository,
+                                  SegmentPoolService segmentPoolService,
+                                  FormSelector formSelector,
+                                  FieldTestService fieldTestService) {
         this.commandRepository = commandRepository;
         this.segmentPoolService = segmentPoolService;
         this.fieldTestService = fieldTestService;
@@ -93,7 +93,7 @@ public class ExamSegmentServiceImpl implements ExamSegmentService {
 
                     if (!maybeSelectedForm.isPresent()) {
                         throw new IllegalStateException(String.format("Could not select a form for segment '%s' with " +
-                                "language '%s' and cohort '%s'.", segment.getKey(), exam.getLanguageCode(), formCohort));
+                            "language '%s' and cohort '%s'.", segment.getKey(), exam.getLanguageCode(), formCohort));
                     }
                     selectedForm = maybeSelectedForm.get();
                 }

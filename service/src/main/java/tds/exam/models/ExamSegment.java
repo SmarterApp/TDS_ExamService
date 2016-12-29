@@ -1,12 +1,11 @@
 package tds.exam.models;
 
-import tds.assessment.Algorithm;
-import tds.exam.Exam;
-
 import java.time.Instant;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+
+import tds.assessment.Algorithm;
+import tds.exam.Exam;
 
 /**
  * Represents the segment of an exam.

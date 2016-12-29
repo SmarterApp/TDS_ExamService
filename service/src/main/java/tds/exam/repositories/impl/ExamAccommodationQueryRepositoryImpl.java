@@ -43,7 +43,12 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
             "   ea.code, \n" +
             "   ea.description, \n" +
             "   eae.denied_at, \n" +
-            "   ea.created_at \n" +
+            "   ea.created_at, \n" +
+            "   ea.allow_change, \n" +
+            "   ea.value, \n" +
+            "   ea.segment_position, \n" +
+            "   eae.selectable, \n" +
+                "   eae.total_type_count \n" +
             "FROM \n" +
             "   exam_accommodation ea \n" +
             "JOIN ( \n" +
@@ -62,9 +67,9 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
             "   AND ea.segment_key = :segmentKey \n" +
             "   AND eae.deleted_at IS NULL";
 
-        if(accommodationTypes.length > 0) {
+        if (accommodationTypes.length > 0) {
             parameters.addValue("accommodationTypes", Arrays.asList(accommodationTypes));
-            SQL +="   AND ea.`type` IN (:accommodationTypes)";
+            SQL += "   AND ea.`type` IN (:accommodationTypes)";
         }
 
         return jdbcTemplate.query(SQL,
@@ -74,15 +79,15 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
 
     @Override
     public List<ExamAccommodation> findAccommodations(UUID examId) {
-        return getExamAccommodations(examId, false);
+        return getAccommodations(examId, false);
     }
 
     @Override
     public List<ExamAccommodation> findApprovedAccommodations(UUID examId) {
-        return getExamAccommodations(examId, true);
+        return getAccommodations(examId, true);
     }
 
-    private List<ExamAccommodation> getExamAccommodations(UUID examId, boolean excludeDenied) {
+    private List<ExamAccommodation> getAccommodations(UUID examId, boolean excludeDenied) {
         final SqlParameterSource parameters = new MapSqlParameterSource("examId", UuidAdapter.getBytesFromUUID(examId));
 
         String SQL =
@@ -94,7 +99,12 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
                 "   ea.code, \n" +
                 "   ea.description, \n" +
                 "   eae.denied_at, \n" +
-                "   ea.created_at \n" +
+                "   ea.created_at, \n" +
+                "   ea.allow_change, \n" +
+                "   ea.value, \n" +
+                "   ea.segment_position, \n" +
+                "   eae.selectable, \n" +
+                "   eae.total_type_count \n" +
                 "FROM \n" +
                 "   exam_accommodation ea \n" +
                 "JOIN ( \n" +
@@ -133,6 +143,11 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
                 .withDescription(rs.getString("description"))
                 .withDeniedAt(mapTimestampToJodaInstant(rs, "denied_at"))
                 .withCreatedAt(mapTimestampToJodaInstant(rs, "created_at"))
+                .withSelectable(rs.getBoolean("selectable"))
+                .withAllowChange(rs.getBoolean("allow_change"))
+                .withValue(rs.getString("value"))
+                .withSegmentPosition(rs.getInt("segment_position"))
+                .withTotalTypeCount(rs.getInt("total_type_count"))
                 .build();
         }
     }

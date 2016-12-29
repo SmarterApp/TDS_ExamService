@@ -61,6 +61,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
         "ee.abnormal_starts, \n" +
         "ee.waiting_for_segment_approval, \n" +
         "ee.current_segment_position, \n" +
+        "ee.custom_accommodations, \n" +
         "e.created_at, \n" +
         "esc.description, \n" +
         "esc.status, \n" +
@@ -276,6 +277,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 .withAbnormalStarts(rs.getInt("abnormal_starts"))
                 .withWaitingForSegmentApproval(rs.getBoolean("waiting_for_segment_approval"))
                 .withCurrentSegmentPosition(rs.getInt("current_segment_position"))
+                .withCustomAccommodation(rs.getBoolean("custom_accommodations"))
                 .build();
         }
     }

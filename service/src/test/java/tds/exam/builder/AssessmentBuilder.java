@@ -22,6 +22,7 @@ public class AssessmentBuilder {
     private float abilityIntercept;
     private Instant fieldTestStartDate;
     private Instant fieldTestEndDate;
+    private String accommodationFamily = "ELA";
 
     public AssessmentBuilder() {
         segments = Collections.singletonList(new SegmentBuilder().build());
@@ -40,6 +41,7 @@ public class AssessmentBuilder {
         assessment.setAbilityIntercept(abilityIntercept);
         assessment.setInitialAbilityBySubject(initialAbilityBySubject);
         assessment.setSubject(subject);
+        assessment.setAccommodationFamily(accommodationFamily);
         return assessment;
     }
 
@@ -95,6 +97,11 @@ public class AssessmentBuilder {
 
     public AssessmentBuilder withFieldTestEndDate(Instant fieldTestEndDate) {
         this.fieldTestEndDate = fieldTestEndDate;
+        return this;
+    }
+
+    public AssessmentBuilder withAccommodationFamily(String accommodationFamily) {
+        this.accommodationFamily = accommodationFamily;
         return this;
     }
 }

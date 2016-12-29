@@ -11,6 +11,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -41,6 +42,33 @@ public class ExamAccommodationCommandRepositoryIntegrationTests {
     @Test
     public void shouldInsertExamAccommodations() {
         UUID examId = UUID.randomUUID();
+        List<ExamAccommodation> savedExamAccommodations = insertExamAccommodations(examId);
+
+        List<ExamAccommodation> accommodations = accommodationQueryRepository.findAccommodations(examId, "segment", new String[]{"language", "closed captioning"});
+
+        assertThat(accommodations).containsOnly(savedExamAccommodations.toArray(new ExamAccommodation[savedExamAccommodations.size()]));
+    }
+
+    @Test
+    public void shouldDeleteExamAccommodations() {
+        UUID examId = UUID.randomUUID();
+        insertExamAccommodations(examId);
+
+        List<ExamAccommodation> accommodations = accommodationQueryRepository.findAccommodations(examId);
+
+        assertThat(accommodations).hasSize(2);
+
+        ExamAccommodation accommodation = accommodations.get(0);
+        ExamAccommodation deletedAccommodation = accommodations.get(1);
+
+        examAccommodationCommandRepository.delete(Collections.singletonList(deletedAccommodation));
+
+        accommodations = accommodationQueryRepository.findAccommodations(examId);
+
+        assertThat(accommodations).containsExactly(accommodation);
+    }
+
+    private List<ExamAccommodation> insertExamAccommodations(UUID examId) {
         List<ExamAccommodation> mockExamAccommodations = new ArrayList<>();
         // Two accommodations for the first Exam ID
         mockExamAccommodations.add(new ExamAccommodationBuilder()
@@ -52,12 +80,10 @@ public class ExamAccommodationCommandRepositoryIntegrationTests {
             .withSegmentKey("segment")
             .withType("closed captioning")
             .withCode("TDS_ClosedCap0")
+            .withTotalTypeCount(5)
             .build());
 
         examAccommodationCommandRepository.insert(mockExamAccommodations);
-
-        List<ExamAccommodation> accommodations = accommodationQueryRepository.findAccommodations(examId, "segment", "language", "closed captioning");
-
-        assertThat(accommodations).hasSize(2);
+        return mockExamAccommodations;
     }
 }

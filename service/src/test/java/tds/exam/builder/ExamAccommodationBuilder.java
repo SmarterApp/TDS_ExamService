@@ -15,6 +15,7 @@ public class ExamAccommodationBuilder {
         public static final String DEFAULT_SEGMENT_KEY = "segment-1";
         public static final String DEFAULT_ACCOMMODATION_TYPE = "language";
         public static final String DEFAULT_ACCOMMODATION_CODE = "ENU";
+        public static final String DEFAULT_ACCOMMODATION_VALUE = "English";
     }
 
     private long id = 0L;
@@ -26,6 +27,11 @@ public class ExamAccommodationBuilder {
     private Instant deniedAt = null;
     private Instant createdAt = Instant.now();
     private Instant deletedAt = null;
+    private boolean selectable = false;
+    private boolean allowChange = false;
+    private String value = SampleData.DEFAULT_ACCOMMODATION_VALUE;
+    private int segmentPosition = 1;
+    private int totalTypeCount = 1;
 
     public ExamAccommodation build() {
         return new ExamAccommodation.Builder()
@@ -38,6 +44,11 @@ public class ExamAccommodationBuilder {
             .withDeniedAt(deniedAt)
             .withCreatedAt(createdAt)
             .withDeletedAt(deletedAt)
+            .withSelectable(selectable)
+            .withAllowChange(allowChange)
+            .withValue(value)
+            .withSegmentPosition(segmentPosition)
+            .withTotalTypeCount(totalTypeCount)
             .build();
     }
 
@@ -83,6 +94,31 @@ public class ExamAccommodationBuilder {
 
     public ExamAccommodationBuilder withDeletedAt(Instant deletedAt) {
         this.deletedAt = deletedAt;
+        return this;
+    }
+
+    public ExamAccommodationBuilder withSelectable(boolean selectable) {
+        this.selectable = selectable;
+        return this;
+    }
+
+    public ExamAccommodationBuilder withAllowChange(boolean allowChange) {
+        this.allowChange = allowChange;
+        return this;
+    }
+
+    public ExamAccommodationBuilder withValue(String value) {
+        this.value = value;
+        return this;
+    }
+
+    public ExamAccommodationBuilder withSegmentPosition(int segmentPosition) {
+        this.segmentPosition = segmentPosition;
+        return this;
+    }
+
+    public ExamAccommodationBuilder withTotalTypeCount(int totalTypeCount) {
+        this.totalTypeCount = totalTypeCount;
         return this;
     }
 }

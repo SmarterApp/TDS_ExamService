@@ -403,44 +403,44 @@ public class ItemPoolServiceImplTest {
 
         List<ItemConstraint> itemConstraints = new ArrayList<>();
         itemConstraints.add(new ItemConstraint.Builder()
-                .withAssessmentId(assessmentId)
-                .withToolType("--ITEMTYPE--")
-                .withToolValue("ER")
-                .withPropertyName("--ITEMTYPE")
-                .withPropertyValue("ENU")
-                .withInclusive(false)
-                .build());
+            .withAssessmentId(assessmentId)
+            .withToolType("--ITEMTYPE--")
+            .withToolValue("ER")
+            .withPropertyName("--ITEMTYPE")
+            .withPropertyValue("ENU")
+            .withInclusive(false)
+            .build());
         itemConstraints.add(new ItemConstraint.Builder()
-                .withAssessmentId(assessmentId)
-                .withToolType("Language")
-                .withToolValue("ESN")
-                .withPropertyName("Language")
-                .withPropertyValue("ESN")
-                .withInclusive(true)
-                .build());
+            .withAssessmentId(assessmentId)
+            .withToolType("Language")
+            .withToolValue("ESN")
+            .withPropertyName("Language")
+            .withPropertyValue("ESN")
+            .withInclusive(true)
+            .build());
 
         List<ExamAccommodation> examAccommodations = new ArrayList<>();
         examAccommodations.add(new ExamAccommodation.Builder()
-                .withExamId(examId)
-                .withType("Language")
-                .withCode("ENU")
-                .withDescription("English")
-                .withSegmentKey(segmentKey)
-                .build());
+            .withExamId(examId)
+            .withType("Language")
+            .withCode("ENU")
+            .withDescription("English")
+            .withSegmentKey(segmentKey)
+            .build());
         examAccommodations.add(new ExamAccommodation.Builder()
-                .withExamId(examId)
-                .withType("type1")
-                .withCode("TDS_T1")
-                .withDescription("type 1 desc")
-                .withSegmentKey(segmentKey)
-                .build());
+            .withExamId(examId)
+            .withType("type1")
+            .withCode("TDS_T1")
+            .withDescription("type 1 desc")
+            .withSegmentKey(segmentKey)
+            .build());
         examAccommodations.add(new ExamAccommodation.Builder()
-                .withExamId(examId)
-                .withType("type1")
-                .withCode("TDS_T1")
-                .withDescription("type 1 desc")
-                .withSegmentKey(segmentKey)
-                .build());
+            .withExamId(examId)
+            .withType("type1")
+            .withCode("TDS_T1")
+            .withDescription("type 1 desc")
+            .withSegmentKey(segmentKey)
+            .build());
 
         when(mockExamAccommodationService.findAllAccommodations(examId)).thenReturn(examAccommodations);
         Set<Item> retItemIds = itemPoolService.getItemPool(examId, itemConstraints, items);

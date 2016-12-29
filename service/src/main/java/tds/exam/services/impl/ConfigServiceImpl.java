@@ -82,10 +82,23 @@ class ConfigServiceImpl implements ConfigService {
     }
 
     @Override
-    public List<Accommodation> findAssessmentAccommodations(String assessmentKey) {
+    public List<Accommodation> findAssessmentAccommodationsByAssessmentKey(final String clientName, final String assessmentKey) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
-                .fromHttpUrl(String.format("%s/accommodations/%s", examServiceProperties.getConfigUrl(), assessmentKey));
+                .fromHttpUrl(String.format("%s/%s/accommodations/%s", examServiceProperties.getConfigUrl(), clientName, assessmentKey));
+
+        ResponseEntity<List<Accommodation>> responseEntity = restTemplate.exchange(builder.toUriString(),
+            HttpMethod.GET, null, new ParameterizedTypeReference<List<Accommodation>>() {
+            });
+
+        return responseEntity.getBody();
+    }
+
+    @Override
+    public List<Accommodation> findAssessmentAccommodationsByAssessmentId(String clientName, String assessmentId) {
+        UriComponentsBuilder builder =
+            UriComponentsBuilder
+                .fromHttpUrl(String.format("%s/%s/accommodations?assessmentId=%s", examServiceProperties.getConfigUrl(), clientName, assessmentId));
 
         ResponseEntity<List<Accommodation>> responseEntity = restTemplate.exchange(builder.toUriString(),
             HttpMethod.GET, null, new ParameterizedTypeReference<List<Accommodation>>() {
