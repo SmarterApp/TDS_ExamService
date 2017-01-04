@@ -50,11 +50,10 @@ public class ConfigServiceImplTest {
     public void shouldFindAssessmentWindows() {
         AssessmentWindow window = new AssessmentWindow.Builder().build();
         String url = UriComponentsBuilder
-            .fromHttpUrl(String.format("%s/assessment-windows/%s/%s/session-type/%d/student/%d",
+            .fromHttpUrl(String.format("%s/assessment-windows/%s/%s/student/%d",
                 BASE_URL,
                 "SBAC_PT",
                 "ELA 11",
-                0,
                 23))
             .queryParam("shiftWindowStart", 1)
             .queryParam("shiftWindowEnd", 2)
@@ -75,7 +74,7 @@ public class ConfigServiceImplTest {
         }))
             .thenReturn(entity);
 
-        List<AssessmentWindow> windows = configService.findAssessmentWindows("SBAC_PT", "ELA 11", 0, 23, config);
+        List<AssessmentWindow> windows = configService.findAssessmentWindows("SBAC_PT", "ELA 11", 23, config);
 
         assertThat(windows).containsExactly(window);
     }

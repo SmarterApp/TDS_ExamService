@@ -11,7 +11,6 @@ import tds.session.Session;
 public class SessionBuilder {
     private UUID id = UUID.randomUUID();
     private String sessionKey = "ADM-23";
-    private int type = 0;
     private String status = "open";
     private Instant dateBegin = Instant.now().minus(Minutes.minutes(20).toStandardDuration());
     private Instant dateEnd = Instant.now().plus(Hours.EIGHT.toStandardDuration());
@@ -25,7 +24,6 @@ public class SessionBuilder {
         return new Session.Builder()
             .withId(id)
             .withSessionKey(sessionKey)
-            .withType(type)
             .withStatus(status)
             .withDateBegin(dateBegin)
             .withDateEnd(dateEnd)
@@ -44,11 +42,6 @@ public class SessionBuilder {
 
     public SessionBuilder withSessionKey(String sessionKey) {
         this.sessionKey = sessionKey;
-        return this;
-    }
-
-    public SessionBuilder withType(int type) {
-        this.type = type;
         return this;
     }
 

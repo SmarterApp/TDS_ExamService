@@ -17,12 +17,11 @@ public interface ConfigService {
      *
      * @param clientName    environment's client name
      * @param assessmentId  the assessment id for the assessment
-     * @param sessionType   exam session type
      * @param studentId     identifier to the student
      * @param configuration {@link tds.session.ExternalSessionConfiguration} for the environment
      * @return array of {@link tds.config.AssessmentWindow}
      */
-    List<AssessmentWindow> findAssessmentWindows(String clientName, String assessmentId, int sessionType, long studentId, ExternalSessionConfiguration configuration);
+    List<AssessmentWindow> findAssessmentWindows(String clientName, String assessmentId, long studentId, ExternalSessionConfiguration configuration);
 
     /**
      * Finds the {@link tds.config.ClientSystemFlag} for client

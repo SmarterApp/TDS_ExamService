@@ -37,17 +37,15 @@ class ConfigServiceImpl implements ConfigService {
     @Override
     public List<AssessmentWindow> findAssessmentWindows(String clientName,
                                                         String assessmentId,
-                                                        int sessionType,
                                                         long studentId,
                                                         ExternalSessionConfiguration configuration) {
 
         UriComponentsBuilder builder =
             UriComponentsBuilder
-                .fromHttpUrl(String.format("%s/assessment-windows/%s/%s/session-type/%d/student/%d",
+                .fromHttpUrl(String.format("%s/assessment-windows/%s/%s/student/%d",
                     examServiceProperties.getConfigUrl(),
                     clientName,
                     assessmentId,
-                    sessionType,
                     studentId));
 
         builder.queryParam("shiftWindowStart", configuration.getShiftWindowStart());

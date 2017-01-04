@@ -193,47 +193,6 @@ public class ExamServiceImplTest {
         assertThat(response.getErrors()[0].getCode()).isEqualTo(ValidationErrorCode.SESSION_NOT_OPEN);
     }
 
-    @Test
-    public void shouldReturnErrorWhenOpenExamPreviousSessionTypeDoesNotEqualCurrentSessionType() {
-        OpenExamRequest openExamRequest = new OpenExamRequestBuilder().build();
-
-        Session currentSession = new SessionBuilder()
-            .withType(2)
-            .build();
-
-        Session previousSession = new SessionBuilder()
-            .withId(UUID.randomUUID())
-            .withType(33)
-            .build();
-
-        Student student = new Student(openExamRequest.getStudentId(), "testId", "CA", openExamRequest.getClientName());
-
-        Exam previousExam = new Exam.Builder()
-            .withId(UUID.randomUUID())
-            .withSessionId(previousSession.getId())
-            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.INACTIVE), Instant.now())
-            .build();
-
-        ExternalSessionConfiguration extSessionConfig = new ExternalSessionConfiguration(openExamRequest.getClientName(), SIMULATION_ENVIRONMENT, 0, 0, 0, 0);
-
-        Assessment assessment = new AssessmentBuilder().build();
-
-        when(mockSessionService.findExternalSessionConfigurationByClientName(openExamRequest.getClientName())).thenReturn(Optional.of(extSessionConfig));
-        when(mockAssessmentService.findAssessment(openExamRequest.getClientName(), openExamRequest.getAssessmentKey())).thenReturn(Optional.of(assessment));
-        when(mockSessionService.findSessionById(openExamRequest.getSessionId())).thenReturn(Optional.of(currentSession));
-        when(mockStudentService.getStudentById(openExamRequest.getStudentId())).thenReturn(Optional.of(student));
-        when(mockExamQueryRepository.getLastAvailableExam(openExamRequest.getStudentId(), assessment.getAssessmentId(), openExamRequest.getClientName())).thenReturn(Optional.of(previousExam));
-        when(mockSessionService.findSessionById(previousSession.getId())).thenReturn(Optional.of(previousSession));
-
-        Response<Exam> examResponse = examService.openExam(openExamRequest);
-
-        assertThat(examResponse.getData().isPresent()).isFalse();
-        assertThat(examResponse.getErrors()).hasSize(1);
-
-        ValidationError validationError = examResponse.getErrors()[0];
-        assertThat(validationError.getCode()).isEqualTo(ValidationErrorCode.SESSION_TYPE_MISMATCH);
-    }
-
     @Test(expected = IllegalStateException.class)
     public void shouldThrowIllegalStateIfExternSessionConfigCannotBeFoundWhileOpeningExam() {
         OpenExamRequest openExamRequest = new OpenExamRequestBuilder().build();
@@ -246,13 +205,10 @@ public class ExamServiceImplTest {
         OpenExamRequest openExamRequest = new OpenExamRequestBuilder().build();
 
         Session currentSession = new SessionBuilder()
-            .withType(2)
             .build();
-
 
         Session previousSession = new SessionBuilder()
             .withId(UUID.randomUUID())
-            .withType(2)
             .build();
 
         Student student = new Student(1, "testId", "CA", "clientName");
@@ -292,7 +248,6 @@ public class ExamServiceImplTest {
             .build();
         Instant startTestTime = Instant.now().minus(Minutes.minutes(1).toStandardDuration());
         Session currentSession = new SessionBuilder()
-            .withType(2)
             .build();
 
         Assessment assessment = new AssessmentBuilder().build();
@@ -316,7 +271,7 @@ public class ExamServiceImplTest {
         when(mockAssessmentService.findAssessment(openExamRequest.getClientName(), openExamRequest.getAssessmentKey())).thenReturn(Optional.of(assessment));
         when(mockExamQueryRepository.getLastAvailableExam(openExamRequest.getStudentId(), assessment.getAssessmentId(), openExamRequest.getClientName())).thenReturn(Optional.empty());
         when(mockSessionService.findExternalSessionConfigurationByClientName(openExamRequest.getClientName())).thenReturn(Optional.of(extSessionConfig));
-        when(mockConfigService.findAssessmentWindows(openExamRequest.getClientName(), assessment.getAssessmentId(), currentSession.getType(), openExamRequest.getStudentId(), extSessionConfig))
+        when(mockConfigService.findAssessmentWindows(openExamRequest.getClientName(), assessment.getAssessmentId(), openExamRequest.getStudentId(), extSessionConfig))
             .thenReturn(Collections.singletonList(window));
         when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(openExamRequest.getClientName(), openExamRequest.getAssessmentKey())).thenReturn(Optional.of(configuration));
         when(mockExamStatusQueryRepository.findExamStatusCode(STATUS_PENDING)).thenReturn(new ExamStatusCode(STATUS_PENDING, OPEN));
@@ -351,7 +306,6 @@ public class ExamServiceImplTest {
             .build();
 
         Session currentSession = new SessionBuilder()
-            .withType(2)
             .build();
 
         ClientSystemFlag clientSystemFlag = new ClientSystemFlag.Builder().withEnabled(true).build();
@@ -381,7 +335,7 @@ public class ExamServiceImplTest {
         when(mockStudentService.getStudentById(openExamRequest.getStudentId())).thenReturn(Optional.empty());
         when(mockAssessmentService.findAssessment(openExamRequest.getClientName(), openExamRequest.getAssessmentKey())).thenReturn(Optional.of(assessment));
         when(mockExamQueryRepository.getLastAvailableExam(openExamRequest.getStudentId(), assessment.getAssessmentId(), openExamRequest.getClientName())).thenReturn(Optional.empty());
-        when(mockConfigService.findAssessmentWindows(openExamRequest.getClientName(), assessment.getAssessmentId(), currentSession.getType(), openExamRequest.getStudentId(), extSessionConfig))
+        when(mockConfigService.findAssessmentWindows(openExamRequest.getClientName(), assessment.getAssessmentId(), openExamRequest.getStudentId(), extSessionConfig))
             .thenReturn(Collections.singletonList(window));
         when(mockConfigService.findAssessmentAccommodationsByAssessmentKey(openExamRequest.getClientName(), openExamRequest.getAssessmentKey()))
             .thenReturn(Collections.singletonList(accommodation));
@@ -403,7 +357,6 @@ public class ExamServiceImplTest {
             .withProctorId(99L)
             .build();
         Session currentSession = new SessionBuilder()
-            .withType(2)
             .build();
 
         Student student = new Student(1, "loginSSD", "CA", openExamRequest.getClientName());
@@ -428,7 +381,7 @@ public class ExamServiceImplTest {
         when(mockSessionService.findExternalSessionConfigurationByClientName(openExamRequest.getClientName())).thenReturn(Optional.of(extSessionConfig));
         when(mockStudentService.findStudentPackageAttributes(openExamRequest.getStudentId(), openExamRequest.getClientName(), EXTERNAL_ID, ENTITY_NAME, ACCOMMODATIONS))
             .thenReturn(Arrays.asList(externalIdAttribute, entityNameAttribute));
-        when(mockConfigService.findAssessmentWindows(openExamRequest.getClientName(), assessment.getAssessmentId(), currentSession.getType(), openExamRequest.getStudentId(), extSessionConfig))
+        when(mockConfigService.findAssessmentWindows(openExamRequest.getClientName(), assessment.getAssessmentId(), openExamRequest.getStudentId(), extSessionConfig))
             .thenReturn(Collections.singletonList(window));
         when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(openExamRequest.getClientName(), openExamRequest.getAssessmentKey())).thenReturn(Optional.of(configuration));
         when(mockExamStatusQueryRepository.findExamStatusCode(STATUS_PENDING)).thenReturn(new ExamStatusCode(STATUS_PENDING, OPEN));
@@ -452,12 +405,10 @@ public class ExamServiceImplTest {
             .build();
 
         Session currentSession = new SessionBuilder()
-            .withType(2)
             .build();
 
         Session previousSession = new SessionBuilder()
             .withId(UUID.randomUUID())
-            .withType(2)
             .build();
 
         Student student = new Student(1, "loginSSD", "CA", request.getClientName());
@@ -514,12 +465,10 @@ public class ExamServiceImplTest {
             .build();
 
         Session currentSession = new SessionBuilder()
-            .withType(2)
             .build();
 
         Session previousSession = new SessionBuilder()
             .withId(UUID.randomUUID())
-            .withType(2)
             .withStatus("closed")
             .build();
 
@@ -566,12 +515,10 @@ public class ExamServiceImplTest {
         OpenExamRequest request = new OpenExamRequestBuilder().build();
 
         Session currentSession = new SessionBuilder()
-            .withType(2)
             .build();
 
         Session previousSession = new SessionBuilder()
             .withId(request.getSessionId())
-            .withType(2)
             .build();
 
         Student student = new Student(1, "testId", "CA", request.getClientName());
@@ -621,12 +568,10 @@ public class ExamServiceImplTest {
         OpenExamRequest request = new OpenExamRequestBuilder().build();
 
         Session currentSession = new SessionBuilder()
-            .withType(2)
             .build();
 
         Session previousSession = new SessionBuilder()
             .withId(UUID.randomUUID())
-            .withType(2)
             .withDateEnd(Instant.now().minus(Days.days(1).toStandardDuration()))
             .build();
 
@@ -678,12 +623,10 @@ public class ExamServiceImplTest {
             .build();
 
         Session currentSession = new SessionBuilder()
-            .withType(2)
             .build();
 
         Session previousSession = new SessionBuilder()
             .withId(UUID.randomUUID())
-            .withType(2)
             .withDateEnd(Instant.now().minus(Days.days(1).toStandardDuration()))
             .build();
 

@@ -83,13 +83,13 @@ public class ExamControllerTest {
     @Test
     public void shouldCreateErrorResponseWhenOpenExamFailsWithValidationError() {
         OpenExamRequest openExamRequest = new OpenExamRequestBuilder().build();
-        when(mockExamService.openExam(openExamRequest)).thenReturn(new Response<Exam>(new ValidationError(ValidationErrorCode.SESSION_TYPE_MISMATCH, "Session mismatch")));
+        when(mockExamService.openExam(openExamRequest)).thenReturn(new Response<Exam>(new ValidationError(ValidationErrorCode.PREVIOUS_SESSION_NOT_FOUND, "Session not found")));
 
         ResponseEntity<Response<Exam>> response = controller.openExam(openExamRequest);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
         assertThat(response.getBody().getErrors()).hasSize(1);
-        assertThat(response.getBody().getErrors()[0].getCode()).isEqualTo(ValidationErrorCode.SESSION_TYPE_MISMATCH);
+        assertThat(response.getBody().getErrors()[0].getCode()).isEqualTo(ValidationErrorCode.PREVIOUS_SESSION_NOT_FOUND);
     }
 
     @Test

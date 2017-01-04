@@ -2,8 +2,6 @@ package tds.exam.services.impl;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.Minutes;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -54,6 +52,7 @@ import tds.session.Session;
 import tds.student.RtsStudentPackageAttribute;
 
 import static java.time.temporal.ChronoUnit.DAYS;
+import static java.util.Comparator.comparing;
 import static tds.common.time.JodaTimeConverter.convertJodaInstant;
 import static tds.config.ClientSystemFlag.ALLOW_ANONYMOUS_STUDENT_FLAG_TYPE;
 import static tds.config.ClientSystemFlag.RESTORE_ACCOMMODATIONS_TYPE;
@@ -67,7 +66,6 @@ import static tds.student.RtsStudentPackageAttribute.EXTERNAL_ID;
 
 @Service
 class ExamServiceImpl implements ExamService {
-    private static final Logger LOG = LoggerFactory.getLogger(ExamServiceImpl.class);
     private static final int CONTENT_LOAD_TIMEOUT = 120;
 
     private final ExamQueryRepository examQueryRepository;
@@ -517,7 +515,7 @@ class ExamServiceImpl implements ExamService {
         List<AssessmentWindow> assessmentWindows = configService.findAssessmentWindows(
             openExamRequest.getClientName(),
             assessment.getAssessmentId(),
-            session.getType(),
+
             openExamRequest.getStudentId(),
             externalSessionConfiguration
         );
@@ -525,7 +523,7 @@ class ExamServiceImpl implements ExamService {
         //OpenTestServiceImpl lines 344 - 365
         Optional<AssessmentWindow> maybeWindow = assessmentWindows.stream()
             .filter(assessmentWindow -> assessmentWindow.getAssessmentKey().equals(openExamRequest.getAssessmentKey()))
-            .min((o1, o2) -> o1.getStartTime().compareTo(o2.getStartTime()));
+            .min(comparing(AssessmentWindow::getStartTime));
 
         //OpenTestServiceImpl line 367 - 368 validation check.  no window no exam
         if (!maybeWindow.isPresent()) {
@@ -640,10 +638,10 @@ class ExamServiceImpl implements ExamService {
         String guestAccommodations = openExamRequest.getGuestAccommodations();
         Optional<ClientSystemFlag> maybeRestoreAccommodations = configService.findClientSystemFlag(openExamRequest.getClientName(), RESTORE_ACCOMMODATIONS_TYPE);
         boolean restoreAccommodations = maybeRestoreAccommodations.isPresent() && maybeRestoreAccommodations.get().isEnabled();
-        if(restoreAccommodations && !openExamRequest.isGuestStudent()) {
+        if (restoreAccommodations && !openExamRequest.isGuestStudent()) {
             List<RtsStudentPackageAttribute> attributes = studentService.findStudentPackageAttributes(openExamRequest.getStudentId(), openExamRequest.getClientName(), ACCOMMODATIONS);
 
-            if(!attributes.isEmpty()) {
+            if (!attributes.isEmpty()) {
                 //If there are any attributes returned it should only be the one for restore accommodations
                 RtsStudentPackageAttribute restoreAccommodationAttribute = attributes.get(0);
                 guestAccommodations = restoreAccommodationAttribute.getValue();
@@ -651,8 +649,6 @@ class ExamServiceImpl implements ExamService {
         }
 
         examAccommodationService.initializeAccommodationsOnPreviousExam(previousExam, assessment, 0, restoreAccommodations, guestAccommodations);
-
-        //TODO - Custom accommodations?
 
         return new Response<>(currentExam);
     }
@@ -664,16 +660,12 @@ class ExamServiceImpl implements ExamService {
         }
 
         //Port of Student.DLL lines 5531-5551
-        //If either session type is null or if they don't match an error is returned
         Optional<Session> maybePreviousSession = sessionService.findSessionById(previousExam.getSessionId());
         if (!maybePreviousSession.isPresent()) {
-            return Optional.of(new ValidationError(ValidationErrorCode.SESSION_TYPE_MISMATCH, "current session type and previous session type don't match"));
+            return Optional.of(new ValidationError(ValidationErrorCode.PREVIOUS_SESSION_NOT_FOUND, "Exam's previous session could not be found"));
         }
 
         Session previousSession = maybePreviousSession.get();
-        if (previousSession.getType() != currentSession.getType()) {
-            return Optional.of(new ValidationError(ValidationErrorCode.SESSION_TYPE_MISMATCH, "current session type and previous session type don't match"));
-        }
 
         //Port of Student.DLL lines 5555-5560
         if (ExamStatusStage.INACTIVE.equals(previousExam.getStatus().getStage())) {
