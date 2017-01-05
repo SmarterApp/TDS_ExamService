@@ -13,7 +13,7 @@ public class ExamApproval {
     public ExamApproval(UUID examId, ExamStatusCode examStatusCode, String statusChangeReason) {
         this.examId = examId;
         this.statusChangeReason = statusChangeReason;
-        this.examApprovalStatus = ExamApprovalStatus.fromExamStatus(examStatusCode.getStatus());
+        this.examApprovalStatus = ExamApprovalStatus.fromExamStatus(examStatusCode.getCode());
     }
 
     /**

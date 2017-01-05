@@ -89,7 +89,7 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
         SqlParameterSource[] batchParameters = Stream.of(exams)
             .map(exam -> new MapSqlParameterSource("examId", getBytesFromUUID(exam.getId()))
                 .addValue("attempts", exam.getAttempts())
-                .addValue("status", exam.getStatus().getStatus())
+                .addValue("status", exam.getStatus().getCode())
                 .addValue("statusChangeDate", mapJodaInstantToTimestamp(exam.getStatusChangeDate()))
                 .addValue("browserId", getBytesFromUUID(exam.getBrowserId()))
                 .addValue("maxItems", exam.getMaxItems())

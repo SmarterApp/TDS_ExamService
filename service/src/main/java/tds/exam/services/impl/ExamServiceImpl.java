@@ -251,9 +251,9 @@ class ExamServiceImpl implements ExamService {
         Exam exam = examQueryRepository.getExamById(examId)
             .orElseThrow(() -> new NotFoundException(String.format("Exam could not be found for id %s", examId)));
 
-        if (!statusesThatCanTransitionToPaused.contains(exam.getStatus().getStatus())) {
+        if (!statusesThatCanTransitionToPaused.contains(exam.getStatus().getCode())) {
             return Optional.of(new ValidationError(ValidationErrorCode.EXAM_STATUS_TRANSITION_FAILURE,
-                String.format("Bad status transition from %s to %s", exam.getStatus().getStatus(), ExamStatusCode.STATUS_PAUSED)));
+                String.format("Bad status transition from %s to %s", exam.getStatus().getCode(), ExamStatusCode.STATUS_PAUSED)));
         }
 
         // A status change reason is not required for pausing an exam.
@@ -351,7 +351,7 @@ class ExamServiceImpl implements ExamService {
         Exam exam = maybeExam.get();
 
         /* TestOpportunityServiceImpl [155] No need to go any further, so moving before service calls */
-        if (!exam.getStatus().getStatus().equalsIgnoreCase(ExamStatusCode.STATUS_APPROVED)) {
+        if (!exam.getStatus().getCode().equalsIgnoreCase(ExamStatusCode.STATUS_APPROVED)) {
             return new Response<ExamConfiguration>(new ValidationError(
                 ExamStatusCode.STATUS_FAILED, String.format("Cannot start exam %s: Exam was not approved.", examId)
             ));

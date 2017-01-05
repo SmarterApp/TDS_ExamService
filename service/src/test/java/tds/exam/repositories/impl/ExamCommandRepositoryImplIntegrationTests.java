@@ -142,7 +142,7 @@ public class ExamCommandRepositoryImplIntegrationTests {
 
         assertThat(maybeMockFirstExamAfterUpdate).isPresent();
         Exam mockFirstExamAfterUpdate = maybeMockFirstExamAfterUpdate.get();
-        assertThat(mockFirstExamAfterUpdate.getStatus().getStatus()).isEqualTo(ExamStatusCode.STATUS_APPROVED);
+        assertThat(mockFirstExamAfterUpdate.getStatus().getCode()).isEqualTo(ExamStatusCode.STATUS_APPROVED);
         assertThat(mockFirstExamAfterUpdate.getStatusChangeDate().getMillis()).isGreaterThan(mockFirstExam.getStatusChangeDate().getMillis());
         assertThat(mockFirstExamAfterUpdate.getAttempts()).isEqualTo(500);
         assertThat(mockFirstExamAfterUpdate.getStatusChangeReason()).isEqualTo("unit test");
@@ -152,7 +152,7 @@ public class ExamCommandRepositoryImplIntegrationTests {
 
         assertThat(maybeMockSecondExamAfterUpdate).isPresent();
         Exam mockSecondExamAfterUpdate = maybeMockSecondExamAfterUpdate.get();
-        assertThat(mockSecondExamAfterUpdate.getStatus().getStatus()).isEqualTo(ExamStatusCode.STATUS_STARTED);
+        assertThat(mockSecondExamAfterUpdate.getStatus().getCode()).isEqualTo(ExamStatusCode.STATUS_STARTED);
         assertThat(mockSecondExamAfterUpdate.getStatusChangeDate().getMillis()).isGreaterThan(mockSecondExam.getStatusChangeDate().getMillis());
         assertThat(mockSecondExamAfterUpdate.getMaxItems()).isEqualTo(600);
         assertThat(mockSecondExamAfterUpdate.getStatusChangeReason()).isEqualTo("unit test 2");

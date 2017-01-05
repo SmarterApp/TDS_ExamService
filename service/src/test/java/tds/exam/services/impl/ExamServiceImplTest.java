@@ -294,7 +294,7 @@ public class ExamServiceImplTest {
         assertThat(exam.getLoginSSID()).isEqualTo("GUEST");
         assertThat(exam.getStudentName()).isEqualTo("GUEST");
         assertThat(exam.getEnvironment()).isEqualTo(extSessionConfig.getEnvironment());
-        assertThat(exam.getStatus().getStatus()).isEqualTo(STATUS_PENDING);
+        assertThat(exam.getStatus().getCode()).isEqualTo(STATUS_PENDING);
         assertThat(exam.getSubject()).isEqualTo(assessment.getSubject());
     }
 
@@ -347,7 +347,7 @@ public class ExamServiceImplTest {
         assertThat(examResponse.getErrors()).isEmpty();
 
         Exam exam = examResponse.getData().get();
-        assertThat(exam.getStatus().getStatus()).isEqualTo(ExamStatusCode.STATUS_APPROVED);
+        assertThat(exam.getStatus().getCode()).isEqualTo(ExamStatusCode.STATUS_APPROVED);
     }
 
     @Test
@@ -393,7 +393,7 @@ public class ExamServiceImplTest {
         assertThat(examResponse.getErrors()).isEmpty();
 
         Exam exam = examResponse.getData().get();
-        assertThat(exam.getStatus().getStatus()).isEqualTo(STATUS_PENDING);
+        assertThat(exam.getStatus().getCode()).isEqualTo(STATUS_PENDING);
         assertThat(exam.getStudentName()).isEqualTo("Entity Id");
         assertThat(exam.getLoginSSID()).isEqualTo("External Id");
     }
@@ -452,7 +452,7 @@ public class ExamServiceImplTest {
         assertThat(savedExam.getId()).isEqualTo(previousExam.getId());
         assertThat(savedExam.getBrowserId()).isEqualTo(request.getBrowserId());
         assertThat(savedExam.getBrowserId()).isNotEqualTo(previousExam.getBrowserId());
-        assertThat(savedExam.getStatus().getStatus()).isEqualTo(STATUS_PENDING);
+        assertThat(savedExam.getStatus().getCode()).isEqualTo(STATUS_PENDING);
         assertThat(savedExam.getStatusChangeDate()).isGreaterThan(approvedStatusDate);
         assertThat(savedExam.getDateChanged()).isNotNull();
         assertThat(savedExam.getDateStarted()).isEqualTo(previousExam.getDateStarted());
@@ -504,7 +504,7 @@ public class ExamServiceImplTest {
         assertThat(savedExam.getId()).isEqualTo(previousExam.getId());
         assertThat(savedExam.getBrowserId()).isEqualTo(request.getBrowserId());
         assertThat(savedExam.getBrowserId()).isNotEqualTo(previousExam.getBrowserId());
-        assertThat(savedExam.getStatus().getStatus()).isEqualTo(STATUS_PENDING);
+        assertThat(savedExam.getStatus().getCode()).isEqualTo(STATUS_PENDING);
         assertThat(savedExam.getStatusChangeDate()).isGreaterThan(approvedStatusDate);
         assertThat(savedExam.getDateChanged()).isNotNull();
         assertThat(savedExam.getDateStarted()).isEqualTo(previousExam.getDateStarted());
@@ -557,7 +557,7 @@ public class ExamServiceImplTest {
         assertThat(savedExam.getId()).isEqualTo(previousExam.getId());
         assertThat(savedExam.getBrowserId()).isEqualTo(request.getBrowserId());
         assertThat(savedExam.getBrowserId()).isNotEqualTo(previousExam.getBrowserId());
-        assertThat(savedExam.getStatus().getStatus()).isEqualTo(STATUS_PENDING);
+        assertThat(savedExam.getStatus().getCode()).isEqualTo(STATUS_PENDING);
         assertThat(savedExam.getStatusChangeDate()).isGreaterThan(approvedStatusDate);
         assertThat(savedExam.getDateChanged()).isNotNull();
         assertThat(savedExam.getDateStarted()).isEqualTo(previousExam.getDateStarted());
@@ -610,7 +610,7 @@ public class ExamServiceImplTest {
         assertThat(savedExam.getId()).isEqualTo(previousExam.getId());
         assertThat(savedExam.getBrowserId()).isEqualTo(request.getBrowserId());
         assertThat(savedExam.getBrowserId()).isNotEqualTo(previousExam.getBrowserId());
-        assertThat(savedExam.getStatus().getStatus()).isEqualTo(STATUS_PENDING);
+        assertThat(savedExam.getStatus().getCode()).isEqualTo(STATUS_PENDING);
         assertThat(savedExam.getStatusChangeDate()).isGreaterThan(approvedStatusDate);
         assertThat(savedExam.getDateChanged()).isNotNull();
         assertThat(savedExam.getDateStarted()).isEqualTo(previousExam.getDateStarted());
@@ -661,7 +661,7 @@ public class ExamServiceImplTest {
         assertThat(savedExam.getId()).isEqualTo(previousExam.getId());
         assertThat(savedExam.getBrowserId()).isEqualTo(request.getBrowserId());
         assertThat(savedExam.getBrowserId()).isNotEqualTo(previousExam.getBrowserId());
-        assertThat(savedExam.getStatus().getStatus()).isEqualTo(STATUS_SUSPENDED);
+        assertThat(savedExam.getStatus().getCode()).isEqualTo(STATUS_SUSPENDED);
         assertThat(savedExam.getStatusChangeDate()).isGreaterThan(approvedStatusDate);
         assertThat(savedExam.getDateChanged()).isNotNull();
         assertThat(savedExam.getDateStarted()).isEqualTo(previousExam.getDateStarted());
@@ -1461,7 +1461,7 @@ public class ExamServiceImplTest {
         assertThat(updatedExam.getDateChanged()).isGreaterThan(exam.getDateChanged());
         assertThat(updatedExam.getExpireFrom()).isNotNull();
         assertThat(updatedExam.getStatus().getStage()).isEqualTo(ExamStatusStage.IN_PROGRESS);
-        assertThat(updatedExam.getStatus().getStatus()).isEqualTo(ExamStatusCode.STATUS_STARTED);
+        assertThat(updatedExam.getStatus().getCode()).isEqualTo(ExamStatusCode.STATUS_STARTED);
         assertThat(updatedExam.getStatusChangeDate()).isGreaterThan(approvedStatusDate);
     }
 
@@ -1534,7 +1534,7 @@ public class ExamServiceImplTest {
         assertThat(updatedExam.getDateChanged()).isGreaterThan(exam.getDateChanged());
         assertThat(updatedExam.getExpireFrom()).isNull();
         assertThat(updatedExam.getStatus().getStage()).isEqualTo(ExamStatusStage.IN_PROGRESS);
-        assertThat(updatedExam.getStatus().getStatus()).isEqualTo(ExamStatusCode.STATUS_STARTED);
+        assertThat(updatedExam.getStatus().getCode()).isEqualTo(ExamStatusCode.STATUS_STARTED);
         assertThat(updatedExam.getStatusChangeDate()).isGreaterThan(approvedStatusDate);
     }
 
@@ -1612,7 +1612,7 @@ public class ExamServiceImplTest {
         assertThat(updatedExam.getDateChanged()).isGreaterThan(exam.getDateChanged());
         assertThat(updatedExam.getExpireFrom()).isNull();
         assertThat(updatedExam.getStatus().getStage()).isEqualTo(ExamStatusStage.IN_PROGRESS);
-        assertThat(updatedExam.getStatus().getStatus()).isEqualTo(ExamStatusCode.STATUS_STARTED);
+        assertThat(updatedExam.getStatus().getCode()).isEqualTo(ExamStatusCode.STATUS_STARTED);
         assertThat(updatedExam.getStatusChangeDate()).isGreaterThan(approvedStatusDate);
     }
 

@@ -9,12 +9,19 @@ public class ExamStatusCode {
     public static final String STATUS_INITIALIZING = "initializing";
     public static final String STATUS_STARTED = "started";
     public static final String STATUS_FAILED = "failed";
+    public static final String STATUS_DENIED = "denied";
+    public static final String STATUS_COMPLETED = "completed";
+    public static final String STATUS_SCORED = "scored";
+    public static final String STAUTS_SEGMENT_ENTRY = "segmentEntry";
+    public static final String STATUS_SEGMENT_EXIT = "segmentExit";
+    public static final String STATUS_CLOSED = "closed";
+    public static final String STATUS_DISABLED = "disabled";
 
-    private String status;
+    private String code;
     private ExamStatusStage stage;
 
-    public String getStatus() {
-        return status;
+    public String getCode() {
+        return code;
     }
 
     public ExamStatusStage getStage() {
@@ -27,8 +34,8 @@ public class ExamStatusCode {
     private ExamStatusCode() {
     }
 
-    public ExamStatusCode(String status, ExamStatusStage stage) {
-        this.status = status;
+    public ExamStatusCode(String code, ExamStatusStage stage) {
+        this.code = code;
         this.stage = stage;
     }
 
@@ -39,14 +46,14 @@ public class ExamStatusCode {
 
         ExamStatusCode that = (ExamStatusCode) o;
 
-        if (status != null ? !status.equals(that.status) : that.status != null) return false;
+        if (code != null ? !code.equals(that.code) : that.code != null) return false;
         return stage != null ? stage.equals(that.stage) : that.stage == null;
 
     }
 
     @Override
     public int hashCode() {
-        int result = status != null ? status.hashCode() : 0;
+        int result = code != null ? code.hashCode() : 0;
         result = 31 * result + (stage != null ? stage.hashCode() : 0);
         return result;
     }
@@ -54,7 +61,7 @@ public class ExamStatusCode {
     @Override
     public String toString() {
         return "ExamStatusCode{" +
-            "status='" + status + '\'' +
+            "code='" + code + '\'' +
             ", stage='" + stage + '\'' +
             '}';
     }

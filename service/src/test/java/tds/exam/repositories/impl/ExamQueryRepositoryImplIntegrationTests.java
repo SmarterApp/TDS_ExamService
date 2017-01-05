@@ -254,7 +254,7 @@ public class ExamQueryRepositoryImplIntegrationTests {
         List<Exam> exams = examQueryRepository.findAllExamsInSessionWithStatus(mockSessionId, statusesThatCanTransitionToPaused);
 
         assertThat(exams).hasSize(3);
-        assertThat(exams).doesNotContain(examsInSession.stream().filter(exam -> exam.getStatus().getStatus().equals(ExamStatusCode.STATUS_FAILED)).findAny().get());
+        assertThat(exams).doesNotContain(examsInSession.stream().filter(exam -> exam.getStatus().getCode().equals(ExamStatusCode.STATUS_FAILED)).findAny().get());
     }
 
     @Test

@@ -37,7 +37,7 @@ public class ExamStatusQueryRepositoryImplIntegrationTests {
         //Statuses are current loaded via a migration script V1473962717__exam_create_status_codes_table.sql
         ExamStatusCode code = examStatusQueryRepository.findExamStatusCode("started");
 
-        assertThat(code.getStatus()).isEqualTo("started");
+        assertThat(code.getCode()).isEqualTo("started");
         assertThat(code.getStage()).isEqualTo(ExamStatusStage.IN_USE);
     }
 
