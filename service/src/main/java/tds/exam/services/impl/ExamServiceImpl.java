@@ -649,6 +649,8 @@ class ExamServiceImpl implements ExamService {
 
         examAccommodationService.initializeAccommodationsOnPreviousExam(previousExam, assessment, 0, restoreAccommodations, guestAccommodations);
 
+        //TODO - Need to add the query to update the custom accommodations flag to exam
+
         return new Response<>(currentExam);
     }
 
