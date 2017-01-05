@@ -515,7 +515,6 @@ class ExamServiceImpl implements ExamService {
         List<AssessmentWindow> assessmentWindows = configService.findAssessmentWindows(
             openExamRequest.getClientName(),
             assessment.getAssessmentId(),
-
             openExamRequest.getStudentId(),
             externalSessionConfiguration
         );
