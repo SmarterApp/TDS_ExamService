@@ -1,9 +1,11 @@
 /***********************************************************************************************************************
   File: beforeMigrate.sql
 
-  Desc: Create the exam schema that the Exam service depends on.  This script will be executed as a
-  part of Flyway's run cycle before any of the migrations are executed.  For more details on how to hook into Flyway,
-  check here:  https://flywaydb.org/documentation/callbacks
+  Desc: The database needs to be utf8 character set and collation of utf8_unicode_ci.  Once set any future tables
+  created will use the same character set and collation.
+
+  Since the legacy system stores related data in two separate schemas we need to modify both config and session
 
 ***********************************************************************************************************************/
-CREATE SCHEMA IF NOT EXISTS exam;
+
+ALTER DATABASE exam CHARACTER SET utf8 COLLATE utf8_unicode_ci;

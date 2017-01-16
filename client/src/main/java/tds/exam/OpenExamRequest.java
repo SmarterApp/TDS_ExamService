@@ -49,6 +49,9 @@ public class OpenExamRequest {
         this.browserId = builder.browserId;
     }
 
+    //For frameworks
+    private OpenExamRequest() {}
+
     /**
      * @return accommodations that are needed when a guest is taking the exam
      */
