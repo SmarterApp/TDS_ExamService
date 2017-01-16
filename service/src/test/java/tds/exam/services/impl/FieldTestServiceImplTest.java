@@ -8,14 +8,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.test.annotation.Repeat;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.UUID;
 
 import tds.assessment.Algorithm;
 import tds.assessment.Assessment;
@@ -26,18 +22,15 @@ import tds.exam.Exam;
 import tds.exam.builder.AssessmentBuilder;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.builder.FieldTestItemGroupBuilder;
-import tds.exam.builder.ItemBuilder;
 import tds.exam.builder.SegmentBuilder;
 import tds.exam.models.FieldTestItemGroup;
 import tds.exam.repositories.FieldTestItemGroupCommandRepository;
 import tds.exam.repositories.FieldTestItemGroupQueryRepository;
 import tds.exam.services.FieldTestItemGroupSelector;
 import tds.exam.services.FieldTestService;
-import tds.exam.services.ItemPoolService;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -361,14 +354,14 @@ public class FieldTestServiceImplTest {
 
         when(mockFieldTestItemGroupQueryRepository.find(exam.getId(), segment.getKey()))
             .thenReturn(Arrays.asList(ftItemGroup4));
-        when(mockFieldTestItemGroupSelector.selectItemGroupsLeastUsed(eq(exam), any(),
-            any(), eq(segment.getKey()), eq(segment.getFieldTestMinItems())))
+        when(mockFieldTestItemGroupSelector.selectLeastUsedItemGroups(eq(exam), any(),
+            any(), eq(segment), eq(segment.getFieldTestMinItems())))
             .thenReturn(Arrays.asList(ftItemGroup1, ftItemGroup2, ftItemGroup3));
         int totalItems = fieldTestService.selectItemGroups(exam, assessment, segment.getKey());
         verify(mockFieldTestItemGroupQueryRepository).find(exam.getId(), segment.getKey());
         verify(mockFieldTestItemGroupCommandRepository).insert(fieldTestItemGroupInsertCaptor.capture());
-        verify(mockFieldTestItemGroupSelector).selectItemGroupsLeastUsed(eq(exam), any(),
-            eq(assessment), eq(segment.getKey()), eq(segment.getFieldTestMinItems()));
+        verify(mockFieldTestItemGroupSelector).selectLeastUsedItemGroups(eq(exam), any(),
+            eq(assessment), eq(segment), eq(segment.getFieldTestMinItems()));
 
         List<FieldTestItemGroup> insertedItemGroups = fieldTestItemGroupInsertCaptor.getValue();
 
@@ -394,7 +387,7 @@ public class FieldTestServiceImplTest {
         assertThat(insertedFtGroup1.getBlockId()).isEqualTo(ftItemGroup1.getBlockId());
         assertThat(insertedFtGroup1.getPosition()).isGreaterThanOrEqualTo(segment.getFieldTestStartPosition());
         assertThat(insertedFtGroup1.getLanguageCode()).isEqualTo(exam.getLanguageCode());
-        assertThat(insertedFtGroup1.getNumItems()).isEqualTo(1);
+        assertThat(insertedFtGroup1.getItemCount()).isEqualTo(1);
         assertThat(insertedFtGroup1.getExamId()).isEqualTo(exam.getId());
         assertThat(insertedFtGroup1.getSegmentId()).isEqualTo(segment.getSegmentId());
         assertThat(insertedFtGroup1.getSegmentKey()).isEqualTo(segment.getKey());
@@ -402,46 +395,12 @@ public class FieldTestServiceImplTest {
         assertThat(insertedFtGroup1.getDeletedAt()).isNull();
 
         assertThat(insertedFtGroup2.getPosition()).isGreaterThanOrEqualTo(segment.getFieldTestStartPosition());
-        assertThat(insertedFtGroup2.getNumItems()).isEqualTo(1);
+        assertThat(insertedFtGroup2.getItemCount()).isEqualTo(1);
 
         assertThat(insertedFtGroup3.getPosition()).isGreaterThanOrEqualTo(segment.getFieldTestStartPosition());
-        assertThat(insertedFtGroup3.getNumItems()).isEqualTo(1);
+        assertThat(insertedFtGroup3.getItemCount()).isEqualTo(1);
 
         assertThat(notInsertedFtGroup).isNull();
-    }
-
-    @Test(expected = IllegalStateException.class)
-    public void shouldThrowExceptionWhenNotEnoughPositionsAsMinFieldTestItems() {
-        Exam exam = new ExamBuilder().build();
-        final String assessmentKey = "assessment-key123";
-        Segment segment = new SegmentBuilder()
-            .withAssessmentKey(assessmentKey)
-            .withFieldTestStartPosition(6) // 7 - 6 < 2, so should throw exception
-            .withFieldTestEndPosition(7)
-            .withFieldTestMinItems(2)
-            .withFieldTestMaxItems(2)
-            .build();
-        Assessment assessment = new AssessmentBuilder()
-            .withSegments(Arrays.asList(segment))
-            .build();
-        fieldTestService.selectItemGroups(exam, assessment, segment.getKey());
-    }
-
-    @Test(expected = IllegalStateException.class)
-    public void shouldThrowExceptionForNullFTStartAndEndPositions() {
-        Exam exam = new ExamBuilder().build();
-        final String assessmentKey = "assessment-key123";
-        Segment segment = new SegmentBuilder()
-            .withAssessmentKey(assessmentKey)
-            .withFieldTestStartPosition(null)   // 7 - 6 < 2, so should throw exception
-            .withFieldTestEndPosition(null)
-            .withFieldTestMinItems(2)
-            .withFieldTestMaxItems(2)
-            .build();
-        Assessment assessment = new AssessmentBuilder()
-            .withSegments(Arrays.asList(segment))
-            .build();
-        fieldTestService.selectItemGroups(exam, assessment, segment.getKey());
     }
 
     /* This method will test the case when there are field test item groups that have more items
@@ -477,14 +436,14 @@ public class FieldTestServiceImplTest {
 
         when(mockFieldTestItemGroupQueryRepository.find(exam.getId(), segment.getKey()))
             .thenReturn(new ArrayList<>());
-        when(mockFieldTestItemGroupSelector.selectItemGroupsLeastUsed(eq(exam), any(),
-            any(), eq(segment.getKey()), eq(segment.getFieldTestMinItems())))
+        when(mockFieldTestItemGroupSelector.selectLeastUsedItemGroups(eq(exam), any(),
+            any(), eq(segment), eq(segment.getFieldTestMinItems())))
             .thenReturn(Arrays.asList(ftItemGroup1, ftItemGroup2));
         int totalItems = fieldTestService.selectItemGroups(exam, assessment, segment.getKey());
         verify(mockFieldTestItemGroupQueryRepository).find(exam.getId(), segment.getKey());
         verify(mockFieldTestItemGroupCommandRepository).insert(fieldTestItemGroupInsertCaptor.capture());
-        verify(mockFieldTestItemGroupSelector).selectItemGroupsLeastUsed(eq(exam), any(),
-            eq(assessment), eq(segment.getKey()), eq(segment.getFieldTestMinItems()));
+        verify(mockFieldTestItemGroupSelector).selectLeastUsedItemGroups(eq(exam), any(),
+            eq(assessment), eq(segment), eq(segment.getFieldTestMinItems()));
 
         List<FieldTestItemGroup> insertedItemGroups = fieldTestItemGroupInsertCaptor.getValue();
 
@@ -507,7 +466,7 @@ public class FieldTestServiceImplTest {
         assertThat(insertedFtGroup2.getBlockId()).isEqualTo(ftItemGroup2.getBlockId());
         assertThat(insertedFtGroup2.getPosition()).isGreaterThanOrEqualTo(segment.getFieldTestStartPosition());
         assertThat(insertedFtGroup2.getLanguageCode()).isEqualTo(exam.getLanguageCode());
-        assertThat(insertedFtGroup2.getNumItems()).isEqualTo(1);
+        assertThat(insertedFtGroup2.getItemCount()).isEqualTo(1);
         assertThat(insertedFtGroup2.getExamId()).isEqualTo(exam.getId());
         assertThat(insertedFtGroup2.getSegmentId()).isEqualTo(segment.getSegmentId());
         assertThat(insertedFtGroup2.getSegmentKey()).isEqualTo(segment.getKey());
@@ -542,14 +501,14 @@ public class FieldTestServiceImplTest {
             .withSegmentKey(segment.getKey())
             .build();
         when(mockFieldTestItemGroupQueryRepository.find(exam.getId(), segment.getKey())).thenReturn(new ArrayList<>());
-        when(mockFieldTestItemGroupSelector.selectItemGroupsLeastUsed(eq(exam), any(),
-            any(), eq(segment.getKey()), eq(segment.getFieldTestMinItems())))
+        when(mockFieldTestItemGroupSelector.selectLeastUsedItemGroups(eq(exam), any(),
+            any(), eq(segment), eq(segment.getFieldTestMinItems())))
             .thenReturn(Arrays.asList(ftItemGroup1, ftItemGroup2));
         int totalItems = fieldTestService.selectItemGroups(exam, assessment, segment.getKey());
         verify(mockFieldTestItemGroupQueryRepository).find(exam.getId(), segment.getKey());
         verify(mockFieldTestItemGroupCommandRepository).insert(fieldTestItemGroupInsertCaptor.capture());
-        verify(mockFieldTestItemGroupSelector).selectItemGroupsLeastUsed(eq(exam), any(),
-            eq(assessment), eq(segment.getKey()), eq(segment.getFieldTestMinItems()));
+        verify(mockFieldTestItemGroupSelector).selectLeastUsedItemGroups(eq(exam), any(),
+            eq(assessment), eq(segment), eq(segment.getFieldTestMinItems()));
 
         List<FieldTestItemGroup> insertedItemGroups = fieldTestItemGroupInsertCaptor.getValue();
 
@@ -570,7 +529,7 @@ public class FieldTestServiceImplTest {
         assertThat(insertedFtGroup1.getBlockId()).isEqualTo(ftItemGroup1.getBlockId());
         assertThat(insertedFtGroup1.getPosition()).isGreaterThanOrEqualTo(segment.getFieldTestStartPosition());
         assertThat(insertedFtGroup1.getLanguageCode()).isEqualTo(exam.getLanguageCode());
-        assertThat(insertedFtGroup1.getNumItems()).isEqualTo(3);
+        assertThat(insertedFtGroup1.getItemCount()).isEqualTo(3);
         assertThat(insertedFtGroup1.getExamId()).isEqualTo(exam.getId());
         assertThat(insertedFtGroup1.getSegmentId()).isEqualTo(segment.getSegmentId());
         assertThat(insertedFtGroup1.getSegmentKey()).isEqualTo(segment.getKey());
@@ -578,7 +537,7 @@ public class FieldTestServiceImplTest {
         assertThat(insertedFtGroup1.getDeletedAt()).isNull();
 
         assertThat(insertedFtGroup2.getPosition()).isGreaterThanOrEqualTo(segment.getFieldTestStartPosition());
-        assertThat(insertedFtGroup2.getNumItems()).isEqualTo(1);
+        assertThat(insertedFtGroup2.getItemCount()).isEqualTo(1);
     }
 
     private List<Item> createTestItems(boolean isFieldTest) {

@@ -59,7 +59,7 @@ public class FieldTestItemGroupRepositoryIntegrationTests {
             .withPosition(2)
             .withSegmentId("segid")
             .withSegmentKey(segmentKey)
-            .withNumItems(1)
+            .withItemCount(1)
             .withSessionId(sessionId)
             .build();
 
@@ -73,7 +73,7 @@ public class FieldTestItemGroupRepositoryIntegrationTests {
             .withPositionAdministered(12)
             .withSegmentId("segid")
             .withSegmentKey(segmentKey)
-            .withNumItems(2)
+            .withItemCount(2)
             .withSessionId(sessionId)
             .build();
 
@@ -86,7 +86,7 @@ public class FieldTestItemGroupRepositoryIntegrationTests {
             .withPosition(2)
             .withSegmentId("segid")
             .withSegmentKey(segmentKey)
-            .withNumItems(1)
+            .withItemCount(1)
             .withSessionId(sessionId)
             .withDeletedAt(Instant.now().minusMillis(100000))
             .build();
@@ -102,7 +102,12 @@ public class FieldTestItemGroupRepositoryIntegrationTests {
 
         assertThat(retGroup1.getBlockId()).isEqualTo(group1.getBlockId());
         assertThat(retGroup1.getGroupId()).isEqualTo(group1.getGroupId());
-        assertThat(retGroup1.getNumItems()).isEqualTo(group1.getNumItems());
+        assertThat(retGroup1.isDeleted()).isFalse();
+        assertThat(retGroup1.getCreatedAt()).isNotNull();
+        assertThat(retGroup1.getSessionId()).isEqualTo(sessionId);
+        assertThat(retGroup1.getSegmentKey()).isEqualTo(segmentKey);
+        assertThat(retGroup1.getSegmentId()).isEqualTo("segid");
+        assertThat(retGroup1.getItemCount()).isEqualTo(group1.getItemCount());
         assertThat(retGroup1.getPosition()).isEqualTo(group1.getPosition());
         assertThat(retGroup1.getPositionAdministered()).isEqualTo(group1.getPositionAdministered());
     }

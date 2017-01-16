@@ -1,16 +1,15 @@
 package tds.exam.services.impl;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -25,32 +24,29 @@ import tds.exam.services.ItemPoolService;
 @Component
 public class EqualDistributionFieldTestItemGroupSelector implements FieldTestItemGroupSelector {
     private final ItemPoolService itemPoolService;
-    // Keeps track of the field test item groups and their usages
-    private Cache<String, List<FieldTestItemGroupCounter>> fieldTestItemGroupCounterCache;
+    // Keeps track of the field test item groups and their usages. The key is the segment key.
+    private static Map<String, List<FieldTestItemGroupCounter>> segmentToFieldTestItemGroupCounters;
 
     @Autowired
     public EqualDistributionFieldTestItemGroupSelector(ItemPoolService itemPoolService) {
         this.itemPoolService = itemPoolService;
-
-        fieldTestItemGroupCounterCache = CacheBuilder.newBuilder()
-            .expireAfterAccess(1, TimeUnit.DAYS)
-            .build();
+        this.segmentToFieldTestItemGroupCounters = new ConcurrentHashMap<>();
     }
 
     @Override
-    public List<FieldTestItemGroup> selectItemGroupsLeastUsed(final Exam exam, final Set<String> assignedGroupIds,
-                                                              final Assessment assessment, final String segmentKey, final int numItems) {
+    public List<FieldTestItemGroup> selectLeastUsedItemGroups(final Exam exam, final Set<String> assignedGroupIds,
+                                                              final Assessment assessment, final Segment currentSegment, final int numItems) {
+        final String segmentKey = currentSegment.getKey();
         int ftItemCount = 0;
-        Segment currentSegment = assessment.getSegment(segmentKey);
         // Fetch every eligible item based on item constraints, item properties, and user accommodations
-        Set<Item> fieldTestItems = itemPoolService.getItemPool(exam.getId(), assessment.getItemConstraints(), currentSegment.getItems(exam.getLanguageCode()), true);
+        Set<Item> fieldTestItems = itemPoolService.getFieldTestItemPool(exam.getId(), assessment.getItemConstraints(), currentSegment.getItems(exam.getLanguageCode()));
         /* In StudentDLL.FT_Prioritize2012_SP() [3544] - The legacy code creates temporary tables and groups data by groupid, blockid, groupkey.
             We can just worry about grouping by groupkey since groupKey appears to be the same as "<group-id>_<block-id>".
 
             The deletion at line [3186] simply removes item groups already found to be assigned to a student
                 - the filter below will take care of this.
          */
-        Map<String, List<FieldTestItemGroup>> fieldTestItemGroupsMap = fieldTestItems.stream()
+        Map<String, List<FieldTestItemGroup>> groupKeysToItemGroups = fieldTestItems.stream()
             .filter(fieldTestItem -> !assignedGroupIds.contains(fieldTestItem.getGroupId()))    // Filter all previously assigned item groups
             .map(fieldTestItem -> new FieldTestItemGroup.Builder()
                 .withExamId(exam.getId())
@@ -60,49 +56,78 @@ public class EqualDistributionFieldTestItemGroupSelector implements FieldTestIte
                 .build())
             .collect(Collectors.groupingBy(FieldTestItemGroup::getGroupKey));
 
+        List<FieldTestItemGroup> itemGroupsWithItemCounts = new ArrayList<>();
+        Map<String, List<FieldTestItemGroup>> itemGroupsNotCached = new HashMap<>();
         // If the cache does not contain any group key counters for this segment, add all of the groups this
         // student is eligible for
-        if (!fieldTestItemGroupCounterCache.asMap().containsKey(segmentKey)) {
-            List<FieldTestItemGroupCounter> initGroupCounters = fieldTestItemGroupsMap.keySet().stream()
+        // Get the list (sorted by number of group key occurrences) and starting at the top, add as many as we need to the list
+        List<FieldTestItemGroupCounter> fieldTestItemGroupCounters = segmentToFieldTestItemGroupCounters.get(segmentKey);
+        if (fieldTestItemGroupCounters == null) {
+            fieldTestItemGroupCounters = groupKeysToItemGroups.keySet().stream()
                 .map(groupKey -> new FieldTestItemGroupCounter(groupKey))
                 .collect(Collectors.toList());
 
-            fieldTestItemGroupCounterCache.put(segmentKey, Collections.synchronizedList(initGroupCounters));
+            segmentToFieldTestItemGroupCounters.put(segmentKey, Collections.synchronizedList(fieldTestItemGroupCounters));
+        } else { // Otherwise, if there is existing counters for this segment key, lets cache any items that don't already exist by adding them to the top
+            Set<String> groupKeysInCache = fieldTestItemGroupCounters.stream()
+                .map(counters -> counters.getGroupKey())
+                .collect(Collectors.toSet());
+
+            for (List<FieldTestItemGroup> itemGroups : groupKeysToItemGroups.values()) {
+                FieldTestItemGroup itemGroup = itemGroups.get(0);
+                if (!groupKeysInCache.contains(itemGroup.getGroupKey())) {
+                    fieldTestItemGroupCounters.add(0, new FieldTestItemGroupCounter(itemGroup.getGroupKey()));
+                    itemGroupsNotCached.put(itemGroup.getGroupKey(), itemGroups);
+                }
+            }
         }
 
-        List<FieldTestItemGroup> itemGroupsWithItemCounts = new ArrayList<>();
-        // Get the list (sorted by number of group key occurrences) and starting at the top, add as many as we need to the list
-        List<FieldTestItemGroupCounter> fieldTestItemGroupCounters = fieldTestItemGroupCounterCache.getIfPresent(segmentKey);
         for (FieldTestItemGroupCounter groupCounter : fieldTestItemGroupCounters) {
+            String groupKey = groupCounter.getGroupKey();
             // Break out of this loop if we've selected the # of items we needed to select
             if (ftItemCount >= numItems) {
                 break;
             }
 
             // Check that the groupKey is one of the ones this examinee is eligible for
-            if (fieldTestItemGroupsMap.containsKey(groupCounter.getGroupKey())) {
-                List<FieldTestItemGroup> items = fieldTestItemGroupsMap.get(groupCounter.getGroupKey());
+            List<FieldTestItemGroup> itemGroups = groupKeysToItemGroups.get(groupKey);
+
+            FieldTestItemGroup itemGroup;
+            // If the segment is not in the cache, it has not been used yet. Select this group and cache the occurrence
+            if (itemGroups == null) {
+                List<FieldTestItemGroup> nonCachedItemGroups = itemGroupsNotCached.get(groupKey);
+
+                if (nonCachedItemGroups == null || nonCachedItemGroups.isEmpty()) {
+                    continue;
+                }
+
+                itemGroup = new FieldTestItemGroup.Builder()
+                    .fromFieldTestItemGroup(nonCachedItemGroups.get(0))
+                    .withItemCount(nonCachedItemGroups.size())
+                    .build();
+            } else {
                 // Since we are only concerned with data shared between all the items in the group, we can just pick the first
-                FieldTestItemGroup firstItemGroup = items.get(0);
-
-                itemGroupsWithItemCounts.add(new FieldTestItemGroup.Builder()
-                    .fromFieldTestItemGroup(firstItemGroup)
-                    .withNumItems(items.size())
-                    .build());
-
-                // Update the occurrence counter and the field test item count
-                groupCounter.incrementOccurrance();
-                ftItemCount += items.size();
-                // Remove group from the map so we can keep track of any field test item groups that might need to be added to the cache
-                fieldTestItemGroupsMap.remove(groupCounter.getGroupKey());
+                itemGroup = new FieldTestItemGroup.Builder()
+                    .fromFieldTestItemGroup(itemGroups.get(0))
+                    .withItemCount(itemGroups.size())
+                    .build();
             }
+            itemGroupsWithItemCounts.add(itemGroup);
+
+
+            // Update the occurrence counter and the field test item count
+            groupCounter.incrementOccurrance();
+            ftItemCount += itemGroups.size();
+            // Remove group from the map so we can keep track of any field test item groups that might need to be added to the cache
+            groupKeysToItemGroups.remove(groupKey);
         }
 
         // Check if there are any groups that may need to be added to cache (initialized)
-        if (!fieldTestItemGroupsMap.isEmpty()) {
-            cacheInitializedCounters(segmentKey, fieldTestItemGroupsMap);
+        if (!groupKeysToItemGroups.isEmpty()) {
+            cacheInitializedCounters(segmentKey, groupKeysToItemGroups);
         }
 
+        // Re-sort the collection after updating occurrence counts
         Collections.sort(fieldTestItemGroupCounters);
 
         return itemGroupsWithItemCounts;
@@ -110,7 +135,7 @@ public class EqualDistributionFieldTestItemGroupSelector implements FieldTestIte
 
     private void cacheInitializedCounters(String segmentKey, Map<String, List<FieldTestItemGroup>> fieldTestItemGroupsMap) {
         // We may need to initialize these group key counters and cache if they are not already cached
-        List<FieldTestItemGroupCounter> groupCounters = fieldTestItemGroupCounterCache.getIfPresent(segmentKey);
+        List<FieldTestItemGroupCounter> groupCounters = segmentToFieldTestItemGroupCounters.get(segmentKey);
         Set<String> cachedGroupKeys = groupCounters.stream()
             .map(counter -> counter.getGroupKey())
             .collect(Collectors.toSet());
@@ -123,7 +148,7 @@ public class EqualDistributionFieldTestItemGroupSelector implements FieldTestIte
     }
 
     private class FieldTestItemGroupCounter implements Comparable<FieldTestItemGroupCounter> {
-        private String groupKey;
+        private final String groupKey;
         AtomicInteger occurrences;
 
         public FieldTestItemGroupCounter(String groupKey) {

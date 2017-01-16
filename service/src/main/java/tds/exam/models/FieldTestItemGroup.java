@@ -11,7 +11,7 @@ public class FieldTestItemGroup {
     private String segmentKey;
     private UUID examId;
     private int position;
-    private int numItems;
+    private int itemCount;
     private String groupId;
     private String groupKey;
     private String blockId;
@@ -23,13 +23,14 @@ public class FieldTestItemGroup {
     private Integer positionAdministered;
     private Instant administeredAt;
 
+    //Exists for frameworks
     private FieldTestItemGroup() {}
 
     public FieldTestItemGroup(Builder builder) {
         this.segmentKey = builder.segmentKey;
         this.examId = builder.examId;
         this.position = builder.position;
-        this.numItems = builder.numItems;
+        this.itemCount = builder.itemCount;
         this.groupId = builder.groupId;
         this.groupKey = builder.groupKey;
         this.blockId = builder.blockId;
@@ -98,8 +99,8 @@ public class FieldTestItemGroup {
     /**
      * @return The number of field test {@link tds.assessment.Item}s in the {@link tds.exam.models.FieldTestItemGroup}
      */
-    public int getNumItems() {
-        return numItems;
+    public int getItemCount() {
+        return itemCount;
     }
 
     /**
@@ -141,7 +142,7 @@ public class FieldTestItemGroup {
      * @return A flag that determines whether the {@link tds.exam.models.FieldTestItemGroup} is deleted
      */
     public boolean isDeleted() {
-        return deletedAt == null;
+        return deletedAt != null;
     }
 
     /**
@@ -163,7 +164,7 @@ public class FieldTestItemGroup {
         private String segmentKey;
         private UUID examId;
         private int position;
-        private int numItems;
+        private int itemCount;
         private String groupId;
         private String groupKey;
         private String blockId;
@@ -195,8 +196,8 @@ public class FieldTestItemGroup {
             return this;
         }
 
-        public Builder withNumItems(int numItems) {
-            this.numItems = numItems;
+        public Builder withItemCount(int itemCount) {
+            this.itemCount = itemCount;
             return this;
         }
 
@@ -251,10 +252,11 @@ public class FieldTestItemGroup {
         }
 
         public Builder fromFieldTestItemGroup(final FieldTestItemGroup fieldTestItemGroup) {
+            this.id = fieldTestItemGroup.id;
             this.segmentKey = fieldTestItemGroup.segmentKey;
             this.examId = fieldTestItemGroup.examId;
             this.position = fieldTestItemGroup.position;
-            this.numItems = fieldTestItemGroup.numItems;
+            this.itemCount = fieldTestItemGroup.itemCount;
             this.groupId = fieldTestItemGroup.groupId;
             this.groupKey = fieldTestItemGroup.groupKey;
             this.blockId = fieldTestItemGroup.blockId;

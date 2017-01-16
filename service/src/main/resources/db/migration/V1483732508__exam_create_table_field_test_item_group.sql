@@ -3,6 +3,8 @@
 
   Desc: Creates the field_test_item_group table
 
+  The purpose of this table is to store field test item groups assigned to exam segments.
+
 ***********************************************************************************************************************/
 
 USE exam;
@@ -14,7 +16,7 @@ CREATE TABLE field_test_item_group (
   id BIGINT NOT NULL AUTO_INCREMENT,
   exam_id VARBINARY(16) NOT NULL,
   position INT(11) NOT NULL,
-  num_items INT(11) DEFAULT NULL,
+  item_count INT(11) DEFAULT NULL,
   segment_id VARCHAR(100) NOT NULL,
   segment_key VARCHAR(200) NOT NULL,
   group_id VARCHAR(50) NOT NULL,

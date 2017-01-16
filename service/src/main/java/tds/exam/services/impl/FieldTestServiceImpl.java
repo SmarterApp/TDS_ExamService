@@ -81,6 +81,7 @@ public class FieldTestServiceImpl implements FieldTestService {
      */
     @Override
     public int selectItemGroups(final Exam exam, final Assessment assessment, final String segmentKey) {
+        Random rng = new Random();
         Segment currentSegment = assessment.getSegment(segmentKey);
         List<FieldTestItemGroup> previouslyAssignedFieldTestItemGroups = fieldTestItemGroupQueryRepository.find(exam.getId(), segmentKey);
 
@@ -92,18 +93,9 @@ public class FieldTestServiceImpl implements FieldTestService {
         int minItems = currentSegment.getFieldTestMinItems();
         int ftItemCount = previouslyAssignedFieldTestItemGroups.size(); // Initialize it as the size of the existing item groups assigned to this student
 
-        if (startPosition == null || endPosition == null) {
-            throw new IllegalStateException("Field test start and end positions are not defined in the itembank database.");
-        } else if (endPosition - startPosition < maxItems) {
-            /* In the legacy app, this condition would result in a divide-by-zero error. */
-            throw new IllegalStateException(String.format("The maximum number of field test items (%s) cannot be greater than the difference " +
-                "between the ending and starting field test positions. (%s - %s)", maxItems, endPosition, startPosition));
-        }
-
         /* [3131-3137] Note tht if endPos - startPos < numIntervals, the integer division below results in 0, which
         *  results in  a division-by-zero at line [3320] */
-        int numIntervals = maxItems;
-        int intervalSize = (endPosition - startPosition) / numIntervals;
+        int intervalSize = (endPosition - startPosition) / maxItems;
         int intervalIndex = startPosition; // keeps track of position in exam to administer ft item
 
         /* [3212- 3224] Skip Cohort code - the loader script hardcodes "ratio" and "cohortIndex" as 1, targetcount = ftMaxItems */
@@ -111,39 +103,35 @@ public class FieldTestServiceImpl implements FieldTestService {
         Set<String> assignedGroupIds = previouslyAssignedFieldTestItemGroups.stream()
             .map(fieldTestItemGroup -> fieldTestItemGroup.getGroupId())
             .collect(Collectors.toSet());
-        List<FieldTestItemGroup> selectedFieldTestItemGroups = fieldTestItemGroupSelector.selectItemGroupsLeastUsed(exam, assignedGroupIds, assessment,
-            segmentKey, minItems);
+        List<FieldTestItemGroup> selectedFieldTestItemGroups = fieldTestItemGroupSelector.selectLeastUsedItemGroups(exam, assignedGroupIds, assessment,
+            currentSegment, minItems);
 
         /* [3240-3242] endPos variable is never used again, no need to increment it - only read from in debug mode */
         /* [3244] no need to select an unused groupkey - we know our FieldTestGroupItems have unique groupkeys. */
         /* [3244-3246] Since we have list of unused items returned by selectItemgroupsRoundRobin(), no need to check that groupkey exists */
         List<FieldTestItemGroup> selectedItemGroups = new ArrayList<>();
 
-        /* This loop begins at [3246] */
+        /* This loop begins at [3246] - We can loop over selectedFieldTestItemGroups because the list already contains
+         as many items as are necessary. In legacy code, every possible field test item group (sorted by least used) is returned */
         for (FieldTestItemGroup fieldTestItemGroup : selectedFieldTestItemGroups) {
             /* Skip [3248-3274] - This code is just selecting a single item group that is unassigned and not frequently used
               (as sorted by FT_Prioritize_2012())
               Skip [3276-3285] - debug code */
-            int numItems = fieldTestItemGroup.getNumItems();
+            int itemCount = fieldTestItemGroup.getItemCount();
             /* [3307] */
-            if (numItems > 0 && ftItemCount + numItems <= maxItems) {
+            if (itemCount > 0 && ftItemCount + itemCount <= maxItems) {
                 /* [3308 - 3314] */
-                int thisIntSize = (intervalSize < 0 || numItems == 1) ?
-                    1 : intervalSize * (numItems - 1);
+                int thisIntSize = itemCount == 1 ? 1 : intervalSize * (itemCount - 1);
 
                 /* [3318] Randomly select an item position for this ft item group */
-                Random rng = new Random();
                 int nextPosition = (rng.nextInt(1000) % thisIntSize) + intervalIndex;
-
-                /* [3339] Mark item group as "used" */
-                assignedGroupIds.add(fieldTestItemGroup.getGroupId());
                 /* [3344] */
-                ftItemCount += numItems;
+                ftItemCount += itemCount;
 
                 /* [3345-3349] */
                 intervalIndex = (intervalSize == 0)
-                    ? intervalIndex + numItems
-                    : intervalIndex + numItems * intervalSize;
+                    ? intervalIndex + itemCount
+                    : intervalIndex + itemCount * intervalSize;
 
                 /* Ignore cohort code [3357] */
                 /* Ignore delete on [3362] - Only selected items will be returned from this loop */
@@ -156,7 +144,6 @@ public class FieldTestServiceImpl implements FieldTestService {
                         .withSessionId(exam.getSessionId())
                         .withLanguageCode(exam.getLanguageCode())
                         .withPosition(nextPosition)
-                        .withNumItems(numItems)
                         .withSegmentKey(segmentKey)
                         .withSegmentId(currentSegment.getSegmentId())
                         .build()

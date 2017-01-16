@@ -32,7 +32,7 @@ public class FieldTestItemGroupCommandRepositoryImpl implements FieldTestItemGro
             "INSERT INTO field_test_item_group ( \n" +
                 "   exam_id, \n" +
                 "   position, \n" +
-                "   num_items, \n" +
+                "   item_count, \n" +
                 "   segment_id, \n" +
                 "   segment_key, \n" +
                 "   group_id, \n" +
@@ -44,7 +44,7 @@ public class FieldTestItemGroupCommandRepositoryImpl implements FieldTestItemGro
                 "VALUES ( \n" +
                 "   :examId, \n" +
                 "   :position, \n" +
-                "   :numItems, \n" +
+                "   :itemCount, \n" +
                 "   :segmentId, \n" +
                 "   :segmentKey, \n" +
                 "   :groupId, \n" +
@@ -57,7 +57,7 @@ public class FieldTestItemGroupCommandRepositoryImpl implements FieldTestItemGro
         fieldTestItemGroups.forEach(fieldTestItemGroup -> {
             SqlParameterSource parameterSources = new MapSqlParameterSource("examId", getBytesFromUUID(fieldTestItemGroup.getExamId()))
                 .addValue("position", fieldTestItemGroup.getPosition())
-                .addValue("numItems", fieldTestItemGroup.getNumItems())
+                .addValue("itemCount", fieldTestItemGroup.getItemCount())
                 .addValue("segmentId", fieldTestItemGroup.getSegmentId())
                 .addValue("segmentKey", fieldTestItemGroup.getSegmentKey())
                 .addValue("groupId", fieldTestItemGroup.getGroupId())

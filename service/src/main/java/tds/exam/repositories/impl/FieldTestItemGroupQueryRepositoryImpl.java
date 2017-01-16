@@ -37,7 +37,7 @@ public class FieldTestItemGroupQueryRepositoryImpl implements FieldTestItemGroup
                 "   F.segment_id, \n" +
                 "   F.position, \n" +
                 "   F.language_code, \n" +
-                "   F.num_items, \n" +
+                "   F.item_count, \n" +
                 "   F.group_id, \n" +
                 "   F.group_key, \n" +
                 "   F.block_id, \n" +
@@ -74,7 +74,7 @@ public class FieldTestItemGroupQueryRepositoryImpl implements FieldTestItemGroup
                 .withSegmentId(rs.getString("segment_id"))
                 .withPosition(rs.getInt("position"))
                 .withLanguageCode(rs.getString("language_code"))
-                .withNumItems(rs.getInt("num_items"))
+                .withItemCount(rs.getInt("item_count"))
                 .withGroupId(rs.getString("group_id"))
                 .withGroupKey(rs.getString("group_key"))
                 .withBlockId(rs.getString("block_id"))

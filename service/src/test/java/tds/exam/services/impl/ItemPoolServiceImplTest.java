@@ -310,10 +310,6 @@ public class ItemPoolServiceImplTest {
         itemProperties1.add(new ItemProperty("Language", "ENU", "English", itemId2));
         itemProperties1.add(new ItemProperty("--ITEMTYPE--", "ER", "Extended Response", itemId2));
 
-        List<ItemProperty> itemProperties3 = new ArrayList<>();
-        itemProperties1.add(new ItemProperty("Language", "ENU", "English", itemId3));
-        itemProperties1.add(new ItemProperty("--ITEMTYPE--", "ER", "Extended Response", itemId3));
-
         List<Item> items = new ArrayList<>();
         Item ftItem1 = new ItemBuilder(itemId1)
             .withFieldTest(true)
@@ -353,7 +349,7 @@ public class ItemPoolServiceImplTest {
             .build());
 
         when(mockExamAccommodationService.findAllAccommodations(examId)).thenReturn(examAccommodations);
-        Set<Item> retFtItems = itemPoolService.getItemPool(examId, itemConstraints, items, true);
+        Set<Item> retFtItems = itemPoolService.getFieldTestItemPool(examId, itemConstraints, items);
         verify(mockExamAccommodationService).findAllAccommodations(examId);
         assertThat(retFtItems).hasSize(2);
 
@@ -370,19 +366,6 @@ public class ItemPoolServiceImplTest {
 
         assertThat(retItem1).isNotNull();
         assertThat(retItem2).isNotNull();
-
-        Set<Item> nonFtItems = itemPoolService.getItemPool(examId, itemConstraints, items, false);
-        assertThat(nonFtItems).hasSize(1);
-
-        Item nonFtItem = null;
-
-        for (Item item : nonFtItems) {
-            if (item.getId().equals(itemId3)) {
-                nonFtItem = item;
-            }
-        }
-
-        assertThat(nonFtItem).isNotNull();
     }
 
     @Test

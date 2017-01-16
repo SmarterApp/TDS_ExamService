@@ -25,7 +25,7 @@ public class FieldTestItemGroupBuilder {
             .withBlockId(blockId)
             .withExamId(examId)
             .withLanguageCode(languageCode)
-            .withNumItems(numItems)
+            .withItemCount(numItems)
             .withSegmentKey(segmentKey)
             .build();
     }

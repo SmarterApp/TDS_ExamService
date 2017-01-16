@@ -82,13 +82,13 @@ public class EqualDistributionFieldTestItemGroupSelectorTest {
 
         Set<Item> fieldTestItems = new HashSet<>(Arrays.asList(ftItem1, ftItem2, ftItem3, ftItem4));
 
-        when(mockItemPoolService.getItemPool(any(), eq(assessment.getItemConstraints()), any(), eq(true)))
+        when(mockItemPoolService.getFieldTestItemPool(any(), eq(assessment.getItemConstraints()), any()))
             .thenReturn(fieldTestItems, fieldTestItems, fieldTestItems);
 
         for (int i = 0; i < numberOfExamsToTest; i++) {
             Exam exam = new ExamBuilder().withLanguageCode("ENU").build();
-            List<FieldTestItemGroup> retFtItemGroupsForExam = selector.selectItemGroupsLeastUsed(exam, new HashSet<>(),
-                assessment, segment.getKey(), segment.getFieldTestMinItems());
+            List<FieldTestItemGroup> retFtItemGroupsForExam = selector.selectLeastUsedItemGroups(exam, new HashSet<>(),
+                assessment, segment, segment.getFieldTestMinItems());
             assertThat(retFtItemGroupsForExam).hasSize(2);
 
             // Keep count of each item group selected by the algorithm.
@@ -102,7 +102,7 @@ public class EqualDistributionFieldTestItemGroupSelectorTest {
             }
         }
 
-        verify(mockItemPoolService, times(numberOfExamsToTest)).getItemPool(any(), eq(assessment.getItemConstraints()), any(), eq(true));
+        verify(mockItemPoolService, times(numberOfExamsToTest)).getFieldTestItemPool(any(), eq(assessment.getItemConstraints()), any());
 
         assertThat(itemGroupOccurances).hasSize(4);
 
@@ -149,11 +149,11 @@ public class EqualDistributionFieldTestItemGroupSelectorTest {
             .withFieldTest(true)
             .build();
 
-        when(mockItemPoolService.getItemPool(eq(exam.getId()), eq(assessment.getItemConstraints()), any(), eq(true)))
+        when(mockItemPoolService.getFieldTestItemPool(eq(exam.getId()), eq(assessment.getItemConstraints()), any()))
             .thenReturn(new HashSet<>(Arrays.asList(ftItem1, ftItem2, ftItem3, excludedFtItem)));
-        List<FieldTestItemGroup> retFtItemGroups = selector.selectItemGroupsLeastUsed(exam, new HashSet<>(Arrays.asList(excludedFtItem.getGroupId())),
-            assessment, segment.getKey(), segment.getFieldTestMinItems());
-        verify(mockItemPoolService).getItemPool(eq(exam.getId()), eq(assessment.getItemConstraints()), any(), eq(true));
+        List<FieldTestItemGroup> retFtItemGroups = selector.selectLeastUsedItemGroups(exam, new HashSet<>(Arrays.asList(excludedFtItem.getGroupId())),
+            assessment, segment, segment.getFieldTestMinItems());
+        verify(mockItemPoolService).getFieldTestItemPool(eq(exam.getId()), eq(assessment.getItemConstraints()), any());
         assertThat(retFtItemGroups).hasSize(3);
 
         FieldTestItemGroup selectedItemGroup = null;
@@ -168,7 +168,7 @@ public class EqualDistributionFieldTestItemGroupSelectorTest {
 
         assertThat(selectedItemGroup.getGroupId()).isEqualTo(ftItem1.getGroupId());
         assertThat(selectedItemGroup.getBlockId()).isEqualTo(ftItem1.getBlockId());
-        assertThat(selectedItemGroup.getNumItems()).isEqualTo(1);
+        assertThat(selectedItemGroup.getItemCount()).isEqualTo(1);
         assertThat(selectedItemGroup.getExamId()).isEqualTo(exam.getId());
         assertThat(selectedItemGroup.getDeletedAt()).isNull();
 
@@ -176,8 +176,72 @@ public class EqualDistributionFieldTestItemGroupSelectorTest {
     }
 
     @Test
+    public void shouldSelectAndCacheNewItemsFromDifferentExam () {
+        Exam exam1 = new ExamBuilder().build();
+        Exam exam2 = new ExamBuilder().build();
+        final String assessmentKey = "assessment-key123";
+        Segment segment = new SegmentBuilder()
+            .withAssessmentKey(assessmentKey)
+            .withFieldTestStartPosition(3)
+            .withFieldTestEndPosition(7)
+            .withFieldTestMinItems(4)
+            .withFieldTestMaxItems(4)
+            .build();
+        Assessment assessment = new AssessmentBuilder()
+            .withSegments(Arrays.asList(segment))
+            .build();
+        // Exam 1 Item
+        Item exam1ItemGroup = new ItemBuilder("itemgroup-1")
+            .withGroupId("group-id-1")
+            .withGroupKey("group-key-1")
+            .withFieldTest(true)
+            .build();
+        // Exam 2 items
+        Item exam2ItemGroup1 = new ItemBuilder("itemgroup-2")
+            .withGroupId("group-id-2")
+            .withGroupKey("group-key-2")
+            .withFieldTest(true)
+            .build();
+        Item exam2ItemGroup2 = new ItemBuilder("itemgroup-3")
+            .withGroupId("group-id-3")
+            .withGroupKey("group-key-3")
+            .withFieldTest(true)
+            .build();
+
+        // Exam 1
+        when(mockItemPoolService.getFieldTestItemPool(eq(exam1.getId()), eq(assessment.getItemConstraints()), any()))
+            .thenReturn(new HashSet<>(Arrays.asList(exam1ItemGroup)));
+
+        // Exam 2
+        when(mockItemPoolService.getFieldTestItemPool(eq(exam2.getId()), eq(assessment.getItemConstraints()), any()))
+            .thenReturn(new HashSet<>(Arrays.asList(exam2ItemGroup1, exam2ItemGroup2)));
+        List<FieldTestItemGroup> retFtItemGroupsExam1 = selector.selectLeastUsedItemGroups(exam1, new HashSet<>(),
+            assessment, segment, segment.getFieldTestMinItems());
+        List<FieldTestItemGroup> retFtItemGroupsExam2 = selector.selectLeastUsedItemGroups(exam2, new HashSet<>(),
+            assessment, segment, segment.getFieldTestMinItems());
+
+        assertThat(retFtItemGroupsExam1).hasSize(1);
+        assertThat(retFtItemGroupsExam1.get(0).getGroupKey()).isEqualTo(exam1ItemGroup.getGroupKey());
+
+        assertThat(retFtItemGroupsExam2).hasSize(2);
+
+        FieldTestItemGroup group1 = null;
+        FieldTestItemGroup group2 = null;
+        for (FieldTestItemGroup itemGroup : retFtItemGroupsExam2) {
+            if (itemGroup.getGroupKey().equals(exam2ItemGroup1.getGroupKey())) {
+                group1 = itemGroup;
+            } else if (itemGroup.getGroupKey().equals(exam2ItemGroup2.getGroupKey())) {
+                group2 = itemGroup;
+            }
+        }
+
+        assertThat(group1).isNotNull();
+        assertThat(group2).isNotNull();
+    }
+
+    @Test
     public void shouldSelectMultiItemGroups() {
-        Exam exam = new ExamBuilder().withLanguageCode("ENU").build();
+        Exam exam = new ExamBuilder().build();
         final String assessmentKey = "assessment-key123";
         Segment segment = new SegmentBuilder()
             .withAssessmentKey(assessmentKey)
@@ -211,11 +275,11 @@ public class EqualDistributionFieldTestItemGroupSelectorTest {
             .withGroupKey("group-key-2")
             .withFieldTest(true)
             .build();
-        when(mockItemPoolService.getItemPool(eq(exam.getId()), eq(assessment.getItemConstraints()), any(), eq(true)))
+        when(mockItemPoolService.getFieldTestItemPool(eq(exam.getId()), eq(assessment.getItemConstraints()), any()))
             .thenReturn(new HashSet<>(Arrays.asList(ftItem1g1, ftItem2g1, ftItem3g1, ftItem4g2)));
-        List<FieldTestItemGroup> retFtItemGroups = selector.selectItemGroupsLeastUsed(exam, new HashSet<>(),
-            assessment, segment.getKey(), segment.getFieldTestMinItems());
-        verify(mockItemPoolService).getItemPool(eq(exam.getId()), eq(assessment.getItemConstraints()), any(), eq(true));
+        List<FieldTestItemGroup> retFtItemGroups = selector.selectLeastUsedItemGroups(exam, new HashSet<>(),
+            assessment, segment, segment.getFieldTestMinItems());
+        verify(mockItemPoolService).getFieldTestItemPool(eq(exam.getId()), eq(assessment.getItemConstraints()), any());
         assertThat(retFtItemGroups).hasSize(2);
 
         FieldTestItemGroup multiItemItemGroup = null;
@@ -230,13 +294,13 @@ public class EqualDistributionFieldTestItemGroupSelectorTest {
 
         assertThat(multiItemItemGroup.getGroupId()).isEqualTo(ftItem1g1.getGroupId());
         assertThat(multiItemItemGroup.getBlockId()).isEqualTo(ftItem1g1.getBlockId());
-        assertThat(multiItemItemGroup.getNumItems()).isEqualTo(3);
+        assertThat(multiItemItemGroup.getItemCount()).isEqualTo(3);
         assertThat(multiItemItemGroup.getExamId()).isEqualTo(exam.getId());
         assertThat(multiItemItemGroup.getDeletedAt()).isNull();
 
         assertThat(singleItemItemgGroup.getGroupId()).isEqualTo(ftItem4g2.getGroupId());
         assertThat(singleItemItemgGroup.getBlockId()).isEqualTo(ftItem4g2.getBlockId());
-        assertThat(singleItemItemgGroup.getNumItems()).isEqualTo(1);
+        assertThat(singleItemItemgGroup.getItemCount()).isEqualTo(1);
         assertThat(singleItemItemgGroup.getExamId()).isEqualTo(exam.getId());
         assertThat(singleItemItemgGroup.getDeletedAt()).isNull();
     }
