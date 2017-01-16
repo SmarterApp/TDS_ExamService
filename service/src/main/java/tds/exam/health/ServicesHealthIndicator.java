@@ -2,13 +2,17 @@ package tds.exam.health;
 
 import com.google.common.collect.ImmutableMap;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.health.*;
+import org.springframework.boot.actuate.health.Health;
+import org.springframework.boot.actuate.health.HealthAggregator;
+import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.boot.actuate.health.OrderedHealthAggregator;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
-import tds.common.health.HealthIndicatorClient;
-import tds.exam.configuration.ExamServiceProperties;
 
 import java.util.Map;
+
+import tds.common.health.HealthIndicatorClient;
+import tds.exam.configuration.ExamServiceProperties;
 
 import static com.google.common.collect.Maps.transformValues;
 
