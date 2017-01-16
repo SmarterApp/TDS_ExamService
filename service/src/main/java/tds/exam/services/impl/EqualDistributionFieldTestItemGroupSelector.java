@@ -46,7 +46,7 @@ public class EqualDistributionFieldTestItemGroupSelector implements FieldTestIte
             The deletion at line [3186] simply removes item groups already found to be assigned to a student
                 - the filter below will take care of this.
          */
-        Map<String, List<FieldTestItemGroup>> groupKeysToItemGroups = fieldTestItems.stream()
+        Map<String, List<FieldTestItemGroup>> eligibleGroupKeysToItemGroups = fieldTestItems.stream()
             .filter(fieldTestItem -> !assignedGroupIds.contains(fieldTestItem.getGroupId()))    // Filter all previously assigned item groups
             .map(fieldTestItem -> new FieldTestItemGroup.Builder()
                 .withExamId(exam.getId())
@@ -63,17 +63,21 @@ public class EqualDistributionFieldTestItemGroupSelector implements FieldTestIte
         // Get the list (sorted by number of group key occurrences) and starting at the top, add as many as we need to the list
         List<FieldTestItemGroupCounter> fieldTestItemGroupCounters = segmentToFieldTestItemGroupCounters.get(segmentKey);
         if (fieldTestItemGroupCounters == null) {
-            fieldTestItemGroupCounters = groupKeysToItemGroups.keySet().stream()
+            // If there is no cached values for this segmentKey, simply add all the group keys this student is eligible for
+            fieldTestItemGroupCounters = eligibleGroupKeysToItemGroups.keySet().stream()
                 .map(groupKey -> new FieldTestItemGroupCounter(groupKey))
                 .collect(Collectors.toList());
 
             segmentToFieldTestItemGroupCounters.put(segmentKey, Collections.synchronizedList(fieldTestItemGroupCounters));
         } else { // Otherwise, if there is existing counters for this segment key, lets cache any items that don't already exist by adding them to the top
+            // Get the set of cached group keys for quick comparison
             Set<String> groupKeysInCache = fieldTestItemGroupCounters.stream()
                 .map(counters -> counters.getGroupKey())
                 .collect(Collectors.toSet());
 
-            for (List<FieldTestItemGroup> itemGroups : groupKeysToItemGroups.values()) {
+            // Iterate over each eligible group key for this exam and check if it is already cached. If not, add it to
+            // the cache at the front of the list (because occurrence = 0 and we want all unused groups to be selected first
+            for (List<FieldTestItemGroup> itemGroups : eligibleGroupKeysToItemGroups.values()) {
                 FieldTestItemGroup itemGroup = itemGroups.get(0);
                 if (!groupKeysInCache.contains(itemGroup.getGroupKey())) {
                     fieldTestItemGroupCounters.add(0, new FieldTestItemGroupCounter(itemGroup.getGroupKey()));
@@ -90,7 +94,7 @@ public class EqualDistributionFieldTestItemGroupSelector implements FieldTestIte
             }
 
             // Check that the groupKey is one of the ones this examinee is eligible for
-            List<FieldTestItemGroup> itemGroups = groupKeysToItemGroups.get(groupKey);
+            List<FieldTestItemGroup> itemGroups = eligibleGroupKeysToItemGroups.get(groupKey);
 
             FieldTestItemGroup itemGroup;
             // If the segment is not in the cache, it has not been used yet. Select this group and cache the occurrence
@@ -119,12 +123,12 @@ public class EqualDistributionFieldTestItemGroupSelector implements FieldTestIte
             groupCounter.incrementOccurrance();
             ftItemCount += itemGroups.size();
             // Remove group from the map so we can keep track of any field test item groups that might need to be added to the cache
-            groupKeysToItemGroups.remove(groupKey);
+            eligibleGroupKeysToItemGroups.remove(groupKey);
         }
 
         // Check if there are any groups that may need to be added to cache (initialized)
-        if (!groupKeysToItemGroups.isEmpty()) {
-            cacheInitializedCounters(segmentKey, groupKeysToItemGroups);
+        if (!eligibleGroupKeysToItemGroups.isEmpty()) {
+            cacheInitializedCounters(segmentKey, eligibleGroupKeysToItemGroups);
         }
 
         // Re-sort the collection after updating occurrence counts
