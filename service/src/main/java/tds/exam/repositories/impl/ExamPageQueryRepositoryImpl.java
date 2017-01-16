@@ -14,6 +14,7 @@ import java.util.UUID;
 
 import tds.common.data.mapping.ResultSetMapperUtility;
 import tds.common.data.mysql.UuidAdapter;
+import tds.exam.models.ExamItem;
 import tds.exam.models.ExamPage;
 import tds.exam.repositories.ExamPageQueryRepository;
 
@@ -59,6 +60,11 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
                 "   P.page_position";
 
         return jdbcTemplate.query(SQL, parameters, examPageRowMapper);
+    }
+
+    @Override
+    public List<ExamItem> findAllItemsForExamPage(ExamPage page) {
+        return null;
     }
 
     private static class ExamPageRowMapper implements RowMapper<ExamPage> {
