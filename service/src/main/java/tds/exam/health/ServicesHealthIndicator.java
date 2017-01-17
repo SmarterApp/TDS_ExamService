@@ -28,7 +28,7 @@ public class ServicesHealthIndicator implements HealthIndicator {
 
     @Autowired
     ServicesHealthIndicator(final RestTemplate restTemplate, final ExamServiceProperties examServiceProperties) {
-        this.healthIndicatorClient = new HealthIndicatorClient(restTemplate);
+        healthIndicatorClient = new HealthIndicatorClient(restTemplate);
         services = ImmutableMap.of(
                 "assessment", examServiceProperties.getAssessmentUrl(),
                 "student", examServiceProperties.getStudentUrl(),
