@@ -5,7 +5,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
@@ -105,19 +107,47 @@ public class FieldTestServiceImpl implements FieldTestService {
             .collect(Collectors.toSet());
         List<FieldTestItemGroup> selectedFieldTestItemGroups = fieldTestItemGroupSelector.selectLeastUsedItemGroups(exam, assignedGroupIds, assessment,
             currentSegment, minItems);
+        // Get the counts of all groupkeys, regardless of whether they are field test items or not
+
+        Map<String, Integer> groupItemCounts = new HashMap<>();
+        for (Item item : currentSegment.getItems(exam.getLanguageCode())) {
+            String groupKey = item.getGroupKey();
+            Integer count = groupItemCounts.get(item.getGroupKey());
+
+            if (count != null) {
+                groupItemCounts.put(groupKey, count + 1);
+            } else {
+                groupItemCounts.put(groupKey, 1);
+            }
+        }
+
+        // Group all items in this assessment and for this language by groupKey
+        Map<String, List<Item>> groupItems = currentSegment.getItems(exam.getLanguageCode()).stream()
+            .collect(Collectors.groupingBy(Item::getGroupKey));
 
         /* [3240-3242] endPos variable is never used again, no need to increment it - only read from in debug mode */
         /* [3244] no need to select an unused groupkey - we know our FieldTestGroupItems have unique groupkeys. */
         /* [3244-3246] Since we have list of unused items returned by selectItemgroupsRoundRobin(), no need to check that groupkey exists */
         List<FieldTestItemGroup> selectedItemGroups = new ArrayList<>();
+        int cohortItemCount = 0;
 
         /* This loop begins at [3246] - We can loop over selectedFieldTestItemGroups because the list already contains
          as many items as are necessary. In legacy code, every possible field test item group (sorted by least used) is returned */
         for (FieldTestItemGroup fieldTestItemGroup : selectedFieldTestItemGroups) {
+            // Includes counts of all items for group, field test or not
+            int cohortGroupCount = groupItems.containsKey(fieldTestItemGroup.getGroupKey())
+                ? groupItems.get(fieldTestItemGroup.getGroupKey()).size() : 0;
+
             /* Skip [3248-3274] - This code is just selecting a single item group that is unassigned and not frequently used
               (as sorted by FT_Prioritize_2012())
               Skip [3276-3285] - debug code */
             int itemCount = fieldTestItemGroup.getItemCount();
+
+            // Skip this group if the cohortItemCount is less than the maximum number of items
+            if (cohortGroupCount == 0 || cohortItemCount >= maxItems) {
+                continue;
+            }
+
             /* [3307] */
             if (itemCount > 0 && ftItemCount + itemCount <= maxItems) {
                 /* [3308 - 3314] */
@@ -148,6 +178,8 @@ public class FieldTestServiceImpl implements FieldTestService {
                         .withSegmentId(currentSegment.getSegmentId())
                         .build()
                 );
+
+                cohortItemCount += cohortGroupCount;
             }
         }
 

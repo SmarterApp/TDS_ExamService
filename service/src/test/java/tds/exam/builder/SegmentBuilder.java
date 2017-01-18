@@ -5,6 +5,7 @@ import java.util.List;
 
 import tds.assessment.Algorithm;
 import tds.assessment.Form;
+import tds.assessment.Item;
 import tds.assessment.Segment;
 
 public class SegmentBuilder {
@@ -17,6 +18,7 @@ public class SegmentBuilder {
     private int maxItems = 10;
     private int position;
     private List<Form> forms = new ArrayList<>();
+    private List<Item> items = new ArrayList<>();
     private Integer fieldTestStartPosition = 3;
     private Integer fieldTestEndPosition = 10;
     private int fieldTestMaxItems = 4;
@@ -31,6 +33,7 @@ public class SegmentBuilder {
         segment.setMaxItems(maxItems);
         segment.setPosition(position);
         segment.setForms(forms);
+        segment.setItems(items);
         segment.setFieldTestMaxItems(fieldTestMaxItems);
         segment.setFieldTestMinItems(fieldTestMinItems);
         segment.setFieldTestEndPosition(fieldTestEndPosition);
@@ -70,6 +73,11 @@ public class SegmentBuilder {
 
     public SegmentBuilder withMaxItems(int maxItems) {
         this.maxItems = maxItems;
+        return this;
+    }
+
+    public SegmentBuilder withItems(List<Item> items) {
+        this.items = items;
         return this;
     }
 

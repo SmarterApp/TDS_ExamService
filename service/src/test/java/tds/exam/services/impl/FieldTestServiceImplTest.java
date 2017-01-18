@@ -22,6 +22,7 @@ import tds.exam.Exam;
 import tds.exam.builder.AssessmentBuilder;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.builder.FieldTestItemGroupBuilder;
+import tds.exam.builder.ItemBuilder;
 import tds.exam.builder.SegmentBuilder;
 import tds.exam.models.FieldTestItemGroup;
 import tds.exam.repositories.FieldTestItemGroupCommandRepository;
@@ -478,11 +479,34 @@ public class FieldTestServiceImplTest {
     public void shouldSelectAndInsertFieldTestItemGroupsMultiItems() {
         Exam exam = new ExamBuilder().build();
         final String assessmentKey = "assessment-key123";
+        Item item1G1 = new ItemBuilder("item1group1")
+            .withGroupKey("group-key-1")
+            .withItemProperties(Arrays.asList(new ItemProperty("Language", "ENU")))
+            .build();
+        Item item2G1 = new ItemBuilder("item2group1")
+            .withGroupKey("group-key-1")
+            .withItemProperties(Arrays.asList(new ItemProperty("Language", "ENU")))
+            .build();
+        Item item3G1 = new ItemBuilder("item3group1")
+            .withGroupKey("group-key-1")
+            .withItemProperties(Arrays.asList(new ItemProperty("Language", "ENU")))
+            .build();
+//        Item nonFieldTestItemG1 = new ItemBuilder("nonFtItem-group1")
+//            .withGroupKey("group-key-1")
+//            .withItemProperties(Arrays.asList(new ItemProperty("Language", "ENU")))
+//            .build();
+        Item item1G2 = new ItemBuilder("item1group2")
+            .withGroupKey("group-key-2")
+            .withItemProperties(Arrays.asList(new ItemProperty("Language", "ENU")))
+            .build();
         Segment segment = new SegmentBuilder()
             .withAssessmentKey(assessmentKey)
+            .withItems(Arrays.asList(item1G1, item2G1, item3G1, item1G2))
+//            .withItems(Arrays.asList(item1G1, item2G1, item3G1, item1G2, nonFieldTestItemG1))
             .withFieldTestStartPosition(3)
             .withFieldTestEndPosition(7)
             .withFieldTestMinItems(4)
+            .withSelectionAlgorithm(Algorithm.ADAPTIVE_2)
             .withFieldTestMaxItems(4)
             .build();
         Assessment assessment = new AssessmentBuilder()
