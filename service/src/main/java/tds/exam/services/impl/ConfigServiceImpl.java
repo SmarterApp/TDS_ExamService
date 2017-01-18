@@ -1,6 +1,7 @@
 package tds.exam.services.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -13,6 +14,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.util.List;
 import java.util.Optional;
 
+import tds.common.cache.CacheType;
 import tds.config.Accommodation;
 import tds.config.AssessmentWindow;
 import tds.config.ClientSystemFlag;
@@ -35,6 +37,7 @@ class ConfigServiceImpl implements ConfigService {
     }
 
     @Override
+    @Cacheable(CacheType.MEDIUM_TERM)
     public List<AssessmentWindow> findAssessmentWindows(String clientName,
                                                         String assessmentId,
                                                         long studentId,
@@ -61,6 +64,7 @@ class ConfigServiceImpl implements ConfigService {
     }
 
     @Override
+    @Cacheable(CacheType.LONG_TERM)
     public Optional<ClientSystemFlag> findClientSystemFlag(String clientName, String auditObject) {
         UriComponentsBuilder builder =
             UriComponentsBuilder

@@ -1,6 +1,7 @@
 package tds.exam.services.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -13,6 +14,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.util.List;
 import java.util.Optional;
 
+import tds.common.cache.CacheType;
 import tds.exam.configuration.ExamServiceProperties;
 import tds.exam.services.StudentService;
 import tds.student.RtsStudentPackageAttribute;
@@ -30,6 +32,7 @@ class StudentServiceImpl implements StudentService {
     }
 
     @Override
+    @Cacheable(CacheType.MEDIUM_TERM)
     public Optional<Student> getStudentById(long studentId) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
@@ -49,6 +52,7 @@ class StudentServiceImpl implements StudentService {
     }
 
     @Override
+    @Cacheable(CacheType.MEDIUM_TERM)
     public List<RtsStudentPackageAttribute> findStudentPackageAttributes(long studentId, String clientName, String... attributeNames) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
