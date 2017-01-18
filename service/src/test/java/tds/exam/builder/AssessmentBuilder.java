@@ -2,11 +2,13 @@ package tds.exam.builder;
 
 import org.joda.time.Instant;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import tds.assessment.Algorithm;
 import tds.assessment.Assessment;
+import tds.assessment.ItemConstraint;
 import tds.assessment.Segment;
 
 public class AssessmentBuilder {
@@ -17,6 +19,7 @@ public class AssessmentBuilder {
     private int prefetch = 2;
     private String subject = "ENGLISH";
     private List<Segment> segments;
+    private List<ItemConstraint> itemConstraints = new ArrayList<>();
     private boolean initialAbilityBySubject;
     private float abilitySlope;
     private float abilityIntercept;
@@ -42,6 +45,7 @@ public class AssessmentBuilder {
         assessment.setInitialAbilityBySubject(initialAbilityBySubject);
         assessment.setSubject(subject);
         assessment.setAccommodationFamily(accommodationFamily);
+        assessment.setItemConstraints(itemConstraints);
         return assessment;
     }
 
