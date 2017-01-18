@@ -1,6 +1,7 @@
 package tds.exam.services.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
@@ -10,6 +11,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.util.Optional;
 import java.util.UUID;
 
+import tds.common.cache.CacheType;
 import tds.exam.configuration.ExamServiceProperties;
 import tds.exam.services.SessionService;
 import tds.session.ExternalSessionConfiguration;
@@ -29,6 +31,7 @@ class SessionServiceImpl implements SessionService {
     }
 
     @Override
+    @Cacheable(CacheType.SHORT_TERM)
     public Optional<Session> findSessionById(UUID sessionId) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
@@ -48,6 +51,7 @@ class SessionServiceImpl implements SessionService {
     }
 
     @Override
+    @Cacheable(CacheType.LONG_TERM)
     public Optional<ExternalSessionConfiguration> findExternalSessionConfigurationByClientName(String clientName) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
@@ -86,6 +90,7 @@ class SessionServiceImpl implements SessionService {
     }
 
     @Override
+    @Cacheable(CacheType.LONG_TERM)
     public Optional<SessionAssessment> findSessionAssessment(UUID sessionId, String assessmentKey) {
         UriComponentsBuilder builder =
             UriComponentsBuilder.fromHttpUrl(String.format("%s/%s/assessment/%s", examServiceProperties.getSessionUrl(), sessionId, assessmentKey));
