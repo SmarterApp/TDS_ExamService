@@ -30,7 +30,11 @@ public class ItemPoolServiceImpl implements ItemPoolService {
     }
 
     @Override
-    public Set<Item> getItemPool(final UUID examId, final List<ItemConstraint> itemConstraints, final List<Item> items, Boolean isFieldTest) {
+    public Set<Item> getFieldTestItemPool(UUID examId, List<ItemConstraint> itemConstraints, List<Item> items) {
+        return getItemPool(examId, itemConstraints, items, true);
+    }
+
+    private Set<Item> getItemPool(final UUID examId, final List<ItemConstraint> itemConstraints, final List<Item> items, Boolean isFieldTest) {
         /*
             This method is meant to replace StudentDLL._AA_ItempoolString_FNOptimized() [1643]
             The purpose of this method is to find the list of items to include in the segment by taking the following steps:

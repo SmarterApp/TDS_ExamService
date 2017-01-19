@@ -17,6 +17,7 @@ import tds.assessment.ItemProperty;
 import tds.assessment.Segment;
 import tds.assessment.Strand;
 import tds.exam.ExamAccommodation;
+import tds.exam.builder.ItemBuilder;
 import tds.exam.models.SegmentPoolInfo;
 import tds.exam.services.ItemPoolService;
 
@@ -104,32 +105,31 @@ public class SegmentPoolServiceImplTest {
         enuProps2.add(new ItemProperty("--ITEMTYPE--", "MI", "Matching Item", excludedStrandItemId));
 
         List<Item> items = new ArrayList<>();
-        Item item1 = new Item(itemId1);
-        item1.setStrand(includedStrand1.getName());
-        item1.setItemProperties(enuProps1);
-        item1.setFieldTest(false);
-
-        Item item2 = new Item(itemId2);
-        item2.setStrand(includedStrand1.getName());
-        item2.setItemProperties(enuProps2);
-        item2.setFieldTest(false);
-
-        Item item3 = new Item(itemId3);
-        item3.setStrand(includedStrand2.getName());
-        item3.setItemProperties(enuProps3);
-        item3.setFieldTest(false);
+        Item item1 = new ItemBuilder(itemId1)
+            .withStrand(includedStrand1.getName())
+            .withItemProperties(enuProps1)
+            .build();
+        Item item2 = new ItemBuilder(itemId2)
+            .withStrand(includedStrand1.getName())
+            .withItemProperties(enuProps2)
+            .build();
+        Item item3 = new ItemBuilder(itemId3)
+            .withStrand(includedStrand2.getName())
+            .withItemProperties(enuProps3)
+            .build();
 
         // Should be included in the itemPoolIds list, but wont be factored into other calculations because its an FT item
-        Item ftItem = new Item(ftItemId);
-        ftItem.setStrand(includedStrand2.getName());
-        ftItem.setItemProperties(ftProps);
-        ftItem.setFieldTest(true);
+        Item ftItem = new ItemBuilder(ftItemId)
+            .withStrand(includedStrand2.getName())
+            .withItemProperties(ftProps)
+            .withFieldTest(true)
+            .build();
 
         // This item will be included in the itemPoolIds list, but wont be factored into other calculations
-        Item excludedStrandItem = new Item(excludedStrandItemId);
-        excludedStrandItem.setItemProperties(excludedStrandItemProps);
-        excludedStrandItem.setStrand(excludedStrand.getName());       // This should be excluded from strand calculations
-        excludedStrandItem.setFieldTest(false);
+        Item excludedStrandItem = new ItemBuilder(excludedStrandItemId)
+            .withItemProperties(excludedStrandItemProps)
+            .withStrand(excludedStrand.getName())       // This should be excluded from strand calculations
+            .build();
 
         items.add(item1);
         items.add(item2);
@@ -260,32 +260,33 @@ public class SegmentPoolServiceImplTest {
         enuProps2.add(new ItemProperty("--ITEMTYPE--", "MI", "Matching Item", excludedStrandItemId));
 
         List<Item> items = new ArrayList<>();
-        Item item1 = new Item(itemId1);
-        item1.setStrand(includedStrand1.getName());
-        item1.setItemProperties(enuProps1);
-        item1.setFieldTest(false);
+        Item item1 = new ItemBuilder(itemId1)
+            .withStrand(includedStrand1.getName())
+            .withItemProperties(enuProps1)
+            .build();
 
-        Item item2 = new Item(itemId2);
-        item2.setStrand(includedStrand1.getName());
-        item2.setItemProperties(enuProps2);
-        item2.setFieldTest(false);
+        Item item2 = new ItemBuilder(itemId2)
+            .withStrand(includedStrand1.getName())
+            .withItemProperties(enuProps2)
+            .build();
 
-        Item item3 = new Item(itemId3);
-        item3.setStrand(includedStrand2.getName());
-        item3.setItemProperties(enuProps3);
-        item3.setFieldTest(false);
+        Item item3 = new ItemBuilder(itemId3)
+            .withStrand(includedStrand2.getName())
+            .withItemProperties(enuProps3)
+            .build();
 
         // Should be included in the itemPoolIds list, but wont be factored into other calculations because its an FT item
-        Item ftItem = new Item(ftItemId);
-        ftItem.setStrand(includedStrand2.getName());
-        ftItem.setItemProperties(ftProps);
-        ftItem.setFieldTest(true);
+        Item ftItem = new ItemBuilder(ftItemId)
+            .withStrand(includedStrand2.getName())
+            .withItemProperties(ftProps)
+            .withFieldTest(true)
+            .build();
 
         // This item will be included in the itemPoolIds list, but wont be factored into other calculations
-        Item excludedStrandItem = new Item(excludedStrandItemId);
-        excludedStrandItem.setItemProperties(excludedStrandItemProps);
-        excludedStrandItem.setStrand(excludedStrand.getName());       // This should be excluded from strand calculations
-        excludedStrandItem.setFieldTest(false);
+        Item excludedStrandItem = new ItemBuilder(excludedStrandItemId)
+            .withItemProperties(excludedStrandItemProps)
+            .withStrand(excludedStrand.getName())       // This should be excluded from strand calculations
+            .build();
 
         items.add(item1);
         items.add(item2);
