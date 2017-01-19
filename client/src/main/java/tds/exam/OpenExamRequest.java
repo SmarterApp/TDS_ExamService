@@ -8,8 +8,6 @@ import java.util.UUID;
  * Information required to open an exam
  */
 public class OpenExamRequest {
-    @NotNull
-    private String clientName;
 
     @NotNull
     private long studentId;
@@ -38,7 +36,6 @@ public class OpenExamRequest {
     private UUID browserId;
 
     private OpenExamRequest(Builder builder) {
-        this.clientName = builder.clientName;
         this.studentId = builder.studentId;
         this.assessmentKey = builder.assessmentKey;
         this.maxAttempts = builder.maxAttempts;
@@ -64,13 +61,6 @@ public class OpenExamRequest {
      */
     public Long getProctorId() {
         return proctorId;
-    }
-
-    /**
-     * @return unique client name
-     */
-    public String getClientName() {
-        return clientName;
     }
 
     /**
@@ -122,7 +112,6 @@ public class OpenExamRequest {
     }
 
     public static final class Builder {
-        private String clientName;
         private long studentId;
         private String assessmentKey;
         private int maxAttempts;
@@ -131,11 +120,6 @@ public class OpenExamRequest {
         private Long proctorId;
         private String guestAccommodations;
         private UUID browserId;
-
-        public Builder withClientName(String clientName) {
-            this.clientName = clientName;
-            return this;
-        }
 
         public Builder withStudentId(long studentId) {
             this.studentId = studentId;

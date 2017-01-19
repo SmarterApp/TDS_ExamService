@@ -5,7 +5,6 @@ import java.util.UUID;
 import tds.exam.OpenExamRequest;
 
 public class OpenExamRequestBuilder {
-    private String clientName = "SBAC_PT";
     private long studentId = 1;
     private String assessmentKey = "(SBAC_PT)IRP-Perf-ELA-3-Summer-2015-2016";
     private int maxAttempts = 0;
@@ -14,11 +13,6 @@ public class OpenExamRequestBuilder {
     private Long proctorId = 99L;
     private String guestAccommodations;
     private UUID browserId = UUID.randomUUID();
-
-    public OpenExamRequestBuilder withClientName(String clientName) {
-        this.clientName = clientName;
-        return this;
-    }
 
     public OpenExamRequestBuilder withStudentId(long studentId) {
         this.studentId = studentId;
@@ -62,7 +56,6 @@ public class OpenExamRequestBuilder {
 
     public OpenExamRequest build() {
         return new OpenExamRequest.Builder()
-            .withClientName(clientName)
             .withStudentId(studentId)
             .withAssessmentKey(assessmentKey)
             .withMaxAttempts(maxAttempts)

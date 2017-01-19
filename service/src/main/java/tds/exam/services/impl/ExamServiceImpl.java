@@ -128,15 +128,6 @@ class ExamServiceImpl implements ExamService {
 
     @Override
     public Response<Exam> openExam(OpenExamRequest openExamRequest) {
-        //Line 5602 in StudentDLL.  This has been moved to earlier in the flow than the original because it is used throughout.  The original
-        //fetches the external configuration multiple times in the different layers.
-        Optional<ExternalSessionConfiguration> maybeExternalSessionConfiguration = sessionService.findExternalSessionConfigurationByClientName(openExamRequest.getClientName());
-        if (!maybeExternalSessionConfiguration.isPresent()) {
-            throw new IllegalStateException(String.format("External Session Configuration could not be found for client name %s", openExamRequest.getClientName()));
-        }
-
-        ExternalSessionConfiguration externalSessionConfiguration = maybeExternalSessionConfiguration.get();
-
         //Different parts of the session are queried throughout the legacy code.  Instead we fetch the entire session object in one call and pass
         //the reference to those parts that require it.
         Optional<Session> maybeSession = sessionService.findSessionById(openExamRequest.getSessionId());
@@ -145,6 +136,16 @@ class ExamServiceImpl implements ExamService {
         }
 
         Session currentSession = maybeSession.get();
+
+        //Line 5602 in StudentDLL.  This has been moved to earlier in the flow than the original because it is used throughout.  The original
+        //fetches the external configuration multiple times in the different layers.
+        Optional<ExternalSessionConfiguration> maybeExternalSessionConfiguration = sessionService.findExternalSessionConfigurationByClientName(currentSession.getClientName());
+        if (!maybeExternalSessionConfiguration.isPresent()) {
+            throw new IllegalStateException(String.format("External Session Configuration could not be found for client name %s", currentSession.getClientName()));
+        }
+
+        ExternalSessionConfiguration externalSessionConfiguration = maybeExternalSessionConfiguration.get();
+
 
         //Line OpenTestServiceImp line 126 - 130
         if (!currentSession.isOpen()) {
@@ -157,12 +158,12 @@ class ExamServiceImpl implements ExamService {
             );
         } else {
             //OpenTestServiceImpl lines 103 - 104
-            if (!allowsGuestStudent(openExamRequest.getClientName(), externalSessionConfiguration)) {
-                return new Response<Exam>(new ValidationError(ANONYMOUS_STUDENT_NOT_ALLOWED, String.format("Anonymous students not allowed for this client %s", openExamRequest.getClientName())));
+            if (!allowsGuestStudent(currentSession.getClientName(), externalSessionConfiguration)) {
+                return new Response<Exam>(new ValidationError(ANONYMOUS_STUDENT_NOT_ALLOWED, String.format("Anonymous students not allowed for this client %s", currentSession.getClientName())));
             }
         }
 
-        Optional<Assessment> maybeAssessment = assessmentService.findAssessment(openExamRequest.getClientName(),
+        Optional<Assessment> maybeAssessment = assessmentService.findAssessment(currentSession.getClientName(),
             openExamRequest.getAssessmentKey());
         if (!maybeAssessment.isPresent()) {
             throw new IllegalArgumentException(String.format("Assessment information could not be found for assessment key %s", openExamRequest.getAssessmentKey()));
@@ -171,7 +172,7 @@ class ExamServiceImpl implements ExamService {
         Assessment assessment = maybeAssessment.get();
 
         //Previous exam is retrieved in lines 5492 - 5530 and 5605 - 5645 in StudentDLL
-        Optional<Exam> maybePreviousExam = examQueryRepository.getLastAvailableExam(openExamRequest.getStudentId(), assessment.getAssessmentId(), openExamRequest.getClientName());
+        Optional<Exam> maybePreviousExam = examQueryRepository.getLastAvailableExam(openExamRequest.getStudentId(), assessment.getAssessmentId(), currentSession.getClientName());
 
         boolean canOpenPreviousExam = false;
         if (maybePreviousExam.isPresent()) {
@@ -185,16 +186,16 @@ class ExamServiceImpl implements ExamService {
         }
 
         if (canOpenPreviousExam) {
-            return openPreviousExam(openExamRequest, externalSessionConfiguration, maybePreviousExam.get(), assessment);
+            return openPreviousExam(currentSession.getClientName(), openExamRequest, externalSessionConfiguration, maybePreviousExam.get(), assessment);
         }
 
         Exam previousExam = maybePreviousExam.isPresent() ? maybePreviousExam.get() : null;
-        Optional<ValidationError> maybeOpenNewExamValidationError = canCreateNewExam(openExamRequest, previousExam, externalSessionConfiguration);
+        Optional<ValidationError> maybeOpenNewExamValidationError = canCreateNewExam(currentSession.getClientName(), openExamRequest, previousExam, externalSessionConfiguration);
         if (maybeOpenNewExamValidationError.isPresent()) {
-            return new Response<Exam>(maybeOpenNewExamValidationError.get());
+            return new Response<>(maybeOpenNewExamValidationError.get());
         }
 
-        return createExam(openExamRequest, currentSession, assessment, externalSessionConfiguration, previousExam);
+        return createExam(currentSession.getClientName(), openExamRequest, currentSession, assessment, externalSessionConfiguration, previousExam);
     }
 
     @Override
@@ -483,7 +484,7 @@ class ExamServiceImpl implements ExamService {
             .build();
     }
 
-    private Response<Exam> createExam(OpenExamRequest openExamRequest, Session session, Assessment assessment, ExternalSessionConfiguration externalSessionConfiguration, Exam previousExam) {
+    private Response<Exam> createExam(String clientName, OpenExamRequest openExamRequest, Session session, Assessment assessment, ExternalSessionConfiguration externalSessionConfiguration, Exam previousExam) {
         Exam.Builder examBuilder = new Exam.Builder();
 
         //From OpenTestServiceImpl lines 160 -163
@@ -498,7 +499,7 @@ class ExamServiceImpl implements ExamService {
             examBuilder.withStudentName("GUEST");
             examBuilder.withLoginSSID("GUEST");
         } else {
-            List<RtsStudentPackageAttribute> attributes = studentService.findStudentPackageAttributes(openExamRequest.getStudentId(), openExamRequest.getClientName(), EXTERNAL_ID, ENTITY_NAME, ACCOMMODATIONS);
+            List<RtsStudentPackageAttribute> attributes = studentService.findStudentPackageAttributes(openExamRequest.getStudentId(), clientName, EXTERNAL_ID, ENTITY_NAME, ACCOMMODATIONS);
 
             for (RtsStudentPackageAttribute attribute : attributes) {
                 if (EXTERNAL_ID.equals(attribute.getName())) {
@@ -513,7 +514,7 @@ class ExamServiceImpl implements ExamService {
 
         //OpenTestServiceImpl lines 317 - 341
         List<AssessmentWindow> assessmentWindows = configService.findAssessmentWindows(
-            openExamRequest.getClientName(),
+            clientName,
             assessment.getAssessmentId(),
             openExamRequest.getStudentId(),
             externalSessionConfiguration
@@ -601,7 +602,7 @@ class ExamServiceImpl implements ExamService {
         return Optional.empty();
     }
 
-    private Response<Exam> openPreviousExam(OpenExamRequest openExamRequest, ExternalSessionConfiguration externalSessionConfiguration, Exam previousExam, Assessment assessment) {
+    private Response<Exam> openPreviousExam(String clientName, OpenExamRequest openExamRequest, ExternalSessionConfiguration externalSessionConfiguration, Exam previousExam, Assessment assessment) {
         /*
          Represents StudentDLL._OpenExistingOpportunity_SP in the legacy code.  The beginning of the method
          goes and fetches statuses and previous exams which we do not need to do here since that is done earlier
@@ -635,10 +636,10 @@ class ExamServiceImpl implements ExamService {
         //The next block replaces OpenTestServiceImpl lines 194-202 fetching the guest accommodations if not a guest student
         //Fetches the client system flag for restoring accommodations StudentDLL._RestoreRTSAccommodations_FN
         String guestAccommodations = openExamRequest.getGuestAccommodations();
-        Optional<ClientSystemFlag> maybeRestoreAccommodations = configService.findClientSystemFlag(openExamRequest.getClientName(), RESTORE_ACCOMMODATIONS_TYPE);
+        Optional<ClientSystemFlag> maybeRestoreAccommodations = configService.findClientSystemFlag(clientName, RESTORE_ACCOMMODATIONS_TYPE);
         boolean restoreAccommodations = maybeRestoreAccommodations.isPresent() && maybeRestoreAccommodations.get().isEnabled();
         if (restoreAccommodations && !openExamRequest.isGuestStudent()) {
-            List<RtsStudentPackageAttribute> attributes = studentService.findStudentPackageAttributes(openExamRequest.getStudentId(), openExamRequest.getClientName(), ACCOMMODATIONS);
+            List<RtsStudentPackageAttribute> attributes = studentService.findStudentPackageAttributes(openExamRequest.getStudentId(), clientName, ACCOMMODATIONS);
 
             if (!attributes.isEmpty()) {
                 //If there are any attributes returned it should only be the one for restore accommodations
@@ -693,14 +694,14 @@ class ExamServiceImpl implements ExamService {
         return Optional.of(new ValidationError(ValidationErrorCode.CURRENT_EXAM_OPEN, "Current exam is active"));
     }
 
-    private Optional<ValidationError> canCreateNewExam(OpenExamRequest openExamRequest, Exam previousExam, ExternalSessionConfiguration externalSessionConfiguration) {
+    private Optional<ValidationError> canCreateNewExam(String clientName, OpenExamRequest openExamRequest, Exam previousExam, ExternalSessionConfiguration externalSessionConfiguration) {
         //Lines 5610 - 5618 in StudentDLL was not implemented.  The reason is that the max opportunities is always
         //3 via the loader scripts.  So the the conditional in the StudentDLL code will always allow one to open a new
         //Exam if previous exam is null (0 ocnt in the legacy code)
 
         //Get timelmits for delay days  Line 516-525 OpenTestServiceImpl
         Integer numberOfDaysToDelay = null;
-        Optional<TimeLimitConfiguration> maybeTimeLimitConfiguration = timeLimitConfigurationService.findTimeLimitConfiguration(openExamRequest.getClientName(), openExamRequest.getAssessmentKey());
+        Optional<TimeLimitConfiguration> maybeTimeLimitConfiguration = timeLimitConfigurationService.findTimeLimitConfiguration(clientName, openExamRequest.getAssessmentKey());
         if (maybeTimeLimitConfiguration.isPresent()) {
             numberOfDaysToDelay = maybeTimeLimitConfiguration.get().getExamDelayDays();
         }
