@@ -259,7 +259,7 @@ class ExamServiceImpl implements ExamService {
 
         if (!StatusTransitionValidator.isValidTransition(exam.getStatus().getCode(), newStatus.getCode())) {
             return Optional.of(new ValidationError(ValidationErrorCode.EXAM_STATUS_TRANSITION_FAILURE,
-                String.format("Bad status transition from %s to %s", exam.getStatus().getCode(), newStatus.getCode())));
+                String.format("Transitioning exam status from %s to %s is not allowed", exam.getStatus().getCode(), newStatus.getCode())));
         }
 
         Exam updatedExam = new Exam.Builder()
