@@ -25,6 +25,8 @@ import tds.exam.ApprovalRequest;
 import tds.exam.Exam;
 import tds.exam.ExamApproval;
 import tds.exam.ExamConfiguration;
+import tds.exam.ExamStatusCode;
+import tds.exam.ExamStatusStage;
 import tds.exam.OpenExamRequest;
 import tds.exam.services.ExamService;
 
@@ -92,7 +94,8 @@ public class ExamController {
 
     @RequestMapping(value = "/{examId}/pause", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<NoContentResponseResource> pauseExam(@PathVariable final UUID examId) {
-        final Optional<ValidationError> maybeStatusTransitionFailure = examService.pauseExam(examId);
+        final Optional<ValidationError> maybeStatusTransitionFailure = examService.updateExamStatus(examId,
+            new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE));
 
         if (maybeStatusTransitionFailure.isPresent()) {
             NoContentResponseResource response = new NoContentResponseResource(maybeStatusTransitionFailure.get());
