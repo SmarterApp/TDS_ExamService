@@ -53,7 +53,7 @@ public class ExamController {
     ResponseEntity<Response<Exam>> openExam(@RequestBody final OpenExamRequest openExamRequest) {
         Response<Exam> exam = examService.openExam(openExamRequest);
 
-        if (!exam.getData().isPresent()) {
+        if (exam.hasError()) {
             return new ResponseEntity<>(exam, HttpStatus.UNPROCESSABLE_ENTITY);
         }
 
@@ -71,7 +71,7 @@ public class ExamController {
     ResponseEntity<Response<ExamConfiguration>> startExam(@PathVariable final UUID examId) {
         Response<ExamConfiguration> examConfiguration = examService.startExam(examId);
 
-        if (examConfiguration.getErrors().length > 0) {
+        if (examConfiguration.hasError()) {
             return new ResponseEntity<>(examConfiguration, HttpStatus.UNPROCESSABLE_ENTITY);
         }
 
@@ -83,7 +83,7 @@ public class ExamController {
         ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserId, clientName);
         Response<ExamApproval> examApproval = examService.getApproval(approvalRequest);
 
-        if (examApproval.getErrors().length > 0) {
+        if (examApproval.hasError()) {
             return new ResponseEntity<>(examApproval, HttpStatus.UNPROCESSABLE_ENTITY);
         }
 
