@@ -1196,7 +1196,7 @@ public class ExamServiceImplTest {
         assertThat(maybeStatusTransitionFailure).isPresent();
         ValidationError statusTransitionFailure = maybeStatusTransitionFailure.get();
         assertThat(statusTransitionFailure.getCode()).isEqualTo(ValidationErrorCode.EXAM_STATUS_TRANSITION_FAILURE);
-        assertThat(statusTransitionFailure.getMessage()).isEqualTo("Bad status transition from foo to paused");
+        assertThat(statusTransitionFailure.getMessage()).isEqualTo("Transitioning exam status from foo to paused is not allowed");
     }
 
     @Test(expected = IllegalArgumentException.class)
