@@ -141,8 +141,7 @@ public class FieldTestServiceImpl implements FieldTestService {
          as many items as are necessary. In legacy code, every possible field test item group (sorted by least used) is returned */
         for (FieldTestItemGroup fieldTestItemGroup : selectedFieldTestItemGroups) {
             // Get counts of all items for the item group, field test or not
-            int groupCount = groupItems.containsKey(fieldTestItemGroup.getGroupKey())
-                ? groupItems.get(fieldTestItemGroup.getGroupKey()).size() : 0;
+            int groupCount = groupItems.get(fieldTestItemGroup.getGroupKey()).size();
 
             /* Skip [3248-3274] - This code is just selecting a single item group that is unassigned and not frequently used
               (as sorted by FT_Prioritize_2012())
@@ -152,7 +151,7 @@ public class FieldTestServiceImpl implements FieldTestService {
             // Skip this group if the cohortItemCount is greater than or equal to the maximum number of field test items for this segment
             // Ultimately we want to make sure that there aren't more items (including non-ft items) in the group
             // than what will fit into the exam.
-            if (groupCount == 0 || itemCount >= maxItems) {
+            if (itemCount >= maxItems) {
                 /* This break corresponds to [3301-3305] - instead of "continuing" the selection loop, we can just break out and stop selecting.
                 *  The legacy app simply continues to loop unnecessarily. At this point, cohortItemCount and maxItems will never change. */
                 break;
