@@ -165,4 +165,18 @@ public class OpenExamRequest {
             return new OpenExamRequest(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "OpenExamRequest{" +
+            "studentId=" + studentId +
+            ", assessmentKey='" + assessmentKey + '\'' +
+            ", maxAttempts=" + maxAttempts +
+            ", sessionId=" + sessionId +
+            ", numberOfDaysToDelay=" + numberOfDaysToDelay +
+            ", proctorId=" + proctorId +
+            ", guestAccommodations='" + guestAccommodations + '\'' +
+            ", browserId=" + browserId +
+            '}';
+    }
 }

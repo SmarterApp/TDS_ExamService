@@ -53,6 +53,7 @@ public class ExamController {
 
     @RequestMapping(method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<Response<Exam>> openExam(@RequestBody final OpenExamRequest openExamRequest) {
+        String request = openExamRequest.toString();
         Response<Exam> exam = examService.openExam(openExamRequest);
 
         if (exam.hasError()) {
