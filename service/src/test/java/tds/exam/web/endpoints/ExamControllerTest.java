@@ -88,8 +88,8 @@ public class ExamControllerTest {
         ResponseEntity<Response<Exam>> response = controller.openExam(openExamRequest);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
-        assertThat(response.getBody().getErrors()).hasSize(1);
-        assertThat(response.getBody().getErrors()[0].getCode()).isEqualTo(ValidationErrorCode.PREVIOUS_SESSION_NOT_FOUND);
+        assertThat(response.getBody().hasError()).isTrue();
+        assertThat(response.getBody().getError().get().getCode()).isEqualTo(ValidationErrorCode.PREVIOUS_SESSION_NOT_FOUND);
     }
 
     @Test
@@ -124,7 +124,7 @@ public class ExamControllerTest {
         verify(mockExamService).getApproval(Matchers.isA(ApprovalRequest.class));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody().getErrors()).isEmpty();
+        assertThat(response.getBody().hasError()).isFalse();
         assertThat(response.getBody().getData().isPresent()).isTrue();
         assertThat(response.getBody().getData().get().getExamApprovalStatus()).isEqualTo(ExamApprovalStatus.APPROVED);
     }
@@ -145,20 +145,20 @@ public class ExamControllerTest {
         assertThat(response.getBody().getData().get().getExam().getId()).isEqualTo(exam.getId());
         assertThat(response.getBody().getData().get().getStatus()).isEqualTo("started");
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody().getErrors()).isEmpty();
+        assertThat(response.getBody().hasError()).isFalse();
     }
 
     @Test
     public void shouldCreateErrorResponseWhenStartExamValidationError() {
         final UUID examId = UUID.randomUUID();
         when(mockExamService.startExam(examId)).thenReturn(
-            new Response<ExamConfiguration>(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_SESSION_ID_MISMATCH, "Session mismatch")));
+            new Response<>(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_SESSION_ID_MISMATCH, "Session mismatch")));
 
         ResponseEntity<Response<ExamConfiguration>> response = controller.startExam(examId);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
-        assertThat(response.getBody().getErrors()).hasSize(1);
-        assertThat(response.getBody().getErrors()[0].getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_SESSION_ID_MISMATCH);
+        assertThat(response.getBody().hasError()).isTrue();
+        assertThat(response.getBody().getError().get().getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_SESSION_ID_MISMATCH);
     }
 
     @Test
@@ -180,9 +180,10 @@ public class ExamControllerTest {
         verify(mockExamService).getApproval(Matchers.isA(ApprovalRequest.class));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
-        assertThat(response.getBody().getErrors()).hasSize(1);
-        assertThat(response.getBody().getErrors()[0].getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_BROWSER_ID_MISMATCH);
-        assertThat(response.getBody().getErrors()[0].getMessage()).isEqualTo("foo");
+        Response<ExamApproval> body = response.getBody();
+        assertThat(body.hasError()).isTrue();
+        assertThat(body.getError().get().getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_BROWSER_ID_MISMATCH);
+        assertThat(body.getError().get().getMessage()).isEqualTo("foo");
         assertThat(response.getBody().getData().isPresent()).isFalse();
     }
 
@@ -190,11 +191,11 @@ public class ExamControllerTest {
     public void shouldPauseAnExam() throws Exception {
         UUID examId = UUID.randomUUID();
 
-        when(mockExamService.pauseExam(examId)).thenReturn(Optional.empty());
+        when(mockExamService.updateExamStatus(examId, new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE))).thenReturn(Optional.empty());
 
         ResponseEntity<?> response = controller.pauseExam(examId);
 
-        verify(mockExamService).pauseExam(examId);
+        verify(mockExamService).updateExamStatus(examId, new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
         assertThat(response.getHeaders()).hasSize(1);
@@ -203,15 +204,15 @@ public class ExamControllerTest {
     }
 
     @Test
-    public void shouldNotPauseAnExam() {
+    public void shouldNotUpdateAnExamStatus() {
         UUID examId = UUID.randomUUID();
 
-        when(mockExamService.pauseExam(examId))
+        when(mockExamService.updateExamStatus(examId, new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE)))
             .thenReturn(Optional.of(new ValidationError(ValidationErrorCode.EXAM_STATUS_TRANSITION_FAILURE, "Bad transition from foo to bar")));
 
         ResponseEntity<NoContentResponseResource> response = controller.pauseExam(examId);
 
-        verify(mockExamService).pauseExam(examId);
+        verify(mockExamService).updateExamStatus(examId, new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
         assertThat(response.getBody().getErrors()).hasSize(1);

@@ -12,8 +12,14 @@ public class ExamStatusCode {
     public static final String STATUS_DENIED = "denied";
     public static final String STATUS_COMPLETED = "completed";
     public static final String STATUS_SCORED = "scored";
-    public static final String STAUTS_SEGMENT_ENTRY = "segmentEntry";
+    public static final String STATUS_SEGMENT_ENTRY = "segmentEntry";
     public static final String STATUS_SEGMENT_EXIT = "segmentExit";
+    public static final String STATUS_FORCE_COMPLETED = "forceCompleted";
+    public static final String STATUS_INVALIDATED = "invalidated";
+    public static final String STATUS_EXPIRED = "expired";
+    public static final String STATUS_SUBMITTED = "submitted";
+    public static final String STATUS_RESCORED = "rescored";
+    public static final String STATUS_REPORTED = "reported";
     public static final String STATUS_CLOSED = "closed";
     public static final String STATUS_DISABLED = "disabled";
 

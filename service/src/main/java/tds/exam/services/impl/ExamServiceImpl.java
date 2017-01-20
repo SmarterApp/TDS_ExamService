@@ -47,6 +47,7 @@ import tds.exam.services.ExamService;
 import tds.exam.services.SessionService;
 import tds.exam.services.StudentService;
 import tds.exam.services.TimeLimitConfigurationService;
+import tds.exam.utils.StatusTransitionValidator;
 import tds.session.ExternalSessionConfiguration;
 import tds.session.Session;
 import tds.student.RtsStudentPackageAttribute;
@@ -247,22 +248,27 @@ class ExamServiceImpl implements ExamService {
     }
 
     @Override
-    public Optional<ValidationError> pauseExam(UUID examId) {
+    public Optional<ValidationError> updateExamStatus(UUID examId, ExamStatusCode newStatus) {
+        return updateExamStatus(examId, newStatus, null);
+    }
+
+    @Override
+    public Optional<ValidationError> updateExamStatus(UUID examId, ExamStatusCode newStatus, String statusChangeReason) {
         Exam exam = examQueryRepository.getExamById(examId)
             .orElseThrow(() -> new NotFoundException(String.format("Exam could not be found for id %s", examId)));
 
-        if (!statusesThatCanTransitionToPaused.contains(exam.getStatus().getCode())) {
+        if (!StatusTransitionValidator.isValidTransition(exam.getStatus().getCode(), newStatus.getCode())) {
             return Optional.of(new ValidationError(ValidationErrorCode.EXAM_STATUS_TRANSITION_FAILURE,
-                String.format("Bad status transition from %s to %s", exam.getStatus().getCode(), ExamStatusCode.STATUS_PAUSED)));
+                String.format("Transitioning exam status from %s to %s is not allowed", exam.getStatus().getCode(), newStatus.getCode())));
         }
 
-        // A status change reason is not required for pausing an exam.
-        Exam pausedExam = new Exam.Builder()
+        Exam updatedExam = new Exam.Builder()
             .fromExam(exam)
-            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE), org.joda.time.Instant.now())
+            .withStatus(newStatus, org.joda.time.Instant.now())
+            .withStatusChangeReason(statusChangeReason)
             .build();
 
-        examCommandRepository.update(pausedExam);
+        examCommandRepository.update(updatedExam);
 
         return Optional.empty();
     }
