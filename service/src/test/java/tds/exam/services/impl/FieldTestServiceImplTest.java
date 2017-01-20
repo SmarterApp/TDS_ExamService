@@ -317,8 +317,26 @@ public class FieldTestServiceImplTest {
     public void shouldSelectAndInsertFieldTestItemGroupsWithPreviousSelected() {
         Exam exam = new ExamBuilder().build();
         final String assessmentKey = "assessment-key123";
+        Item item1 = new ItemBuilder("item1")
+            .withGroupKey("group-key-1")
+            .withItemProperties(Arrays.asList(new ItemProperty("Language", "ENU")))
+            .build();
+        Item item2 = new ItemBuilder("item2")
+            .withGroupKey("group-key-2")
+            .withItemProperties(Arrays.asList(new ItemProperty("Language", "ENU")))
+            .build();
+        Item item3 = new ItemBuilder("item3")
+            .withGroupKey("group-key-3")
+            .withItemProperties(Arrays.asList(new ItemProperty("Language", "ENU")))
+            .build();
+        Item item4 = new ItemBuilder("item4")
+            .withGroupKey("group-key-4")
+            .withItemProperties(Arrays.asList(new ItemProperty("Language", "ENU")))
+            .build();
         Segment segment = new SegmentBuilder()
             .withAssessmentKey(assessmentKey)
+            .withItems(Arrays.asList(item1, item2, item3, item4))
+            .withSelectionAlgorithm(Algorithm.ADAPTIVE_2)
             .withFieldTestStartPosition(3)
             .withFieldTestEndPosition(7)
             .withFieldTestMinItems(4)
@@ -412,12 +430,31 @@ public class FieldTestServiceImplTest {
     public void shouldSelectAndInsertFieldTestItemGroupsWithoutEnoughPositionsForAllItems() {
         Exam exam = new ExamBuilder().build();
         final String assessmentKey = "assessment-key123";
+        Item item1G1 = new ItemBuilder("item1group1")
+            .withGroupKey("group-key-1")
+            .withItemProperties(Arrays.asList(new ItemProperty("Language", "ENU")))
+            .build();
+        Item item2G1 = new ItemBuilder("item2group1")
+            .withGroupKey("group-key-1")
+            .withItemProperties(Arrays.asList(new ItemProperty("Language", "ENU")))
+            .build();
+        Item item3G1 = new ItemBuilder("item3group1")
+            .withGroupKey("group-key-1")
+            .withItemProperties(Arrays.asList(new ItemProperty("Language", "ENU")))
+            .build();
+        // One (FT) item in second group
+        Item item1G2 = new ItemBuilder("item1group2")
+            .withGroupKey("group-key-2")
+            .withItemProperties(Arrays.asList(new ItemProperty("Language", "ENU")))
+            .build();
         Segment segment = new SegmentBuilder()
             .withAssessmentKey(assessmentKey)
+            .withItems(Arrays.asList(item1G1, item2G1, item3G1, item1G2))
             .withFieldTestStartPosition(3)
             .withFieldTestEndPosition(7)
             .withFieldTestMinItems(2)
             .withFieldTestMaxItems(2)
+            .withSelectionAlgorithm(Algorithm.ADAPTIVE_2)
             .build();
         Assessment assessment = new AssessmentBuilder()
             .withSegments(Arrays.asList(segment))
@@ -476,7 +513,7 @@ public class FieldTestServiceImplTest {
     }
 
     @Test
-    public void shouldSkipFirstGroupDueToTooManyItemsInGroup() {
+    public void shouldSkipGroupDueToTooManyItemsInFTGroup() {
         Exam exam = new ExamBuilder().build();
         final String assessmentKey = "assessment-key123";
         // Four total items in item group (3 FT)
@@ -503,7 +540,6 @@ public class FieldTestServiceImplTest {
             .build();
         Segment segment = new SegmentBuilder()
             .withAssessmentKey(assessmentKey)
-            .withItems(Arrays.asList(item1G1, item2G1, item3G1, item1G2))
             .withItems(Arrays.asList(item1G1, item2G1, item3G1, item1G2, nonFieldTestItemG1))
             .withFieldTestStartPosition(3)
             .withFieldTestEndPosition(7)
@@ -530,15 +566,15 @@ public class FieldTestServiceImplTest {
         when(mockFieldTestItemGroupSelector.selectLeastUsedItemGroups(eq(exam), any(),
             any(), eq(segment), eq(segment.getFieldTestMinItems())))
             .thenReturn(Arrays.asList(ftItemGroup1, ftItemGroup2));
-        int totalItems = fieldTestService.selectItemGroups(exam, assessment, segment.getKey());
+        int totalFtItems = fieldTestService.selectItemGroups(exam, assessment, segment.getKey());
         verify(mockFieldTestItemGroupQueryRepository).find(exam.getId(), segment.getKey());
         verify(mockFieldTestItemGroupCommandRepository).insert(fieldTestItemGroupInsertCaptor.capture());
         verify(mockFieldTestItemGroupSelector).selectLeastUsedItemGroups(eq(exam), any(),
             eq(assessment), eq(segment), eq(segment.getFieldTestMinItems()));
 
         List<FieldTestItemGroup> insertedItemGroups = fieldTestItemGroupInsertCaptor.getValue();
-
-        assertThat(insertedItemGroups).containsExactly(ftItemGroup2);
+        assertThat(totalFtItems).isEqualTo(3);
+        assertThat(insertedItemGroups).containsExactly(ftItemGroup1);
     }
 
     @Test

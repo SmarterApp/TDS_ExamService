@@ -149,15 +149,14 @@ public class FieldTestServiceImpl implements FieldTestService {
               Skip [3276-3285] - debug code */
             int ftItemCount = fieldTestItemGroup.getItemCount();
 
-            // Skip this group if the cohortItemCount is greater than or equal to the maximum number of items
+            // Skip this group if the cohortItemCount is greater than or equal to the maximum number of field test items for this segment
             // Ultimately we want to make sure that there aren't more items (including non-ft items) in the group
             // than what will fit into the exam.
             if (cohortGroupCount == 0 || cohortItemCount >= maxItems) {
-                continue;
-            }
-
-            /* [3307] */
-            if (ftItemCount > 0 && totalFtItemCount + ftItemCount <= maxItems) {
+                /* This break corresponds to [3301-3305] - instead of "continuing" the selection loop, we can just break out and stop selecting.
+                *  The legacy app simply continues to loop unnecessarily. At this point, cohortItemCount and maxItems will never change. */
+                break;
+            } else if (ftItemCount > 0 && totalFtItemCount + ftItemCount <= maxItems) { /* [3307] */
                 /* [3308 - 3314] */
                 int thisIntSize = ftItemCount == 1 ? 1 : intervalSize * (ftItemCount - 1);
 
