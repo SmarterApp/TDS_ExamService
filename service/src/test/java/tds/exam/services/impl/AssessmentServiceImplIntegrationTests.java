@@ -1,6 +1,5 @@
 package tds.exam.services.impl;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +16,7 @@ import tds.assessment.Algorithm;
 import tds.assessment.Assessment;
 import tds.assessment.Segment;
 import tds.exam.configuration.ExamServiceProperties;
+import tds.exam.health.ServicesHealthIndicator;
 import tds.exam.services.AssessmentService;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,11 +33,16 @@ public class AssessmentServiceImplIntegrationTests {
     @MockBean
     private ExamServiceProperties properties;
 
+    @MockBean
+    private ServicesHealthIndicator servicesHealthIndicator;
+
     @Autowired
     private AssessmentService assessmentService;
 
     @Test
     public void shouldReturnCachedAssessment() {
+
+
         List<Segment> segments = new ArrayList<>();
         Segment segment = new Segment("segkey", Algorithm.FIXED_FORM);
         segment.setSegmentId("segid");
