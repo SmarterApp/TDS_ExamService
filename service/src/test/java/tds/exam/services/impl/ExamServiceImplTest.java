@@ -1175,7 +1175,8 @@ public class ExamServiceImplTest {
         when(mockExamQueryRepository.getExamById(examId))
             .thenReturn(Optional.of(mockExam));
 
-        Optional<ValidationError> maybeStatusTransitionFailure = examService.pauseExam(examId);
+        Optional<ValidationError> maybeStatusTransitionFailure = examService.updateExamStatus(examId,
+            new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE));
 
         assertThat(maybeStatusTransitionFailure).isNotPresent();
     }
@@ -1191,12 +1192,13 @@ public class ExamServiceImplTest {
         when(mockExamQueryRepository.getExamById(examId))
             .thenReturn(Optional.of(mockExam));
 
-        Optional<ValidationError> maybeStatusTransitionFailure = examService.pauseExam(examId);
+        Optional<ValidationError> maybeStatusTransitionFailure = examService.updateExamStatus(examId,
+            new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE));
 
         assertThat(maybeStatusTransitionFailure).isPresent();
         ValidationError statusTransitionFailure = maybeStatusTransitionFailure.get();
         assertThat(statusTransitionFailure.getCode()).isEqualTo(ValidationErrorCode.EXAM_STATUS_TRANSITION_FAILURE);
-        assertThat(statusTransitionFailure.getMessage()).isEqualTo("Bad status transition from foo to paused");
+        assertThat(statusTransitionFailure.getMessage()).isEqualTo("Transitioning exam status from foo to paused is not allowed");
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -1619,12 +1621,12 @@ public class ExamServiceImplTest {
     }
 
     @Test(expected = NotFoundException.class)
-    public void shouldThrowIllegalArgumentExceptionWhenPausingAnExamThatCannotBeFound() {
+    public void shouldThrowIllegalArgumentExceptionWhenUpdatingStatusOnAnExamThatCannotBeFound() {
         UUID examId = UUID.randomUUID();
 
         when(mockExamQueryRepository.getExamById(examId)).thenReturn(Optional.empty());
 
-        examService.pauseExam(examId);
+        examService.updateExamStatus(examId, new ExamStatusCode(ExamStatusCode.STATUS_FAILED, ExamStatusStage.CLOSED));
     }
 
     @Test

@@ -191,11 +191,11 @@ public class ExamControllerTest {
     public void shouldPauseAnExam() throws Exception {
         UUID examId = UUID.randomUUID();
 
-        when(mockExamService.pauseExam(examId)).thenReturn(Optional.empty());
+        when(mockExamService.updateExamStatus(examId, new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE))).thenReturn(Optional.empty());
 
         ResponseEntity<?> response = controller.pauseExam(examId);
 
-        verify(mockExamService).pauseExam(examId);
+        verify(mockExamService).updateExamStatus(examId, new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
         assertThat(response.getHeaders()).hasSize(1);
@@ -204,15 +204,15 @@ public class ExamControllerTest {
     }
 
     @Test
-    public void shouldNotPauseAnExam() {
+    public void shouldNotUpdateAnExamStatus() {
         UUID examId = UUID.randomUUID();
 
-        when(mockExamService.pauseExam(examId))
+        when(mockExamService.updateExamStatus(examId, new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE)))
             .thenReturn(Optional.of(new ValidationError(ValidationErrorCode.EXAM_STATUS_TRANSITION_FAILURE, "Bad transition from foo to bar")));
 
         ResponseEntity<NoContentResponseResource> response = controller.pauseExam(examId);
 
-        verify(mockExamService).pauseExam(examId);
+        verify(mockExamService).updateExamStatus(examId, new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
         assertThat(response.getBody().getErrors()).hasSize(1);
