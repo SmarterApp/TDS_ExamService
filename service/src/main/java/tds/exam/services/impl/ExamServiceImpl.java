@@ -180,7 +180,7 @@ class ExamServiceImpl implements ExamService {
             Optional<ValidationError> canOpenPreviousExamError = canOpenPreviousExam(maybePreviousExam.get(), currentSession);
 
             if (canOpenPreviousExamError.isPresent()) {
-                return new Response<Exam>(canOpenPreviousExamError.get());
+                return new Response<>(canOpenPreviousExamError.get());
             }
 
             canOpenPreviousExam = true;
