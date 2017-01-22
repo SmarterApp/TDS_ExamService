@@ -14,8 +14,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import tds.accommodation.Accommodation;
 import tds.assessment.Assessment;
-import tds.config.Accommodation;
 import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
 import tds.exam.builder.AccommodationBuilder;
@@ -24,7 +24,7 @@ import tds.exam.builder.ExamAccommodationBuilder;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.repositories.ExamAccommodationCommandRepository;
 import tds.exam.repositories.ExamAccommodationQueryRepository;
-import tds.exam.services.ConfigService;
+import tds.exam.services.AssessmentService;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
@@ -41,14 +41,14 @@ public class ExamAccommodationServiceImplTest {
     private ExamAccommodationCommandRepository mockExamAccommodationCommandRepository;
 
     @Mock
-    private ConfigService mockConfigService;
+    private AssessmentService mockAssessmentService;
 
     @Captor
     private ArgumentCaptor<List<ExamAccommodation>> examAccommodationInsertCaptor;
 
     @Before
     public void setUp() {
-        examAccommodationService = new ExamAccommodationServiceImpl(mockExamAccommodationQueryRepository, mockExamAccommodationCommandRepository, mockConfigService);
+        examAccommodationService = new ExamAccommodationServiceImpl(mockExamAccommodationQueryRepository, mockExamAccommodationCommandRepository, mockAssessmentService);
     }
 
     @Test
@@ -138,7 +138,7 @@ public class ExamAccommodationServiceImplTest {
             .withDependsOnToolType("dependingSoCool")
             .build();
 
-        when(mockConfigService.findAssessmentAccommodationsByAssessmentKey(exam.getClientName(), exam.getAssessmentKey())).thenReturn(Arrays.asList(accommodation, nonDefaultAccommodation, dependsOnToolTypeAccommodation));
+        when(mockAssessmentService.findAssessmentAccommodationsByAssessmentKey(exam.getClientName(), exam.getAssessmentKey())).thenReturn(Arrays.asList(accommodation, nonDefaultAccommodation, dependsOnToolTypeAccommodation));
         examAccommodationService.initializeExamAccommodations(exam);
         verify(mockExamAccommodationCommandRepository).insert(examAccommodationInsertCaptor.capture());
 
@@ -244,7 +244,7 @@ public class ExamAccommodationServiceImplTest {
             .build();
 
 
-        when(mockConfigService.findAssessmentAccommodationsByAssessmentKey(exam.getClientName(), assessment.getKey())).thenReturn(assessmentAccommodations);
+        when(mockAssessmentService.findAssessmentAccommodationsByAssessmentKey(exam.getClientName(), assessment.getKey())).thenReturn(assessmentAccommodations);
         when(mockExamAccommodationQueryRepository.findAccommodations(exam.getId())).thenReturn(Arrays.asList(existingFrenchExamAccommodation, existingEnglishExamAccommodation));
 
         examAccommodationService.initializeAccommodationsOnPreviousExam(exam, assessment, 0, false, guestAccommodations);

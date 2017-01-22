@@ -1,6 +1,6 @@
 package tds.exam.builder;
 
-import tds.config.Accommodation;
+import tds.accommodation.Accommodation;
 
 public class AccommodationBuilder {
     private Accommodation.Builder builder;
