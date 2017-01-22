@@ -271,7 +271,7 @@ public class ExamServiceImplTest {
         when(mockAssessmentService.findAssessment(openExamRequest.getClientName(), openExamRequest.getAssessmentKey())).thenReturn(Optional.of(assessment));
         when(mockExamQueryRepository.getLastAvailableExam(openExamRequest.getStudentId(), assessment.getAssessmentId(), openExamRequest.getClientName())).thenReturn(Optional.empty());
         when(mockSessionService.findExternalSessionConfigurationByClientName(openExamRequest.getClientName())).thenReturn(Optional.of(extSessionConfig));
-        when(mockConfigService.findAssessmentWindows(openExamRequest.getClientName(), assessment.getAssessmentId(), openExamRequest.getStudentId(), extSessionConfig))
+        when(mockAssessmentService.findAssessmentWindows(openExamRequest.getClientName(), assessment.getAssessmentId(), openExamRequest.getStudentId(), extSessionConfig))
             .thenReturn(Collections.singletonList(window));
         when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(openExamRequest.getClientName(), openExamRequest.getAssessmentKey())).thenReturn(Optional.of(configuration));
         when(mockExamStatusQueryRepository.findExamStatusCode(STATUS_PENDING)).thenReturn(new ExamStatusCode(STATUS_PENDING, OPEN));
@@ -335,9 +335,9 @@ public class ExamServiceImplTest {
         when(mockStudentService.getStudentById(openExamRequest.getStudentId())).thenReturn(Optional.empty());
         when(mockAssessmentService.findAssessment(openExamRequest.getClientName(), openExamRequest.getAssessmentKey())).thenReturn(Optional.of(assessment));
         when(mockExamQueryRepository.getLastAvailableExam(openExamRequest.getStudentId(), assessment.getAssessmentId(), openExamRequest.getClientName())).thenReturn(Optional.empty());
-        when(mockConfigService.findAssessmentWindows(openExamRequest.getClientName(), assessment.getAssessmentId(), openExamRequest.getStudentId(), extSessionConfig))
+        when(mockAssessmentService.findAssessmentWindows(openExamRequest.getClientName(), assessment.getAssessmentId(), openExamRequest.getStudentId(), extSessionConfig))
             .thenReturn(Collections.singletonList(window));
-        when(mockConfigService.findAssessmentAccommodationsByAssessmentKey(openExamRequest.getClientName(), openExamRequest.getAssessmentKey()))
+        when(mockAssessmentService.findAssessmentAccommodationsByAssessmentKey(openExamRequest.getClientName(), openExamRequest.getAssessmentKey()))
             .thenReturn(Collections.singletonList(accommodation));
         when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(openExamRequest.getClientName(), openExamRequest.getAssessmentKey())).thenReturn(Optional.of(configuration));
         when(mockExamStatusQueryRepository.findExamStatusCode(STATUS_APPROVED)).thenReturn(new ExamStatusCode(STATUS_APPROVED, OPEN));
@@ -381,7 +381,7 @@ public class ExamServiceImplTest {
         when(mockSessionService.findExternalSessionConfigurationByClientName(openExamRequest.getClientName())).thenReturn(Optional.of(extSessionConfig));
         when(mockStudentService.findStudentPackageAttributes(openExamRequest.getStudentId(), openExamRequest.getClientName(), EXTERNAL_ID, ENTITY_NAME, ACCOMMODATIONS))
             .thenReturn(Arrays.asList(externalIdAttribute, entityNameAttribute));
-        when(mockConfigService.findAssessmentWindows(openExamRequest.getClientName(), assessment.getAssessmentId(), openExamRequest.getStudentId(), extSessionConfig))
+        when(mockAssessmentService.findAssessmentWindows(openExamRequest.getClientName(), assessment.getAssessmentId(), openExamRequest.getStudentId(), extSessionConfig))
             .thenReturn(Collections.singletonList(window));
         when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(openExamRequest.getClientName(), openExamRequest.getAssessmentKey())).thenReturn(Optional.of(configuration));
         when(mockExamStatusQueryRepository.findExamStatusCode(STATUS_PENDING)).thenReturn(new ExamStatusCode(STATUS_PENDING, OPEN));
@@ -436,7 +436,7 @@ public class ExamServiceImplTest {
         when(mockSessionService.findSessionById(previousSession.getId())).thenReturn(Optional.of(previousSession));
         when(mockSessionService.findExternalSessionConfigurationByClientName(request.getClientName())).thenReturn(Optional.of(externalSessionConfiguration));
         when(mockSessionService.findExternalSessionConfigurationByClientName(request.getClientName())).thenReturn(Optional.of(externalSessionConfiguration));
-        when(mockConfigService.findAssessmentAccommodationsByAssessmentKey(request.getClientName(), request.getAssessmentKey())).thenReturn(Collections.emptyList());
+        when(mockAssessmentService.findAssessmentAccommodationsByAssessmentKey(request.getClientName(), request.getAssessmentKey())).thenReturn(Collections.emptyList());
         when(mockExamStatusQueryRepository.findExamStatusCode(STATUS_PENDING)).thenReturn(new ExamStatusCode(STATUS_PENDING, OPEN));
         when(mockConfigService.findClientSystemFlag(request.getClientName(), RESTORE_ACCOMMODATIONS_TYPE)).thenReturn(Optional.of(restoreAccommodations));
 

@@ -518,7 +518,7 @@ class ExamServiceImpl implements ExamService {
         }
 
         //OpenTestServiceImpl lines 317 - 341
-        List<AssessmentWindow> assessmentWindows = configService.findAssessmentWindows(
+        List<AssessmentWindow> assessmentWindows = assessmentService.findAssessmentWindows(
             openExamRequest.getClientName(),
             assessment.getAssessmentId(),
             openExamRequest.getStudentId(),
