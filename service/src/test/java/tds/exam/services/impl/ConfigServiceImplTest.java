@@ -14,8 +14,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import tds.config.Accommodation;
-import tds.config.AssessmentWindow;
+import tds.accommodation.Accommodation;
+import tds.assessment.AssessmentWindow;
 import tds.config.ClientSystemFlag;
 import tds.exam.builder.ExternalSessionConfigurationBuilder;
 import tds.exam.configuration.ExamServiceProperties;

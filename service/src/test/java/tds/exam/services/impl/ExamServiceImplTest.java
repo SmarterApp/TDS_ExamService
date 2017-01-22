@@ -23,13 +23,13 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import tds.accommodation.Accommodation;
 import tds.assessment.Algorithm;
 import tds.assessment.Assessment;
+import tds.assessment.AssessmentWindow;
 import tds.common.Response;
 import tds.common.ValidationError;
 import tds.common.web.exceptions.NotFoundException;
-import tds.config.Accommodation;
-import tds.config.AssessmentWindow;
 import tds.config.ClientSystemFlag;
 import tds.config.TimeLimitConfiguration;
 import tds.exam.ApprovalRequest;

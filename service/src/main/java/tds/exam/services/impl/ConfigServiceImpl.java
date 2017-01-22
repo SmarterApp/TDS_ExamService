@@ -14,9 +14,9 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.util.List;
 import java.util.Optional;
 
+import tds.accommodation.Accommodation;
+import tds.assessment.AssessmentWindow;
 import tds.common.cache.CacheType;
-import tds.config.Accommodation;
-import tds.config.AssessmentWindow;
 import tds.config.ClientSystemFlag;
 import tds.exam.configuration.ExamServiceProperties;
 import tds.exam.services.ConfigService;

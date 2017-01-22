@@ -12,8 +12,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import tds.accommodation.Accommodation;
 import tds.assessment.Assessment;
-import tds.config.Accommodation;
 import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
 import tds.exam.repositories.ExamAccommodationCommandRepository;

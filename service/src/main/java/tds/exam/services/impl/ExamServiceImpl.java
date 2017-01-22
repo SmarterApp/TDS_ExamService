@@ -18,11 +18,11 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import tds.assessment.Assessment;
+import tds.assessment.AssessmentWindow;
 import tds.common.Response;
 import tds.common.ValidationError;
 import tds.common.data.legacy.LegacyComparer;
 import tds.common.web.exceptions.NotFoundException;
-import tds.config.AssessmentWindow;
 import tds.config.ClientSystemFlag;
 import tds.config.TimeLimitConfiguration;
 import tds.exam.ApprovalRequest;

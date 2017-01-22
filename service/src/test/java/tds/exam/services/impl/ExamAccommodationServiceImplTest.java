@@ -14,8 +14,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import tds.accommodation.Accommodation;
 import tds.assessment.Assessment;
-import tds.config.Accommodation;
 import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
 import tds.exam.builder.AccommodationBuilder;
