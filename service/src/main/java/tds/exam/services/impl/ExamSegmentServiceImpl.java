@@ -108,9 +108,9 @@ public class ExamSegmentServiceImpl implements ExamSegmentService {
                 poolCount = segmentPoolInfo.getPoolCount(); // poolCount does not always == itemPool.size
 
                 /*  [4703] In legacy, opitemcnt = segment's max items. See lines [4624], [4630], [4672] */
-                if (fieldTestService.isFieldTestEligible(exam, assessment, segment.getKey(), exam.getLanguageCode())
+                if (fieldTestService.isFieldTestEligible(exam, assessment, segment.getKey())
                     && segmentPoolInfo.getLength() == segment.getMaxItems()) {
-                    fieldTestItemCount = fieldTestService.selectItemGroups(exam, assessment, segment.getKey(), exam.getLanguageCode());
+                    fieldTestItemCount = fieldTestService.selectItemGroups(exam, assessment, segment.getKey());
                 }
 
                 isSatisfied = fieldTestItemCount + segmentPoolInfo.getLength() == 0;

@@ -10,6 +10,7 @@ import tds.exam.ApprovalRequest;
 import tds.exam.Exam;
 import tds.exam.ExamApproval;
 import tds.exam.ExamConfiguration;
+import tds.exam.ExamStatusCode;
 import tds.exam.OpenExamRequest;
 import tds.session.Session;
 
@@ -64,13 +65,25 @@ public interface ExamService {
     Optional<Double> getInitialAbility(Exam exam, Assessment assessment);
 
     /**
-     * Change the {@link tds.exam.Exam}'s status to paused.
+     * Change the {@link tds.exam.Exam}'s status to a new status.
      *
-     * @param examId The id of the exam whose status is being changed
+     * @param examId             The id of the exam whose status is being changed
+     * @param newStatus          The {@link tds.exam.ExamStatusCode} to transition to
+     * @param statusChangeReason The reason why the {@link tds.exam.Exam} status is being updated
      * @return {@code Optional<ValidationError>} if the {@link tds.exam.Exam} cannot be updated from its current status
      * to the new status; otherwise {@code Optional.empty()}.\
      */
-    Optional<ValidationError> pauseExam(UUID examId);
+    Optional<ValidationError> updateExamStatus(UUID examId, ExamStatusCode newStatus, String statusChangeReason);
+
+    /**
+     * Change the {@link tds.exam.Exam}'s status to a new status.
+     *
+     * @param examId    The id of the exam whose status is being changed
+     * @param newStatus The {@link tds.exam.ExamStatusCode} to transition to
+     * @return {@code Optional<ValidationError>} if the {@link tds.exam.Exam} cannot be updated from its current status
+     * to the new status; otherwise {@code Optional.empty()}.\
+     */
+    Optional<ValidationError> updateExamStatus(UUID examId, ExamStatusCode newStatus);
 
     /**
      * Update the status of all {@link tds.exam.Exam}s in the specified {@link tds.session.Session} to "paused"

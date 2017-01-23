@@ -17,6 +17,8 @@ import java.util.UUID;
 import tds.common.ValidationError;
 import tds.common.web.advice.ExceptionAdvice;
 import tds.exam.Exam;
+import tds.exam.ExamStatusCode;
+import tds.exam.ExamStatusStage;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.builder.ExamPageBuilder;
 import tds.exam.error.ValidationErrorCode;
@@ -79,21 +81,23 @@ public class ExamControllerIntegrationTests {
     public void shouldPauseAnExam() throws Exception {
         UUID examId = UUID.randomUUID();
 
-        when(mockExamService.pauseExam(examId)).thenReturn(Optional.empty());
+        when(mockExamService.updateExamStatus(examId,
+            new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE))).thenReturn(Optional.empty());
 
         http.perform(put(new URI(String.format("/exam/%s/pause", examId)))
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isNoContent())
             .andExpect(header().string("Location", String.format("http://localhost/exam/%s", examId)));
 
-        verify(mockExamService).pauseExam(examId);
+        verify(mockExamService).updateExamStatus(examId,
+            new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE));
     }
 
     @Test
     public void shouldReturnAnErrorWhenAttemptingToPauseAnExamInAnInvalidTransitionState() throws Exception {
         UUID examId = UUID.randomUUID();
 
-        when(mockExamService.pauseExam(examId))
+        when(mockExamService.updateExamStatus(examId, new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE)))
             .thenReturn(Optional.of(new ValidationError(ValidationErrorCode.EXAM_STATUS_TRANSITION_FAILURE, "Bad transition from foo to bar")));
 
         http.perform(put(new URI(String.format("/exam/%s/pause", examId)))

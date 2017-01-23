@@ -18,11 +18,11 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import tds.assessment.Assessment;
+import tds.assessment.AssessmentWindow;
 import tds.common.Response;
 import tds.common.ValidationError;
 import tds.common.data.legacy.LegacyComparer;
 import tds.common.web.exceptions.NotFoundException;
-import tds.config.AssessmentWindow;
 import tds.config.ClientSystemFlag;
 import tds.config.TimeLimitConfiguration;
 import tds.exam.ApprovalRequest;
@@ -47,6 +47,7 @@ import tds.exam.services.ExamService;
 import tds.exam.services.SessionService;
 import tds.exam.services.StudentService;
 import tds.exam.services.TimeLimitConfigurationService;
+import tds.exam.utils.StatusTransitionValidator;
 import tds.session.ExternalSessionConfiguration;
 import tds.session.Session;
 import tds.student.RtsStudentPackageAttribute;
@@ -247,22 +248,27 @@ class ExamServiceImpl implements ExamService {
     }
 
     @Override
-    public Optional<ValidationError> pauseExam(UUID examId) {
+    public Optional<ValidationError> updateExamStatus(UUID examId, ExamStatusCode newStatus) {
+        return updateExamStatus(examId, newStatus, null);
+    }
+
+    @Override
+    public Optional<ValidationError> updateExamStatus(UUID examId, ExamStatusCode newStatus, String statusChangeReason) {
         Exam exam = examQueryRepository.getExamById(examId)
             .orElseThrow(() -> new NotFoundException(String.format("Exam could not be found for id %s", examId)));
 
-        if (!statusesThatCanTransitionToPaused.contains(exam.getStatus().getCode())) {
+        if (!StatusTransitionValidator.isValidTransition(exam.getStatus().getCode(), newStatus.getCode())) {
             return Optional.of(new ValidationError(ValidationErrorCode.EXAM_STATUS_TRANSITION_FAILURE,
-                String.format("Bad status transition from %s to %s", exam.getStatus().getCode(), ExamStatusCode.STATUS_PAUSED)));
+                String.format("Transitioning exam status from %s to %s is not allowed", exam.getStatus().getCode(), newStatus.getCode())));
         }
 
-        // A status change reason is not required for pausing an exam.
-        Exam pausedExam = new Exam.Builder()
+        Exam updatedExam = new Exam.Builder()
             .fromExam(exam)
-            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE), org.joda.time.Instant.now())
+            .withStatus(newStatus, org.joda.time.Instant.now())
+            .withStatusChangeReason(statusChangeReason)
             .build();
 
-        examCommandRepository.update(pausedExam);
+        examCommandRepository.update(updatedExam);
 
         return Optional.empty();
     }
@@ -512,7 +518,7 @@ class ExamServiceImpl implements ExamService {
         }
 
         //OpenTestServiceImpl lines 317 - 341
-        List<AssessmentWindow> assessmentWindows = configService.findAssessmentWindows(
+        List<AssessmentWindow> assessmentWindows = assessmentService.findAssessmentWindows(
             openExamRequest.getClientName(),
             assessment.getAssessmentId(),
             openExamRequest.getStudentId(),

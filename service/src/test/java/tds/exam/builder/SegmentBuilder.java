@@ -18,6 +18,10 @@ public class SegmentBuilder {
     private int maxItems = 10;
     private int position;
     private List<Form> forms = new ArrayList<>();
+    private Integer fieldTestStartPosition = 3;
+    private Integer fieldTestEndPosition = 10;
+    private int fieldTestMaxItems = 4;
+    private int fieldTestMinItems = 2;
 
     public Segment build() {
         Segment segment = new Segment(key, selectionAlgorithm);
@@ -28,6 +32,10 @@ public class SegmentBuilder {
         segment.setMaxItems(maxItems);
         segment.setPosition(position);
         segment.setForms(forms);
+        segment.setFieldTestMaxItems(fieldTestMaxItems);
+        segment.setFieldTestMinItems(fieldTestMinItems);
+        segment.setFieldTestEndPosition(fieldTestEndPosition);
+        segment.setFieldTestStartPosition(fieldTestStartPosition);
         return segment;
     }
 
@@ -73,6 +81,26 @@ public class SegmentBuilder {
 
     public SegmentBuilder withForms(List<Form> forms) {
         this.forms = forms;
+        return this;
+    }
+
+    public SegmentBuilder withFieldTestStartPosition(Integer startPosition) {
+        this.fieldTestStartPosition = startPosition;
+        return this;
+    }
+
+    public SegmentBuilder withFieldTestEndPosition(Integer endPosition) {
+        this.fieldTestEndPosition = endPosition;
+        return this;
+    }
+
+    public SegmentBuilder withFieldTestMaxItems(int maxItems) {
+        this.fieldTestMaxItems = maxItems;
+        return this;
+    }
+
+    public SegmentBuilder withFieldTestMinItems(int minItems) {
+        this.fieldTestMinItems = minItems;
         return this;
     }
 }

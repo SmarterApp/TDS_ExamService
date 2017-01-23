@@ -29,8 +29,7 @@ public interface ItemPoolService {
      * @param examId          the id of the {@link tds.exam.Exam}
      * @param itemConstraints the {@link tds.assessment.ItemConstraint}s for the assessment
      * @param items           the collection of all possible {@link tds.assessment.Item}s in a {@link tds.assessment.Segment}
-     * @param isFieldTest     filter by field test items
      * @return returns a filtered list of {@link tds.assessment.Item}s eligible for the segment pool
      */
-    Set<Item> getItemPool(UUID examId, List<ItemConstraint> itemConstraints, List<Item> items, Boolean isFieldTest);
+    Set<Item> getFieldTestItemPool(UUID examId, List<ItemConstraint> itemConstraints, List<Item> items);
 }

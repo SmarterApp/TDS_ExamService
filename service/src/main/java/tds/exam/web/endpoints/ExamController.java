@@ -25,6 +25,8 @@ import tds.exam.ApprovalRequest;
 import tds.exam.Exam;
 import tds.exam.ExamApproval;
 import tds.exam.ExamConfiguration;
+import tds.exam.ExamStatusCode;
+import tds.exam.ExamStatusStage;
 import tds.exam.OpenExamRequest;
 import tds.exam.models.ExamPage;
 import tds.exam.services.ExamPageService;
@@ -57,7 +59,7 @@ public class ExamController {
     ResponseEntity<Response<Exam>> openExam(@RequestBody final OpenExamRequest openExamRequest) {
         Response<Exam> exam = examService.openExam(openExamRequest);
 
-        if (!exam.getData().isPresent()) {
+        if (exam.hasError()) {
             return new ResponseEntity<>(exam, HttpStatus.UNPROCESSABLE_ENTITY);
         }
 
@@ -75,7 +77,7 @@ public class ExamController {
     ResponseEntity<Response<ExamConfiguration>> startExam(@PathVariable final UUID examId) {
         Response<ExamConfiguration> examConfiguration = examService.startExam(examId);
 
-        if (examConfiguration.getErrors().length > 0) {
+        if (examConfiguration.hasError()) {
             return new ResponseEntity<>(examConfiguration, HttpStatus.UNPROCESSABLE_ENTITY);
         }
 
@@ -87,7 +89,7 @@ public class ExamController {
         ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserId, clientName);
         Response<ExamApproval> examApproval = examService.getApproval(approvalRequest);
 
-        if (examApproval.getErrors().length > 0) {
+        if (examApproval.hasError()) {
             return new ResponseEntity<>(examApproval, HttpStatus.UNPROCESSABLE_ENTITY);
         }
 
@@ -103,7 +105,8 @@ public class ExamController {
 
     @RequestMapping(value = "/{examId}/pause", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<NoContentResponseResource> pauseExam(@PathVariable final UUID examId) {
-        final Optional<ValidationError> maybeStatusTransitionFailure = examService.pauseExam(examId);
+        final Optional<ValidationError> maybeStatusTransitionFailure = examService.updateExamStatus(examId,
+            new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE));
 
         if (maybeStatusTransitionFailure.isPresent()) {
             NoContentResponseResource response = new NoContentResponseResource(maybeStatusTransitionFailure.get());
