@@ -12,13 +12,13 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import tds.accommodation.Accommodation;
 import tds.assessment.Assessment;
-import tds.config.Accommodation;
 import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
 import tds.exam.repositories.ExamAccommodationCommandRepository;
 import tds.exam.repositories.ExamAccommodationQueryRepository;
-import tds.exam.services.ConfigService;
+import tds.exam.services.AssessmentService;
 import tds.exam.services.ExamAccommodationService;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
@@ -32,13 +32,15 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
 
     private final ExamAccommodationQueryRepository examAccommodationQueryRepository;
     private final ExamAccommodationCommandRepository examAccommodationCommandRepository;
-    private final ConfigService configService;
+    private final AssessmentService assessmentService;
 
     @Autowired
-    public ExamAccommodationServiceImpl(ExamAccommodationQueryRepository examAccommodationQueryRepository, ExamAccommodationCommandRepository examAccommodationCommandRepository, ConfigService configService) {
+    public ExamAccommodationServiceImpl(ExamAccommodationQueryRepository examAccommodationQueryRepository,
+                                        ExamAccommodationCommandRepository examAccommodationCommandRepository,
+                                        AssessmentService assessmentService) {
         this.examAccommodationQueryRepository = examAccommodationQueryRepository;
         this.examAccommodationCommandRepository = examAccommodationCommandRepository;
-        this.configService = configService;
+        this.assessmentService = assessmentService;
     }
 
     @Override
@@ -58,7 +60,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
 
         // StudentDLL fetches the key accommodations via CommonDLL.TestKeyAccommodations_FN which this call replicates.  The legacy application leverages
         // temporary tables for most of its data structures which is unnecessary in this case so a collection is returned.
-        List<Accommodation> assessmentAccommodations = configService.findAssessmentAccommodationsByAssessmentKey(exam.getClientName(), exam.getAssessmentKey());
+        List<Accommodation> assessmentAccommodations = assessmentService.findAssessmentAccommodationsByAssessmentKey(exam.getClientName(), exam.getAssessmentKey());
 
         // StudentDLL line 6645 - the query filters the results of the temporary table fetched above by these two values.
         // It was decided the record usage and report usage values that are also queried are not actually used.
@@ -170,7 +172,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
 
         // CommonDLL line 2593 fetches the key accommodations via CommonDLL.TestKeyAccommodations_FN which this call replicates.  The legacy application leverages
         // temporary tables for most of its data structures which is unnecessary in this case so a collection is returned.
-        List<Accommodation> assessmentAccommodations = configService.findAssessmentAccommodationsByAssessmentKey(exam.getClientName(), exam.getAssessmentKey());
+        List<Accommodation> assessmentAccommodations = assessmentService.findAssessmentAccommodationsByAssessmentKey(exam.getClientName(), exam.getAssessmentKey());
 
         /*
         This is the accumulation of many different queries on lines CommonDLL.UpdateOpportunityAccommodations_SP()

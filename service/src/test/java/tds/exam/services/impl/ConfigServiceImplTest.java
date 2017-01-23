@@ -2,30 +2,20 @@ package tds.exam.services.impl;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
-import tds.config.Accommodation;
-import tds.config.AssessmentWindow;
 import tds.config.ClientSystemFlag;
-import tds.exam.builder.ExternalSessionConfigurationBuilder;
 import tds.exam.configuration.ExamServiceProperties;
 import tds.exam.services.ConfigService;
-import tds.session.ExternalSessionConfiguration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.springframework.http.HttpMethod.GET;
 
 /**
  * Class for testing the {@link ConfigService}
@@ -45,40 +35,6 @@ public class ConfigServiceImplTest {
         properties.setConfigUrl(BASE_URL);
         configService = new ConfigServiceImpl(restTemplate, properties);
     }
-
-    @Test
-    public void shouldFindAssessmentWindows() {
-        AssessmentWindow window = new AssessmentWindow.Builder().build();
-        String url = UriComponentsBuilder
-            .fromHttpUrl(String.format("%s/assessment-windows/%s/%s/student/%d",
-                BASE_URL,
-                "SBAC_PT",
-                "ELA 11",
-                23))
-            .queryParam("shiftWindowStart", 1)
-            .queryParam("shiftWindowEnd", 2)
-            .queryParam("shiftFormStart", 10)
-            .queryParam("shiftFormEnd", 11)
-            .toUriString();
-
-        ExternalSessionConfiguration config = new ExternalSessionConfigurationBuilder()
-            .withShiftWindowStart(1)
-            .withShiftWindowEnd(2)
-            .withShiftFormStart(10)
-            .withShiftFormEnd(11)
-            .build();
-
-        ResponseEntity<List<AssessmentWindow>> entity = new ResponseEntity<>(Collections.singletonList(window), HttpStatus.OK);
-
-        when(restTemplate.exchange(url, GET, null, new ParameterizedTypeReference<List<AssessmentWindow>>() {
-        }))
-            .thenReturn(entity);
-
-        List<AssessmentWindow> windows = configService.findAssessmentWindows("SBAC_PT", "ELA 11", 23, config);
-
-        assertThat(windows).containsExactly(window);
-    }
-
 
     @Test
     public void shouldFindClientSystemFlag() {
@@ -104,29 +60,5 @@ public class ConfigServiceImplTest {
         configService.findClientSystemFlag(CLIENT_NAME, ATTRIBUTE_OBJECT);
     }
 
-    @Test
-    public void shouldFindAssessmentAccommodationsByKey() {
-        Accommodation accommodation = new Accommodation.Builder().build();
-        ResponseEntity<List<Accommodation>> entity = new ResponseEntity<>(Collections.singletonList(accommodation), HttpStatus.OK);
 
-        when(restTemplate.exchange(String.format("%s/SBAC/accommodations/key", BASE_URL), GET, null, new ParameterizedTypeReference<List<Accommodation>>() {
-        })).thenReturn(entity);
-
-        List<Accommodation> accommodations = configService.findAssessmentAccommodationsByAssessmentKey("SBAC", "key");
-
-        assertThat(accommodations).containsExactly(accommodation);
-    }
-
-    @Test
-    public void shouldFindAssessmentAccommodationsById() {
-        Accommodation accommodation = new Accommodation.Builder().build();
-        ResponseEntity<List<Accommodation>> entity = new ResponseEntity<>(Collections.singletonList(accommodation), HttpStatus.OK);
-
-        when(restTemplate.exchange(String.format("%s/SBAC/accommodations?assessmentId=id", BASE_URL), GET, null, new ParameterizedTypeReference<List<Accommodation>>() {
-        })).thenReturn(entity);
-
-        List<Accommodation> accommodations = configService.findAssessmentAccommodationsByAssessmentId("SBAC", "id");
-
-        assertThat(accommodations).containsExactly(accommodation);
-    }
 }
