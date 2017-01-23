@@ -11,7 +11,7 @@ public class FieldTestItemGroupBuilder {
     private String blockId = "A";
     private String languageCode = "ENU";
     private UUID examId = UUID.randomUUID();
-    private int numItems = 1;
+    private int itemCount = 1;
     private String segmentKey = "segment-key";
 
     public FieldTestItemGroupBuilder(String groupKey) {
@@ -25,7 +25,7 @@ public class FieldTestItemGroupBuilder {
             .withBlockId(blockId)
             .withExamId(examId)
             .withLanguageCode(languageCode)
-            .withItemCount(numItems)
+            .withItemCount(itemCount)
             .withSegmentKey(segmentKey)
             .build();
     }
@@ -40,8 +40,8 @@ public class FieldTestItemGroupBuilder {
         return this;
     }
 
-    public FieldTestItemGroupBuilder withNumItems(int numItems) {
-        this.numItems = numItems;
+    public FieldTestItemGroupBuilder withItemCount(int itemCount) {
+        this.itemCount = itemCount;
         return this;
     }
 
