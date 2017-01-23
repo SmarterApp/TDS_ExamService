@@ -22,4 +22,11 @@ public interface ExamPageCommandRepository {
      * @param examId the id of the {@link tds.exam.Exam}
      */
     void deleteAll(UUID examId);
+
+    /**
+     * Update an {@link tds.exam.models.ExamPage}.
+     *
+     * @param examPage The {@link tds.exam.models.ExamPage} to update
+     */
+    void update(ExamPage examPage);
 }

@@ -18,7 +18,10 @@ import tds.common.ValidationError;
 import tds.common.web.advice.ExceptionAdvice;
 import tds.exam.Exam;
 import tds.exam.builder.ExamBuilder;
+import tds.exam.builder.ExamPageBuilder;
 import tds.exam.error.ValidationErrorCode;
+import tds.exam.models.ExamPage;
+import tds.exam.services.ExamPageService;
 import tds.exam.services.ExamService;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -40,6 +43,9 @@ public class ExamControllerIntegrationTests {
 
     @MockBean
     private ExamService mockExamService;
+
+    @MockBean
+    private ExamPageService mockExamPageService;
 
     @Test
     public void shouldReturnExam() throws Exception {
@@ -109,5 +115,21 @@ public class ExamControllerIntegrationTests {
             .andExpect(status().isNoContent());
 
         verify(mockExamService).pauseAllExamsInSession(sessionId);
+    }
+
+    @Test
+    public void shouldGetAnExamPage() throws Exception {
+        ExamPage examPage = new ExamPageBuilder().build();
+
+        when(mockExamPageService.getPage(examPage.getExamId(), examPage.getPagePosition()))
+            .thenReturn(examPage);
+
+        http.perform(get(new URI(String.format("/exam/%s/page/%s", examPage.getExamId(), examPage.getPagePosition())))
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("data").isNotEmpty())
+            .andExpect(jsonPath("errors").isEmpty());
+
+        verify(mockExamPageService).getPage(examPage.getExamId(), examPage.getPagePosition());
     }
 }

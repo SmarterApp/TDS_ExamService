@@ -3,17 +3,16 @@ package tds.exam.services;
 import java.util.List;
 import java.util.UUID;
 
-import tds.exam.Exam;
 import tds.exam.models.ExamPage;
 
 /**
  * Service for interacting with exam items, pages, and responses
  */
-public interface ExamItemService {
+public interface ExamPageService {
     /**
      * Inserts a {@link java.util.List} of {@link tds.exam.models.ExamPage}s
      *
-     * @param examPage
+     * @param examPage A collection of {@link tds.exam.models.ExamPage} to insert
      */
     void insertPages(List<ExamPage> examPage);
 
@@ -37,7 +36,17 @@ public interface ExamItemService {
      * Fetches a list of all {@link tds.exam.models.ExamPage}s for an exam.
      *
      * @param examId the id of the {@link tds.exam.Exam}
-     * @return
+     * @return A collection of all {@link tds.exam.models.ExamPage}s for the specified exam Id
      */
     List<ExamPage> findAllPages(UUID examId);
+
+    /**
+     * Fetch an {@link tds.exam.models.ExamPage} for the specified {@link tds.exam.Exam} id and page number.
+     *
+     * @param examId The unique identifier of the {@link tds.exam.Exam}
+     * @param pageNumber The page number (1-based) of the page to return
+     * @return An {@link tds.exam.models.ExamPage} containing a collection of {@link tds.exam.models.ExamItem}s that
+     * should be displayed
+     */
+    ExamPage getPage(UUID examId, int pageNumber);
 }

@@ -58,12 +58,15 @@ public class ExamResponseRepositoryIntegrationTests {
 
         final String insertPageSQL =
             "INSERT INTO exam_page (id, page_position, item_group_key, exam_id) " +
-            "VALUES (805, 1, 'GroupKey1', :examId), (806, 2, 'GroupKey2', :examId)";
+                "VALUES (805, 1, 'GroupKey1', :examId), (806, 2, 'GroupKey2', :examId)";
         final String insertPageEventSQL = // Create two pages, second page is deleted
             "INSERT INTO exam_page_event (exam_page_id, started_at, deleted_at) VALUES (805, now(), NULL), (806, now(), now())";
         final String insertItemSQL = // Two items on first page, 1 item on deleted (second) page
-            "INSERT INTO exam_item (id, item_key, exam_page_id, position, type, is_fieldtest, segment_id, is_required)" +
-            "VALUES (:item1Id, 'item-1', 805, 1, 'MI', 0, 'seg-id', 0),(:item2Id, 'item-2', 805, 2, 'MC', 0,'seg-id', 0),(:item3Id, 'item-3', 806, 3, 'GI', 0, 'seg-id', 0)";
+            "INSERT INTO exam_item (id, item_key, exam_page_id, position, is_fieldtest, segment_id)" +
+                "VALUES " +
+                "(:item1Id, 'item-1', 805, 1, 0, 'seg-id')," +
+                "(:item2Id, 'item-2', 805, 2, 0, 'seg-id')," +
+                "(:item3Id, 'item-3', 806, 3, 0, 'seg-id')";
 
         jdbcTemplate.update(insertPageSQL, testParams);
         jdbcTemplate.update(insertPageEventSQL, testParams);

@@ -34,6 +34,7 @@ import tds.exam.OpenExamRequest;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.builder.OpenExamRequestBuilder;
 import tds.exam.error.ValidationErrorCode;
+import tds.exam.services.ExamPageService;
 import tds.exam.services.ExamService;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -49,13 +50,16 @@ public class ExamControllerTest {
     @Mock
     private ExamService mockExamService;
 
+    @Mock
+    private ExamPageService mockExamPageService;
+
     @Before
     public void setUp() {
         HttpServletRequest request = new MockHttpServletRequest();
         ServletRequestAttributes requestAttributes = new ServletRequestAttributes(request);
         RequestContextHolder.setRequestAttributes(requestAttributes);
 
-        controller = new ExamController(mockExamService);
+        controller = new ExamController(mockExamService, mockExamPageService);
     }
 
     @After

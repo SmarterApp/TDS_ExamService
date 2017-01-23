@@ -10,7 +10,9 @@ import tds.assessment.Assessment;
 import tds.assessment.Segment;
 
 public class AssessmentBuilder {
-    private String key = "(SBAC_PT)IRP-Perf-ELA-3-Summer-2015-2016";
+    public static final String DEFAULT_ASSESSMENT_KEY = "(SBAC_PT)IRP-Perf-ELA-3-Summer-2015-2016";
+
+    private String key = DEFAULT_ASSESSMENT_KEY;
     private String assessmentId = "IRP-Perf-ELA-3";
     private Algorithm selectionAlgorithm = Algorithm.FIXED_FORM;
     private float startAbility = 0;

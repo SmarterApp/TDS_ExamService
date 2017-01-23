@@ -1,37 +1,80 @@
 package tds.exam.models;
 
+import org.joda.time.Instant;
+
+import tds.assessment.Item;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Represent the item on a page of an exam
  */
 public class ExamItem {
     private long id;
+    private long examPageId;
     private String itemKey;
     private int position;
-    private String type;
+    private boolean selected;
+    private boolean markedForReview;
     private boolean fieldTest;
-    private String segmentId;
-    private boolean required;
+    private ExamItemResponse response;
+    private Item assessmentItem;
 
+    /**
+     * For frameworks
+     */
     private ExamItem() {}
 
+    public ExamItem(final long id) {
+        this.id = id;
+    }
+
     public ExamItem(Builder builder) {
-        this.id = builder.id;
-        this.itemKey = builder.itemKey;
-        this.position = builder.position;
-        this.type = builder.type;
-        this.fieldTest = builder.fieldTest;
-        this.segmentId = builder.segmentId;
-        this.required = builder.required;
+        id = builder.id;
+        examPageId = builder.examPageId;
+        itemKey = builder.itemKey;
+        position = builder.position;
+        selected = builder.selected;
+        markedForReview = builder.markedForReview;
+        fieldTest = builder.fieldTest;
+        response = builder.response;
+        assessmentItem = builder.assessmentItem;
     }
 
     public static final class Builder {
         private long id;
+        private long examPageId;
         private String itemKey;
         private int position;
-        private String type;
+        private boolean selected;
+        private boolean markedForReview;
         private boolean fieldTest;
-        private String segmentId;
-        private boolean required;
+        private ExamItemResponse response;
+        private Item assessmentItem;
+
+        public Builder fromExamItem(ExamItem examItem) {
+            id = examItem.id;
+            examPageId = examItem.examPageId;
+            itemKey = examItem.itemKey;
+            position = examItem.position;
+            selected = examItem.selected;
+            markedForReview = examItem.markedForReview;
+            fieldTest = examItem.fieldTest;
+            response = examItem.response;
+            assessmentItem = examItem.assessmentItem;
+
+            return this;
+        }
+
+        public Builder withId(long newId) {
+            this.id = newId;
+            return this;
+        }
+
+        public Builder withExamPageId(long examPageId) {
+            this.examPageId = examPageId;
+            return this;
+        }
 
         public Builder withItemKey(String itemKey) {
             this.itemKey = itemKey;
@@ -43,8 +86,13 @@ public class ExamItem {
             return this;
         }
 
-        public Builder withType(String type) {
-            this.type = type;
+        public Builder withSelected(boolean selected) {
+            this.selected = selected;
+            return this;
+        }
+
+        public Builder withMarkedForReview(boolean markedForReview) {
+            this.markedForReview = markedForReview;
             return this;
         }
 
@@ -53,13 +101,13 @@ public class ExamItem {
             return this;
         }
 
-        public Builder withSegmentId(String segmentId) {
-            this.segmentId = segmentId;
+        public Builder withResponse(ExamItemResponse response) {
+            this.response = response;
             return this;
         }
 
-        public Builder withRequired(boolean required) {
-            this.required = required;
+        public Builder withAssessmentItem(Item assessmentItem) {
+            this.assessmentItem = checkNotNull(assessmentItem, "Assessment Item cannot be null");
             return this;
         }
 
@@ -76,7 +124,14 @@ public class ExamItem {
     }
 
     /**
-     * @return The key of the item
+     * @return The id of the {@link tds.exam.models.ExamPage} that owns this item
+     */
+    public long getExamPageId() {
+        return examPageId;
+    }
+
+    /**
+     * @return The item key for this item
      */
     public String getItemKey() {
         return itemKey;
@@ -90,10 +145,17 @@ public class ExamItem {
     }
 
     /**
-     * @return The item type (e.g. MI for "Matching Item", MC for "Multiple Choice"
+     * @return True if the item has been selected; otherwise false
      */
-    public String getType() {
-        return type;
+    public boolean isSelected() {
+        return selected;
+    }
+
+    /**
+     * @return Indicate if the student has marked this item for review
+     */
+    public boolean isMarkedForReview() {
+        return markedForReview;
     }
 
     /**
@@ -104,17 +166,101 @@ public class ExamItem {
     }
 
     /**
-     * @return The id of the {@link tds.assessment.Segment} the item belongs to
+     * @return The most recent {@link tds.exam.models.ExamItemResponse} for this item
      */
-    public String getSegmentId() {
-        return segmentId;
+    public ExamItemResponse getResponse() {
+        return response;
     }
 
     /**
-     * @return Flag indicating whether this is a required item.
+     * @return The {@link tds.assessment.Item} that this item is built from // TODO better description here
      */
-    public boolean isRequired() {
-        return required;
+    public Item getAssessmentItem() {
+        return assessmentItem;
     }
 
+    /**
+     * @return The bank key of the {@link tds.assessment.Item} this item represents
+     */
+    public long getAssessmentBankKey() {
+        // Key convention for an item: [bank key]-[item key], e.g. 187-2602
+        return Long.parseLong(assessmentItem.getId().split("-")[0]);
+    }
+
+    /**
+     * @return The item key of the {@link tds.assessment.Item} this item represents
+     */
+    public long getAssessmentItemKey() {
+        // Key convention for an item: [bank key]-[item key], e.g. 187-2602
+        return Long.parseLong(assessmentItem.getId().split("-")[1]);
+    }
+
+    /**
+     * @return The path to the XML file for the {@link tds.assessment.Item} this item represents
+     */
+    public String getAssessmentItemFilePath() {
+        return assessmentItem.getItemFilePath();
+    }
+
+    /**
+     * @return The path to the XML file describing the stimulus that accompanies this item.
+     */
+    public String getAssessmentItemStimulusPath() {
+        // While it should always have an item XML file, an assessment item might not have an accompanying stimulus XML
+        // file
+        return assessmentItem.getStimulusFilePath() == null
+            ? ""
+            : assessmentItem.getStimulusFilePath();
+    }
+
+    /**
+     * @return The item type (also referred to as format) of the {@link tds.assessment.Item} this item represents
+     */
+    public String getAssessmentItemType() {
+        return assessmentItem.getItemType();
+    }
+
+    /**
+     * @return True if the {@link tds.assessment.Item} is marked as required; otherwise false
+     */
+    public boolean getAssessmentItemIsRequired() {
+        return assessmentItem.isRequired();
+    }
+
+    /**
+     * @return Return the text of the response as provided by the student, if one is provided
+     */
+    public String getResponseText() {
+        if (response == null) {
+            return "";
+        }
+
+        return response.getResponse() == null
+            ? ""
+            : response.getResponse();
+    }
+
+    /**
+     * @return The length of the response, if one is provided
+     */
+    public int getResponseLength() {
+        if (response == null) {
+            return 0;
+        }
+
+        return response.getResponse() == null
+            ? 0
+            : response.getResponse().length();
+    }
+
+    /**
+     * @return The time when the most recent response to this item was created, if one is available
+     */
+    public Instant getRespondedAt() {
+        if (response == null) {
+            return null;
+        }
+
+        return response.getCreatedAt();
+    }
 }

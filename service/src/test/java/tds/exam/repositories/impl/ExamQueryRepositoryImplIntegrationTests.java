@@ -223,8 +223,8 @@ public class ExamQueryRepositoryImplIntegrationTests {
         final String insertPageEventSQL =
             "INSERT INTO exam_page_event (exam_page_id, started_at) VALUES (805, now())";
         final String insertItemSQL =
-            "INSERT INTO exam_item (id, item_key, exam_page_id, position, type, is_fieldtest, segment_id, is_required)" +
-            "VALUES (2112, 'item-1', 805, 1, 'MI', 0, 'seg-id', 0)";
+            "INSERT INTO exam_item (id, item_key, exam_page_id, position, is_fieldtest, segment_id)" +
+            "VALUES (2112, 'item-1', 805, 1, 0, 'seg-id')";
         final String insertResponsesSQL =
             "INSERT INTO exam_item_response (id, exam_item_id, response, created_at) " +
             "VALUES (1337, 2112, 'Response 1', :dateLastResponseSubmitted), (1338, 2112, 'Response 2', :dateEarlierResponseSubmitted)";

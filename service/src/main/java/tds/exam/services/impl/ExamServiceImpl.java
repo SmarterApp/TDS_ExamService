@@ -41,7 +41,7 @@ import tds.exam.repositories.HistoryQueryRepository;
 import tds.exam.services.AssessmentService;
 import tds.exam.services.ConfigService;
 import tds.exam.services.ExamAccommodationService;
-import tds.exam.services.ExamItemService;
+import tds.exam.services.ExamPageService;
 import tds.exam.services.ExamSegmentService;
 import tds.exam.services.ExamService;
 import tds.exam.services.SessionService;
@@ -70,7 +70,7 @@ class ExamServiceImpl implements ExamService {
 
     private final ExamQueryRepository examQueryRepository;
     private final ExamCommandRepository examCommandRepository;
-    private final ExamItemService examItemService;
+    private final ExamPageService examItemService;
     private final HistoryQueryRepository historyQueryRepository;
     private final SessionService sessionService;
     private final StudentService studentService;
@@ -93,7 +93,7 @@ class ExamServiceImpl implements ExamService {
                            TimeLimitConfigurationService timeLimitConfigurationService,
                            ConfigService configService,
                            ExamCommandRepository examCommandRepository,
-                           ExamItemService examItemService,
+                           ExamPageService examPageService,
                            ExamStatusQueryRepository examStatusQueryRepository,
                            ExamAccommodationService examAccommodationService) {
         this.examQueryRepository = examQueryRepository;
@@ -105,7 +105,7 @@ class ExamServiceImpl implements ExamService {
         this.timeLimitConfigurationService = timeLimitConfigurationService;
         this.configService = configService;
         this.examCommandRepository = examCommandRepository;
-        this.examItemService = examItemService;
+        this.examItemService = examPageService;
         this.examStatusQueryRepository = examStatusQueryRepository;
         this.examAccommodationService = examAccommodationService;
 
@@ -141,7 +141,7 @@ class ExamServiceImpl implements ExamService {
         //the reference to those parts that require it.
         Optional<Session> maybeSession = sessionService.findSessionById(openExamRequest.getSessionId());
         if (!maybeSession.isPresent()) {
-            throw new IllegalArgumentException(String.format("Could not find session for id %s", openExamRequest.getSessionId()));
+            throw new IllegalArgumentException(String.format("Could not getPage session for id %s", openExamRequest.getSessionId()));
         }
 
         Session currentSession = maybeSession.get();
@@ -153,7 +153,7 @@ class ExamServiceImpl implements ExamService {
 
         if (!openExamRequest.isGuestStudent()) {
             studentService.getStudentById(openExamRequest.getStudentId()).orElseThrow((Supplier<RuntimeException>) ()
-                -> new IllegalArgumentException(String.format("Could not find student for id %s", openExamRequest.getStudentId()))
+                -> new IllegalArgumentException(String.format("Could not getPage student for id %s", openExamRequest.getStudentId()))
             );
         } else {
             //OpenTestServiceImpl lines 103 - 104
@@ -310,7 +310,7 @@ class ExamServiceImpl implements ExamService {
         }
 
         Session session = sessionService.findSessionById(approvalRequest.getSessionId())
-            .orElseThrow(() -> new IllegalArgumentException("Could not find session for id " + approvalRequest.getSessionId()));
+            .orElseThrow(() -> new IllegalArgumentException("Could not getPage session for id " + approvalRequest.getSessionId()));
 
         // RULE:  the exam's session must be open.
         if (!session.isOpen()) {
@@ -326,7 +326,7 @@ class ExamServiceImpl implements ExamService {
         // RULE:  Student should not be able to start an exam if the TA check-in window has expired.
         TimeLimitConfiguration timeLimitConfig =
             timeLimitConfigurationService.findTimeLimitConfiguration(approvalRequest.getClientName(), exam.getAssessmentId())
-                .orElseThrow(() -> new IllegalArgumentException(String.format("Could not find time limit configuration for client name %s and assessment id %s", approvalRequest.getClientName(), exam.getAssessmentId())));
+                .orElseThrow(() -> new IllegalArgumentException(String.format("Could not getPage time limit configuration for client name %s and assessment id %s", approvalRequest.getClientName(), exam.getAssessmentId())));
 
         Instant sessionDateVisited = Instant.ofEpochMilli(session.getDateVisited().getMillis());
         if (Instant.now().isAfter(sessionDateVisited.plus(timeLimitConfig.getTaCheckinTimeMinutes(), ChronoUnit.MINUTES))) {
@@ -526,7 +526,7 @@ class ExamServiceImpl implements ExamService {
 
         //OpenTestServiceImpl line 367 - 368 validation check.  no window no exam
         if (!maybeWindow.isPresent()) {
-            return new Response<Exam>(new ValidationError(NO_OPEN_ASSESSMENT_WINDOW, "Could not find an open assessment window"));
+            return new Response<Exam>(new ValidationError(NO_OPEN_ASSESSMENT_WINDOW, "Could not getPage an open assessment window"));
         }
 
         AssessmentWindow assessmentWindow = maybeWindow.get();

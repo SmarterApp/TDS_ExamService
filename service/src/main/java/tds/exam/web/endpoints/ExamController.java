@@ -26,6 +26,8 @@ import tds.exam.Exam;
 import tds.exam.ExamApproval;
 import tds.exam.ExamConfiguration;
 import tds.exam.OpenExamRequest;
+import tds.exam.models.ExamPage;
+import tds.exam.services.ExamPageService;
 import tds.exam.services.ExamService;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
@@ -35,10 +37,12 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 @RequestMapping("/exam")
 public class ExamController {
     private final ExamService examService;
+    private final ExamPageService examPageService;
 
     @Autowired
-    public ExamController(ExamService examService) {
+    public ExamController(ExamService examService, ExamPageService examPageService) {
         this.examService = examService;
+        this.examPageService = examPageService;
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -88,6 +92,13 @@ public class ExamController {
         }
 
         return ResponseEntity.ok(examApproval);
+    }
+
+    @RequestMapping(value = "/{id}/page/{position}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<Response<ExamPage>> getPage(@PathVariable final UUID id, @PathVariable final int position) {
+        ExamPage page = examPageService.getPage(id, position);
+
+        return ResponseEntity.ok(new Response<>(page));
     }
 
     @RequestMapping(value = "/{examId}/pause", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)

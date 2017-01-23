@@ -33,7 +33,7 @@ public class ItemPoolServiceImpl implements ItemPoolService {
     public Set<Item> getItemPool(final UUID examId, final List<ItemConstraint> itemConstraints, final List<Item> items, Boolean isFieldTest) {
         /*
             This method is meant to replace StudentDLL._AA_ItempoolString_FNOptimized() [1643]
-            The purpose of this method is to find the list of items to include in the segment by taking the following steps:
+            The purpose of this method is to getPage the list of items to include in the segment by taking the following steps:
 
             1. Retrieve the accommodations that the student has enabled
             2. Find the matching set of (inclusive) item constraints - typically this is "Language"
@@ -56,7 +56,7 @@ public class ItemPoolServiceImpl implements ItemPoolService {
                 .map(itemConstraint -> accommodation))
             .collect(Collectors.toSet());
 
-        // For the included accommodations above, find the list of compatible item ids
+        // For the included accommodations above, getPage the list of compatible item ids
         Set<String> itemPoolIds = allItemProperties.stream()
             .flatMap(itemProperty -> includedAccommodations.stream()
                 .filter(accommodation ->
