@@ -131,8 +131,7 @@ public class ExamControllerIntegrationTests {
         http.perform(get(new URI(String.format("/exam/%s/page/%s", examPage.getExamId(), examPage.getPagePosition())))
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("data").isNotEmpty())
-            .andExpect(jsonPath("errors").isEmpty());
+            .andExpect(jsonPath("data").isNotEmpty());
 
         verify(mockExamPageService).getPage(examPage.getExamId(), examPage.getPagePosition());
     }
