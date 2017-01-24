@@ -54,10 +54,10 @@ public class ExamItemServiceImplTest {
     public void shouldReturnAllPagesForExam() {
         final UUID examId = UUID.randomUUID();
         ExamPage examPage1 = new ExamPage.Builder()
-            .withId(97)
+            .withId(UUID.randomUUID())
             .build();
         ExamPage examPage2 = new ExamPage.Builder()
-            .withId(79)
+            .withId(UUID.randomUUID())
             .build();
         List<ExamPage> examPages = new ArrayList<>();
         examPages.add(examPage1);
@@ -78,7 +78,7 @@ public class ExamItemServiceImplTest {
     @Test
     public void shouldInsertPagesForExamId() {
         ExamPage examPage1 = new ExamPage.Builder()
-            .withId(97)
+            .withId(UUID.randomUUID())
             .build();
         List<ExamPage> examPages = new ArrayList<>();
         examPages.add(examPage1);

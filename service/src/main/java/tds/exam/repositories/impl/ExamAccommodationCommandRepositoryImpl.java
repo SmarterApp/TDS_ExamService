@@ -30,27 +30,24 @@ public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodation
 
     @Override
     public void insert(List<ExamAccommodation> accommodations) {
-        String SQL = "INSERT INTO exam_accommodation(exam_id, segment_key, type, code, description, allow_change, value, segment_position) \n" +
-            "VALUES(:examId, :segmentKey, :type, :code, :description, :allowChange, :value, :segmentPosition)";
+        String SQL = "INSERT INTO exam_accommodation(exam_id, id, segment_key, type, code, description, allow_change, value, segment_position) \n" +
+            "VALUES(:examId, :id, :segmentKey, :type, :code, :description, :allowChange, :value, :segmentPosition)";
 
-        accommodations.forEach(examAccommodation -> {
-            SqlParameterSource parameters = new MapSqlParameterSource("examId", UuidAdapter.getBytesFromUUID(examAccommodation.getExamId()))
+        SqlParameterSource[] parameters = accommodations.stream().map(examAccommodation ->
+            new MapSqlParameterSource("examId", UuidAdapter.getBytesFromUUID(examAccommodation.getExamId()))
+                .addValue("id", examAccommodation.getId().toString())
                 .addValue("segmentKey", examAccommodation.getSegmentKey())
                 .addValue("type", examAccommodation.getType())
                 .addValue("code", examAccommodation.getCode())
                 .addValue("allowChange", examAccommodation.isAllowChange())
                 .addValue("value", examAccommodation.getValue())
                 .addValue("segmentPosition", examAccommodation.getSegmentPosition())
-                .addValue("description", examAccommodation.getDescription());
+                .addValue("description", examAccommodation.getDescription())).toArray(SqlParameterSource[]::new);
 
-            KeyHolder keyHolder = new GeneratedKeyHolder();
 
-            jdbcTemplate.update(SQL, parameters, keyHolder);
+        jdbcTemplate.batchUpdate(SQL, parameters);
 
-            examAccommodation.setId(keyHolder.getKey().longValue());
-
-            update(examAccommodation);
-        });
+        update(accommodations.toArray(new ExamAccommodation[accommodations.size()]));
     }
 
     @Override
@@ -76,7 +73,7 @@ public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodation
 
         for (int i = 0; i < parameterSources.length; i++) {
             ExamAccommodation examAccommodation = examAccommodations[i];
-            SqlParameterSource parameters = new MapSqlParameterSource("examAccommodationId", examAccommodation.getId())
+            SqlParameterSource parameters = new MapSqlParameterSource("examAccommodationId", examAccommodation.getId().toString())
                 .addValue("deniedAt", mapJodaInstantToTimestamp(examAccommodation.getDeniedAt()))
                 .addValue("selectable", examAccommodation.isSelectable())
                 .addValue("totalTypeCount", examAccommodation.getTotalTypeCount())

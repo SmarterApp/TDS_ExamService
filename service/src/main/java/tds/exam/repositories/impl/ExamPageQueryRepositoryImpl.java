@@ -65,7 +65,7 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
         @Override
         public ExamPage mapRow(ResultSet rs, int rowNum) throws SQLException {
             return new ExamPage.Builder()
-                .withId(rs.getLong("id"))
+                .withId(UUID.fromString(rs.getString("id")))
                 .withPagePosition(rs.getInt("page_position"))
                 .withItemGroupKey(rs.getString("item_group_key"))
                 .withExamId(UuidAdapter.getUUIDFromBytes(rs.getBytes("exam_id")))

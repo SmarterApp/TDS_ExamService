@@ -135,7 +135,7 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
         @Override
         public ExamAccommodation mapRow(ResultSet rs, int rowNum) throws SQLException {
             return new ExamAccommodation.Builder()
-                .withId(rs.getLong("id"))
+                .withId(UUID.fromString(rs.getString("id")))
                 .withExamId(UuidAdapter.getUUIDFromBytes(rs.getBytes("exam_id")))
                 .withSegmentKey(rs.getString("segment_key"))
                 .withType(rs.getString("type"))

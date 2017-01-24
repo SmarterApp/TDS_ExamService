@@ -11,7 +11,7 @@ import static tds.common.util.Preconditions.checkNotNull;
  * An accommodation that is approved for use during an {@link Exam}.
  */
 public class ExamAccommodation {
-    private long id;
+    private UUID id;
     private UUID examId;
     private String segmentKey;
     private int segmentPosition;
@@ -27,7 +27,7 @@ public class ExamAccommodation {
     private int totalTypeCount;
 
     public static class Builder {
-        private long id;
+        private UUID id;
         private UUID examId;
         private String segmentKey;
         private String type;
@@ -42,7 +42,7 @@ public class ExamAccommodation {
         private int segmentPosition = 1;
         private int totalTypeCount;
 
-        public Builder withId(long id) {
+        public Builder withId(UUID id) {
             this.id = id;
             return this;
         }
@@ -154,7 +154,7 @@ public class ExamAccommodation {
     /**
      * @return The unique identifier of the {@link ExamAccommodation} record
      */
-    public long getId() {
+    public UUID getId() {
         return id;
     }
 
@@ -223,10 +223,6 @@ public class ExamAccommodation {
      */
     public Instant getDeletedAt() {
         return deletedAt;
-    }
-
-    public void setId(long id) {
-        this.id = id;
     }
 
     public boolean isSelectable() {
