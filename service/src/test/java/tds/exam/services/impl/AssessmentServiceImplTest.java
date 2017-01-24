@@ -122,7 +122,7 @@ public class AssessmentServiceImplTest {
         ResponseEntity<List<Accommodation>> entity = new ResponseEntity<>(Collections.singletonList(accommodation), HttpStatus.OK);
 
         String url = UriComponentsBuilder
-            .fromHttpUrl(String.format("%s/SBAC/accommodations", BASE_URL))
+            .fromHttpUrl(String.format("%s/SBAC/assessments/accommodations", BASE_URL))
             .queryParam("assessmentKey", "key")
             .toUriString();
 
@@ -140,7 +140,7 @@ public class AssessmentServiceImplTest {
         ResponseEntity<List<Accommodation>> entity = new ResponseEntity<>(Collections.singletonList(accommodation), HttpStatus.OK);
 
         String url = UriComponentsBuilder
-            .fromHttpUrl(String.format("%s/SBAC/accommodations", BASE_URL))
+            .fromHttpUrl(String.format("%s/SBAC/assessments/accommodations", BASE_URL))
             .queryParam("assessmentId", "id")
             .toUriString();
 
