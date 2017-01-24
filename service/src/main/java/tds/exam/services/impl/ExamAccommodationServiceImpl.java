@@ -74,7 +74,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                 .withCode(accommodation.getCode())
                 .withType(accommodation.getType())
                 .withDescription(accommodation.getValue())
-                .withSegmentKey(accommodation.getSegmentKey())
+                .withSegmentKey(accommodation.getSegmentKey() != null ? accommodation.getSegmentKey() : exam.getAssessmentKey())
                 .withValue(accommodation.getValue())
                 .withTotalTypeCount(accommodation.getTypeTotal())
                 .build();

@@ -83,7 +83,7 @@ class AssessmentServiceImpl implements AssessmentService {
     public List<Accommodation> findAssessmentAccommodationsByAssessmentKey(final String clientName, final String assessmentKey) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
-                .fromHttpUrl(String.format("%s/%s/accommodations", examServiceProperties.getAssessmentUrl(), clientName))
+                .fromHttpUrl(String.format("%s/%s/assessments/accommodations", examServiceProperties.getAssessmentUrl(), clientName))
                 .queryParam("assessmentKey", assessmentKey);
 
         ResponseEntity<List<Accommodation>> responseEntity = restTemplate.exchange(builder.toUriString(),
@@ -97,7 +97,7 @@ class AssessmentServiceImpl implements AssessmentService {
     public List<Accommodation> findAssessmentAccommodationsByAssessmentId(String clientName, String assessmentId) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
-                .fromHttpUrl(String.format("%s/%s/accommodations", examServiceProperties.getAssessmentUrl(), clientName))
+                .fromHttpUrl(String.format("%s/%s/assessments/accommodations", examServiceProperties.getAssessmentUrl(), clientName))
                 .queryParam("assessmentId", assessmentId);
 
 
