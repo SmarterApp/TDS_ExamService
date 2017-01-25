@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.UUID;
 
 import tds.common.data.mapping.ResultSetMapperUtility;
-import tds.common.data.mysql.UuidAdapter;
 import tds.exam.models.ExamPage;
 import tds.exam.repositories.ExamPageQueryRepository;
 
@@ -29,7 +28,7 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
 
     @Override
     public List<ExamPage> findAll(UUID examId) {
-        final MapSqlParameterSource parameters = new MapSqlParameterSource("examId", UuidAdapter.getBytesFromUUID(examId));
+        final MapSqlParameterSource parameters = new MapSqlParameterSource("examId", examId.toString());
 
         final String SQL =
             "SELECT \n" +
@@ -65,10 +64,10 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
         @Override
         public ExamPage mapRow(ResultSet rs, int rowNum) throws SQLException {
             return new ExamPage.Builder()
-                .withId(rs.getLong("id"))
+                .withId(UUID.fromString(rs.getString("id")))
                 .withPagePosition(rs.getInt("page_position"))
                 .withItemGroupKey(rs.getString("item_group_key"))
-                .withExamId(UuidAdapter.getUUIDFromBytes(rs.getBytes("exam_id")))
+                .withExamId(UUID.fromString(rs.getString("exam_id")))
                 .withCreatedAt(ResultSetMapperUtility.mapTimestampToJodaInstant(rs, "created_at"))
                 .withStartedAt(ResultSetMapperUtility.mapTimestampToJodaInstant(rs, "started_at"))
                 .build();

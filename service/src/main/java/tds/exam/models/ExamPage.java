@@ -8,7 +8,7 @@ import java.util.UUID;
  * Represents the page of an exam
  */
 public class ExamPage {
-    private long id;
+    private UUID id;
     private int pagePosition;
     private String itemGroupKey;
     private UUID examId;
@@ -29,7 +29,7 @@ public class ExamPage {
     }
 
     public static final class Builder {
-        private long id;
+        private UUID id = UUID.randomUUID();
         private int pagePosition;
         private String itemGroupKey;
         private UUID examId;
@@ -67,7 +67,7 @@ public class ExamPage {
             return this;
         }
 
-        public Builder withId(long id) {
+        public Builder withId(UUID id) {
             this.id = id;
             return this;
         }
@@ -80,7 +80,7 @@ public class ExamPage {
     /**
      * @return The id of the {@link tds.exam.models.ExamPage} record
      */
-    public long getId() {
+    public UUID getId() {
         return this.id;
     }
     /**
@@ -123,9 +123,5 @@ public class ExamPage {
      */
     public Instant getStartedAt() {
         return startedAt;
-    }
-
-    public void setId(long id) {
-        this.id = id;
     }
 }

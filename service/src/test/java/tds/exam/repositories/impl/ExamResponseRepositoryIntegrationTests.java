@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 
-import tds.common.data.mysql.UuidAdapter;
 import tds.exam.Exam;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.models.ExamItemResponse;
@@ -51,7 +50,7 @@ public class ExamResponseRepositoryIntegrationTests {
         final long item2Id = 2113;
         final long item3Id = 2114;
 
-        MapSqlParameterSource testParams = new MapSqlParameterSource("examId", UuidAdapter.getBytesFromUUID(exam.getId()))
+        MapSqlParameterSource testParams = new MapSqlParameterSource("examId", exam.getId().toString())
             .addValue("item1Id", item1Id)
             .addValue("item2Id", item2Id)
             .addValue("item3Id", item3Id);

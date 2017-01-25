@@ -27,7 +27,7 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
 
     @Override
     public void insert(Exam exam) {
-        SqlParameterSource examParameters = new MapSqlParameterSource("id", getBytesFromUUID(exam.getId()))
+        SqlParameterSource examParameters = new MapSqlParameterSource("id", exam.getId().toString())
             .addValue("clientName", exam.getClientName())
             .addValue("environment", exam.getEnvironment())
             .addValue("sessionId", getBytesFromUUID(exam.getSessionId()))
@@ -89,7 +89,7 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
     @Override
     public void update(Exam... exams) {
         SqlParameterSource[] batchParameters = Stream.of(exams)
-            .map(exam -> new MapSqlParameterSource("examId", getBytesFromUUID(exam.getId()))
+            .map(exam -> new MapSqlParameterSource("examId", exam.getId().toString())
                 .addValue("attempts", exam.getAttempts())
                 .addValue("status", exam.getStatus().getCode())
                 .addValue("statusChangeDate", mapJodaInstantToTimestamp(exam.getStatusChangeDate()))

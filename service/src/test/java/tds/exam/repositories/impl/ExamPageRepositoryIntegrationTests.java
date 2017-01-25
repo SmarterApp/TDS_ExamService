@@ -48,6 +48,11 @@ public class ExamPageRepositoryIntegrationTests {
             .withPagePosition(1)
             .withItemGroupKey("GroupKey1")
             .build();
+        ExamPage examPage1a = new ExamPage.Builder()
+            .withExamId(exam.getId())
+            .withPagePosition(1)
+            .withItemGroupKey("GroupKey1")
+            .build();
         ExamPage examPage2 = new ExamPage.Builder()
             .withExamId(exam.getId())
             .withPagePosition(2)
@@ -62,7 +67,7 @@ public class ExamPageRepositoryIntegrationTests {
         examPageCommandRepository.deleteAll(exam.getId());
         assertThat(examPageQueryRepository.findAll(exam.getId())).isEmpty();
 
-        examPageCommandRepository.insert(Arrays.asList(examPage1));
+        examPageCommandRepository.insert(Arrays.asList(examPage1a));
         assertThat(examPageQueryRepository.findAll(exam.getId())).hasSize(1);
     }
 

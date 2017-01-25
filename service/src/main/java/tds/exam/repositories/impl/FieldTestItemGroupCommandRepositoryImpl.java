@@ -55,7 +55,7 @@ public class FieldTestItemGroupCommandRepositoryImpl implements FieldTestItemGro
                 ")";
 
         fieldTestItemGroups.forEach(fieldTestItemGroup -> {
-            SqlParameterSource parameterSources = new MapSqlParameterSource("examId", getBytesFromUUID(fieldTestItemGroup.getExamId()))
+            SqlParameterSource parameterSources = new MapSqlParameterSource("examId", fieldTestItemGroup.getExamId().toString())
                 .addValue("position", fieldTestItemGroup.getPosition())
                 .addValue("itemCount", fieldTestItemGroup.getItemCount())
                 .addValue("segmentId", fieldTestItemGroup.getSegmentId())

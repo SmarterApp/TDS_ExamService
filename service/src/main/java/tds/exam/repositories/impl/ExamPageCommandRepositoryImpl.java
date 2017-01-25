@@ -31,30 +31,29 @@ public class ExamPageCommandRepositoryImpl implements ExamPageCommandRepository 
     public void insert(List<ExamPage> examPages) {
         final String examPageSQL =
             "INSERT INTO exam_page (\n" +
-            "   page_position, item_group_key, exam_id\n" +
+            "   id, page_position, item_group_key, exam_id\n" +
             ") \n" +
             "VALUES (\n" +
+            "   :id, \n" +
             "   :pagePosition, \n" +
             "   :itemGroupKey, \n" +
             "   :examId\n" +
             ")";
 
-        examPages.forEach(examPage -> {
-            SqlParameterSource parameterSources = new MapSqlParameterSource("examId", getBytesFromUUID(examPage.getExamId()))
+        SqlParameterSource[] parameters = examPages.stream().map(examPage ->
+            new MapSqlParameterSource("examId", examPage.getExamId().toString())
+                .addValue("id", examPage.getId().toString())
                 .addValue("pagePosition", examPage.getPagePosition())
-                .addValue("itemGroupKey", examPage.getItemGroupKey());
+                .addValue("itemGroupKey", examPage.getItemGroupKey()))
+            .toArray(SqlParameterSource[]::new);
 
-            KeyHolder keyHolder = new GeneratedKeyHolder();
-            jdbcTemplate.update(examPageSQL, parameterSources, keyHolder);
-            examPage.setId(keyHolder.getKey().longValue());
-
-            update(examPage);
-        });
+        jdbcTemplate.batchUpdate(examPageSQL, parameters);
+        update(examPages);
     }
 
     @Override
     public void deleteAll(final UUID examId) {
-        final SqlParameterSource params = new MapSqlParameterSource("examId", getBytesFromUUID(examId));
+        final SqlParameterSource params = new MapSqlParameterSource("examId", examId.toString());
 
         final String SQL =
             "INSERT INTO \n" +
@@ -73,15 +72,17 @@ public class ExamPageCommandRepositoryImpl implements ExamPageCommandRepository 
         jdbcTemplate.update(SQL, params);
     }
 
-    private void update(ExamPage examPage) {
+    private void update(List<ExamPage> examPages) {
         final String updatePageSQL =
             "INSERT INTO exam_page_event (exam_page_id, deleted_at, started_at) \n" +
             "VALUES (:examPageId, :deletedAt, :startedAt)";
 
-        final SqlParameterSource parameterSources = new MapSqlParameterSource("examPageId", examPage.getId())
+        SqlParameterSource[] parameters = examPages.stream().map(examPage ->
+            new MapSqlParameterSource("examPageId", examPage.getId().toString())
                 .addValue("startedAt", ResultSetMapperUtility.mapJodaInstantToTimestamp(examPage.getStartedAt()))
-                .addValue("deletedAt", ResultSetMapperUtility.mapJodaInstantToTimestamp(examPage.getDeletedAt()));
+                .addValue("deletedAt", ResultSetMapperUtility.mapJodaInstantToTimestamp(examPage.getDeletedAt())))
+            .toArray(SqlParameterSource[]::new);
 
-        jdbcTemplate.update(updatePageSQL, parameterSources);
+        jdbcTemplate.batchUpdate(updatePageSQL, parameters);
     }
 }
