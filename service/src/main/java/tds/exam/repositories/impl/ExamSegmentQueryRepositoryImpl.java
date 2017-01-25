@@ -20,7 +20,6 @@ import java.util.UUID;
 
 import tds.assessment.Algorithm;
 import tds.common.data.mapping.ResultSetMapperUtility;
-import tds.common.data.mysql.UuidAdapter;
 import tds.exam.models.ExamSegment;
 import tds.exam.repositories.ExamSegmentQueryRepository;
 
@@ -42,7 +41,7 @@ public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepositor
     @Override
     public List<ExamSegment> findByExamId(UUID examId) {
         final Map<String, Object> parameters = new HashMap<>();
-        parameters.put("examId", UuidAdapter.getBytesFromUUID(examId));
+        parameters.put("examId", examId.toString());
 
         final String SQL =
                 "SELECT \n" +
@@ -96,7 +95,7 @@ public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepositor
     @Override
     public Optional<ExamSegment> findByExamIdAndSegmentPosition(UUID examId, int segmentPosition) {
         final Map<String, Object> parameters = new HashMap<>();
-        parameters.put("examId", UuidAdapter.getBytesFromUUID(examId));
+        parameters.put("examId", examId.toString());
         parameters.put("segmentPosition", segmentPosition);
 
         final String SQL =
@@ -151,7 +150,7 @@ public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepositor
         @Override
         public ExamSegment mapRow(ResultSet rs, int rowNum) throws SQLException {
             return new ExamSegment.Builder()
-                    .withExamId(UuidAdapter.getUUIDFromBytes(rs.getBytes("exam_id")))
+                    .withExamId(UUID.fromString(rs.getString("exam_id")))
                 .withSegmentId(rs.getString("segment_id"))
                 .withSegmentKey(rs.getString("segment_key"))
                     .withSegmentPosition(rs.getInt("segment_position"))

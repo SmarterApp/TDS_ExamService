@@ -6,14 +6,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-import tds.common.data.mysql.UuidAdapter;
 import tds.exam.ExamAccommodation;
 import tds.exam.repositories.ExamAccommodationCommandRepository;
 
@@ -34,7 +31,7 @@ public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodation
             "VALUES(:examId, :id, :segmentKey, :type, :code, :description, :allowChange, :value, :segmentPosition)";
 
         SqlParameterSource[] parameters = accommodations.stream().map(examAccommodation ->
-            new MapSqlParameterSource("examId", UuidAdapter.getBytesFromUUID(examAccommodation.getExamId()))
+            new MapSqlParameterSource("examId", examAccommodation.getExamId().toString())
                 .addValue("id", examAccommodation.getId().toString())
                 .addValue("segmentKey", examAccommodation.getSegmentKey())
                 .addValue("type", examAccommodation.getType())

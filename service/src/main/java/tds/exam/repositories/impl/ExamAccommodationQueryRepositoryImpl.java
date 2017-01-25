@@ -14,7 +14,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import tds.common.data.mysql.UuidAdapter;
 import tds.exam.ExamAccommodation;
 import tds.exam.repositories.ExamAccommodationQueryRepository;
 
@@ -31,7 +30,7 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
 
     @Override
     public List<ExamAccommodation> findAccommodations(UUID examId, String segmentKey, String[] accommodationTypes) {
-        final MapSqlParameterSource parameters = new MapSqlParameterSource("examId", UuidAdapter.getBytesFromUUID(examId))
+        final MapSqlParameterSource parameters = new MapSqlParameterSource("examId", examId.toString())
             .addValue("segmentKey", segmentKey);
 
         String SQL =
@@ -88,7 +87,7 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
     }
 
     private List<ExamAccommodation> getAccommodations(UUID examId, boolean excludeDenied) {
-        final SqlParameterSource parameters = new MapSqlParameterSource("examId", UuidAdapter.getBytesFromUUID(examId));
+        final SqlParameterSource parameters = new MapSqlParameterSource("examId", examId.toString());
 
         String SQL =
             "SELECT \n" +
@@ -136,7 +135,7 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
         public ExamAccommodation mapRow(ResultSet rs, int rowNum) throws SQLException {
             return new ExamAccommodation.Builder()
                 .withId(UUID.fromString(rs.getString("id")))
-                .withExamId(UuidAdapter.getUUIDFromBytes(rs.getBytes("exam_id")))
+                .withExamId(UUID.fromString(rs.getString("exam_id")))
                 .withSegmentKey(rs.getString("segment_key"))
                 .withType(rs.getString("type"))
                 .withCode(rs.getString("code"))

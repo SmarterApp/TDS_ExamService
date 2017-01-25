@@ -41,7 +41,7 @@ public class ExamPageCommandRepositoryImpl implements ExamPageCommandRepository 
             ")";
 
         SqlParameterSource[] parameters = examPages.stream().map(examPage ->
-            new MapSqlParameterSource("examId", getBytesFromUUID(examPage.getExamId()))
+            new MapSqlParameterSource("examId", examPage.getExamId().toString())
                 .addValue("id", examPage.getId().toString())
                 .addValue("pagePosition", examPage.getPagePosition())
                 .addValue("itemGroupKey", examPage.getItemGroupKey()))
@@ -53,7 +53,7 @@ public class ExamPageCommandRepositoryImpl implements ExamPageCommandRepository 
 
     @Override
     public void deleteAll(final UUID examId) {
-        final SqlParameterSource params = new MapSqlParameterSource("examId", getBytesFromUUID(examId));
+        final SqlParameterSource params = new MapSqlParameterSource("examId", examId.toString());
 
         final String SQL =
             "INSERT INTO \n" +
