@@ -15,14 +15,13 @@ import java.util.Optional;
 import java.util.UUID;
 
 import tds.common.ValidationError;
+import tds.common.configuration.JacksonObjectMapperConfiguration;
 import tds.common.web.advice.ExceptionAdvice;
 import tds.exam.Exam;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
 import tds.exam.builder.ExamBuilder;
-import tds.exam.builder.ExamPageBuilder;
 import tds.exam.error.ValidationErrorCode;
-import tds.exam.models.ExamPage;
 import tds.exam.services.ExamPageService;
 import tds.exam.services.ExamService;
 
@@ -38,7 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @RunWith(SpringRunner.class)
 @WebMvcTest(ExamController.class)
-@Import({ExceptionAdvice.class})
+@Import({ExceptionAdvice.class, JacksonObjectMapperConfiguration.class})
 public class ExamControllerIntegrationTests {
     @Autowired
     private MockMvc http;
@@ -119,20 +118,5 @@ public class ExamControllerIntegrationTests {
             .andExpect(status().isNoContent());
 
         verify(mockExamService).pauseAllExamsInSession(sessionId);
-    }
-
-    @Test
-    public void shouldGetAnExamPage() throws Exception {
-        ExamPage examPage = new ExamPageBuilder().build();
-
-        when(mockExamPageService.getPage(examPage.getExamId(), examPage.getPagePosition()))
-            .thenReturn(examPage);
-
-        http.perform(get(new URI(String.format("/exam/%s/page/%s", examPage.getExamId(), examPage.getPagePosition())))
-            .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("data").isNotEmpty());
-
-        verify(mockExamPageService).getPage(examPage.getExamId(), examPage.getPagePosition());
     }
 }

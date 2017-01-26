@@ -1,15 +1,14 @@
-package tds.exam.models;
+package tds.exam;
 
 import org.joda.time.Instant;
 
 import java.util.List;
 import java.util.UUID;
 
-import tds.exam.Exam;
-
 /**
  * Represents the page of an exam
  */
+
 public class ExamPage {
     private long id;
     private int pagePosition;
@@ -17,7 +16,7 @@ public class ExamPage {
     private String segmentId;
     private int segmentPosition;
     private String itemGroupKey;
-    private int groupItemsRequired;
+    private boolean groupItemsRequired;
     private UUID examId;
     private List<ExamItem> examItems;
     private Instant createdAt;
@@ -27,7 +26,8 @@ public class ExamPage {
     /**
      * For frameworks
      */
-    private ExamPage() {}
+    private ExamPage() {
+    }
 
     public ExamPage(Builder builder) {
         id = builder.id;
@@ -51,7 +51,7 @@ public class ExamPage {
         private String segmentId;
         private int segmentPosition;
         private String itemGroupKey;
-        private int groupItemsRequired;
+        private boolean groupItemsRequired;
         private UUID examId;
         private List<ExamItem> examItems;
         private Instant createdAt;
@@ -99,7 +99,7 @@ public class ExamPage {
             return this;
         }
 
-        public Builder withGroupItemsRequired(int groupItemsRequired) {
+        public Builder withGroupItemsRequired(boolean groupItemsRequired) {
             this.groupItemsRequired = groupItemsRequired;
             return this;
         }
@@ -140,11 +140,12 @@ public class ExamPage {
     }
 
     /**
-     * @return The id of the {@link tds.exam.models.ExamPage} record
+     * @return The id of the {@link ExamPage} record
      */
     public long getId() {
         return this.id;
     }
+
     /**
      * @return The position of the page in the exam - 1 based
      */
@@ -153,21 +154,21 @@ public class ExamPage {
     }
 
     /**
-     * @return The key of which {@link tds.exam.models.ExamSegment} owns this page
+     * @return The key of which segment owns this page
      */
     public String getSegmentKey() {
         return segmentKey;
     }
 
     /**
-     * @return The id of which {@link tds.exam.models.ExamSegment} owns this page
+     * @return The id of which segment owns this page
      */
     public String getSegmentId() {
         return segmentId;
     }
 
     /**
-     * @return The position of the {@link tds.exam.models.ExamSegment} owns this page
+     * @return The position of the segment owns this page
      */
     public int getSegmentPosition() {
         return segmentPosition;
@@ -181,11 +182,11 @@ public class ExamPage {
     }
 
     /**
-     * @return Determine if all group items are required
+     * @return True if all items in this page's item group are required; otherwise false
      */
-    public int getGroupItemsRequired() {
+    public boolean isGroupItemsRequired() {
         // This value is only ever 0 or -1 in the database.  When the value is -1 all items are required (from comment
-        // in https://github.com/SmarterApp/TDS_TestDeliverySystemDataAccess/blob/cebc3996ab000dc604b539da51235eaf20039d0d/database%20scripts%20-%20mysql/Session/User-Defined%20Functions/iscomplete.sql#L46
+        // in https://github.com/SmarterApp/TDS_TestDeliverySystemDataAccess/blob/cebc3996ab000dc604b539da51235eaf20039d0d/database%20scripts%20-%20mysql/Session/User-Defined%20Functions/iscomplete.sql#L46)
 
         // In legacy, this value is stored in the session.testeeresponse table.  Since it pertains to an item group
         // (which is a super-set of items), it seems appropriate to store it at the page level.  From here, it can be
@@ -201,28 +202,28 @@ public class ExamPage {
     }
 
     /**
-     * @return The collection of {@link tds.exam.models.ExamItem}s for this page
+     * @return The collection of {@link tds.exam.ExamItem}s for this page
      */
     public List<ExamItem> getExamItems() {
         return examItems;
     }
 
     /**
-     * @return The {@link Instant} for when the {@link tds.exam.models.ExamPage} was created
+     * @return The {@link Instant} for when the {@link ExamPage} was created
      */
     public Instant getCreatedAt() {
         return createdAt;
     }
 
     /**
-     * @return The {@link Instant} for when the {@link tds.exam.models.ExamPage} was deleted
+     * @return The {@link Instant} for when the {@link ExamPage} was deleted
      */
     public Instant getDeletedAt() {
         return deletedAt;
     }
 
     /**
-     * @return The {@link Instant} for when the {@link tds.exam.models.ExamPage} was rendered to the student
+     * @return The {@link Instant} for when the {@link ExamPage} was rendered to the student
      */
     public Instant getStartedAt() {
         return startedAt;

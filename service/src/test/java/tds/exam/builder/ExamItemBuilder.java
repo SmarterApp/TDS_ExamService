@@ -1,36 +1,45 @@
 package tds.exam.builder;
 
-import tds.assessment.Item;
-import tds.exam.models.ExamItem;
-import tds.exam.models.ExamItemResponse;
+import tds.exam.ExamItem;
+import tds.exam.ExamItemResponse;
 
 /**
- * Build an {@link tds.exam.models.ExamItem} with test data
+ * Build an {@link tds.exam.ExamItem} with test data
  */
 public class ExamItemBuilder {
     public static final long EXAM_ITEM_DEFAULT_ID = 999L;
 
     private long id = EXAM_ITEM_DEFAULT_ID;
     private long examPageId = ExamPageBuilder.DEFAULT_ID;
-    private String itemKey = "item-key-1";
+    private String itemKey = "187-1234";
+    private long assessmentItemBankKey = 187L;
+    private long assessmentItemKey = 1234L;
+    private String itemType = "MS";
     private int position = 1;
     private boolean selected;
+    private boolean required;
     private boolean markedForReview;
     private boolean fieldTest;
+    private String itemFilePath = "/path/to/item/187-1234.xml";
+    private String stimulusFilePath;
     private ExamItemResponse response;
-    private Item assessmentItem = new Item(itemKey);
 
     public ExamItem build() {
         return new ExamItem.Builder()
             .withId(id)
             .withExamPageId(examPageId)
             .withItemKey(itemKey)
+            .withAssessmentItemBankKey(assessmentItemBankKey)
+            .withAssessmentItemKey(assessmentItemKey)
+            .withItemType(itemType)
             .withPosition(position)
+            .withRequired(required)
             .withSelected(selected)
             .withMarkedForReview(markedForReview)
             .withFieldTest(fieldTest)
+            .withItemFilePath(itemFilePath)
+            .withStimulusFilePath(stimulusFilePath)
             .withResponse(response)
-            .withAssessmentItem(assessmentItem)
             .build();
     }
 
@@ -49,8 +58,28 @@ public class ExamItemBuilder {
         return this;
     }
 
+    public ExamItemBuilder withAssessmentItemBankKey(long assessmentItemBankKey) {
+        this.assessmentItemBankKey = assessmentItemBankKey;
+        return this;
+    }
+
+    public ExamItemBuilder withAssessmentItemKey(long assessmentItemKey) {
+        this.assessmentItemKey = assessmentItemKey;
+        return this;
+    }
+
+    public ExamItemBuilder withItemType(String itemType) {
+        this.itemType = itemType;
+        return this;
+    }
+
     public ExamItemBuilder withPosition(int position) {
         this.position = position;
+        return this;
+    }
+
+    public ExamItemBuilder withRequired(boolean required) {
+        this.required = required;
         return this;
     }
 
@@ -74,8 +103,13 @@ public class ExamItemBuilder {
         return this;
     }
 
-    public ExamItemBuilder withAssessmentItem(Item assessmentItem) {
-        this.assessmentItem = assessmentItem;
+    public ExamItemBuilder withItemFilePath(String itemFilePath) {
+        this.itemFilePath = itemFilePath;
+        return this;
+    }
+
+    public ExamItemBuilder withStimulusFilePath(String stimulusFilePath) {
+        this.stimulusFilePath = stimulusFilePath;
         return this;
     }
 }

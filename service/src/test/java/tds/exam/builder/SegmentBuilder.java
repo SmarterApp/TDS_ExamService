@@ -9,6 +9,7 @@ import tds.assessment.Segment;
 
 public class SegmentBuilder {
     public static final String DEFAULT_SEGMENT_KEY = "(SBAC_PT)IRP-Perf-ELA-3-Summer-2015-2016";
+
     private String key = DEFAULT_SEGMENT_KEY;
     private String segmentId = "IRP-Perf-ELA-3";
     private Algorithm selectionAlgorithm = Algorithm.FIXED_FORM;

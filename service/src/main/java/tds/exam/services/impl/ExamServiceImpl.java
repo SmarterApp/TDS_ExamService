@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -27,7 +26,6 @@ import tds.config.ClientSystemFlag;
 import tds.config.TimeLimitConfiguration;
 import tds.exam.ApprovalRequest;
 import tds.exam.Exam;
-import tds.exam.ExamApproval;
 import tds.exam.ExamConfiguration;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
@@ -41,6 +39,7 @@ import tds.exam.repositories.HistoryQueryRepository;
 import tds.exam.services.AssessmentService;
 import tds.exam.services.ConfigService;
 import tds.exam.services.ExamAccommodationService;
+import tds.exam.services.ExamApprovalService;
 import tds.exam.services.ExamPageService;
 import tds.exam.services.ExamSegmentService;
 import tds.exam.services.ExamService;
@@ -71,7 +70,7 @@ class ExamServiceImpl implements ExamService {
 
     private final ExamQueryRepository examQueryRepository;
     private final ExamCommandRepository examCommandRepository;
-    private final ExamPageService examItemService;
+    private final ExamPageService examPageService;
     private final HistoryQueryRepository historyQueryRepository;
     private final SessionService sessionService;
     private final StudentService studentService;
@@ -81,6 +80,7 @@ class ExamServiceImpl implements ExamService {
     private final ConfigService configService;
     private final ExamStatusQueryRepository examStatusQueryRepository;
     private final ExamAccommodationService examAccommodationService;
+    private final ExamApprovalService examApprovalService;
 
     private final Set<String> statusesThatCanTransitionToPaused;
 
@@ -96,7 +96,8 @@ class ExamServiceImpl implements ExamService {
                            ExamCommandRepository examCommandRepository,
                            ExamPageService examPageService,
                            ExamStatusQueryRepository examStatusQueryRepository,
-                           ExamAccommodationService examAccommodationService) {
+                           ExamAccommodationService examAccommodationService,
+                           ExamApprovalService examApprovalService) {
         this.examQueryRepository = examQueryRepository;
         this.historyQueryRepository = historyQueryRepository;
         this.sessionService = sessionService;
@@ -106,9 +107,10 @@ class ExamServiceImpl implements ExamService {
         this.timeLimitConfigurationService = timeLimitConfigurationService;
         this.configService = configService;
         this.examCommandRepository = examCommandRepository;
-        this.examItemService = examPageService;
+        this.examPageService = examPageService;
         this.examStatusQueryRepository = examStatusQueryRepository;
         this.examAccommodationService = examAccommodationService;
+        this.examApprovalService = examApprovalService;
 
         // From CommondDLL._IsValidStatusTransition_FN(): a collection of all the statuses that can transition to
         // "paused".  That is, each of these status values has a nested switch statement that contains the "paused"
@@ -142,7 +144,7 @@ class ExamServiceImpl implements ExamService {
         //the reference to those parts that require it.
         Optional<Session> maybeSession = sessionService.findSessionById(openExamRequest.getSessionId());
         if (!maybeSession.isPresent()) {
-            throw new IllegalArgumentException(String.format("Could not getPage session for id %s", openExamRequest.getSessionId()));
+            throw new IllegalArgumentException(String.format("Could not find session for id %s", openExamRequest.getSessionId()));
         }
 
         Session currentSession = maybeSession.get();
@@ -154,7 +156,7 @@ class ExamServiceImpl implements ExamService {
 
         if (!openExamRequest.isGuestStudent()) {
             studentService.getStudentById(openExamRequest.getStudentId()).orElseThrow((Supplier<RuntimeException>) ()
-                -> new IllegalArgumentException(String.format("Could not getPage student for id %s", openExamRequest.getStudentId()))
+                -> new IllegalArgumentException(String.format("Could not find student for id %s", openExamRequest.getStudentId()))
             );
         } else {
             //OpenTestServiceImpl lines 103 - 104
@@ -196,18 +198,6 @@ class ExamServiceImpl implements ExamService {
         }
 
         return createExam(openExamRequest, currentSession, assessment, externalSessionConfiguration, previousExam);
-    }
-
-    @Override
-    public Response<ExamApproval> getApproval(ApprovalRequest approvalRequest) {
-        Exam exam = examQueryRepository.getExamById(approvalRequest.getExamId())
-            .orElseThrow(() -> new IllegalArgumentException(String.format("Exam could not be found for id %s", approvalRequest.getExamId())));
-
-        Optional<ValidationError> maybeAccessViolation = verifyAccess(approvalRequest, exam);
-
-        return maybeAccessViolation.isPresent()
-            ? new Response<ExamApproval>(maybeAccessViolation.get())
-            : new Response<>(new ExamApproval(approvalRequest.getExamId(), exam.getStatus(), exam.getStatusChangeReason()));
     }
 
     @Override
@@ -294,58 +284,6 @@ class ExamServiceImpl implements ExamService {
     }
 
     @Override
-    public Optional<ValidationError> verifyAccess(ApprovalRequest approvalRequest, Exam exam) {
-        // RULE:  The browser key for the approval request must match the browser key of the exam.
-        if (!exam.getBrowserId().equals(approvalRequest.getBrowserId())) {
-            return Optional.of(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_BROWSER_ID_MISMATCH, "Access violation: System access denied"));
-        }
-
-        // RULE:  Session id for the approval request must match the session id of the exam.
-        if (!exam.getSessionId().equals(approvalRequest.getSessionId())) {
-            return Optional.of(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_SESSION_ID_MISMATCH, "The session keys do not match; please consult your test administrator"));
-        }
-
-        ExternalSessionConfiguration externalSessionConfig =
-            sessionService.findExternalSessionConfigurationByClientName(approvalRequest.getClientName())
-                .orElseThrow(() -> new IllegalStateException(String.format("External Session Configuration could not be found for client name %s", approvalRequest.getClientName())));
-
-        // RULE:  If the environment is set to "simulation" or "development", there is no need to check anything else.
-        if (externalSessionConfig.isInSimulationEnvironment()
-            || externalSessionConfig.isInDevelopmentEnvironment()) {
-            return Optional.empty();
-        }
-
-        Session session = sessionService.findSessionById(approvalRequest.getSessionId())
-            .orElseThrow(() -> new IllegalArgumentException("Could not getPage session for id " + approvalRequest.getSessionId()));
-
-        // RULE:  the exam's session must be open.
-        if (!session.isOpen()) {
-            return Optional.of(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_SESSION_CLOSED, "The session is not available for testing, please check with your test administrator."));
-        }
-
-        // RULE:  If the session has no proctor, there is nothing to approve.  This is either a guest session or an
-        // otherwise proctor-less session.
-        if (session.isProctorless()) {
-            return Optional.empty();
-        }
-
-        // RULE:  Student should not be able to start an exam if the TA check-in window has expired.
-        TimeLimitConfiguration timeLimitConfig =
-            timeLimitConfigurationService.findTimeLimitConfiguration(approvalRequest.getClientName(), exam.getAssessmentId())
-                .orElseThrow(() -> new IllegalArgumentException(String.format("Could not getPage time limit configuration for client name %s and assessment id %s", approvalRequest.getClientName(), exam.getAssessmentId())));
-
-        Instant sessionDateVisited = Instant.ofEpochMilli(session.getDateVisited().getMillis());
-        if (Instant.now().isAfter(sessionDateVisited.plus(timeLimitConfig.getTaCheckinTimeMinutes(), ChronoUnit.MINUTES))) {
-            // Legacy code creates an audit record here.  Immutability should provide an audit trail; a new session record
-            // will be inserted to represent the change in status.
-            sessionService.pause(session.getId(), "closed");
-            return Optional.of(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_TA_CHECKIN_TIMEOUT, "The session is not available for testing, please check with your test administrator."));
-        }
-
-        return Optional.empty();
-    }
-
-    @Override
     public Response<ExamConfiguration> startExam(final UUID examId) {
         ExamConfiguration examConfig;
         Optional<Exam> maybeExam = examQueryRepository.getExamById(examId);
@@ -372,7 +310,7 @@ class ExamServiceImpl implements ExamService {
         Session session = maybeSession.get();
 
         /* StudentDLL [5269] / TestOpportunityServiceImpl [137] */
-        Optional<ValidationError> maybeAccessViolation = verifyAccess(new ApprovalRequest(examId, session.getId(),
+        Optional<ValidationError> maybeAccessViolation = examApprovalService.verifyAccess(new ApprovalRequest(examId, session.getId(),
             exam.getBrowserId(), exam.getClientName()), exam);
         if (maybeAccessViolation.isPresent()) {
             return new Response<ExamConfiguration>(maybeAccessViolation.get());
@@ -419,12 +357,12 @@ class ExamServiceImpl implements ExamService {
 
             if (isResumable) { // Resume exam
                 /* TestOpportunityServiceImpl [215] - Only need to get latest position when resuming, else its 1 */
-                startPosition = examItemService.getExamPosition(exam.getId());
+                startPosition = examPageService.getExamPosition(exam.getId());
                 /* This increment is done in TestOpportunityServiceImpl [179] */
                 resumptions++;
             } else if (assessment.shouldDeleteUnansweredItems()) { // Restart exam
                 // Mark the exam pages as "deleted"
-                examItemService.deletePages(exam.getId());
+                examPageService.deletePages(exam.getId());
             }
 
             Exam restartedExam = new Exam.Builder()
@@ -532,7 +470,7 @@ class ExamServiceImpl implements ExamService {
 
         //OpenTestServiceImpl line 367 - 368 validation check.  no window no exam
         if (!maybeWindow.isPresent()) {
-            return new Response<Exam>(new ValidationError(NO_OPEN_ASSESSMENT_WINDOW, "Could not getPage an open assessment window"));
+            return new Response<Exam>(new ValidationError(NO_OPEN_ASSESSMENT_WINDOW, "Could not find an open assessment window"));
         }
 
         AssessmentWindow assessmentWindow = maybeWindow.get();

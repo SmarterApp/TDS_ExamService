@@ -13,24 +13,21 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
-import tds.assessment.Algorithm;
 import tds.exam.Exam;
+import tds.exam.ExamItem;
+import tds.exam.ExamItemResponse;
+import tds.exam.ExamPage;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.builder.ExamItemBuilder;
 import tds.exam.builder.ExamPageBuilder;
 import tds.exam.builder.ExamSegmentBuilder;
-import tds.exam.models.ExamItem;
-import tds.exam.models.ExamItemResponse;
-import tds.exam.models.ExamPage;
 import tds.exam.models.ExamSegment;
 import tds.exam.repositories.ExamCommandRepository;
 import tds.exam.repositories.ExamItemCommandRepository;
+import tds.exam.repositories.ExamItemResponseCommandRepository;
 import tds.exam.repositories.ExamPageCommandRepository;
 import tds.exam.repositories.ExamPageQueryRepository;
 import tds.exam.repositories.ExamSegmentCommandRepository;
@@ -46,12 +43,14 @@ public class ExamItemCommandRepositoryImplIntegrationTests {
     private NamedParameterJdbcTemplate commandJdbcTemplate;
 
     private ExamItemCommandRepository examItemCommandRepository;
+    private ExamItemResponseCommandRepository examItemResponseCommandRepository;
     private ExamPageQueryRepository examPageQueryRepository;
 
     private Exam mockExam = new ExamBuilder().build();
     private ExamPage mockPage = new ExamPageBuilder()
         .withExamId(mockExam.getId())
         .build();
+
     @Before
     public void SetUp() {
         ExamCommandRepository examCommandRepository = new ExamCommandRepositoryImpl(commandJdbcTemplate);
@@ -59,6 +58,7 @@ public class ExamItemCommandRepositoryImplIntegrationTests {
         ExamPageCommandRepository examPageCommandRepository = new ExamPageCommandRepositoryImpl(commandJdbcTemplate);
         examPageQueryRepository = new ExamPageQueryRepositoryImpl(commandJdbcTemplate);
         examItemCommandRepository = new ExamItemCommandRepositoryImpl(commandJdbcTemplate);
+        examItemResponseCommandRepository = new ExamItemResponseCommandRepositoryImpl(commandJdbcTemplate);
 
         ExamSegment mockExamSegment = new ExamSegmentBuilder()
             .withSegmentId(mockPage.getSegmentId())
@@ -93,7 +93,6 @@ public class ExamItemCommandRepositoryImplIntegrationTests {
         ExamPage insertedPage = pages.get(0);
         ExamItem mockExamItem = new ExamItemBuilder()
             .withExamPageId(insertedPage.getId())
-            .withAssessmentItem(new tds.assessment.Item("UNIT-TEST"))
             .build();
 
         examItemCommandRepository.insert(mockExamItem);
@@ -103,18 +102,19 @@ public class ExamItemCommandRepositoryImplIntegrationTests {
         ExamItemResponse response = new ExamItemResponse.Builder()
             .withExamItemId(savedExamItem.getId())
             .withResponse("unit test response")
+            .withValid(true)
             .withCreatedAt(Instant.now().minus(20000))
             .build();
 
-        examItemCommandRepository.insertResponses(response);
+        examItemResponseCommandRepository.insertResponses(response);
     }
 
     /**
-     * Convenience method for getting the {@link tds.exam.models.ExamItem}s that were created as part of the integration
+     * Convenience method for getting the {@link tds.exam.ExamItem}s that were created as part of the integration
      * test.
      *
-     * @param pageId The id of the {@link tds.exam.models.ExamPage} to which the item(s) belong
-     * @return A collection of {@link tds.exam.models.ExamItem}s for an {@link tds.exam.models.ExamPage}
+     * @param pageId The id of the {@link tds.exam.ExamPage} to which the item(s) belong
+     * @return A collection of {@link tds.exam.ExamItem}s for an {@link tds.exam.ExamPage}
      */
     private List<ExamItem> getInsertedExamItems(long pageId) {
         SqlParameterSource parameters = new MapSqlParameterSource("pageId", pageId);
@@ -122,12 +122,18 @@ public class ExamItemCommandRepositoryImplIntegrationTests {
 
         return commandJdbcTemplate.query(SQL, parameters, (rs, row) -> new ExamItem.Builder()
             .withId(rs.getLong("id"))
-            .withExamPageId(rs.getLong("exam_page_id"))
             .withItemKey(rs.getString("item_key"))
+            .withAssessmentItemBankKey(rs.getLong("assessment_item_bank_key"))
+            .withAssessmentItemKey(rs.getLong("assessment_item_key"))
+            .withItemType(rs.getString("item_type"))
+            .withExamPageId(rs.getLong("exam_page_id"))
             .withPosition(rs.getInt("position"))
+            .withFieldTest(rs.getBoolean("is_fieldtest"))
+            .withRequired(rs.getBoolean("is_required"))
             .withSelected(rs.getBoolean("is_selected"))
             .withMarkedForReview(rs.getBoolean("is_marked_for_review"))
-            .withFieldTest(rs.getBoolean("is_fieldtest"))
+            .withItemFilePath(rs.getString("item_file_path"))
+            .withStimulusFilePath(rs.getString("stimulus_file_path"))
             .build());
     }
 }

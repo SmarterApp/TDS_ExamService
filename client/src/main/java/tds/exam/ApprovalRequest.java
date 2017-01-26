@@ -56,4 +56,26 @@ public class ApprovalRequest {
     public String getClientName() {
         return clientName;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ApprovalRequest)) return false;
+
+        ApprovalRequest that = (ApprovalRequest) o;
+
+        if (!getExamId().equals(that.getExamId())) return false;
+        if (!getSessionId().equals(that.getSessionId())) return false;
+        if (!getBrowserId().equals(that.getBrowserId())) return false;
+        return getClientName().equals(that.getClientName());
+    }
+
+    @Override
+    public int hashCode() {
+        int result = getExamId().hashCode();
+        result = 31 * result + getSessionId().hashCode();
+        result = 31 * result + getBrowserId().hashCode();
+        result = 31 * result + getClientName().hashCode();
+        return result;
+    }
 }

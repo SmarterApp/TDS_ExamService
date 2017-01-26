@@ -217,18 +217,22 @@ public class ExamQueryRepositoryImplIntegrationTests {
             .addValue("dateLastResponseSubmitted", new Timestamp(dateLastResponseSubmitted.getMillis()))
             .addValue("dateEarlierResponseSubmitted", new Timestamp(dateEarlierResponseSubmitted.getMillis()));
 
+        final String insertSegmentSQL =
+            "INSERT INTO exam_segment(exam_id, segment_key, segment_id, segment_position, created_at)" +
+                "VALUES (:examId, 'segment-key-1', 'segment-id-1', 1, CURRENT_TIMESTAMP)";
         final String insertPageSQL =
-            "INSERT INTO exam_page (id, page_position, item_group_key, exam_id, created_at) " +
-            "VALUES (805, 1, 'GroupKey1', :examId, :datePageCreated)";
+            "INSERT INTO exam_page (id, page_position, exam_segment_key, item_group_key, exam_id, created_at) " +
+                "VALUES (805, 1, 'segment-key-1', 'GroupKey1', :examId, :datePageCreated)";
         final String insertPageEventSQL =
             "INSERT INTO exam_page_event (exam_page_id, started_at) VALUES (805, now())";
         final String insertItemSQL =
-            "INSERT INTO exam_item (id, item_key, exam_page_id, position, is_fieldtest, segment_id)" +
-            "VALUES (2112, 'item-1', 805, 1, 0, 'seg-id')";
+            "INSERT INTO exam_item (id, item_key, assessment_item_bank_key, assessment_item_key, item_type, exam_page_id, position, item_file_path)" +
+                "VALUES (2112, '187-1234', 187, 1234, 'MS', 805, 1, '/path/to/item/187-1234.xml')";
         final String insertResponsesSQL =
             "INSERT INTO exam_item_response (id, exam_item_id, response, created_at) " +
-            "VALUES (1337, 2112, 'Response 1', :dateLastResponseSubmitted), (1338, 2112, 'Response 2', :dateEarlierResponseSubmitted)";
+                "VALUES (1337, 2112, 'Response 1', :dateLastResponseSubmitted), (1338, 2112, 'Response 2', :dateEarlierResponseSubmitted)";
 
+        jdbcTemplate.update(insertSegmentSQL, testParams);
         jdbcTemplate.update(insertPageSQL, testParams);
         jdbcTemplate.update(insertPageEventSQL, testParams);
         jdbcTemplate.update(insertItemSQL, testParams);

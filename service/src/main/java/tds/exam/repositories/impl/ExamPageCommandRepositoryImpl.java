@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 import tds.common.data.mapping.ResultSetMapperUtility;
-import tds.exam.models.ExamPage;
+import tds.exam.ExamPage;
 import tds.exam.repositories.ExamPageCommandRepository;
 
 import static tds.common.data.mysql.UuidAdapter.getBytesFromUUID;
@@ -30,23 +30,26 @@ public class ExamPageCommandRepositoryImpl implements ExamPageCommandRepository 
     @Override
     public void insert(List<ExamPage> examPages) {
         final String examPageSQL =
-            "INSERT INTO exam_page (\n" +
-                "   page_position, exam_segment_key, item_group_key, group_items_required, exam_id\n" +
-                ") \n" +
+            "INSERT INTO \n" +
+                "exam_page (\n" +
+                "   page_position, \n" +
+                "   exam_segment_key, \n" +
+                "   item_group_key, \n" +
+                "   are_group_items_required, \n" +
+                "   exam_id) \n" +
                 "VALUES (\n" +
                 "   :pagePosition, \n" +
                 "   :segmentKey, \n" +
                 "   :itemGroupKey, \n" +
                 "   :groupItemsRequired, \n" +
-                "   :examId\n" +
-                ")";
+                "   :examId)";
 
         examPages.forEach(examPage -> {
             SqlParameterSource parameterSources = new MapSqlParameterSource("examId", getBytesFromUUID(examPage.getExamId()))
                 .addValue("pagePosition", examPage.getPagePosition())
                 .addValue("segmentKey", examPage.getSegmentKey())
                 .addValue("itemGroupKey", examPage.getItemGroupKey())
-                .addValue("groupItemsRequired", examPage.getGroupItemsRequired());
+                .addValue("groupItemsRequired", examPage.isGroupItemsRequired());
 
             KeyHolder keyHolder = new GeneratedKeyHolder();
             jdbcTemplate.update(examPageSQL, parameterSources, keyHolder);
@@ -65,9 +68,14 @@ public class ExamPageCommandRepositoryImpl implements ExamPageCommandRepository 
 
         final String SQL =
             "INSERT INTO \n" +
-                "   exam_page_event (exam_page_id, deleted_at, started_at) \n" +
+                "exam_page_event (\n" +
+                "   exam_page_id, \n" +
+                "   deleted_at, \n" +
+                "   started_at) \n" +
                 "SELECT \n" +
-                "   exam_page_id, UTC_TIMESTAMP(), started_at \n" +
+                "   exam_page_id, \n" +
+                "   UTC_TIMESTAMP(), \n" +
+                "   started_at \n" +
                 "FROM \n" +
                 "   exam_page_event PE\n" +
                 "JOIN \n" +

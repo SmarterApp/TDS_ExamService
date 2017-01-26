@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,15 +20,11 @@ import tds.common.Response;
 import tds.common.ValidationError;
 import tds.common.web.exceptions.NotFoundException;
 import tds.common.web.resources.NoContentResponseResource;
-import tds.exam.ApprovalRequest;
 import tds.exam.Exam;
-import tds.exam.ExamApproval;
 import tds.exam.ExamConfiguration;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
 import tds.exam.OpenExamRequest;
-import tds.exam.models.ExamPage;
-import tds.exam.services.ExamPageService;
 import tds.exam.services.ExamService;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
@@ -39,12 +34,10 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 @RequestMapping("/exam")
 public class ExamController {
     private final ExamService examService;
-    private final ExamPageService examPageService;
 
     @Autowired
-    public ExamController(ExamService examService, ExamPageService examPageService) {
+    public ExamController(ExamService examService) {
         this.examService = examService;
-        this.examPageService = examPageService;
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -82,25 +75,6 @@ public class ExamController {
         }
 
         return ResponseEntity.ok(examConfiguration);
-    }
-
-    @RequestMapping(value = "/{id}/get-approval", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<Response<ExamApproval>> getApproval(@PathVariable final UUID examId, @RequestParam final UUID sessionId, @RequestParam final UUID browserId, final String clientName) {
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserId, clientName);
-        Response<ExamApproval> examApproval = examService.getApproval(approvalRequest);
-
-        if (examApproval.hasError()) {
-            return new ResponseEntity<>(examApproval, HttpStatus.UNPROCESSABLE_ENTITY);
-        }
-
-        return ResponseEntity.ok(examApproval);
-    }
-
-    @RequestMapping(value = "/{id}/page/{position}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<Response<ExamPage>> getPage(@PathVariable final UUID id, @PathVariable final int position) {
-        ExamPage page = examPageService.getPage(id, position);
-
-        return ResponseEntity.ok(new Response<>(page));
     }
 
     @RequestMapping(value = "/{examId}/pause", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)

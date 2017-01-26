@@ -13,28 +13,28 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import tds.assessment.Assessment;
-import tds.assessment.Form;
-import tds.assessment.Item;
-import tds.assessment.Segment;
-import tds.exam.Exam;
-import tds.exam.builder.AssessmentBuilder;
-import tds.exam.builder.ExamBuilder;
+import tds.common.Response;
+import tds.common.ValidationError;
+import tds.exam.ApprovalRequest;
+import tds.exam.ExamApproval;
+import tds.exam.ExamItem;
+import tds.exam.ExamItemResponse;
+import tds.exam.ExamPage;
+import tds.exam.ExamStatusCode;
+import tds.exam.ExamStatusStage;
+import tds.exam.builder.ExamItemBuilder;
 import tds.exam.builder.ExamPageBuilder;
-import tds.exam.builder.SegmentBuilder;
-import tds.exam.models.ExamItem;
-import tds.exam.models.ExamItemResponse;
-import tds.exam.models.ExamPage;
+import tds.exam.error.ValidationErrorCode;
 import tds.exam.repositories.ExamPageCommandRepository;
 import tds.exam.repositories.ExamPageQueryRepository;
-import tds.exam.repositories.ExamQueryRepository;
 import tds.exam.repositories.ExamResponseQueryRepository;
-import tds.exam.services.AssessmentService;
+import tds.exam.services.ExamApprovalService;
 import tds.exam.services.ExamPageService;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -49,10 +49,7 @@ public class ExamPageServiceImplTest {
     private ExamPageQueryRepository mockExamPageQueryRepository;
 
     @Mock
-    private ExamQueryRepository mockExamQueryRepository;
-
-    @Mock
-    private AssessmentService mockAssessmentService;
+    private ExamApprovalService mockExamApprovalService;
 
     private ExamPageService examPageService;
 
@@ -61,8 +58,7 @@ public class ExamPageServiceImplTest {
         examPageService = new ExamPageServiceImpl(mockExamPageQueryRepository,
             mockExamPageCommandRepository,
             mockExamResponseQueryRepository,
-            mockExamQueryRepository,
-            mockAssessmentService);
+            mockExamApprovalService);
     }
 
     @Test
@@ -112,97 +108,84 @@ public class ExamPageServiceImplTest {
 
     @Test
     public void shouldGetAnExamPageWithItems() {
-        // Build Assessment
-        Item mockFirstAssessmentItem = new Item("187-1234");
-        mockFirstAssessmentItem.setItemFilePath("/path/to/item/187-1234.xml");
-        mockFirstAssessmentItem.setStimulusFilePath("/path/to/stimulus/187-1234.xml");
-        mockFirstAssessmentItem.setItemType("UNIT");
-        mockFirstAssessmentItem.setRequired(true);
-
-        Item mockSecondAssessmentItem = new Item("187-5678");
-        mockSecondAssessmentItem.setItemFilePath("/path/to/item/187-5678.xml");
-        mockSecondAssessmentItem.setItemType("TEST");
-        mockSecondAssessmentItem.setRequired(true);
-
-        List<Item> mockAssessmentItems = Arrays.asList(mockFirstAssessmentItem, mockSecondAssessmentItem);
-
-         Form mockForm = new Form.Builder("test-form-1")
-             .withLanguage("ENU")
-             .withSegmentKey(SegmentBuilder.DEFAULT_SEGMENT_KEY)
-             .withItems(mockAssessmentItems)
-             .build();
-
-        Segment mockSegment = new SegmentBuilder()
-            .withForms(Arrays.asList(mockForm))
-            .build();
-
-        Assessment mockAssessment = new AssessmentBuilder()
-            .withSegments(Arrays.asList(mockSegment))
-            .build();
-
-        // Build Exam
-        Exam mockExam = new ExamBuilder()
-            .withAssessmentKey(mockAssessment.getKey())
-            .withLanguageCode("ENU")
-            .build();
+        UUID mockExamId = UUID.randomUUID();
+        UUID mockSessionId = UUID.randomUUID();
+        UUID mockBrowserId = UUID.randomUUID();
+        String mockClientName = "UNIT_TEST";
 
         Instant respondedAtInstant = Instant.now().minus(200000);
-        ExamItem mockFirstExamItem = new ExamItem.Builder()
+        ExamItem mockFirstExamItem = new ExamItemBuilder()
             .withExamPageId(ExamPageBuilder.DEFAULT_ID)
             .withItemKey("187-1234")
+            .withRequired(true)
             .withResponse(new ExamItemResponse.Builder()
                 .withResponse("first item response")
+                .withValid(true)
                 .withCreatedAt(respondedAtInstant)
                 .build())
             .build();
-        ExamItem mockSecondExamItem = new ExamItem.Builder()
+        ExamItem mockSecondExamItem = new ExamItemBuilder()
             .withExamPageId(ExamPageBuilder.DEFAULT_ID)
             .withItemKey("187-5678")
+            .withAssessmentItemKey(5678L)
+            .withItemType("TEST")
+            .withItemFilePath("/path/to/item/187-5678.xml")
             .build();
 
         List<ExamItem> mockExamItems = Arrays.asList(mockFirstExamItem, mockSecondExamItem);
 
         ExamPage mockExamPage = new ExamPageBuilder()
-            .withExamId(mockExam.getId())
-            .withSegmentKey(mockSegment.getKey())
+            .withExamId(mockExamId)
             .withExamItems(mockExamItems)
             .build();
 
-        mockAssessment.setSegments(Arrays.asList(mockSegment));
-        mockSegment.setItems(mockAssessmentItems);
+        ApprovalRequest mockApprovalRequest = new ApprovalRequest(mockExamId,
+            mockSessionId,
+            mockBrowserId,
+            mockClientName);
 
-        when(mockExamQueryRepository.getExamById(mockExam.getId()))
-            .thenReturn(Optional.of(mockExam));
-        when(mockAssessmentService.findAssessment(mockExam.getClientName(), mockExam.getAssessmentKey()))
-            .thenReturn(Optional.of(mockAssessment));
-        when(mockExamPageQueryRepository.findPageWithItems(mockExamPage.getExamId(), mockExamPage.getPagePosition()))
+        ExamApproval mockExamApproval = new ExamApproval(mockExamId,
+            new ExamStatusCode(ExamStatusCode.STATUS_STARTED, ExamStatusStage.IN_PROGRESS),
+            null);
+
+        when(mockExamApprovalService.getApproval(mockApprovalRequest))
+            .thenReturn(new Response<>(mockExamApproval));
+        when(mockExamPageQueryRepository.findPageWithItems(mockExamId, mockExamPage.getPagePosition()))
             .thenReturn(Optional.of(mockExamPage));
 
-        ExamPage examPage = examPageService.getPage(mockExamPage.getExamId(), mockExamPage.getPagePosition());
-        verify(mockExamQueryRepository).getExamById(mockExam.getId());
-        verify(mockAssessmentService).findAssessment(mockExam.getClientName(), mockExam.getAssessmentKey());
+        Response<ExamPage> examPageResponse = examPageService.getPage(mockApprovalRequest, mockExamPage.getPagePosition());
+        verify(mockExamApprovalService).getApproval(mockApprovalRequest);
         verify(mockExamPageQueryRepository).findPageWithItems(mockExamPage.getExamId(), mockExamPage.getPagePosition());
         verify(mockExamPageCommandRepository).update(isA(ExamPage.class));
 
-        ExamItem firstExamItem = examPage.getExamItems().get(0);
-        assertThat(firstExamItem.getAssessmentBankKey()).isEqualTo(187L);
-        assertThat(firstExamItem.getAssessmentItemKey()).isEqualTo(1234L);
-        assertThat(firstExamItem.getAssessmentItemType()).isEqualTo("UNIT");
-        assertThat(firstExamItem.getAssessmentItemIsRequired()).isTrue();
-        assertThat(firstExamItem.getAssessmentItemFilePath()).isEqualTo("/path/to/item/187-1234.xml");
-        assertThat(firstExamItem.getAssessmentItemStimulusPath()).isEqualTo("/path/to/stimulus/187-1234.xml");
-        assertThat(firstExamItem.getRespondedAt()).isEqualTo(respondedAtInstant);
-        assertThat(firstExamItem.getResponseText()).isEqualTo("first item response");
-        assertThat(firstExamItem.getResponseLength()).isEqualTo(19);
+        assertThat(examPageResponse.getData().isPresent()).isTrue();
+        assertThat(examPageResponse.hasError()).isFalse();
 
-        ExamItem secondExamItem = examPage.getExamItems().get(1);
-        assertThat(secondExamItem.getAssessmentBankKey()).isEqualTo(187L);
-        assertThat(secondExamItem.getAssessmentItemKey()).isEqualTo(5678L);
-        assertThat(secondExamItem.getAssessmentItemType()).isEqualTo("TEST");
-        assertThat(secondExamItem.getAssessmentItemIsRequired()).isTrue();
-        assertThat(secondExamItem.getAssessmentItemFilePath()).isEqualTo("/path/to/item/187-5678.xml");
-        assertThat(secondExamItem.getRespondedAt()).isEqualTo(null);
-        assertThat(secondExamItem.getResponseText()).isEqualTo("");
-        assertThat(secondExamItem.getResponseLength()).isEqualTo(0);
+        ExamPage examPage = examPageResponse.getData().get();
+        assertThat(examPage).isEqualToComparingFieldByFieldRecursively(mockExamPage);
+    }
+
+    @Test
+    public void shouldNotGetAnExamPageWhenTheApprovalRequestIsDeniedBecauseSessionIsClosed() {
+        UUID mockExamId = UUID.randomUUID();
+        UUID mockSessionId = UUID.randomUUID();
+        UUID mockBrowserId = UUID.randomUUID();
+        String mockClientName = "UNIT_TEST";
+        ApprovalRequest mockApprovalRequest = new ApprovalRequest(mockExamId,
+            mockSessionId,
+            mockBrowserId,
+            mockClientName);
+
+        Response<ExamApproval> mockApprovalFailure = new Response<>(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_SESSION_CLOSED, "The session is not available for testing, please check with your test administrator."));
+
+        when(mockExamApprovalService.getApproval(mockApprovalRequest))
+            .thenReturn(mockApprovalFailure);
+
+        Response<ExamPage> examPageResponse = examPageService.getPage(mockApprovalRequest, 1);
+        verify(mockExamApprovalService).getApproval(mockApprovalRequest);
+        verifyZeroInteractions(mockExamPageQueryRepository);
+
+        assertThat(examPageResponse.getError().isPresent()).isTrue();
+        assertThat(examPageResponse.getData().isPresent()).isFalse();
     }
 }

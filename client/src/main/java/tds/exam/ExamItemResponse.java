@@ -1,22 +1,25 @@
-package tds.exam.models;
+package tds.exam;
 
 import org.joda.time.Instant;
 
 /**
- * Represents a response to an {@link tds.exam.models.ExamItem} of an {@link tds.exam.Exam}.
+ * Represents a response to an {@link tds.exam.ExamItem} of an {@link tds.exam.Exam}.
  */
 public class ExamItemResponse {
     private long id;
     private long examItemId;
     private String response;
+    private boolean valid;
     private Instant createdAt;
 
-    private ExamItemResponse() {}
+    private ExamItemResponse() {
+    }
 
     public ExamItemResponse(Builder builder) {
         this.id = builder.id;
         this.examItemId = builder.examItemId;
         this.response = builder.response;
+        this.valid = builder.valid;
         this.createdAt = builder.createdAt;
     }
 
@@ -24,6 +27,7 @@ public class ExamItemResponse {
         private long id;
         private long examItemId;
         private String response;
+        private boolean valid;
         private Instant createdAt;
 
         public Builder withId(long id) {
@@ -38,6 +42,11 @@ public class ExamItemResponse {
 
         public Builder withResponse(String response) {
             this.response = response;
+            return this;
+        }
+
+        public Builder withValid(boolean valid) {
+            this.valid = valid;
             return this;
         }
 
@@ -59,7 +68,7 @@ public class ExamItemResponse {
     }
 
     /**
-     * @return The id of the {@link tds.exam.models.ExamItem} the {@link ExamItemResponse} corresponds to
+     * @return The id of the {@link tds.exam.ExamItem} the {@link ExamItemResponse} corresponds to
      */
     public long getExamItemId() {
         return examItemId;
@@ -70,6 +79,13 @@ public class ExamItemResponse {
      */
     public String getResponse() {
         return response;
+    }
+
+    /**
+     * @return True if this response is valid for the {@link tds.exam.ExamItem}'s format; otherwise false
+     */
+    public boolean isValid() {
+        return valid;
     }
 
     /**

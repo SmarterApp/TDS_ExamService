@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -19,9 +18,9 @@ import java.util.UUID;
 
 import tds.common.data.mapping.ResultSetMapperUtility;
 import tds.common.data.mysql.UuidAdapter;
-import tds.exam.models.ExamItem;
-import tds.exam.models.ExamItemResponse;
-import tds.exam.models.ExamPage;
+import tds.exam.ExamItem;
+import tds.exam.ExamItemResponse;
+import tds.exam.ExamPage;
 import tds.exam.repositories.ExamPageQueryRepository;
 
 @Repository
@@ -70,54 +69,6 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
     }
 
     @Override
-    public Optional<ExamPage> find(UUID examId, int position) {
-        final MapSqlParameterSource parameters = new MapSqlParameterSource("examId", UuidAdapter.getBytesFromUUID(examId))
-            .addValue("position", position);
-
-        final String SQL =
-            "SELECT \n" +
-                "   P.id, \n" +
-                "   P.page_position, \n" +
-                "   P.item_group_key, \n" +
-                "   P.exam_id, \n" +
-                "   P.created_at, \n" +
-                "   PE.started_at \n" +
-                "FROM \n" +
-                "   exam_page P\n" +
-                "JOIN ( \n" +
-                "   SELECT \n" +
-                "       exam_page_id, \n" +
-                "       MAX(id) AS id \n" +
-                "   FROM \n" +
-                "       exam_page_event \n" +
-                "   WHERE \n" +
-                "       exam_page_id = P.id \n" +
-                "   GROUP BY \n" +
-                "       exam_page_id \n" +
-                ") last_event \n" +
-                "   ON P.id = last_event.exam_page_id \n" +
-                "JOIN \n" +
-                "   exam_page_event PE \n" +
-                "   ON PE.id = last_event.id \n" +
-                "WHERE \n" +
-                "   exam_id = :examId \n" +
-                "   AND page_position = :position \n" +
-                "   AND PE.deleted_at IS NULL";
-
-        Optional<ExamPage> maybeExamPage = Optional.empty();
-        try {
-            maybeExamPage = Optional.of(
-                jdbcTemplate.queryForObject(SQL,
-                    parameters,
-                    examPageRowMapper));
-        } catch (IncorrectResultSizeDataAccessException e) {
-            LOG.debug("{} did not return results for examId {}, position {}", SQL, examId, position);
-        }
-
-        return maybeExamPage;
-    }
-
-    @Override
     public Optional<ExamPage> findPageWithItems(UUID examId, int position) {
         final MapSqlParameterSource parameters = new MapSqlParameterSource("examId", UuidAdapter.getBytesFromUUID(examId))
             .addValue("position", position);
@@ -127,18 +78,25 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
                 "   page.id AS page_id, \n" +
                 "   page.page_position, \n" +
                 "   page.item_group_key, \n" +
-                "   page.group_items_required, \n" +
+                "   page.are_group_items_required, \n" +
                 "   page.exam_id, \n" +
                 "   page.created_at, \n" +
                 "   page_event.started_at, \n" +
                 "   item.id AS item_id, \n" +
-                "   item.exam_page_id, \n" +
                 "   item.item_key, \n" +
+                "   item.assessment_item_bank_key, \n" +
+                "   item.assessment_item_key, \n" +
+                "   item.item_type, \n" +
+                "   item.exam_page_id, \n" +
                 "   item.position AS item_position, \n" +
+                "   item.is_fieldtest, \n" +
+                "   item.is_required, \n" +
                 "   item.is_selected, \n" +
                 "   item.is_marked_for_review, \n" +
-                "   item.is_fieldtest, \n" +
+                "   item.item_file_path, \n" +
+                "   item.stimulus_file_path, \n" +
                 "   response.response, \n" +
+                "   response.is_valid, \n" +
                 "   response.created_at AS response_created_at, \n" +
                 "   segment.segment_key, \n" +
                 "   segment.segment_id, \n" +
@@ -151,8 +109,6 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
                 "       MAX(id) AS id \n" +
                 "   FROM \n" +
                 "       exam_page_event \n" +
-//                "   WHERE \n" +
-//                "       exam_page_id = page.id \n" +
                 "   GROUP BY \n" +
                 "       exam_page_id \n" +
                 ") last_page_event \n" +
@@ -173,8 +129,6 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
                 "       MAX(id) AS id\n" +
                 "   FROM \n" +
                 "       exam_item_response \n" +
-//                "   WHERE \n" +
-//                "       exam_item_id = item.id \n" +
                 "   GROUP BY \n" +
                 "       exam_item_id) most_recent_response \n" +
                 "   ON item.id = most_recent_response.exam_item_id \n" +
@@ -200,7 +154,7 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
                         .withSegmentId(resultExtractor.getString("segment_id"))
                         .withSegmentPosition(resultExtractor.getInt("segment_position"))
                         .withItemGroupKey(resultExtractor.getString("item_group_key"))
-                        .withGroupItemsRequired(resultExtractor.getInt("group_items_required"))
+                        .withGroupItemsRequired(resultExtractor.getBoolean("are_group_items_required"))
                         .withExamId(UuidAdapter.getUUIDFromBytes(resultExtractor.getBytes("exam_id")))
                         .withExamItems(items)
                         .withCreatedAt(ResultSetMapperUtility.mapTimestampToJodaInstant(resultExtractor, "created_at"))
@@ -214,18 +168,25 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
                     response = new ExamItemResponse.Builder()
                         .withExamItemId(resultExtractor.getLong("item_id"))
                         .withResponse(resultExtractor.getString("response"))
+                        .withValid(resultExtractor.getBoolean("is_valid"))
                         .withCreatedAt(ResultSetMapperUtility.mapTimestampToJodaInstant(resultExtractor, "response_created_at"))
                         .build();
                 }
 
                 items.add(new ExamItem.Builder()
                     .withId(resultExtractor.getLong("item_id"))
-                    .withExamPageId(resultExtractor.getLong("exam_page_id"))
                     .withItemKey(resultExtractor.getString("item_key"))
+                    .withAssessmentItemBankKey(resultExtractor.getLong("assessment_item_bank_key"))
+                    .withAssessmentItemKey(resultExtractor.getLong("assessment_item_key"))
+                    .withItemType(resultExtractor.getString("item_type"))
+                    .withExamPageId(resultExtractor.getLong("exam_page_id"))
                     .withPosition(resultExtractor.getInt("item_position"))
+                    .withFieldTest(resultExtractor.getBoolean("is_fieldtest"))
+                    .withRequired(resultExtractor.getBoolean("is_required"))
                     .withSelected(resultExtractor.getBoolean("is_selected"))
                     .withMarkedForReview(resultExtractor.getBoolean("is_marked_for_review"))
-                    .withFieldTest(resultExtractor.getBoolean("is_fieldtest"))
+                    .withItemFilePath(resultExtractor.getString("item_file_path"))
+                    .withStimulusFilePath(resultExtractor.getString("stimulus_file_path"))
                     .withResponse(response)
                     .build());
             }

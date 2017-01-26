@@ -6,11 +6,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import tds.exam.models.ExamItem;
-import tds.exam.models.ExamPage;
+import tds.exam.ExamItem;
+import tds.exam.ExamPage;
 
 /**
- * Build a {@link tds.exam.models.ExamPage} with test data
+ * Build a {@link tds.exam.ExamPage} with test data
  */
 public class ExamPageBuilder {
     public static final long DEFAULT_ID = 99999L;
@@ -21,7 +21,7 @@ public class ExamPageBuilder {
     private String segmentId = "segment-id-1";
     private int segmentPosition = 1;
     private String itemGroupKey = "item-group-key";
-    private int groupItemsRequired = -1;
+    private boolean groupItemsRequired = true;
     private UUID examId = UUID.randomUUID();
     private List<ExamItem> examItems = new ArrayList<>();
     private Instant createdAt = Instant.now();
@@ -61,7 +61,7 @@ public class ExamPageBuilder {
     }
 
     public ExamPageBuilder withSegmentId(String segmentId) {
-        this.segmentId =segmentId;
+        this.segmentId = segmentId;
         return this;
     }
 
@@ -75,7 +75,7 @@ public class ExamPageBuilder {
         return this;
     }
 
-    public ExamPageBuilder withGroupItemsRequired(int groupItemsRequired) {
+    public ExamPageBuilder withGroupItemsRequired(boolean groupItemsRequired) {
         this.groupItemsRequired = groupItemsRequired;
         return this;
     }

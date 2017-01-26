@@ -8,9 +8,7 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 
 import java.util.stream.Stream;
 
-import tds.common.data.mapping.ResultSetMapperUtility;
-import tds.exam.models.ExamItem;
-import tds.exam.models.ExamItemResponse;
+import tds.exam.ExamItem;
 import tds.exam.repositories.ExamItemCommandRepository;
 
 public class ExamItemCommandRepositoryImpl implements ExamItemCommandRepository {
@@ -27,47 +25,44 @@ public class ExamItemCommandRepositoryImpl implements ExamItemCommandRepository 
             .map(examItem -> new MapSqlParameterSource("itemKey", examItem.getItemKey())
                 .addValue("examPageId", examItem.getExamPageId())
                 .addValue("position", examItem.getPosition())
+                .addValue("assessmentItemBankKey", examItem.getAssessmentItemBankKey())
+                .addValue("assessmentItemKey", examItem.getAssessmentItemKey())
+                .addValue("itemType", examItem.getItemType())
+                .addValue("isRequired", examItem.isRequired())
                 .addValue("isSelected", examItem.isSelected())
                 .addValue("isMarkedForReview", examItem.isMarkedForReview())
-                .addValue("isFieldTest", examItem.isFieldTest()))
+                .addValue("isFieldTest", examItem.isFieldTest())
+                .addValue("itemFilePath", examItem.getItemFilePath())
+                .addValue("stimulusFilePath", examItem.getStimulusFilePath().orNull()))
             .toArray(MapSqlParameterSource[]::new);
 
         final String SQL =
             "INSERT INTO exam_item ( \n" +
                 "   item_key, \n" +
+                "   assessment_item_bank_key, \n" +
+                "   assessment_item_key, \n" +
+                "   item_type, \n" +
                 "   exam_page_id, \n" +
                 "   position, \n" +
+                "   is_fieldtest, \n" +
+                "   is_required, \n" +
                 "   is_selected, \n" +
                 "   is_marked_for_review, \n" +
-                "   is_fieldtest) \n" +
+                "   item_file_path, \n" +
+                "   stimulus_file_path) \n" +
                 "VALUES( \n" +
                 "   :itemKey, \n" +
+                "   :assessmentItemBankKey, \n" +
+                "   :assessmentItemKey, \n" +
+                "   :itemType, \n" +
                 "   :examPageId, \n" +
                 "   :position, \n" +
+                "   :isFieldTest, \n" +
+                "   :isRequired, \n" +
                 "   :isSelected, \n" +
                 "   :isMarkedForReview, \n" +
-                "   :isFieldTest)";
-
-        jdbcTemplate.batchUpdate(SQL, batchParameters);
-    }
-
-    @Override
-    public void insertResponses(ExamItemResponse... responses) {
-        final SqlParameterSource[] batchParameters = Stream.of(responses)
-            .map(response -> new MapSqlParameterSource("examItemId", response.getExamItemId())
-                .addValue("response", response.getResponse())
-                .addValue("createdAt", ResultSetMapperUtility.mapJodaInstantToTimestamp(response.getCreatedAt())))
-            .toArray(MapSqlParameterSource[]::new);
-
-        final String SQL =
-            "INSERT INTO exam_item_response ( \n" +
-                "   exam_item_id, \n" +
-                "   response, \n" +
-                "   created_at) \n" +
-                "VALUES ( \n" +
-                "   :examItemId, \n" +
-                "   :response, \n" +
-                "   :createdAt)";
+                "   :itemFilePath, \n" +
+                "   :stimulusFilePath)";
 
         jdbcTemplate.batchUpdate(SQL, batchParameters);
     }

@@ -16,16 +16,17 @@ import java.util.List;
 import java.util.Optional;
 
 import tds.exam.Exam;
+import tds.exam.ExamItem;
+import tds.exam.ExamItemResponse;
+import tds.exam.ExamPage;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.builder.ExamItemBuilder;
 import tds.exam.builder.ExamPageBuilder;
 import tds.exam.builder.ExamSegmentBuilder;
-import tds.exam.models.ExamItem;
-import tds.exam.models.ExamItemResponse;
-import tds.exam.models.ExamPage;
 import tds.exam.models.ExamSegment;
 import tds.exam.repositories.ExamCommandRepository;
 import tds.exam.repositories.ExamItemCommandRepository;
+import tds.exam.repositories.ExamItemResponseCommandRepository;
 import tds.exam.repositories.ExamPageCommandRepository;
 import tds.exam.repositories.ExamPageQueryRepository;
 import tds.exam.repositories.ExamSegmentCommandRepository;
@@ -44,6 +45,7 @@ public class ExamPageRepositoryIntegrationTests {
     private ExamSegmentCommandRepository examSegmentCommandRepository;
     private ExamCommandRepository examCommandRepository;
     private ExamItemCommandRepository examItemCommandRepository;
+    private ExamItemResponseCommandRepository examItemResponseCommandRepository;
 
     private final Exam mockExam = new ExamBuilder().build();
 
@@ -54,6 +56,7 @@ public class ExamPageRepositoryIntegrationTests {
         examSegmentCommandRepository = new ExamSegmentCommandRepositoryImpl(commandJdbcTemplate);
         examCommandRepository = new ExamCommandRepositoryImpl(commandJdbcTemplate);
         examItemCommandRepository = new ExamItemCommandRepositoryImpl(commandJdbcTemplate);
+        examItemResponseCommandRepository = new ExamItemResponseCommandRepositoryImpl(commandJdbcTemplate);
 
         // Create mock data for testing fetching exam pages
         examCommandRepository.insert(mockExam);
@@ -77,12 +80,18 @@ public class ExamPageRepositoryIntegrationTests {
         ExamItem mockFirstExamItem = new ExamItemBuilder()
             .withItemKey("187-1234")
             .withExamPageId(mockFirstExamPage.getId())
+            .withRequired(true)
             .build();
 
         ExamItem mockSecondExamItem = new ExamItemBuilder()
             .withExamPageId(mockFirstExamPage.getId())
             .withItemKey("187-5678")
+            .withAssessmentItemKey(5678L)
+            .withItemType("ER")
             .withPosition(2)
+            .withRequired(true)
+            .withItemFilePath("/path/to/item/187-5678.xml")
+            .withStimulusFilePath("/path/to/stimulus/187-5678.xml")
             .build();
 
         examItemCommandRepository.insert(mockFirstExamItem, mockSecondExamItem);
@@ -116,7 +125,7 @@ public class ExamPageRepositoryIntegrationTests {
     }
 
     @Test
-    public void shouldFindAnExamPageWithItemsThatHaveNoResponses() {
+    public void shouldFindAnExamPageWithSomeItemsThatHaveResponsesAndOthersDoNot() {
         // The student gets the page for the first time...
         Optional<ExamPage> result = examPageQueryRepository.findPageWithItems(mockExam.getId(), 1);
 
@@ -129,13 +138,13 @@ public class ExamPageRepositoryIntegrationTests {
         assertThat(examPage.getSegmentId()).isEqualTo("segment-id-1");
         assertThat(examPage.getSegmentPosition()).isEqualTo(1);
         assertThat(examPage.getItemGroupKey()).isEqualTo("item-group-key");
-        assertThat(examPage.getGroupItemsRequired()).isEqualTo(-1);
+        assertThat(examPage.isGroupItemsRequired()).isTrue();
         assertThat(examPage.getExamId()).isEqualTo(mockExam.getId());
         assertThat(examPage.getCreatedAt()).isNotNull();
 
         assertThat(examPage.getExamItems()).hasSize(2);
         for (ExamItem item : examPage.getExamItems()) {
-            assertThat(item.getResponse()).isNull();
+            assertThat(item.getResponse().isPresent()).isFalse();
         }
 
         // ...and responds to the first item
@@ -147,7 +156,7 @@ public class ExamPageRepositoryIntegrationTests {
             .withCreatedAt(responseCreatedAt)
             .build();
 
-        examItemCommandRepository.insertResponses(mockResponseForFirstItem);
+        examItemResponseCommandRepository.insertResponses(mockResponseForFirstItem);
 
         Optional<ExamPage> resultWithItemResponses = examPageQueryRepository.findPageWithItems(mockExam.getId(), 1);
         assertThat(resultWithItemResponses).isPresent();
@@ -160,12 +169,19 @@ public class ExamPageRepositoryIntegrationTests {
         assertThat(firstExamItem.getId()).isGreaterThan(0L);
         assertThat(firstExamItem.getExamPageId()).isEqualTo(examPage.getId());
         assertThat(firstExamItem.getItemKey()).isEqualTo("187-1234");
+        assertThat(firstExamItem.getAssessmentItemBankKey()).isEqualTo(187L);
+        assertThat(firstExamItem.getAssessmentItemKey()).isEqualTo(1234L);
+        assertThat(firstExamItem.getItemType()).isEqualTo("MS");
         assertThat(firstExamItem.getPosition()).isEqualTo(1);
         assertThat(firstExamItem.isSelected()).isFalse();
+        assertThat(firstExamItem.isRequired()).isTrue();
         assertThat(firstExamItem.isMarkedForReview()).isFalse();
         assertThat(firstExamItem.isFieldTest()).isFalse();
+        assertThat(firstExamItem.getItemFilePath()).isEqualTo("/path/to/item/187-1234.xml");
+        assertThat(firstExamItem.getStimulusFilePath().isPresent()).isFalse();
+        assertThat(firstExamItem.getResponse().isPresent()).isTrue();
 
-        ExamItemResponse firstItemResponse = firstExamItem.getResponse();
+        ExamItemResponse firstItemResponse = firstExamItem.getResponse().get();
         assertThat(firstItemResponse.getExamItemId()).isEqualTo(firstExamItem.getId());
         assertThat(firstItemResponse.getResponse()).isEqualTo("first item response");
         assertThat(firstItemResponse.getCreatedAt()).isEqualTo(responseCreatedAt);
@@ -175,10 +191,17 @@ public class ExamPageRepositoryIntegrationTests {
         assertThat(secondExamItem.getId()).isGreaterThan(0L);
         assertThat(secondExamItem.getExamPageId()).isEqualTo(examPage.getId());
         assertThat(secondExamItem.getItemKey()).isEqualTo("187-5678");
+        assertThat(secondExamItem.getAssessmentItemBankKey()).isEqualTo(187L);
+        assertThat(secondExamItem.getAssessmentItemKey()).isEqualTo(5678L);
+        assertThat(secondExamItem.getItemType()).isEqualTo("ER");
         assertThat(secondExamItem.getPosition()).isEqualTo(2);
         assertThat(secondExamItem.isSelected()).isFalse();
+        assertThat(secondExamItem.isRequired()).isTrue();
         assertThat(secondExamItem.isMarkedForReview()).isFalse();
         assertThat(secondExamItem.isFieldTest()).isFalse();
-        assertThat(secondExamItem.getResponse()).isNull();
+        assertThat(secondExamItem.getItemFilePath()).isEqualTo("/path/to/item/187-5678.xml");
+        assertThat(secondExamItem.getStimulusFilePath().isPresent()).isTrue();
+        assertThat(secondExamItem.getStimulusFilePath().get()).isEqualTo("/path/to/stimulus/187-5678.xml");
+        assertThat(secondExamItem.getResponse().isPresent()).isFalse();
     }
 }

@@ -34,8 +34,6 @@ import tds.config.ClientSystemFlag;
 import tds.config.TimeLimitConfiguration;
 import tds.exam.ApprovalRequest;
 import tds.exam.Exam;
-import tds.exam.ExamApproval;
-import tds.exam.ExamApprovalStatus;
 import tds.exam.ExamConfiguration;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
@@ -54,6 +52,7 @@ import tds.exam.repositories.HistoryQueryRepository;
 import tds.exam.services.AssessmentService;
 import tds.exam.services.ConfigService;
 import tds.exam.services.ExamAccommodationService;
+import tds.exam.services.ExamApprovalService;
 import tds.exam.services.ExamPageService;
 import tds.exam.services.ExamSegmentService;
 import tds.exam.services.ExamService;
@@ -121,6 +120,9 @@ public class ExamServiceImplTest {
     @Mock
     private ExamPageService mockExamItemService;
 
+    @Mock
+    private ExamApprovalService mockExamApprovalService;
+
     @Captor
     private ArgumentCaptor<Exam> examArgumentCaptor;
 
@@ -140,7 +142,8 @@ public class ExamServiceImplTest {
             mockExamCommandRepository,
             mockExamItemService,
             mockExamStatusQueryRepository,
-            mockExamAccommodationService);
+            mockExamAccommodationService,
+            mockExamApprovalService);
     }
 
     @After
@@ -815,354 +818,6 @@ public class ExamServiceImplTest {
     }
 
     @Test
-    public void shouldReturnExamApprovalBecauseAllRulesAreSatisfied() {
-        UUID examId = UUID.randomUUID();
-        UUID browserKey = UUID.randomUUID();
-        UUID sessionId = UUID.randomUUID();
-        String clientName = "UNIT_TEST";
-        String mockEnvironment = "Unit Test";
-        String mockAssessmentId = "unit test assessment";
-
-        when(mockExamQueryRepository.getExamById(examId))
-            .thenReturn(Optional.of(new Exam.Builder()
-                .withId(examId)
-                .withSessionId(sessionId)
-                .withBrowserId(browserKey)
-                .withAssessmentId(mockAssessmentId)
-                .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN), Instant.now())
-                .build()));
-        when(mockSessionService.findSessionById(sessionId))
-            .thenReturn(Optional.of(new Session.Builder()
-                .withId(sessionId)
-                .withDateBegin(Instant.now().minus(Minutes.minutes(60).toStandardDuration()))
-                .withDateEnd(Instant.now().plus(Minutes.minutes(60).toStandardDuration()))
-                .withDateVisited(Instant.now())
-                .withStatus("open")
-                .withProctorId(42L)
-                .build()));
-        when(mockSessionService.findExternalSessionConfigurationByClientName(clientName))
-            .thenReturn(Optional.of(new ExternalSessionConfiguration(clientName, mockEnvironment, 0, 0, 0, 0)));
-        when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(clientName, mockAssessmentId))
-            .thenReturn(Optional.of(new TimeLimitConfiguration.Builder()
-                .withClientName(clientName)
-                .withEnvironment(mockEnvironment)
-                .withTaCheckinTimeMinutes(20)
-                .build()));
-
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey, clientName);
-
-        Response<ExamApproval> result = examService.getApproval(approvalRequest);
-
-        assertThat(result.hasError()).isFalse();
-        assertThat(result.getData().isPresent()).isTrue();
-        assertThat(result.getData().get().getExamId()).isEqualTo(examId);
-        assertThat(result.getData().get().getExamApprovalStatus()).isEqualTo(ExamApprovalStatus.APPROVED);
-    }
-
-    @Test
-    public void shouldReturnExamApprovalWithWaitingStatusBecauseEnvironmentIsDevelopment() {
-        UUID examId = UUID.randomUUID();
-        UUID browserKey = UUID.randomUUID();
-        UUID sessionId = UUID.randomUUID();
-        String clientName = "UNIT_TEST";
-        String mockEnvironment = "development";
-        String mockAssessmentId = "unit test assessment";
-
-        when(mockExamQueryRepository.getExamById(examId))
-            .thenReturn(Optional.of(new Exam.Builder()
-                .withId(examId)
-                .withSessionId(sessionId)
-                .withBrowserId(browserKey)
-                .withAssessmentId(mockAssessmentId)
-                .withStatus(new ExamStatusCode(STATUS_PENDING, OPEN), Instant.now())
-                .build()));
-        when(mockSessionService.findSessionById(sessionId))
-            .thenReturn(Optional.of(new Session.Builder()
-                .withId(sessionId)
-                .withDateBegin(Instant.now().minus(Minutes.minutes(60).toStandardDuration()))
-                .withDateEnd(Instant.now().plus(Minutes.minutes(30).toStandardDuration()))
-                .withDateVisited(Instant.now())
-                .withStatus("closed")
-                .withProctorId(42L)
-                .build()));
-        when(mockSessionService.findExternalSessionConfigurationByClientName(clientName))
-            .thenReturn(Optional.of(new ExternalSessionConfigurationBuilder().withEnvironment(mockEnvironment).build()));
-        when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(clientName, mockAssessmentId))
-            .thenReturn(Optional.of(new TimeLimitConfiguration.Builder()
-                .withClientName(clientName)
-                .withEnvironment(mockEnvironment)
-                .withTaCheckinTimeMinutes(20)
-                .build()));
-
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey, clientName);
-
-        Response<ExamApproval> result = examService.getApproval(approvalRequest);
-
-        assertThat(result.hasError()).isFalse();
-        assertThat(result.getData().isPresent()).isTrue();
-        assertThat(result.getData().get().getExamId()).isEqualTo(examId);
-        assertThat(result.getData().get().getExamApprovalStatus()).isEqualTo(ExamApprovalStatus.WAITING);
-    }
-
-    @Test
-    public void shouldReturnExamApprovalWithApprovedStatusBecauseEnvironmentIsSimulation() {
-        UUID examId = UUID.randomUUID();
-        UUID browserKey = UUID.randomUUID();
-        UUID sessionId = UUID.randomUUID();
-        String clientName = "UNIT_TEST";
-        String mockEnvironment = "SimUlaTIon";
-        String mockAssessmentId = "unit test assessment";
-
-        when(mockExamQueryRepository.getExamById(examId))
-            .thenReturn(Optional.of(new Exam.Builder()
-                .withId(examId)
-                .withSessionId(sessionId)
-                .withBrowserId(browserKey)
-                .withAssessmentId(mockAssessmentId)
-                .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN), Instant.now())
-                .build()));
-        when(mockSessionService.findSessionById(sessionId))
-            .thenReturn(Optional.of(new Session.Builder()
-                .withId(sessionId)
-                .withDateBegin(Instant.now().minus(Minutes.minutes(60).toStandardDuration()))
-                .withDateEnd(Instant.now().minus(Minutes.minutes(10).toStandardDuration()))
-                .withDateVisited(Instant.now().minus(Minutes.minutes(11).toStandardDuration()))
-                .withStatus("closed")
-                .withProctorId(42L)
-                .build()));
-        when(mockSessionService.findExternalSessionConfigurationByClientName(clientName))
-            .thenReturn(Optional.of(new ExternalSessionConfigurationBuilder().withEnvironment(mockEnvironment).build()));
-        when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(clientName, mockAssessmentId))
-            .thenReturn(Optional.of(new TimeLimitConfiguration.Builder()
-                .withClientName(clientName)
-                .withEnvironment(mockEnvironment)
-                .withTaCheckinTimeMinutes(20)
-                .build()));
-
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey, clientName);
-
-        Response<ExamApproval> result = examService.getApproval(approvalRequest);
-
-        assertThat(result.hasError()).isFalse();
-        assertThat(result.getData().isPresent()).isTrue();
-        assertThat(result.getData().get().getExamId()).isEqualTo(examId);
-        assertThat(result.getData().get().getExamApprovalStatus()).isEqualTo(ExamApprovalStatus.APPROVED);
-    }
-
-    @Test
-    public void shouldReturnExamApprovalWithCorrectExamStatusBecauseSessionIsProctorless() {
-        UUID examId = UUID.randomUUID();
-        UUID browserKey = UUID.randomUUID();
-        UUID sessionId = UUID.randomUUID();
-        String clientName = "UNIT_TEST";
-        String mockEnvironment = "development";
-        String mockAssessmentId = "unit test assessment";
-
-        when(mockExamQueryRepository.getExamById(examId))
-            .thenReturn(Optional.of(new Exam.Builder()
-                .withId(examId)
-                .withSessionId(sessionId)
-                .withBrowserId(browserKey)
-                .withAssessmentId(mockAssessmentId)
-                .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN), Instant.now())
-                .build()));
-        when(mockSessionService.findSessionById(sessionId))
-            .thenReturn(Optional.of(new Session.Builder()
-                .withId(sessionId)
-                .withDateBegin(Instant.now().minus(Minutes.minutes(60).toStandardDuration()))
-                .withDateEnd(Instant.now().minus(Minutes.minutes(30).toStandardDuration()))
-                .withDateVisited(Instant.now().minus(Minutes.minutes(55).toStandardDuration()))
-                .withStatus("closed")
-                .withProctorId(null)
-                .build()));
-        when(mockSessionService.findExternalSessionConfigurationByClientName(clientName))
-            .thenReturn(Optional.of(new ExternalSessionConfigurationBuilder().withEnvironment(mockEnvironment).build()));
-        when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(clientName, mockAssessmentId))
-            .thenReturn(Optional.of(new TimeLimitConfiguration.Builder()
-                .withClientName(clientName)
-                .withEnvironment(mockEnvironment)
-                .withTaCheckinTimeMinutes(20)
-                .build()));
-
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey, clientName);
-
-        Response<ExamApproval> result = examService.getApproval(approvalRequest);
-
-        assertThat(result.hasError()).isFalse();
-        assertThat(result.getData().isPresent()).isTrue();
-        assertThat(result.getData().get().getExamId()).isEqualTo(examId);
-        assertThat(result.getData().get().getExamApprovalStatus()).isEqualTo(ExamApprovalStatus.APPROVED);
-    }
-
-    @Test
-    public void shouldReturnValidationErrorDueToBrowserKeyMismatch() {
-        UUID examId = UUID.randomUUID();
-        UUID browserKey = UUID.randomUUID();
-        UUID sessionId = UUID.randomUUID();
-        String clientName = "UNIT_TEST";
-        String mockEnvironment = "Unit Test";
-        String mockAssessmentId = "unit test assessment";
-
-        when(mockExamQueryRepository.getExamById(examId))
-            .thenReturn(Optional.of(new Exam.Builder()
-                .withId(examId)
-                .withSessionId(sessionId)
-                .withBrowserId(UUID.randomUUID())
-                .withAssessmentId(mockAssessmentId)
-                .build()));
-        when(mockSessionService.findSessionById(sessionId))
-            .thenReturn(Optional.of(new Session.Builder()
-                .withId(sessionId)
-                .withDateBegin(Instant.now().minus(Minutes.minutes(60).toStandardDuration()))
-                .withDateEnd(Instant.now().plus(Minutes.minutes(60).toStandardDuration()))
-                .withDateVisited(Instant.now())
-                .withStatus("open")
-                .withProctorId(42L)
-                .build()));
-        when(mockSessionService.findExternalSessionConfigurationByClientName(clientName))
-            .thenReturn(Optional.of(new ExternalSessionConfigurationBuilder().withEnvironment(mockEnvironment).build()));
-        when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(clientName, mockAssessmentId))
-            .thenReturn(Optional.of(new TimeLimitConfiguration.Builder()
-                .withClientName(clientName)
-                .withEnvironment(mockEnvironment)
-                .withTaCheckinTimeMinutes(20)
-                .build()));
-
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey, clientName);
-
-        Response<ExamApproval> result = examService.getApproval(approvalRequest);
-
-        assertThat(result.hasError()).isTrue();
-        assertThat(result.getError().get().getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_BROWSER_ID_MISMATCH);
-    }
-
-    @Test
-    public void shouldReturnValidationErrorDueToSessionKeyMismatch() {
-        UUID examId = UUID.randomUUID();
-        UUID browserKey = UUID.randomUUID();
-        UUID sessionId = UUID.randomUUID();
-        String clientName = "UNIT_TEST";
-        String mockEnvironment = "Unit Test";
-        String mockAssessmentId = "unit test assessment";
-
-        when(mockExamQueryRepository.getExamById(examId))
-            .thenReturn(Optional.of(new Exam.Builder()
-                .withId(examId)
-                .withSessionId(UUID.randomUUID())
-                .withBrowserId(browserKey)
-                .withAssessmentId(mockAssessmentId)
-                .build()));
-        when(mockSessionService.findSessionById(sessionId))
-            .thenReturn(Optional.of(new Session.Builder()
-                .withId(sessionId)
-                .withDateBegin(Instant.now().minus(Minutes.minutes(60).toStandardDuration()))
-                .withDateEnd(Instant.now().plus(Minutes.minutes(60).toStandardDuration()))
-                .withDateVisited(Instant.now())
-                .withStatus("open")
-                .withProctorId(42L)
-                .build()));
-        when(mockSessionService.findExternalSessionConfigurationByClientName(clientName))
-            .thenReturn(Optional.of(new ExternalSessionConfigurationBuilder().withEnvironment(mockEnvironment).build()));
-        when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(clientName, mockAssessmentId))
-            .thenReturn(Optional.of(new TimeLimitConfiguration.Builder()
-                .withClientName(clientName)
-                .withEnvironment(mockEnvironment)
-                .withTaCheckinTimeMinutes(20)
-                .build()));
-
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey, clientName);
-
-        Response<ExamApproval> result = examService.getApproval(approvalRequest);
-
-        assertThat(result.hasError()).isTrue();
-        assertThat(result.getError().get().getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_SESSION_ID_MISMATCH);
-    }
-
-    @Test
-    public void shouldReturnValidationErrorDueToClosedSession() {
-        UUID examId = UUID.randomUUID();
-        UUID browserKey = UUID.randomUUID();
-        UUID sessionId = UUID.randomUUID();
-        String clientName = "UNIT_TEST";
-        String mockEnvironment = "Unit Test";
-        String mockAssessmentId = "unit test assessment";
-
-        when(mockExamQueryRepository.getExamById(examId))
-            .thenReturn(Optional.of(new Exam.Builder()
-                .withId(examId)
-                .withSessionId(sessionId)
-                .withBrowserId(browserKey)
-                .withAssessmentId(mockAssessmentId)
-                .build()));
-        when(mockSessionService.findSessionById(sessionId))
-            .thenReturn(Optional.of(new Session.Builder()
-                .withId(sessionId)
-                .withDateBegin(Instant.now().minus(Minutes.minutes(60).toStandardDuration()))
-                .withDateEnd(Instant.now().minus(Minutes.minutes(30).toStandardDuration()))
-                .withDateVisited(Instant.now().minus(Minutes.minutes(45).toStandardDuration()))
-                .withStatus("closed")
-                .withProctorId(42L)
-                .build()));
-        when(mockSessionService.findExternalSessionConfigurationByClientName(clientName))
-            .thenReturn(Optional.of(new ExternalSessionConfigurationBuilder().withEnvironment(mockEnvironment).build()));
-        when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(clientName, mockAssessmentId))
-            .thenReturn(Optional.of(new TimeLimitConfiguration.Builder()
-                .withClientName(clientName)
-                .withEnvironment(mockEnvironment)
-                .withTaCheckinTimeMinutes(20)
-                .build()));
-
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey, clientName);
-
-        Response<ExamApproval> result = examService.getApproval(approvalRequest);
-
-        assertThat(result.hasError()).isTrue();
-        assertThat(result.getError().get().getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_SESSION_CLOSED);
-    }
-
-    @Test
-    public void shouldReturnValidationErrorDueToTaCheckinTimeExpired() {
-        UUID examId = UUID.randomUUID();
-        UUID browserKey = UUID.randomUUID();
-        UUID sessionId = UUID.randomUUID();
-        String clientName = "UNIT_TEST";
-        String mockEnvironment = "Unit Test";
-        String mockAssessmentId = "unit test assessment";
-
-        when(mockExamQueryRepository.getExamById(examId))
-            .thenReturn(Optional.of(new Exam.Builder()
-                .withId(examId)
-                .withSessionId(sessionId)
-                .withBrowserId(browserKey)
-                .withAssessmentId(mockAssessmentId)
-                .build()));
-        when(mockSessionService.findSessionById(sessionId))
-            .thenReturn(Optional.of(new Session.Builder()
-                .withId(sessionId)
-                .withDateBegin(Instant.now().minus(Minutes.minutes(60).toStandardDuration()))
-                .withDateEnd(Instant.now().plus(Minutes.minutes(30).toStandardDuration()))
-                .withDateVisited(Instant.now().minus(Minutes.minutes(45).toStandardDuration()))
-                .withStatus("open")
-                .withProctorId(42L)
-                .build()));
-        when(mockSessionService.findExternalSessionConfigurationByClientName(clientName))
-            .thenReturn(Optional.of(new ExternalSessionConfigurationBuilder().withEnvironment(mockEnvironment).build()));
-        when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(clientName, mockAssessmentId))
-            .thenReturn(Optional.of(new TimeLimitConfiguration.Builder()
-                .withClientName(clientName)
-                .withEnvironment(mockEnvironment)
-                .withTaCheckinTimeMinutes(20)
-                .build()));
-
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey, clientName);
-
-        Response<ExamApproval> result = examService.getApproval(approvalRequest);
-
-        assertThat(result.hasError()).isTrue();
-        assertThat(result.getError().get().getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_TA_CHECKIN_TIMEOUT);
-    }
-
-    @Test
     public void shouldPauseAnExam() {
         UUID examId = UUID.randomUUID();
         Exam mockExam = new Exam.Builder()
@@ -1197,146 +852,6 @@ public class ExamServiceImplTest {
         ValidationError statusTransitionFailure = maybeStatusTransitionFailure.get();
         assertThat(statusTransitionFailure.getCode()).isEqualTo(ValidationErrorCode.EXAM_STATUS_TRANSITION_FAILURE);
         assertThat(statusTransitionFailure.getMessage()).isEqualTo("Transitioning exam status from foo to paused is not allowed");
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void shouldThrowIllegalArgumentExceptionWhenExamIsNotPresent() {
-        UUID examId = UUID.randomUUID();
-        UUID browserKey = UUID.randomUUID();
-        UUID sessionId = UUID.randomUUID();
-        String clientName = "UNIT_TEST";
-        String mockEnvironment = "Unit Test";
-        String mockAssessmentId = "unit test assessment";
-
-        when(mockExamQueryRepository.getExamById(examId))
-            .thenReturn(Optional.empty());
-        when(mockSessionService.findSessionById(sessionId))
-            .thenReturn(Optional.of(new Session.Builder()
-                .withId(sessionId)
-                .withDateBegin(Instant.now().minus(Minutes.minutes(60).toStandardDuration()))
-                .withDateEnd(Instant.now().plus(Minutes.minutes(30).toStandardDuration()))
-                .withDateVisited(Instant.now().minus(Minutes.minutes(45).toStandardDuration()))
-                .withStatus("open")
-                .withProctorId(42L)
-                .build()));
-        when(mockSessionService.findExternalSessionConfigurationByClientName(clientName))
-            .thenReturn(Optional.of(new ExternalSessionConfigurationBuilder().withEnvironment(mockEnvironment).build()));
-        when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(clientName, mockAssessmentId))
-            .thenReturn(Optional.of(new TimeLimitConfiguration.Builder()
-                .withClientName(clientName)
-                .withEnvironment(mockEnvironment)
-                .withTaCheckinTimeMinutes(20)
-                .build()));
-
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey, clientName);
-
-        examService.getApproval(approvalRequest);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void shouldThrowIllegalArgumentExceptionWhenSessionIsNotPresent() {
-        UUID examId = UUID.randomUUID();
-        UUID browserKey = UUID.randomUUID();
-        UUID sessionId = UUID.randomUUID();
-        String clientName = "UNIT_TEST";
-        String mockEnvironment = "Unit Test";
-        String mockAssessmentId = "unit test assessment";
-
-        when(mockExamQueryRepository.getExamById(examId))
-            .thenReturn(Optional.of(new Exam.Builder()
-                .withId(examId)
-                .withSessionId(sessionId)
-                .withBrowserId(browserKey)
-                .withAssessmentId(mockAssessmentId)
-                .build()));
-        when(mockSessionService.findSessionById(sessionId))
-            .thenReturn(Optional.empty());
-        when(mockSessionService.findExternalSessionConfigurationByClientName(clientName))
-            .thenReturn(Optional.of(new ExternalSessionConfigurationBuilder().withEnvironment(mockEnvironment).build()));
-        when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(clientName, mockAssessmentId))
-            .thenReturn(Optional.of(new TimeLimitConfiguration.Builder()
-                .withClientName(clientName)
-                .withEnvironment(mockEnvironment)
-                .withTaCheckinTimeMinutes(20)
-                .build()));
-
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey, clientName);
-
-        examService.getApproval(approvalRequest);
-    }
-
-    @Test(expected = IllegalStateException.class)
-    public void shouldThrowIllegalStateExceptionWhenExternalSessionConfigurationIsNotPresent() {
-        UUID examId = UUID.randomUUID();
-        UUID browserKey = UUID.randomUUID();
-        UUID sessionId = UUID.randomUUID();
-        String clientName = "UNIT_TEST";
-        String mockEnvironment = "Unit Test";
-        String mockAssessmentId = "unit test assessment";
-
-        when(mockExamQueryRepository.getExamById(examId))
-            .thenReturn(Optional.of(new Exam.Builder()
-                .withId(examId)
-                .withSessionId(sessionId)
-                .withBrowserId(browserKey)
-                .withAssessmentId(mockAssessmentId)
-                .build()));
-        when(mockSessionService.findSessionById(sessionId))
-            .thenReturn(Optional.of(new Session.Builder()
-                .withId(sessionId)
-                .withDateBegin(Instant.now().minus(Minutes.minutes(60).toStandardDuration()))
-                .withDateEnd(Instant.now().plus(Minutes.minutes(30).toStandardDuration()))
-                .withDateVisited(Instant.now().minus(Minutes.minutes(45).toStandardDuration()))
-                .withStatus("open")
-                .withProctorId(42L)
-                .build()));
-        when(mockSessionService.findExternalSessionConfigurationByClientName(clientName))
-            .thenReturn(Optional.empty());
-        when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(clientName, mockAssessmentId))
-            .thenReturn(Optional.of(new TimeLimitConfiguration.Builder()
-                .withClientName(clientName)
-                .withEnvironment(mockEnvironment)
-                .withTaCheckinTimeMinutes(20)
-                .build()));
-
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey, clientName);
-
-        examService.getApproval(approvalRequest);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void shouldThrowIllegalArgumentExceptionWhenTimeLimitConfigurationIsNotPresent() {
-        UUID examId = UUID.randomUUID();
-        UUID browserKey = UUID.randomUUID();
-        UUID sessionId = UUID.randomUUID();
-        String clientName = "UNIT_TEST";
-        String mockEnvironment = "Unit Test";
-        String mockAssessmentId = "unit test assessment";
-
-        when(mockExamQueryRepository.getExamById(examId))
-            .thenReturn(Optional.of(new Exam.Builder()
-                .withId(examId)
-                .withSessionId(sessionId)
-                .withBrowserId(browserKey)
-                .withAssessmentId(mockAssessmentId)
-                .build()));
-        when(mockSessionService.findSessionById(sessionId))
-            .thenReturn(Optional.of(new Session.Builder()
-                .withId(sessionId)
-                .withDateBegin(Instant.now().minus(Minutes.minutes(60).toStandardDuration()))
-                .withDateEnd(Instant.now().plus(Minutes.minutes(30).toStandardDuration()))
-                .withDateVisited(Instant.now().minus(Minutes.minutes(45).toStandardDuration()))
-                .withStatus("open")
-                .withProctorId(42L)
-                .build()));
-        when(mockSessionService.findExternalSessionConfigurationByClientName(clientName))
-            .thenReturn(Optional.of(new ExternalSessionConfigurationBuilder().withEnvironment(mockEnvironment).build()));
-        when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(clientName, mockAssessmentId))
-            .thenReturn(Optional.empty());
-
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey, clientName);
-
-        examService.getApproval(approvalRequest);
     }
 
     @Test
@@ -1392,14 +907,24 @@ public class ExamServiceImplTest {
             .withInterfaceTimeoutMinutes(4)
             .withRequestInterfaceTimeoutMinutes(5)
             .build();
-        ExternalSessionConfiguration extSessionConfig = new ExternalSessionConfiguration(exam.getClientName(), SIMULATION_ENVIRONMENT, 0, 0, 0, 0);
+        ExternalSessionConfiguration extSessionConfig = new ExternalSessionConfiguration(exam.getClientName(),
+            SIMULATION_ENVIRONMENT,
+            0,
+            0,
+            0,
+            0);
+
         when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(exam.getClientName(), "assessmentId"))
             .thenReturn(Optional.of(timeLimitConfiguration));
         when(mockSessionService.findExternalSessionConfigurationByClientName(exam.getClientName())).thenReturn(Optional.of(extSessionConfig));
         when(mockExamQueryRepository.getExamById(exam.getId())).thenReturn(Optional.of(exam));
         when(mockSessionService.findSessionById(exam.getSessionId())).thenReturn(Optional.of(session));
         when(mockAssessmentService.findAssessment(exam.getClientName(), exam.getAssessmentKey())).thenReturn(Optional.empty());
+        when(mockExamApprovalService.verifyAccess(isA(ApprovalRequest.class), isA(Exam.class)))
+            .thenReturn(Optional.empty());
+
         Response<ExamConfiguration> response = examService.startExam(exam.getId());
+
         assertThat(response.hasError()).isTrue();
         ValidationError error = response.getError().get();
         assertThat(error.getCode()).isEqualTo(ExamStatusCode.STATUS_FAILED);
@@ -1425,7 +950,12 @@ public class ExamServiceImplTest {
             .withInterfaceTimeoutMinutes(4)
             .withRequestInterfaceTimeoutMinutes(5)
             .build();
-        ExternalSessionConfiguration extSessionConfig = new ExternalSessionConfiguration(exam.getClientName(), SIMULATION_ENVIRONMENT, 0, 0, 0, 0);
+        ExternalSessionConfiguration extSessionConfig = new ExternalSessionConfiguration(exam.getClientName(),
+            SIMULATION_ENVIRONMENT,
+            0,
+            0,
+            0,
+            0);
         final int testLength = 10;
 
         when(mockSessionService.findExternalSessionConfigurationByClientName(exam.getClientName())).thenReturn(Optional.of(extSessionConfig));
@@ -1436,7 +966,11 @@ public class ExamServiceImplTest {
         when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(exam.getClientName(), assessment.getAssessmentId()))
             .thenReturn(Optional.of(timeLimitConfiguration));
         when(mockExamSegmentService.initializeExamSegments(exam, assessment)).thenReturn(testLength);
+        when(mockExamApprovalService.verifyAccess(isA(ApprovalRequest.class), isA(Exam.class)))
+            .thenReturn(Optional.empty());
+
         Response<ExamConfiguration> examConfigurationResponse = examService.startExam(exam.getId());
+
         verify(mockExamQueryRepository).getExamById(exam.getId());
         verify(mockSessionService).findSessionById(exam.getSessionId());
         verify(mockAssessmentService).findAssessment(exam.getClientName(), exam.getAssessmentKey());
@@ -1503,6 +1037,8 @@ public class ExamServiceImplTest {
         when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(exam.getClientName(), assessment.getAssessmentId()))
             .thenReturn(Optional.of(timeLimitConfiguration));
         when(mockExamSegmentService.initializeExamSegments(exam, assessment)).thenReturn(testLength);
+        when(mockExamApprovalService.verifyAccess(isA(ApprovalRequest.class), isA(Exam.class)))
+            .thenReturn(Optional.empty());
 
         Response<ExamConfiguration> examConfigurationResponse = examService.startExam(exam.getId());
 
@@ -1579,6 +1115,8 @@ public class ExamServiceImplTest {
         when(mockExamSegmentService.initializeExamSegments(exam, assessment)).thenReturn(testLength);
         when(mockExamItemService.getExamPosition(exam.getId())).thenReturn(resumePosition);
         when(mockExamItemService.getExamPosition(exam.getId())).thenReturn(5);
+        when(mockExamApprovalService.verifyAccess(isA(ApprovalRequest.class), isA(Exam.class)))
+            .thenReturn(Optional.empty());
 
         Response<ExamConfiguration> examConfigurationResponse = examService.startExam(exam.getId());
 
