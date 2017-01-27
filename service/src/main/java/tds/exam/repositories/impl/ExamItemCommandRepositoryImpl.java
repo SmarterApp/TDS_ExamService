@@ -22,22 +22,24 @@ public class ExamItemCommandRepositoryImpl implements ExamItemCommandRepository 
     @Override
     public void insert(ExamItem... examItems) {
         final SqlParameterSource[] batchParameters = Stream.of(examItems)
-            .map(examItem -> new MapSqlParameterSource("itemKey", examItem.getItemKey())
-                .addValue("examPageId", examItem.getExamPageId())
-                .addValue("position", examItem.getPosition())
+            .map(examItem -> new MapSqlParameterSource("id", examItem.getId().toString())
+                .addValue("itemKey", examItem.getItemKey())
                 .addValue("assessmentItemBankKey", examItem.getAssessmentItemBankKey())
                 .addValue("assessmentItemKey", examItem.getAssessmentItemKey())
                 .addValue("itemType", examItem.getItemType())
+                .addValue("examPageId", examItem.getExamPageId().toString())
+                .addValue("position", examItem.getPosition())
+                .addValue("isFieldTest", examItem.isFieldTest())
                 .addValue("isRequired", examItem.isRequired())
                 .addValue("isSelected", examItem.isSelected())
                 .addValue("isMarkedForReview", examItem.isMarkedForReview())
-                .addValue("isFieldTest", examItem.isFieldTest())
                 .addValue("itemFilePath", examItem.getItemFilePath())
                 .addValue("stimulusFilePath", examItem.getStimulusFilePath().orNull()))
             .toArray(MapSqlParameterSource[]::new);
 
         final String SQL =
             "INSERT INTO exam_item ( \n" +
+                "   id, \n" +
                 "   item_key, \n" +
                 "   assessment_item_bank_key, \n" +
                 "   assessment_item_key, \n" +
@@ -50,7 +52,8 @@ public class ExamItemCommandRepositoryImpl implements ExamItemCommandRepository 
                 "   is_marked_for_review, \n" +
                 "   item_file_path, \n" +
                 "   stimulus_file_path) \n" +
-                "VALUES( \n" +
+                "VALUES( " +
+                "   :id, \n" +
                 "   :itemKey, \n" +
                 "   :assessmentItemBankKey, \n" +
                 "   :assessmentItemKey, \n" +

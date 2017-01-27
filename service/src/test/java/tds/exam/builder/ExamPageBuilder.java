@@ -13,9 +13,9 @@ import tds.exam.ExamPage;
  * Build a {@link tds.exam.ExamPage} with test data
  */
 public class ExamPageBuilder {
-    public static final long DEFAULT_ID = 99999L;
+    public static final UUID DEFAULT_ID = UUID.fromString("b868561f-8264-42b1-80ce-e812f2bad7f7");
 
-    private long id = DEFAULT_ID;
+    private UUID id = DEFAULT_ID;
     private int pagePosition = 1;
     private String segmentKey = "segment-key-1";
     private String segmentId = "segment-id-1";
@@ -45,7 +45,7 @@ public class ExamPageBuilder {
             .build();
     }
 
-    public ExamPageBuilder withId(long id) {
+    public ExamPageBuilder withId(UUID id) {
         this.id = id;
         return this;
     }

@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import tds.exam.Exam;
 import tds.exam.ExamItem;
@@ -43,7 +44,6 @@ public class ExamItemCommandRepositoryImplIntegrationTests {
     private NamedParameterJdbcTemplate commandJdbcTemplate;
 
     private ExamItemCommandRepository examItemCommandRepository;
-    private ExamItemResponseCommandRepository examItemResponseCommandRepository;
     private ExamPageQueryRepository examPageQueryRepository;
 
     private Exam mockExam = new ExamBuilder().build();
@@ -58,7 +58,6 @@ public class ExamItemCommandRepositoryImplIntegrationTests {
         ExamPageCommandRepository examPageCommandRepository = new ExamPageCommandRepositoryImpl(commandJdbcTemplate);
         examPageQueryRepository = new ExamPageQueryRepositoryImpl(commandJdbcTemplate);
         examItemCommandRepository = new ExamItemCommandRepositoryImpl(commandJdbcTemplate);
-        examItemResponseCommandRepository = new ExamItemResponseCommandRepositoryImpl(commandJdbcTemplate);
 
         ExamSegment mockExamSegment = new ExamSegmentBuilder()
             .withSegmentId(mockPage.getSegmentId())
@@ -69,7 +68,7 @@ public class ExamItemCommandRepositoryImplIntegrationTests {
 
         examCommandRepository.insert(mockExam);
         examSegmentCommandRepository.insert(Arrays.asList(mockExamSegment));
-        examPageCommandRepository.insert(Arrays.asList(mockPage));
+        examPageCommandRepository.insert(mockPage);
     }
 
     @Test
@@ -83,57 +82,5 @@ public class ExamItemCommandRepositoryImplIntegrationTests {
             .build();
 
         examItemCommandRepository.insert(mockExamItem);
-    }
-
-    @Test
-    public void shouldInsertAnExamItemResponse() {
-        List<ExamPage> pages = examPageQueryRepository.findAll(mockExam.getId());
-        assertThat(pages).hasSize(1);
-
-        ExamPage insertedPage = pages.get(0);
-        ExamItem mockExamItem = new ExamItemBuilder()
-            .withExamPageId(insertedPage.getId())
-            .build();
-
-        examItemCommandRepository.insert(mockExamItem);
-
-        ExamItem savedExamItem = getInsertedExamItems(insertedPage.getId()).get(0);
-
-        ExamItemResponse response = new ExamItemResponse.Builder()
-            .withExamItemId(savedExamItem.getId())
-            .withResponse("unit test response")
-            .withValid(true)
-            .withCreatedAt(Instant.now().minus(20000))
-            .build();
-
-        examItemResponseCommandRepository.insertResponses(response);
-    }
-
-    /**
-     * Convenience method for getting the {@link tds.exam.ExamItem}s that were created as part of the integration
-     * test.
-     *
-     * @param pageId The id of the {@link tds.exam.ExamPage} to which the item(s) belong
-     * @return A collection of {@link tds.exam.ExamItem}s for an {@link tds.exam.ExamPage}
-     */
-    private List<ExamItem> getInsertedExamItems(long pageId) {
-        SqlParameterSource parameters = new MapSqlParameterSource("pageId", pageId);
-        final String SQL = "SELECT * FROM exam_item WHERE exam_page_id = :pageId";
-
-        return commandJdbcTemplate.query(SQL, parameters, (rs, row) -> new ExamItem.Builder()
-            .withId(rs.getLong("id"))
-            .withItemKey(rs.getString("item_key"))
-            .withAssessmentItemBankKey(rs.getLong("assessment_item_bank_key"))
-            .withAssessmentItemKey(rs.getLong("assessment_item_key"))
-            .withItemType(rs.getString("item_type"))
-            .withExamPageId(rs.getLong("exam_page_id"))
-            .withPosition(rs.getInt("position"))
-            .withFieldTest(rs.getBoolean("is_fieldtest"))
-            .withRequired(rs.getBoolean("is_required"))
-            .withSelected(rs.getBoolean("is_selected"))
-            .withMarkedForReview(rs.getBoolean("is_marked_for_review"))
-            .withItemFilePath(rs.getString("item_file_path"))
-            .withStimulusFilePath(rs.getString("stimulus_file_path"))
-            .build());
     }
 }

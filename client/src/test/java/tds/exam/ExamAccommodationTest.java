@@ -11,8 +11,9 @@ public class ExamAccommodationTest {
     @Test
     public void shouldCreateAnAccommodation() {
         UUID mockExamId = UUID.randomUUID();
+        UUID mockExamAccommodationId = UUID.randomUUID();
         ExamAccommodation examAccommodation = new ExamAccommodation.Builder()
-            .withId(1L)
+            .withId(mockExamAccommodationId)
             .withExamId(mockExamId)
             .withSegmentKey("Segment 1")
             .withType("unit test type")
@@ -20,7 +21,7 @@ public class ExamAccommodationTest {
             .withCreatedAt(Instant.now())
             .build();
 
-        assertThat(examAccommodation.getId()).isEqualTo(1L);
+        assertThat(examAccommodation.getId()).isEqualTo(mockExamAccommodationId);
         assertThat(examAccommodation.getExamId()).isEqualTo(mockExamId);
         assertThat(examAccommodation.getSegmentKey()).isEqualTo("Segment 1");
         assertThat(examAccommodation.getType()).isEqualTo("unit test type");
@@ -30,7 +31,7 @@ public class ExamAccommodationTest {
     @Test
     public void shouldBeApproved() {
         ExamAccommodation examAccommodation = new ExamAccommodation.Builder()
-            .withId(1L)
+            .withId(UUID.randomUUID())
             .withExamId(UUID.randomUUID())
             .withSegmentKey("Segment 1")
             .withType("unit test type")
@@ -44,7 +45,7 @@ public class ExamAccommodationTest {
     @Test
     public void shouldNotBeApproved() {
         ExamAccommodation examAccommodation = new ExamAccommodation.Builder()
-            .withId(1L)
+            .withId(UUID.randomUUID())
             .withExamId(UUID.randomUUID())
             .withSegmentKey("Segment 1")
             .withType("unit test type")
@@ -70,7 +71,7 @@ public class ExamAccommodationTest {
     @Test(expected = IllegalArgumentException.class)
     public void shouldThrowIllegalArgumentExceptionBecausSegmentIdCannotBeNull() {
         ExamAccommodation examAccommodation = new ExamAccommodation.Builder()
-            .withId(1L)
+            .withId(UUID.randomUUID())
             .withExamId(UUID.randomUUID())
             .withSegmentKey(null)
             .withType("unit test type")
@@ -82,7 +83,7 @@ public class ExamAccommodationTest {
     @Test(expected = IllegalArgumentException.class)
     public void shouldThrowIllegalArgumentExceptionBecauseTypeCannotBeNull() {
         new ExamAccommodation.Builder()
-            .withId(1L)
+            .withId(UUID.randomUUID())
             .withExamId(UUID.randomUUID())
             .withSegmentKey("Segment 1")
             .withType(null)
@@ -94,7 +95,7 @@ public class ExamAccommodationTest {
     @Test(expected = IllegalArgumentException.class)
     public void shouldThrowIllegalArgumentExceptionBecauseCodeCannotBeNull() {
         new ExamAccommodation.Builder()
-            .withId(1L)
+            .withId(UUID.randomUUID())
             .withExamId(UUID.randomUUID())
             .withSegmentKey("Segment 1")
             .withType("unit test type")
@@ -106,7 +107,7 @@ public class ExamAccommodationTest {
     @Test(expected = IllegalArgumentException.class)
     public void shouldThrowIllegalArgumentExceptionBecauseCreatedAtCannotBeNull() {
         new ExamAccommodation.Builder()
-            .withId(1L)
+            .withId(UUID.randomUUID())
             .withExamId(UUID.randomUUID())
             .withSegmentKey("Segment 1")
             .withType("unit test type")

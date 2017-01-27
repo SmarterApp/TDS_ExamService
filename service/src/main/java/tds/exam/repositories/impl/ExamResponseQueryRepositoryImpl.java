@@ -11,8 +11,6 @@ import java.util.UUID;
 
 import tds.exam.repositories.ExamResponseQueryRepository;
 
-import static tds.common.data.mysql.UuidAdapter.getBytesFromUUID;
-
 @Repository
 public class ExamResponseQueryRepositoryImpl implements ExamResponseQueryRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
@@ -24,7 +22,7 @@ public class ExamResponseQueryRepositoryImpl implements ExamResponseQueryReposit
 
     @Override
     public int getCurrentExamItemPosition(UUID examId) {
-        final SqlParameterSource params = new MapSqlParameterSource("examId", getBytesFromUUID(examId));
+        final SqlParameterSource params = new MapSqlParameterSource("examId", examId.toString());
         final String SQL =
             "SELECT \n" +
                 "   MAX(I.position)\n" +

@@ -3,6 +3,7 @@ package tds.exam.services.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -37,7 +38,7 @@ public class ExamPageServiceImpl implements ExamPageService {
     }
 
     @Override
-    public void insertPages(final List<ExamPage> examPages) {
+    public void insertPages(final ExamPage... examPages) {
         examPageCommandRepository.insert(examPages);
     }
 

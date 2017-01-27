@@ -32,7 +32,7 @@ import tds.exam.services.ExamApprovalService;
 import tds.exam.services.ExamPageService;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.isA;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
@@ -77,7 +77,7 @@ public class ExamPageServiceImplTest {
         ExamPage examPage1 = new ExamPageBuilder()
             .build();
         ExamPage examPage2 = new ExamPageBuilder()
-            .withId(79)
+            .withId(UUID.randomUUID())
             .build();
         List<ExamPage> examPages = new ArrayList<>();
         examPages.add(examPage1);
@@ -99,11 +99,9 @@ public class ExamPageServiceImplTest {
     public void shouldInsertPagesForExamId() {
         ExamPage examPage1 = new ExamPageBuilder()
             .build();
-        List<ExamPage> examPages = new ArrayList<>();
-        examPages.add(examPage1);
 
-        examPageService.insertPages(examPages);
-        verify(mockExamPageCommandRepository).insert(examPages);
+        examPageService.insertPages(examPage1);
+        verify(mockExamPageCommandRepository).insert(examPage1);
     }
 
     @Test
@@ -125,6 +123,7 @@ public class ExamPageServiceImplTest {
                 .build())
             .build();
         ExamItem mockSecondExamItem = new ExamItemBuilder()
+            .withId(UUID.randomUUID())
             .withExamPageId(ExamPageBuilder.DEFAULT_ID)
             .withItemKey("187-5678")
             .withAssessmentItemKey(5678L)
@@ -156,7 +155,7 @@ public class ExamPageServiceImplTest {
         Response<ExamPage> examPageResponse = examPageService.getPage(mockApprovalRequest, mockExamPage.getPagePosition());
         verify(mockExamApprovalService).getApproval(mockApprovalRequest);
         verify(mockExamPageQueryRepository).findPageWithItems(mockExamPage.getExamId(), mockExamPage.getPagePosition());
-        verify(mockExamPageCommandRepository).update(isA(ExamPage.class));
+        verify(mockExamPageCommandRepository).update(any(ExamPage[].class));
 
         assertThat(examPageResponse.getData().isPresent()).isTrue();
         assertThat(examPageResponse.hasError()).isFalse();

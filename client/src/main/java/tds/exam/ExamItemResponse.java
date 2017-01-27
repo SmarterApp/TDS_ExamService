@@ -2,13 +2,18 @@ package tds.exam;
 
 import org.joda.time.Instant;
 
+import java.util.UUID;
+
+import static tds.common.util.Preconditions.checkNotNull;
+
 /**
  * Represents a response to an {@link tds.exam.ExamItem} of an {@link tds.exam.Exam}.
  */
 public class ExamItemResponse {
     private long id;
-    private long examItemId;
+    private UUID examItemId;
     private String response;
+    private int sequence;
     private boolean valid;
     private Instant createdAt;
 
@@ -19,14 +24,16 @@ public class ExamItemResponse {
         this.id = builder.id;
         this.examItemId = builder.examItemId;
         this.response = builder.response;
+        this.sequence = builder.sequence;
         this.valid = builder.valid;
         this.createdAt = builder.createdAt;
     }
 
     public static final class Builder {
         private long id;
-        private long examItemId;
+        private UUID examItemId;
         private String response;
+        private int sequence;
         private boolean valid;
         private Instant createdAt;
 
@@ -35,13 +42,22 @@ public class ExamItemResponse {
             return this;
         }
 
-        public Builder withExamItemId(long examItemId) {
+        public Builder withExamItemId(UUID examItemId) {
             this.examItemId = examItemId;
             return this;
         }
 
         public Builder withResponse(String response) {
-            this.response = response;
+            this.response = checkNotNull(response, "Response cannot be null");
+            return this;
+        }
+
+        public Builder withSequence(int sequence) {
+            if (sequence < 1) {
+                throw new IllegalArgumentException("Sequence cannot be less than 1");
+            }
+
+            this.sequence = sequence;
             return this;
         }
 
@@ -70,7 +86,7 @@ public class ExamItemResponse {
     /**
      * @return The id of the {@link tds.exam.ExamItem} the {@link ExamItemResponse} corresponds to
      */
-    public long getExamItemId() {
+    public UUID getExamItemId() {
         return examItemId;
     }
 
@@ -79,6 +95,19 @@ public class ExamItemResponse {
      */
     public String getResponse() {
         return response;
+    }
+
+    /**
+     * @return The sequence in which the {@link tds.exam.ExamItem} was responded to (e.g. the third item might be
+     * responded to first)
+     * <p>
+     *     Response sequence is 1-based.  If a student has never responded to an item, there will not be a record in the
+     *     {@code exam_item_response} table.  In legacy, if a student has never responded to an item, the
+     *     {@code testeeresponse.responsesequence} value will be 0.
+     * </p>
+     */
+    public int getSequence() {
+        return sequence;
     }
 
     /**

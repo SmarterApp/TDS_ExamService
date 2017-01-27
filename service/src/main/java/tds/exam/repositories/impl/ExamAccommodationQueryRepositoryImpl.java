@@ -14,7 +14,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import tds.common.data.mysql.UuidAdapter;
 import tds.exam.ExamAccommodation;
 import tds.exam.repositories.ExamAccommodationQueryRepository;
 
@@ -31,41 +30,41 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
 
     @Override
     public List<ExamAccommodation> findAccommodations(UUID examId, String segmentKey, String[] accommodationTypes) {
-        final MapSqlParameterSource parameters = new MapSqlParameterSource("examId", UuidAdapter.getBytesFromUUID(examId))
+        final MapSqlParameterSource parameters = new MapSqlParameterSource("examId", examId.toString())
             .addValue("segmentKey", segmentKey);
 
         String SQL =
             "SELECT \n" +
-            "   ea.id, \n" +
-            "   ea.exam_id, \n" +
-            "   ea.segment_key, \n" +
-            "   ea.`type`, \n" +
-            "   ea.code, \n" +
-            "   ea.description, \n" +
-            "   eae.denied_at, \n" +
-            "   ea.created_at, \n" +
-            "   ea.allow_change, \n" +
-            "   ea.value, \n" +
-            "   ea.segment_position, \n" +
-            "   eae.selectable, \n" +
+                "   ea.id, \n" +
+                "   ea.exam_id, \n" +
+                "   ea.segment_key, \n" +
+                "   ea.`type`, \n" +
+                "   ea.code, \n" +
+                "   ea.description, \n" +
+                "   eae.denied_at, \n" +
+                "   ea.created_at, \n" +
+                "   ea.allow_change, \n" +
+                "   ea.value, \n" +
+                "   ea.segment_position, \n" +
+                "   eae.selectable, \n" +
                 "   eae.total_type_count \n" +
-            "FROM \n" +
-            "   exam_accommodation ea \n" +
-            "JOIN ( \n" +
-            "   SELECT \n" +
-            "       exam_accommodation_id, \n" +
-            "       MAX(id) AS id \n" +
-            "   FROM \n" +
-            "       exam_accommodation_event \n" +
-            "   GROUP BY exam_accommodation_id \n" +
-            ") last_event \n" +
-            "  ON ea.id = last_event.exam_accommodation_id \n" +
-            "JOIN exam_accommodation_event eae \n" +
-            "  ON last_event.id = eae.id \n" +
-            "WHERE \n" +
-            "   ea.exam_id = :examId \n" +
-            "   AND ea.segment_key = :segmentKey \n" +
-            "   AND eae.deleted_at IS NULL";
+                "FROM \n" +
+                "   exam_accommodation ea \n" +
+                "JOIN ( \n" +
+                "   SELECT \n" +
+                "       exam_accommodation_id, \n" +
+                "       MAX(id) AS id \n" +
+                "   FROM \n" +
+                "       exam_accommodation_event \n" +
+                "   GROUP BY exam_accommodation_id \n" +
+                ") last_event \n" +
+                "  ON ea.id = last_event.exam_accommodation_id \n" +
+                "JOIN exam_accommodation_event eae \n" +
+                "  ON last_event.id = eae.id \n" +
+                "WHERE \n" +
+                "   ea.exam_id = :examId \n" +
+                "   AND ea.segment_key = :segmentKey \n" +
+                "   AND eae.deleted_at IS NULL";
 
         if (accommodationTypes.length > 0) {
             parameters.addValue("accommodationTypes", Arrays.asList(accommodationTypes));
@@ -73,8 +72,8 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
         }
 
         return jdbcTemplate.query(SQL,
-                parameters,
-                new AccommodationRowMapper());
+            parameters,
+            new AccommodationRowMapper());
     }
 
     @Override
@@ -88,7 +87,7 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
     }
 
     private List<ExamAccommodation> getAccommodations(UUID examId, boolean excludeDenied) {
-        final SqlParameterSource parameters = new MapSqlParameterSource("examId", UuidAdapter.getBytesFromUUID(examId));
+        final SqlParameterSource parameters = new MapSqlParameterSource("examId", examId.toString());
 
         String SQL =
             "SELECT \n" +
@@ -135,8 +134,8 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
         @Override
         public ExamAccommodation mapRow(ResultSet rs, int rowNum) throws SQLException {
             return new ExamAccommodation.Builder()
-                .withId(rs.getLong("id"))
-                .withExamId(UuidAdapter.getUUIDFromBytes(rs.getBytes("exam_id")))
+                .withId(UUID.fromString(rs.getString("id")))
+                .withExamId(UUID.fromString(rs.getString("exam_id")))
                 .withSegmentKey(rs.getString("segment_key"))
                 .withType(rs.getString("type"))
                 .withCode(rs.getString("code"))

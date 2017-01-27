@@ -10,7 +10,7 @@ import java.util.UUID;
  */
 
 public class ExamPage {
-    private long id;
+    private UUID id;
     private int pagePosition;
     private String segmentKey;
     private String segmentId;
@@ -45,7 +45,7 @@ public class ExamPage {
     }
 
     public static final class Builder {
-        private long id;
+        private UUID id;
         private int pagePosition;
         private String segmentKey;
         private String segmentId;
@@ -129,7 +129,7 @@ public class ExamPage {
             return this;
         }
 
-        public Builder withId(long id) {
+        public Builder withId(UUID id) {
             this.id = id;
             return this;
         }
@@ -142,7 +142,7 @@ public class ExamPage {
     /**
      * @return The id of the {@link ExamPage} record
      */
-    public long getId() {
+    public UUID getId() {
         return this.id;
     }
 

@@ -16,7 +16,7 @@ public interface ExamPageService {
      *
      * @param examPages A collection of {@link tds.exam.ExamPage}s to insert
      */
-    void insertPages(List<ExamPage> examPages);
+    void insertPages(ExamPage... examPages);
 
     /**
      * Marks all {@link tds.exam.ExamPage}s as "deleted" for the exam.

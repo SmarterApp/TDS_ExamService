@@ -17,7 +17,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 import tds.common.data.mapping.ResultSetMapperUtility;
-import tds.common.data.mysql.UuidAdapter;
 import tds.exam.ExamItem;
 import tds.exam.ExamItemResponse;
 import tds.exam.ExamPage;
@@ -36,7 +35,7 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
 
     @Override
     public List<ExamPage> findAll(UUID examId) {
-        final MapSqlParameterSource parameters = new MapSqlParameterSource("examId", UuidAdapter.getBytesFromUUID(examId));
+        final MapSqlParameterSource parameters = new MapSqlParameterSource("examId", examId.toString());
 
         final String SQL =
             "SELECT \n" +
@@ -70,7 +69,7 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
 
     @Override
     public Optional<ExamPage> findPageWithItems(UUID examId, int position) {
-        final MapSqlParameterSource parameters = new MapSqlParameterSource("examId", UuidAdapter.getBytesFromUUID(examId))
+        final MapSqlParameterSource parameters = new MapSqlParameterSource("examId", examId.toString())
             .addValue("position", position);
 
         final String SQL =
@@ -96,6 +95,7 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
                 "   item.item_file_path, \n" +
                 "   item.stimulus_file_path, \n" +
                 "   response.response, \n" +
+                "   response.sequence, \n" +
                 "   response.is_valid, \n" +
                 "   response.created_at AS response_created_at, \n" +
                 "   segment.segment_key, \n" +
@@ -148,14 +148,14 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
             while (resultExtractor.next()) {
                 if (!page.isPresent()) {
                     page = Optional.of(new ExamPage.Builder()
-                        .withId(resultExtractor.getLong("page_id"))
+                        .withId(UUID.fromString(resultExtractor.getString("page_id")))
                         .withPagePosition(resultExtractor.getInt("page_position"))
                         .withSegmentKey(resultExtractor.getString("segment_key"))
                         .withSegmentId(resultExtractor.getString("segment_id"))
                         .withSegmentPosition(resultExtractor.getInt("segment_position"))
                         .withItemGroupKey(resultExtractor.getString("item_group_key"))
                         .withGroupItemsRequired(resultExtractor.getBoolean("are_group_items_required"))
-                        .withExamId(UuidAdapter.getUUIDFromBytes(resultExtractor.getBytes("exam_id")))
+                        .withExamId(UUID.fromString(resultExtractor.getString("exam_id")))
                         .withExamItems(items)
                         .withCreatedAt(ResultSetMapperUtility.mapTimestampToJodaInstant(resultExtractor, "created_at"))
                         .withStartedAt(ResultSetMapperUtility.mapTimestampToJodaInstant(resultExtractor, "started_at"))
@@ -166,20 +166,21 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
                 ExamItemResponse response = null;
                 if (resultExtractor.getString("response") != null) {
                     response = new ExamItemResponse.Builder()
-                        .withExamItemId(resultExtractor.getLong("item_id"))
+                        .withExamItemId(UUID.fromString(resultExtractor.getString("item_id")))
                         .withResponse(resultExtractor.getString("response"))
+                        .withSequence(resultExtractor.getInt("sequence"))
                         .withValid(resultExtractor.getBoolean("is_valid"))
                         .withCreatedAt(ResultSetMapperUtility.mapTimestampToJodaInstant(resultExtractor, "response_created_at"))
                         .build();
                 }
 
                 items.add(new ExamItem.Builder()
-                    .withId(resultExtractor.getLong("item_id"))
+                    .withId(UUID.fromString(resultExtractor.getString("item_id")))
                     .withItemKey(resultExtractor.getString("item_key"))
                     .withAssessmentItemBankKey(resultExtractor.getLong("assessment_item_bank_key"))
                     .withAssessmentItemKey(resultExtractor.getLong("assessment_item_key"))
                     .withItemType(resultExtractor.getString("item_type"))
-                    .withExamPageId(resultExtractor.getLong("exam_page_id"))
+                    .withExamPageId(UUID.fromString(resultExtractor.getString("exam_page_id")))
                     .withPosition(resultExtractor.getInt("item_position"))
                     .withFieldTest(resultExtractor.getBoolean("is_fieldtest"))
                     .withRequired(resultExtractor.getBoolean("is_required"))
@@ -199,10 +200,10 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
         @Override
         public ExamPage mapRow(ResultSet rs, int rowNum) throws SQLException {
             return new ExamPage.Builder()
-                .withId(rs.getLong("id"))
+                .withId(UUID.fromString(rs.getString("id")))
                 .withPagePosition(rs.getInt("page_position"))
                 .withItemGroupKey(rs.getString("item_group_key"))
-                .withExamId(UuidAdapter.getUUIDFromBytes(rs.getBytes("exam_id")))
+                .withExamId(UUID.fromString(rs.getString("exam_id")))
                 .withCreatedAt(ResultSetMapperUtility.mapTimestampToJodaInstant(rs, "created_at"))
                 .withStartedAt(ResultSetMapperUtility.mapTimestampToJodaInstant(rs, "started_at"))
                 .build();

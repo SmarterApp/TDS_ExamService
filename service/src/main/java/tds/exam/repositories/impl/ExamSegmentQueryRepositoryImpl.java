@@ -20,7 +20,6 @@ import java.util.UUID;
 
 import tds.assessment.Algorithm;
 import tds.common.data.mapping.ResultSetMapperUtility;
-import tds.common.data.mysql.UuidAdapter;
 import tds.exam.models.ExamSegment;
 import tds.exam.repositories.ExamSegmentQueryRepository;
 
@@ -42,10 +41,10 @@ public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepositor
     @Override
     public List<ExamSegment> findByExamId(UUID examId) {
         final Map<String, Object> parameters = new HashMap<>();
-        parameters.put("examId", UuidAdapter.getBytesFromUUID(examId));
+        parameters.put("examId", examId.toString());
 
         final String SQL =
-                "SELECT \n" +
+            "SELECT \n" +
                 "   s.exam_id, \n" +
                 "   s.segment_key, \n" +
                 "   s.segment_id, \n" +
@@ -96,11 +95,11 @@ public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepositor
     @Override
     public Optional<ExamSegment> findByExamIdAndSegmentPosition(UUID examId, int segmentPosition) {
         final Map<String, Object> parameters = new HashMap<>();
-        parameters.put("examId", UuidAdapter.getBytesFromUUID(examId));
+        parameters.put("examId", examId.toString());
         parameters.put("segmentPosition", segmentPosition);
 
         final String SQL =
-                "SELECT \n" +
+            "SELECT \n" +
                 "   s.exam_id as exam_id, \n" +
                 "   s.segment_key, \n" +
                 "   s.segment_id, \n" +
@@ -151,24 +150,24 @@ public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepositor
         @Override
         public ExamSegment mapRow(ResultSet rs, int rowNum) throws SQLException {
             return new ExamSegment.Builder()
-                    .withExamId(UuidAdapter.getUUIDFromBytes(rs.getBytes("exam_id")))
+                .withExamId(UUID.fromString(rs.getString("exam_id")))
                 .withSegmentId(rs.getString("segment_id"))
                 .withSegmentKey(rs.getString("segment_key"))
-                    .withSegmentPosition(rs.getInt("segment_position"))
-                    .withFormKey(rs.getString("form_key"))
-                    .withFormId(rs.getString("form_id"))
+                .withSegmentPosition(rs.getInt("segment_position"))
+                .withFormKey(rs.getString("form_key"))
+                .withFormId(rs.getString("form_id"))
                 .withAlgorithm(Algorithm.fromType(rs.getString("algorithm")))
-                    .withExamItemCount(rs.getInt("exam_item_count"))
-                    .withFieldTestItemCount(rs.getInt("field_test_item_count"))
-                    .withIsPermeable(rs.getBoolean("permeable"))
-                    .withRestorePermeableCondition(rs.getString("restore_permeable_condition"))
-                    .withFormCohort(rs.getString("form_cohort"))
-                    .withIsSatisfied(rs.getBoolean("satisfied"))
-                    .withDateExited(ResultSetMapperUtility.mapTimestampToInstant(rs, "date_exited"))
+                .withExamItemCount(rs.getInt("exam_item_count"))
+                .withFieldTestItemCount(rs.getInt("field_test_item_count"))
+                .withIsPermeable(rs.getBoolean("permeable"))
+                .withRestorePermeableCondition(rs.getString("restore_permeable_condition"))
+                .withFormCohort(rs.getString("form_cohort"))
+                .withIsSatisfied(rs.getBoolean("satisfied"))
+                .withDateExited(ResultSetMapperUtility.mapTimestampToInstant(rs, "date_exited"))
                 .withItemPool(createItemsFromString(rs.getString("item_pool")))
-                    .withPoolCount(rs.getInt("pool_count"))
-                    .withCreatedAt(ResultSetMapperUtility.mapTimestampToInstant(rs, "created_at"))
-                    .build();
+                .withPoolCount(rs.getInt("pool_count"))
+                .withCreatedAt(ResultSetMapperUtility.mapTimestampToInstant(rs, "created_at"))
+                .build();
         }
     }
 }

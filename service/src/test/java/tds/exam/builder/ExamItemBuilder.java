@@ -1,5 +1,7 @@
 package tds.exam.builder;
 
+import java.util.UUID;
+
 import tds.exam.ExamItem;
 import tds.exam.ExamItemResponse;
 
@@ -7,10 +9,10 @@ import tds.exam.ExamItemResponse;
  * Build an {@link tds.exam.ExamItem} with test data
  */
 public class ExamItemBuilder {
-    public static final long EXAM_ITEM_DEFAULT_ID = 999L;
+    public static final UUID EXAM_ITEM_DEFAULT_ID = UUID.fromString("be1205f4-3cea-4b9b-9d91-86b566c3ada3");
 
-    private long id = EXAM_ITEM_DEFAULT_ID;
-    private long examPageId = ExamPageBuilder.DEFAULT_ID;
+    private UUID id = EXAM_ITEM_DEFAULT_ID;
+    private UUID examPageId = ExamPageBuilder.DEFAULT_ID;
     private String itemKey = "187-1234";
     private long assessmentItemBankKey = 187L;
     private long assessmentItemKey = 1234L;
@@ -43,12 +45,12 @@ public class ExamItemBuilder {
             .build();
     }
 
-    public ExamItemBuilder withId(long id) {
+    public ExamItemBuilder withId(UUID id) {
         this.id = id;
         return this;
     }
 
-    public ExamItemBuilder withExamPageId(long examPageId) {
+    public ExamItemBuilder withExamPageId(UUID examPageId) {
         this.examPageId = examPageId;
         return this;
     }

@@ -1,6 +1,5 @@
 package tds.exam.repositories;
 
-import java.util.List;
 import java.util.UUID;
 
 import tds.exam.ExamPage;
@@ -12,9 +11,9 @@ public interface ExamPageCommandRepository {
     /**
      * Inserts a collection of {@link tds.exam.ExamPage}s
      *
-     * @param examPages
+     * @param examPages One or more {@link tds.exam.ExamPage}s to insert
      */
-    void insert(List<ExamPage> examPages);
+    void insert(ExamPage... examPages);
 
     /**
      * Marks all {@link tds.exam.ExamPage}s for the exam as deleted
@@ -26,7 +25,7 @@ public interface ExamPageCommandRepository {
     /**
      * Update an {@link tds.exam.ExamPage}.
      *
-     * @param examPage The {@link tds.exam.ExamPage} to update
+     * @param examPages One or more {@link tds.exam.ExamPage} to update
      */
-    void update(ExamPage examPage);
+    void update(ExamPage... examPages);
 }

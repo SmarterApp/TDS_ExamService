@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import tds.common.data.mapping.ResultSetMapperUtility;
-import tds.common.data.mysql.UuidAdapter;
 import tds.exam.models.ExamSegment;
 import tds.exam.repositories.ExamSegmentCommandRepository;
 
@@ -36,7 +35,7 @@ public class ExamSegmentCommandRepositoryImpl implements ExamSegmentCommandRepos
     @Override
     public void insert(final List<ExamSegment> segments) {
         final List<SqlParameterSource> parameterSources = segments.stream()
-            .map(segment -> new MapSqlParameterSource("examId", UuidAdapter.getBytesFromUUID(segment.getExamId()))
+            .map(segment -> new MapSqlParameterSource("examId", segment.getExamId().toString())
                 .addValue("segmentKey", segment.getSegmentKey())
                 .addValue("segmentId", segment.getSegmentId())
                 .addValue("segmentPosition", segment.getSegmentPosition())
@@ -55,7 +54,7 @@ public class ExamSegmentCommandRepositoryImpl implements ExamSegmentCommandRepos
             .collect(Collectors.toList());
 
         final String segmentQuery =
-                "INSERT INTO exam_segment (\n" +
+            "INSERT INTO exam_segment (\n" +
                 "   exam_id, \n" +
                 "   segment_key, \n" +
                 "   segment_id, \n" +
@@ -70,8 +69,8 @@ public class ExamSegmentCommandRepositoryImpl implements ExamSegmentCommandRepos
                 ") \n" +
                 "VALUES ( \n" +
                 "   :examId, \n" +
-                    "   :segmentKey, \n" +
-                    "   :segmentId, \n" +
+                "   :segmentKey, \n" +
+                "   :segmentId, \n" +
                 "   :segmentPosition, \n" +
                 "   :formKey, \n" +
                 "   :formId, \n" +
@@ -96,7 +95,7 @@ public class ExamSegmentCommandRepositoryImpl implements ExamSegmentCommandRepos
         final List<SqlParameterSource> parameterSources = new ArrayList<>();
         segments.forEach(segment -> {
             SqlParameterSource parameters = new MapSqlParameterSource(
-                "examId", UuidAdapter.getBytesFromUUID(segment.getExamId()))
+                "examId", segment.getExamId().toString())
                 .addValue("segmentPosition", segment.getSegmentPosition())
                 .addValue("isSatisfied", segment.isSatisfied())
                 .addValue("isPermeable", segment.isPermeable())

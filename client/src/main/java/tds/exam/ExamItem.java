@@ -2,15 +2,16 @@ package tds.exam;
 
 import com.google.common.base.Optional;
 
+import java.util.UUID;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Represent the item on a page of an exam
  */
-// TODO:  do we need isValid?
 public class ExamItem {
-    private long id;
-    private long examPageId;
+    private UUID id;
+    private UUID examPageId;
     private String itemKey;
     private long assessmentItemBankKey;
     private long assessmentItemKey;
@@ -31,7 +32,7 @@ public class ExamItem {
     private ExamItem() {
     }
 
-    public ExamItem(final long id) {
+    public ExamItem(final UUID id) {
         this.id = id;
     }
 
@@ -53,8 +54,8 @@ public class ExamItem {
     }
 
     public static final class Builder {
-        private long id;
-        private long examPageId;
+        private UUID id;
+        private UUID examPageId;
         private String itemKey;
         private long assessmentItemBankKey;
         private long assessmentItemKey;
@@ -68,12 +69,12 @@ public class ExamItem {
         private String stimulusFilePath;
         private ExamItemResponse response;
 
-        public Builder withId(long newId) {
+        public Builder withId(UUID newId) {
             this.id = newId;
             return this;
         }
 
-        public Builder withExamPageId(long examPageId) {
+        public Builder withExamPageId(UUID examPageId) {
             this.examPageId = examPageId;
             return this;
         }
@@ -144,98 +145,99 @@ public class ExamItem {
     }
 
     /**
-     * @return The id of the exam item
+     * @return The id of this {@link tds.exam.ExamItem}
      */
-    public long getId() {
+    public UUID getId() {
         return id;
     }
 
     /**
-     * @return The id of the {@link tds.exam.ExamPage} that owns this item
+     * @return The id of the {@link tds.exam.ExamPage} that owns this {@link tds.exam.ExamItem}
      */
-    public long getExamPageId() {
+    public UUID getExamPageId() {
         return examPageId;
     }
 
     /**
-     * @return The item key for this item
+     * @return The item key for this {@link tds.exam.ExamItem}
      */
     public String getItemKey() {
         return itemKey;
     }
 
     /**
-     * @return The bank key of this item as represented in the itembank database
+     * @return The bank key of this {@link tds.exam.ExamItem} as represented in the itembank database
      */
     public long getAssessmentItemBankKey() {
         return assessmentItemBankKey;
     }
 
     /**
-     * @return The item key of this item represented in the itembank database
+     * @return The item key of this {@link tds.exam.ExamItem} represented in the itembank database
      */
     public long getAssessmentItemKey() {
         return assessmentItemKey;
     }
 
     /**
-     * @return The code representing the type of item (e.g. "ER" for Extended Response, "MS" for Multi-Select)
+     * @return The code representing the type of this {@link tds.exam.ExamItem} (e.g. "ER" for Extended Response, "MS"
+     * for Multi-Select)
      */
     public String getItemType() {
         return itemType;
     }
 
     /**
-     * @return The position of the item in the exam
+     * @return The position of this {@link tds.exam.ExamItem} in the exam
      */
     public int getPosition() {
         return position;
     }
 
     /**
-     * @return True if this item is marked as required; otherwise false
+     * @return True if this {@link tds.exam.ExamItem} is marked as required; otherwise false
      */
     public boolean isRequired() {
         return required;
     }
 
     /**
-     * @return True if the item has been selected; otherwise false
+     * @return True if this {@link tds.exam.ExamItem} has been selected; otherwise false
      */
     public boolean isSelected() {
         return selected;
     }
 
     /**
-     * @return Indicate if the student has marked this item for review
+     * @return True if a student has marked this {@link tds.exam.ExamItem} for review; otherwise false
      */
     public boolean isMarkedForReview() {
         return markedForReview;
     }
 
     /**
-     * @return Flag indicating whether this is a field test exam item
+     * @return Flag indicating whether this is a field test {@link tds.exam.ExamItem}
      */
     public boolean isFieldTest() {
         return fieldTest;
     }
 
     /**
-     * @return The path to this item's XML file
+     * @return The path to this {@link tds.exam.ExamItem}'s XML file
      */
     public String getItemFilePath() {
         return itemFilePath;
     }
 
     /**
-     * @return The path to this item's stimulus file, if one is present
+     * @return The path to this {@link tds.exam.ExamItem}'s stimulus file, if one is present
      */
     public Optional<String> getStimulusFilePath() {
         return Optional.fromNullable(stimulusFilePath);
     }
 
     /**
-     * @return The most recent {@link tds.exam.ExamItemResponse} for this item, if there is one
+     * @return The most recent {@link tds.exam.ExamItemResponse} for this {@link tds.exam.ExamItem}, if there is one
      */
     public Optional<ExamItemResponse> getResponse() {
         return Optional.fromNullable(response);

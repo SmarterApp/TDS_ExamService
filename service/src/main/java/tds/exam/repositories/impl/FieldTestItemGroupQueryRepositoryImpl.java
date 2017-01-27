@@ -26,7 +26,7 @@ public class FieldTestItemGroupQueryRepositoryImpl implements FieldTestItemGroup
 
     @Override
     public List<FieldTestItemGroup> find(UUID examId, String segmentKey) {
-        final SqlParameterSource parameters = new MapSqlParameterSource("examId", UuidAdapter.getBytesFromUUID(examId))
+        final SqlParameterSource parameters = new MapSqlParameterSource("examId", examId.toString())
             .addValue("segmentKey", segmentKey);
 
         final String SQL =
@@ -68,7 +68,7 @@ public class FieldTestItemGroupQueryRepositoryImpl implements FieldTestItemGroup
 
         return jdbcTemplate.query(SQL, parameters, (rs, row) ->
             new FieldTestItemGroup.Builder()
-                .withExamId(UuidAdapter.getUUIDFromBytes(rs.getBytes("exam_id")))
+                .withExamId(UUID.fromString(rs.getString("exam_id")))
                 .withSessionId(UuidAdapter.getUUIDFromBytes(rs.getBytes("session_id")))
                 .withSegmentKey(rs.getString("segment_key"))
                 .withSegmentId(rs.getString("segment_id"))

@@ -23,7 +23,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-import tds.common.data.mysql.UuidAdapter;
 import tds.exam.Exam;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
@@ -212,7 +211,7 @@ public class ExamQueryRepositoryImplIntegrationTests {
     }
 
     private void insertTestDataForResponses(Instant datePageCreated, Instant dateLastResponseSubmitted, Instant dateEarlierResponseSubmitted, Exam exam) {
-        MapSqlParameterSource testParams = new MapSqlParameterSource("examId", UuidAdapter.getBytesFromUUID(exam.getId()))
+        MapSqlParameterSource testParams = new MapSqlParameterSource("examId", exam.getId().toString())
             .addValue("datePageCreated", new Timestamp(datePageCreated.getMillis()))
             .addValue("dateLastResponseSubmitted", new Timestamp(dateLastResponseSubmitted.getMillis()))
             .addValue("dateEarlierResponseSubmitted", new Timestamp(dateEarlierResponseSubmitted.getMillis()));
@@ -229,8 +228,10 @@ public class ExamQueryRepositoryImplIntegrationTests {
             "INSERT INTO exam_item (id, item_key, assessment_item_bank_key, assessment_item_key, item_type, exam_page_id, position, item_file_path)" +
                 "VALUES (2112, '187-1234', 187, 1234, 'MS', 805, 1, '/path/to/item/187-1234.xml')";
         final String insertResponsesSQL =
-            "INSERT INTO exam_item_response (id, exam_item_id, response, created_at) " +
-                "VALUES (1337, 2112, 'Response 1', :dateLastResponseSubmitted), (1338, 2112, 'Response 2', :dateEarlierResponseSubmitted)";
+            "INSERT INTO exam_item_response (id, exam_item_id, response, sequence, created_at) " +
+                "VALUES " +
+                "(1337, 2112, 'Response 1', 1, :dateLastResponseSubmitted), " +
+                "(1338, 2112, 'Response 2', 1, :dateEarlierResponseSubmitted)";
 
         jdbcTemplate.update(insertSegmentSQL, testParams);
         jdbcTemplate.update(insertPageSQL, testParams);
@@ -269,7 +270,7 @@ public class ExamQueryRepositoryImplIntegrationTests {
     }
 
     private void insertExamScoresData() {
-        final SqlParameterSource parameters = new MapSqlParameterSource("examId", UuidAdapter.getBytesFromUUID(currentExamId))
+        final SqlParameterSource parameters = new MapSqlParameterSource("examId", currentExamId.toString())
             .addValue("measureLabel", "Measure-Label")
             .addValue("value", 50)
             .addValue("measureOf", "measure-of")

@@ -76,7 +76,7 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
 
         assertThat(result).hasSize(1);
         ExamAccommodation examAccommodation = result.get(0);
-        assertThat(examAccommodation.getId()).isGreaterThan(0);
+        assertThat(examAccommodation.getId()).isNotNull();
         assertThat(examAccommodation.getExamId()).isEqualTo(DEFAULT_EXAM_ID);
         assertThat(examAccommodation.getSegmentKey()).isEqualTo(DEFAULT_SEGMENT_KEY);
         assertThat(examAccommodation.getType()).isEqualTo(DEFAULT_ACCOMMODATION_TYPE);
@@ -107,7 +107,7 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
         assertThat(firstExamAccommodation).isNotNull();
         assertThat(secondAccommodation).isNotNull();
 
-        assertThat(firstExamAccommodation.getId()).isGreaterThan(0);
+        assertThat(firstExamAccommodation.getId()).isNotNull();
         assertThat(firstExamAccommodation.getExamId()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID);
         assertThat(firstExamAccommodation.getSegmentKey()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_KEY);
         assertThat(firstExamAccommodation.getType()).isEqualTo("closed captioning");
@@ -116,7 +116,7 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
         assertThat(firstExamAccommodation.getCreatedAt()).isLessThan(Instant.now());
         assertThat(firstExamAccommodation.isApproved()).isTrue();
 
-        assertThat(secondAccommodation.getId()).isGreaterThan(0);
+        assertThat(secondAccommodation.getId()).isNotNull();
         assertThat(secondAccommodation.getExamId()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID);
         assertThat(secondAccommodation.getSegmentKey()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_KEY);
         assertThat(secondAccommodation.getType()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE);
@@ -151,7 +151,7 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
         assertThat(examAccommodation).isNotNull();
         assertThat(secondExamAccommodation).isNotNull();
 
-        assertThat(examAccommodation.getId()).isGreaterThan(0);
+        assertThat(examAccommodation.getId()).isNotNull();
         assertThat(examAccommodation.getExamId()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID);
         assertThat(examAccommodation.getSegmentKey()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_KEY);
         assertThat(examAccommodation.getType()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_TYPE);
@@ -161,7 +161,7 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
         assertThat(examAccommodation.getDeniedAt()).isNull();
         assertThat(examAccommodation.isApproved()).isTrue();
 
-        assertThat(secondExamAccommodation.getId()).isGreaterThan(0);
+        assertThat(secondExamAccommodation.getId()).isNotNull();
         assertThat(secondExamAccommodation.getExamId()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID);
         assertThat(secondExamAccommodation.getSegmentKey()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_SEGMENT_KEY);
         assertThat(secondExamAccommodation.getType()).isEqualTo("closed captioning");
@@ -182,7 +182,7 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
         assertThat(result).hasSize(1);
 
         ExamAccommodation examAccommodation = result.get(0);
-        assertThat(examAccommodation.getId()).isGreaterThan(0);
+        assertThat(examAccommodation.getId()).isNotNull();
         assertThat(examAccommodation.getExamId()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID);
         assertThat(examAccommodation.getSegmentKey()).isEqualTo("segment-2");
         assertThat(examAccommodation.getType()).isEqualTo("highlight");

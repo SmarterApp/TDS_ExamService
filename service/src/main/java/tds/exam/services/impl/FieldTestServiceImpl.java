@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
@@ -91,7 +92,7 @@ public class FieldTestServiceImpl implements FieldTestService {
         Integer endPosition = currentSegment.getFieldTestEndPosition();
         int maxItems = currentSegment.getFieldTestMaxItems();
         int minItems = currentSegment.getFieldTestMinItems();
-        int ftItemCount = previouslyAssignedFieldTestItemGroups.size(); // Initialize it as the size of the existing item groups assigned to this student
+        int totalFtItemCount = previouslyAssignedFieldTestItemGroups.size(); // Initialize it as the size of the existing item groups assigned to this student
 
         /* [3131-3137] Note tht if endPos - startPos < numIntervals, the integer division below results in 0, which
         *  results in  a division-by-zero at line [3320] */
@@ -106,6 +107,30 @@ public class FieldTestServiceImpl implements FieldTestService {
         List<FieldTestItemGroup> selectedFieldTestItemGroups = fieldTestItemGroupSelector.selectLeastUsedItemGroups(exam, assignedGroupIds, assessment,
             currentSegment, minItems);
 
+        /*
+            In the legacy app, there is some logic surrounding a temporary "cohortTable" that is initialized using data in the itembank.testcohort table
+            [See line 3220 in StudentDLL.java]. There is no need to port this logic directly as this temp table will **ALWAYS** contain only one row for CAT
+            assessments.  Lines [3227-3233] simply ensure that the temporary table is initialized as follows:
+
+            cohortindex | ratio | targetcount | itemcount  | groupcount
+            ------------------------------------------------------------
+                 1      |   1   |  maxItems   |     0      |
+
+            And "ratio" and "cohortIndex" are never truly utilized. targetCount = maxItems [3220-3223].
+
+            To get the groupCounts, we can group all items for this segment/language by the groupKey. The "groupCount"
+            in this case will be the size of the list of items for the groupkey. This will be accessed within the
+            field test item group selection loop below.
+
+            The most important distinction between "ftItemCount" and "cohortItemCount" is that ftItemCount contains only
+            the count of **field test** items in the group, while cohortItemCount is the total number of items (including
+            BOTH field test and non-field test items) in the group.
+         */
+        int itemCount = 0;
+        // Group all items in this assessment and for this language by groupKey
+        Map<String, List<Item>> groupItems = currentSegment.getItems(exam.getLanguageCode()).stream()
+            .collect(Collectors.groupingBy(Item::getGroupKey));
+
         /* [3240-3242] endPos variable is never used again, no need to increment it - only read from in debug mode */
         /* [3244] no need to select an unused groupkey - we know our FieldTestGroupItems have unique groupkeys. */
         /* [3244-3246] Since we have list of unused items returned by selectItemgroupsRoundRobin(), no need to check that groupkey exists */
@@ -114,24 +139,34 @@ public class FieldTestServiceImpl implements FieldTestService {
         /* This loop begins at [3246] - We can loop over selectedFieldTestItemGroups because the list already contains
          as many items as are necessary. In legacy code, every possible field test item group (sorted by least used) is returned */
         for (FieldTestItemGroup fieldTestItemGroup : selectedFieldTestItemGroups) {
+            // Get counts of all items for the item group, field test or not
+            int groupCount = groupItems.get(fieldTestItemGroup.getGroupKey()).size();
+
             /* Skip [3248-3274] - This code is just selecting a single item group that is unassigned and not frequently used
               (as sorted by FT_Prioritize_2012())
               Skip [3276-3285] - debug code */
-            int itemCount = fieldTestItemGroup.getItemCount();
-            /* [3307] */
-            if (itemCount > 0 && ftItemCount + itemCount <= maxItems) {
+            int ftItemCount = fieldTestItemGroup.getItemCount();
+
+            // Skip this group if the cohortItemCount is greater than or equal to the maximum number of field test items for this segment
+            // Ultimately we want to make sure that there aren't more items (including non-ft items) in the group
+            // than what will fit into the exam.
+            if (itemCount >= maxItems) {
+                /* This break corresponds to [3301-3305] - instead of "continuing" the selection loop, we can just break out and stop selecting.
+                *  The legacy app simply continues to loop unnecessarily. At this point, cohortItemCount and maxItems will never change. */
+                break;
+            } else if (ftItemCount > 0 && totalFtItemCount + ftItemCount <= maxItems) { /* [3307] */
                 /* [3308 - 3314] */
-                int thisIntSize = itemCount == 1 ? 1 : intervalSize * (itemCount - 1);
+                int thisIntSize = ftItemCount == 1 ? 1 : intervalSize * (ftItemCount - 1);
 
                 /* [3318] Randomly select an item position for this ft item group */
                 int nextPosition = (rng.nextInt(1000) % thisIntSize) + intervalIndex;
                 /* [3344] */
-                ftItemCount += itemCount;
+                totalFtItemCount += ftItemCount;
 
                 /* [3345-3349] */
                 intervalIndex = (intervalSize == 0)
-                    ? intervalIndex + itemCount
-                    : intervalIndex + itemCount * intervalSize;
+                    ? intervalIndex + ftItemCount
+                    : intervalIndex + ftItemCount * intervalSize;
 
                 /* Ignore cohort code [3357] */
                 /* Ignore delete on [3362] - Only selected items will be returned from this loop */
@@ -148,6 +183,8 @@ public class FieldTestServiceImpl implements FieldTestService {
                         .withSegmentId(currentSegment.getSegmentId())
                         .build()
                 );
+
+                itemCount += groupCount;
             }
         }
 
@@ -155,7 +192,7 @@ public class FieldTestServiceImpl implements FieldTestService {
         fieldTestItemGroupCommandRepository.insert(selectedItemGroups);
 
         /* [3386] No need to get the count of field test items again - this count is maintained in loop above */
-        return ftItemCount;
+        return totalFtItemCount;
     }
 
     /*

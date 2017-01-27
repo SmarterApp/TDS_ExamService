@@ -76,7 +76,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
 
     @Override
     public Optional<Exam> getExamById(UUID id) {
-        final SqlParameterSource parameters = new MapSqlParameterSource("examId", UuidAdapter.getBytesFromUUID(id));
+        final SqlParameterSource parameters = new MapSqlParameterSource("examId", id.toString());
 
         String querySQL =
             "SELECT \n" +
@@ -155,7 +155,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
 
     @Override
     public Optional<Instant> findLastStudentActivity(final UUID id) {
-        final SqlParameterSource parameters = new MapSqlParameterSource("examId", UuidAdapter.getBytesFromUUID(id));
+        final SqlParameterSource parameters = new MapSqlParameterSource("examId", id.toString());
 
         final String SQL =
             "SELECT \n" +
@@ -249,7 +249,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
     @Override
     public List<Ability> findAbilities(UUID exam, String clientName, String subject, Long studentId) {
         Map<String, Object> parameters = new HashMap<>();
-        parameters.put("examId", UuidAdapter.getBytesFromUUID(exam));
+        parameters.put("examId", exam.toString());
         parameters.put("clientName", clientName);
         parameters.put("subject", subject);
         parameters.put("studentId", studentId);
@@ -298,7 +298,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
         @Override
         public Ability mapRow(ResultSet rs, int rowNum) throws SQLException {
             return new Ability(
-                UuidAdapter.getUUIDFromBytes(rs.getBytes("id")),
+                UUID.fromString(rs.getString("id")),
                 rs.getString("assessment_id"),
                 rs.getInt("attempts"),
                 ResultSetMapperUtility.mapTimestampToInstant(rs, "date_scored"),
@@ -311,7 +311,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
         @Override
         public Exam mapRow(ResultSet rs, int rowNum) throws SQLException {
             return new Exam.Builder()
-                .withId(UuidAdapter.getUUIDFromBytes(rs.getBytes("id")))
+                .withId(UUID.fromString(rs.getString("id")))
                 .withSessionId(UuidAdapter.getUUIDFromBytes(rs.getBytes("session_id")))
                 .withBrowserId(UuidAdapter.getUUIDFromBytes(rs.getBytes("browser_id")))
                 .withAssessmentId(rs.getString("assessment_id"))

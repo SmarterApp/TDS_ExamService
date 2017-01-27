@@ -18,7 +18,7 @@ public class ExamAccommodationBuilder {
         public static final String DEFAULT_ACCOMMODATION_VALUE = "English";
     }
 
-    private long id = 0L;
+    private UUID id = UUID.randomUUID();
     private UUID examId = SampleData.DEFAULT_EXAM_ID;
     private String segmentKey = SampleData.DEFAULT_SEGMENT_KEY;
     private String type = SampleData.DEFAULT_ACCOMMODATION_TYPE;
@@ -52,7 +52,7 @@ public class ExamAccommodationBuilder {
             .build();
     }
 
-    public ExamAccommodationBuilder withId(long id) {
+    public ExamAccommodationBuilder withId(UUID id) {
         this.id = id;
         return this;
     }

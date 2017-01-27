@@ -28,8 +28,9 @@ public class ExamItemResponseCommandRepositoryImpl implements ExamItemResponseCo
     @Override
     public void insertResponses(ExamItemResponse... responses) {
         final SqlParameterSource[] batchParameters = Stream.of(responses)
-            .map(response -> new MapSqlParameterSource("examItemId", response.getExamItemId())
+            .map(response -> new MapSqlParameterSource("examItemId", response.getExamItemId().toString())
                 .addValue("response", response.getResponse())
+                .addValue("sequence", response.getSequence())
                 .addValue("isValid", response.isValid())
                 .addValue("createdAt", ResultSetMapperUtility.mapJodaInstantToTimestamp(response.getCreatedAt())))
             .toArray(MapSqlParameterSource[]::new);
@@ -38,11 +39,13 @@ public class ExamItemResponseCommandRepositoryImpl implements ExamItemResponseCo
             "INSERT INTO exam_item_response ( \n" +
                 "   exam_item_id, \n" +
                 "   response, \n" +
+                "   sequence, \n" +
                 "   is_valid, \n" +
                 "   created_at) \n" +
                 "VALUES ( \n" +
                 "   :examItemId, \n" +
-                "   :response, " +
+                "   :response, \n" +
+                "   :sequence, \n" +
                 "   :isValid, \n" +
                 "   :createdAt)";
 
