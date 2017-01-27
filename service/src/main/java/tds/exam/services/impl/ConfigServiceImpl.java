@@ -20,6 +20,7 @@ import tds.exam.services.ConfigService;
  */
 @Service
 class ConfigServiceImpl implements ConfigService {
+    static final String APP_ROOT_CONTEXT = "config";
     private final RestTemplate restTemplate;
     private final ExamServiceProperties examServiceProperties;
 
@@ -34,7 +35,7 @@ class ConfigServiceImpl implements ConfigService {
     public Optional<ClientSystemFlag> findClientSystemFlag(String clientName, String auditObject) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
-                .fromHttpUrl(String.format("%s/client-system-flags/%s/%s", examServiceProperties.getConfigUrl(), clientName, auditObject));
+                .fromHttpUrl(String.format("%s/%s/client-system-flags/%s/%s", examServiceProperties.getConfigUrl(), APP_ROOT_CONTEXT, clientName, auditObject));
 
         Optional<ClientSystemFlag> maybeClientSystemFlag = Optional.empty();
         try {

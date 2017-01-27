@@ -24,6 +24,7 @@ import tds.session.ExternalSessionConfiguration;
 
 @Service
 class AssessmentServiceImpl implements AssessmentService {
+    private static final String APP_CONTEXT_ROOT = "assessments";
     private final RestTemplate restTemplate;
     private final ExamServiceProperties examServiceProperties;
 
@@ -61,9 +62,10 @@ class AssessmentServiceImpl implements AssessmentService {
                                                         ExternalSessionConfiguration configuration) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
-                .fromHttpUrl(String.format("%s/%s/assessments/%s/windows/student/%d",
+                .fromHttpUrl(String.format("%s/%s/%s/%s/windows/student/%d",
                     examServiceProperties.getAssessmentUrl(),
                     clientName,
+                    APP_CONTEXT_ROOT,
                     assessmentId,
                     studentId));
 
@@ -83,7 +85,10 @@ class AssessmentServiceImpl implements AssessmentService {
     public List<Accommodation> findAssessmentAccommodationsByAssessmentKey(final String clientName, final String assessmentKey) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
-                .fromHttpUrl(String.format("%s/%s/assessments/accommodations", examServiceProperties.getAssessmentUrl(), clientName))
+                .fromHttpUrl(String.format("%s/%s/%s/accommodations",
+                    examServiceProperties.getAssessmentUrl(),
+                    clientName,
+                    APP_CONTEXT_ROOT))
                 .queryParam("assessmentKey", assessmentKey);
 
         ResponseEntity<List<Accommodation>> responseEntity = restTemplate.exchange(builder.toUriString(),
@@ -97,7 +102,10 @@ class AssessmentServiceImpl implements AssessmentService {
     public List<Accommodation> findAssessmentAccommodationsByAssessmentId(String clientName, String assessmentId) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
-                .fromHttpUrl(String.format("%s/%s/assessments/accommodations", examServiceProperties.getAssessmentUrl(), clientName))
+                .fromHttpUrl(String.format("%s/%s/%s/accommodations",
+                    examServiceProperties.getAssessmentUrl(),
+                    clientName,
+                    APP_CONTEXT_ROOT))
                 .queryParam("assessmentId", assessmentId);
 
 

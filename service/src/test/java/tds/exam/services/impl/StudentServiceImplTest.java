@@ -35,7 +35,7 @@ public class StudentServiceImplTest {
     @Before
     public void setUp() {
         ExamServiceProperties properties = new ExamServiceProperties();
-        properties.setStudentUrl("http://localhost:8080/students");
+        properties.setStudentUrl("http://localhost:8080");
         studentService = new StudentServiceImpl(restTemplate, properties);
     }
 

@@ -21,6 +21,7 @@ import tds.session.SessionAssessment;
 
 @Service
 class SessionServiceImpl implements SessionService {
+    static final String APP_ROOT_CONTEXT = "session";
     private final RestTemplate restTemplate;
     private final ExamServiceProperties examServiceProperties;
 
@@ -35,7 +36,10 @@ class SessionServiceImpl implements SessionService {
     public Optional<Session> findSessionById(UUID sessionId) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
-                .fromHttpUrl(String.format("%s/%s", examServiceProperties.getSessionUrl(), sessionId));
+                .fromHttpUrl(String.format("%s/%s/%s",
+                    examServiceProperties.getSessionUrl(),
+                    APP_ROOT_CONTEXT,
+                    sessionId));
 
         Optional<Session> maybeSession = Optional.empty();
         try {
@@ -55,7 +59,10 @@ class SessionServiceImpl implements SessionService {
     public Optional<ExternalSessionConfiguration> findExternalSessionConfigurationByClientName(String clientName) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
-                .fromHttpUrl(String.format("%s/external-config/%s", examServiceProperties.getSessionUrl(), clientName));
+                .fromHttpUrl(String.format("%s/%s/external-config/%s",
+                    examServiceProperties.getSessionUrl(),
+                    APP_ROOT_CONTEXT,
+                    clientName));
 
         Optional<ExternalSessionConfiguration> maybeExternalSessionConfig = Optional.empty();
         try {
@@ -73,7 +80,10 @@ class SessionServiceImpl implements SessionService {
     @Override
     public Optional<PauseSessionResponse> pause(final UUID sessionId, final String newStatus) {
         UriComponentsBuilder builder =
-            UriComponentsBuilder.fromHttpUrl(String.format("%s/%s/pause", examServiceProperties.getSessionUrl(), sessionId));
+            UriComponentsBuilder.fromHttpUrl(String.format("%s/%s/%s/pause",
+                examServiceProperties.getSessionUrl(),
+                APP_ROOT_CONTEXT,
+                sessionId));
 
         Optional<PauseSessionResponse> maybePauseSessionResponse = Optional.empty();
 
@@ -93,7 +103,11 @@ class SessionServiceImpl implements SessionService {
     @Cacheable(CacheType.LONG_TERM)
     public Optional<SessionAssessment> findSessionAssessment(UUID sessionId, String assessmentKey) {
         UriComponentsBuilder builder =
-            UriComponentsBuilder.fromHttpUrl(String.format("%s/%s/assessment/%s", examServiceProperties.getSessionUrl(), sessionId, assessmentKey));
+            UriComponentsBuilder.fromHttpUrl(String.format("%s/%s/%s/assessment/%s",
+                examServiceProperties.getSessionUrl(),
+                APP_ROOT_CONTEXT,
+                sessionId,
+                assessmentKey));
 
         Optional<SessionAssessment> maybeSessionAssessment = Optional.empty();
 
