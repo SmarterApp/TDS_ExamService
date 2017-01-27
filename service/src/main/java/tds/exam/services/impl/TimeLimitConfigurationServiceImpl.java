@@ -1,21 +1,21 @@
 package tds.exam.services.impl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import java.util.Optional;
+
 import tds.config.TimeLimitConfiguration;
 import tds.exam.configuration.ExamServiceProperties;
 import tds.exam.services.TimeLimitConfigurationService;
 
-import java.util.Optional;
+import static tds.exam.configuration.SupportApplicationConfiguration.CONFIG_APP_CONTEXT;
 
 @Service
 class TimeLimitConfigurationServiceImpl implements TimeLimitConfigurationService {
-    private static final Logger LOG = LoggerFactory.getLogger(SessionServiceImpl.class);
 
     private final RestTemplate restTemplate;
     private final ExamServiceProperties examServiceProperties;
@@ -29,7 +29,11 @@ class TimeLimitConfigurationServiceImpl implements TimeLimitConfigurationService
     public Optional<TimeLimitConfiguration> findTimeLimitConfiguration(String clientName, String assessmentId) {
         UriComponentsBuilder uriBuilder =
                 UriComponentsBuilder
-                        .fromHttpUrl(String.format("%s/%s/%s", examServiceProperties.getConfigUrl(), clientName, assessmentId));
+                    .fromHttpUrl(String.format("%s/%s/time-limits/%s/%s",
+                        examServiceProperties.getConfigUrl(),
+                        CONFIG_APP_CONTEXT,
+                        clientName,
+                        assessmentId));
 
         Optional<TimeLimitConfiguration> maybeTimeLimitConfig = Optional.empty();
         try {

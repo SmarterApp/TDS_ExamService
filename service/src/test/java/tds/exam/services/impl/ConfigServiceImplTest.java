@@ -16,7 +16,7 @@ import tds.exam.services.ConfigService;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static tds.exam.services.impl.ConfigServiceImpl.APP_ROOT_CONTEXT;
+import static tds.exam.configuration.SupportApplicationConfiguration.CONFIG_APP_CONTEXT;
 
 /**
  * Class for testing the {@link ConfigService}
@@ -41,7 +41,7 @@ public class ConfigServiceImplTest {
     public void shouldFindClientSystemFlag() {
         ClientSystemFlag flag = new ClientSystemFlag.Builder().withAuditObject(ATTRIBUTE_OBJECT).build();
 
-        when(restTemplate.getForObject(String.format("%s/%s/client-system-flags/%s/%s", BASE_URL, APP_ROOT_CONTEXT, CLIENT_NAME, ATTRIBUTE_OBJECT), ClientSystemFlag.class)).thenReturn(flag);
+        when(restTemplate.getForObject(String.format("%s/%s/client-system-flags/%s/%s", BASE_URL, CONFIG_APP_CONTEXT, CLIENT_NAME, ATTRIBUTE_OBJECT), ClientSystemFlag.class)).thenReturn(flag);
         Optional<ClientSystemFlag> maybeClientSystemFlag = configService.findClientSystemFlag(CLIENT_NAME, ATTRIBUTE_OBJECT);
 
         assertThat(maybeClientSystemFlag.get()).isEqualTo(flag);
@@ -49,7 +49,7 @@ public class ConfigServiceImplTest {
 
     @Test
     public void shouldReturnEmptyWhenClientSystemFlagNotFound() {
-        when(restTemplate.getForObject(String.format("%s/%s/client-system-flags/%s/%s", BASE_URL, APP_ROOT_CONTEXT, CLIENT_NAME, ATTRIBUTE_OBJECT), ClientSystemFlag.class)).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
+        when(restTemplate.getForObject(String.format("%s/%s/client-system-flags/%s/%s", BASE_URL, CONFIG_APP_CONTEXT, CLIENT_NAME, ATTRIBUTE_OBJECT), ClientSystemFlag.class)).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
         Optional<ClientSystemFlag> maybeClientSystemFlag = configService.findClientSystemFlag(CLIENT_NAME, ATTRIBUTE_OBJECT);
 
         assertThat(maybeClientSystemFlag).isNotPresent();
@@ -57,7 +57,7 @@ public class ConfigServiceImplTest {
 
     @Test(expected = RestClientException.class)
     public void shouldThrowIfStatusNotNotFoundWhenUnexpectedErrorFindingClientSystemFlag() {
-        when(restTemplate.getForObject(String.format("%s/%s/client-system-flags/%s/%s", BASE_URL, APP_ROOT_CONTEXT, CLIENT_NAME, ATTRIBUTE_OBJECT), ClientSystemFlag.class)).thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
+        when(restTemplate.getForObject(String.format("%s/%s/client-system-flags/%s/%s", BASE_URL, CONFIG_APP_CONTEXT, CLIENT_NAME, ATTRIBUTE_OBJECT), ClientSystemFlag.class)).thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
         configService.findClientSystemFlag(CLIENT_NAME, ATTRIBUTE_OBJECT);
     }
 }

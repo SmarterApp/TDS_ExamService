@@ -19,9 +19,10 @@ import tds.session.PauseSessionResponse;
 import tds.session.Session;
 import tds.session.SessionAssessment;
 
+import static tds.exam.configuration.SupportApplicationConfiguration.SESSION_APP_CONTEXT;
+
 @Service
 class SessionServiceImpl implements SessionService {
-    static final String APP_ROOT_CONTEXT = "session";
     private final RestTemplate restTemplate;
     private final ExamServiceProperties examServiceProperties;
 
@@ -38,7 +39,7 @@ class SessionServiceImpl implements SessionService {
             UriComponentsBuilder
                 .fromHttpUrl(String.format("%s/%s/%s",
                     examServiceProperties.getSessionUrl(),
-                    APP_ROOT_CONTEXT,
+                    SESSION_APP_CONTEXT,
                     sessionId));
 
         Optional<Session> maybeSession = Optional.empty();
@@ -61,7 +62,7 @@ class SessionServiceImpl implements SessionService {
             UriComponentsBuilder
                 .fromHttpUrl(String.format("%s/%s/external-config/%s",
                     examServiceProperties.getSessionUrl(),
-                    APP_ROOT_CONTEXT,
+                    SESSION_APP_CONTEXT,
                     clientName));
 
         Optional<ExternalSessionConfiguration> maybeExternalSessionConfig = Optional.empty();
@@ -82,7 +83,7 @@ class SessionServiceImpl implements SessionService {
         UriComponentsBuilder builder =
             UriComponentsBuilder.fromHttpUrl(String.format("%s/%s/%s/pause",
                 examServiceProperties.getSessionUrl(),
-                APP_ROOT_CONTEXT,
+                SESSION_APP_CONTEXT,
                 sessionId));
 
         Optional<PauseSessionResponse> maybePauseSessionResponse = Optional.empty();
@@ -105,7 +106,7 @@ class SessionServiceImpl implements SessionService {
         UriComponentsBuilder builder =
             UriComponentsBuilder.fromHttpUrl(String.format("%s/%s/%s/assessment/%s",
                 examServiceProperties.getSessionUrl(),
-                APP_ROOT_CONTEXT,
+                SESSION_APP_CONTEXT,
                 sessionId,
                 assessmentKey));
 

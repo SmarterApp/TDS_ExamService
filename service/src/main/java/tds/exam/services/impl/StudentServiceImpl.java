@@ -20,9 +20,10 @@ import tds.exam.services.StudentService;
 import tds.student.RtsStudentPackageAttribute;
 import tds.student.Student;
 
+import static tds.exam.configuration.SupportApplicationConfiguration.STUDENT_APP_CONTEXT;
+
 @Service
 class StudentServiceImpl implements StudentService {
-    private static final String APP_ROOT_CONTEXT = "students";
     private final RestTemplate restTemplate;
     private final ExamServiceProperties examServiceProperties;
 
@@ -37,7 +38,7 @@ class StudentServiceImpl implements StudentService {
     public Optional<Student> getStudentById(long studentId) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
-                .fromHttpUrl(String.format("%s/%s/%s", examServiceProperties.getStudentUrl(), APP_ROOT_CONTEXT, studentId));
+                .fromHttpUrl(String.format("%s/%s/%s", examServiceProperties.getStudentUrl(), STUDENT_APP_CONTEXT, studentId));
 
         Optional<Student> maybeStudent = Optional.empty();
         try {
@@ -59,7 +60,7 @@ class StudentServiceImpl implements StudentService {
             UriComponentsBuilder
                 .fromHttpUrl(String.format("%s/%s/%s/rts/%s/attributes=%s",
                     examServiceProperties.getStudentUrl(),
-                    APP_ROOT_CONTEXT,
+                    STUDENT_APP_CONTEXT,
                     studentId,
                     clientName,
                     String.join(",", (CharSequence[]) attributeNames))
