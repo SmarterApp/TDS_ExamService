@@ -15,6 +15,8 @@ import tds.config.ClientSystemFlag;
 import tds.exam.configuration.ExamServiceProperties;
 import tds.exam.services.ConfigService;
 
+import static tds.exam.configuration.SupportApplicationConfiguration.CONFIG_APP_CONTEXT;
+
 /**
  * Service for retrieving data from the Config Session Microservice
  */
@@ -34,7 +36,11 @@ class ConfigServiceImpl implements ConfigService {
     public Optional<ClientSystemFlag> findClientSystemFlag(String clientName, String auditObject) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
-                .fromHttpUrl(String.format("%s/client-system-flags/%s/%s", examServiceProperties.getConfigUrl(), clientName, auditObject));
+                .fromHttpUrl(String.format("%s/%s/client-system-flags/%s/%s",
+                    examServiceProperties.getConfigUrl(),
+                    CONFIG_APP_CONTEXT,
+                    clientName,
+                    auditObject));
 
         Optional<ClientSystemFlag> maybeClientSystemFlag = Optional.empty();
         try {

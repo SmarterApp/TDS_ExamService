@@ -31,12 +31,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpMethod.GET;
+import static tds.exam.configuration.SupportApplicationConfiguration.ASSESSMENT_APP_CONTEXT;
 
 public class AssessmentServiceImplTest {
     private static final String BASE_URL = "http://localhost:8080/";
     private RestTemplate restTemplate;
     private AssessmentService assessmentService;
-
 
     @Before
     public void setUp() {
@@ -87,9 +87,10 @@ public class AssessmentServiceImplTest {
     public void shouldFindAssessmentWindows() {
         AssessmentWindow window = new AssessmentWindow.Builder().build();
         String url = UriComponentsBuilder
-            .fromHttpUrl(String.format("%s/%s/assessments/%s/windows/student/%d",
+            .fromHttpUrl(String.format("%s/%s/%s/%s/windows/student/%d",
                 BASE_URL,
                 "SBAC_PT",
+                ASSESSMENT_APP_CONTEXT,
                 "ELA 11",
                 23))
             .queryParam("shiftWindowStart", 1)

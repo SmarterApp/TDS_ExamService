@@ -22,6 +22,8 @@ import tds.exam.configuration.ExamServiceProperties;
 import tds.exam.services.AssessmentService;
 import tds.session.ExternalSessionConfiguration;
 
+import static tds.exam.configuration.SupportApplicationConfiguration.ASSESSMENT_APP_CONTEXT;
+
 @Service
 class AssessmentServiceImpl implements AssessmentService {
     private final RestTemplate restTemplate;
@@ -38,7 +40,11 @@ class AssessmentServiceImpl implements AssessmentService {
     public Optional<Assessment> findAssessment(final String clientName, final String key) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
-                .fromHttpUrl(String.format("%s/%s/assessments/%s", examServiceProperties.getAssessmentUrl(), clientName, key));
+                .fromHttpUrl(String.format("%s/%s/%s/%s",
+                    examServiceProperties.getAssessmentUrl(),
+                    clientName,
+                    ASSESSMENT_APP_CONTEXT,
+                    key));
 
         Optional<Assessment> maybeAssessment = Optional.empty();
         try {
@@ -61,9 +67,10 @@ class AssessmentServiceImpl implements AssessmentService {
                                                         ExternalSessionConfiguration configuration) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
-                .fromHttpUrl(String.format("%s/%s/assessments/%s/windows/student/%d",
+                .fromHttpUrl(String.format("%s/%s/%s/%s/windows/student/%d",
                     examServiceProperties.getAssessmentUrl(),
                     clientName,
+                    ASSESSMENT_APP_CONTEXT,
                     assessmentId,
                     studentId));
 
@@ -83,7 +90,10 @@ class AssessmentServiceImpl implements AssessmentService {
     public List<Accommodation> findAssessmentAccommodationsByAssessmentKey(final String clientName, final String assessmentKey) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
-                .fromHttpUrl(String.format("%s/%s/assessments/accommodations", examServiceProperties.getAssessmentUrl(), clientName))
+                .fromHttpUrl(String.format("%s/%s/%s/accommodations",
+                    examServiceProperties.getAssessmentUrl(),
+                    clientName,
+                    ASSESSMENT_APP_CONTEXT))
                 .queryParam("assessmentKey", assessmentKey);
 
         ResponseEntity<List<Accommodation>> responseEntity = restTemplate.exchange(builder.toUriString(),
@@ -97,7 +107,10 @@ class AssessmentServiceImpl implements AssessmentService {
     public List<Accommodation> findAssessmentAccommodationsByAssessmentId(String clientName, String assessmentId) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
-                .fromHttpUrl(String.format("%s/%s/assessments/accommodations", examServiceProperties.getAssessmentUrl(), clientName))
+                .fromHttpUrl(String.format("%s/%s/%s/accommodations",
+                    examServiceProperties.getAssessmentUrl(),
+                    clientName,
+                    ASSESSMENT_APP_CONTEXT))
                 .queryParam("assessmentId", assessmentId);
 
 
