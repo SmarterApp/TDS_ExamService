@@ -34,7 +34,7 @@ public interface ExamQueryRepository {
 
     /**
      * Retrieves the {@link java.time.Instant} the {@link tds.exam.Exam} was last paused, an
-     * {@link tds.exam.models.ExamItemResponse} was last submitted, or a {@link tds.exam.models.ExamPage} was last
+     * {@link tds.exam.ExamItemResponse} was last submitted, or a {@link tds.exam.ExamPage} was last
      * created at.
      *
      * @param examId the exam id of the paused exam

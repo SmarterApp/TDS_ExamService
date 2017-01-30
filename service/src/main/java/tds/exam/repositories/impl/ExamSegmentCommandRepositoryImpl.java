@@ -54,7 +54,7 @@ public class ExamSegmentCommandRepositoryImpl implements ExamSegmentCommandRepos
             .collect(Collectors.toList());
 
         final String segmentQuery =
-                "INSERT INTO exam_segment (\n" +
+            "INSERT INTO exam_segment (\n" +
                 "   exam_id, \n" +
                 "   segment_key, \n" +
                 "   segment_id, \n" +
@@ -69,8 +69,8 @@ public class ExamSegmentCommandRepositoryImpl implements ExamSegmentCommandRepos
                 ") \n" +
                 "VALUES ( \n" +
                 "   :examId, \n" +
-                    "   :segmentKey, \n" +
-                    "   :segmentId, \n" +
+                "   :segmentKey, \n" +
+                "   :segmentId, \n" +
                 "   :segmentPosition, \n" +
                 "   :formKey, \n" +
                 "   :formId, \n" +
