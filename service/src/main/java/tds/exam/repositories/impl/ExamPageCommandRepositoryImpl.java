@@ -5,18 +5,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import tds.common.data.mapping.ResultSetMapperUtility;
-import tds.exam.models.ExamPage;
+import tds.exam.ExamPage;
 import tds.exam.repositories.ExamPageCommandRepository;
-
-import static tds.common.data.mysql.UuidAdapter.getBytesFromUUID;
 
 @Repository
 public class ExamPageCommandRepositoryImpl implements ExamPageCommandRepository {
@@ -28,23 +24,31 @@ public class ExamPageCommandRepositoryImpl implements ExamPageCommandRepository 
     }
 
     @Override
-    public void insert(List<ExamPage> examPages) {
+    public void insert(ExamPage... examPages) {
         final String examPageSQL =
-            "INSERT INTO exam_page (\n" +
-            "   id, page_position, item_group_key, exam_id\n" +
-            ") \n" +
-            "VALUES (\n" +
-            "   :id, \n" +
-            "   :pagePosition, \n" +
-            "   :itemGroupKey, \n" +
-            "   :examId\n" +
-            ")";
+            "INSERT INTO \n" +
+                "exam_page (\n" +
+                "   id, \n" +
+                "   page_position, \n" +
+                "   exam_segment_key, \n" +
+                "   item_group_key, \n" +
+                "   are_group_items_required, \n" +
+                "   exam_id) \n" +
+                "VALUES (\n" +
+                "   :id, \n" +
+                "   :pagePosition, \n" +
+                "   :segmentKey, \n" +
+                "   :itemGroupKey, \n" +
+                "   :groupItemsRequired, \n" +
+                "   :examId)";
 
-        SqlParameterSource[] parameters = examPages.stream().map(examPage ->
+        SqlParameterSource[] parameters = Stream.of(examPages).map(examPage ->
             new MapSqlParameterSource("examId", examPage.getExamId().toString())
                 .addValue("id", examPage.getId().toString())
                 .addValue("pagePosition", examPage.getPagePosition())
-                .addValue("itemGroupKey", examPage.getItemGroupKey()))
+                .addValue("segmentKey", examPage.getSegmentKey())
+                .addValue("itemGroupKey", examPage.getItemGroupKey())
+                .addValue("groupItemsRequired", examPage.isGroupItemsRequired()))
             .toArray(SqlParameterSource[]::new);
 
         jdbcTemplate.batchUpdate(examPageSQL, parameters);
@@ -57,27 +61,33 @@ public class ExamPageCommandRepositoryImpl implements ExamPageCommandRepository 
 
         final String SQL =
             "INSERT INTO \n" +
-            "   exam_page_event (exam_page_id, deleted_at, started_at) \n" +
-            "SELECT \n" +
-            "   exam_page_id, UTC_TIMESTAMP(), started_at \n" +
-            "FROM \n" +
-            "   exam_page_event PE\n" +
-            "JOIN \n" +
-            "   exam_page P\n " +
-            "ON \n" +
-            "   PE.exam_page_id = P.id \n" +
-            "WHERE \n " +
-            "   P.exam_id = :examId";
+                "exam_page_event (\n" +
+                "   exam_page_id, \n" +
+                "   deleted_at, \n" +
+                "   started_at) \n" +
+                "SELECT \n" +
+                "   exam_page_id, \n" +
+                "   UTC_TIMESTAMP(), \n" +
+                "   started_at \n" +
+                "FROM \n" +
+                "   exam_page_event PE\n" +
+                "JOIN \n" +
+                "   exam_page P\n " +
+                "ON \n" +
+                "   PE.exam_page_id = P.id \n" +
+                "WHERE \n " +
+                "   P.exam_id = :examId";
 
         jdbcTemplate.update(SQL, params);
     }
 
-    private void update(List<ExamPage> examPages) {
+    @Override
+    public void update(ExamPage... examPages) {
         final String updatePageSQL =
             "INSERT INTO exam_page_event (exam_page_id, deleted_at, started_at) \n" +
-            "VALUES (:examPageId, :deletedAt, :startedAt)";
+                "VALUES (:examPageId, :deletedAt, :startedAt)";
 
-        SqlParameterSource[] parameters = examPages.stream().map(examPage ->
+        SqlParameterSource[] parameters = Stream.of(examPages).map(examPage ->
             new MapSqlParameterSource("examPageId", examPage.getId().toString())
                 .addValue("startedAt", ResultSetMapperUtility.mapJodaInstantToTimestamp(examPage.getStartedAt()))
                 .addValue("deletedAt", ResultSetMapperUtility.mapJodaInstantToTimestamp(examPage.getDeletedAt())))

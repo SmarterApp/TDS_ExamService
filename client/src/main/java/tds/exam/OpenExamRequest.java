@@ -47,7 +47,8 @@ public class OpenExamRequest {
     }
 
     //For frameworks
-    private OpenExamRequest() {}
+    private OpenExamRequest() {
+    }
 
     /**
      * @return accommodations that are needed when a guest is taking the exam
@@ -79,6 +80,7 @@ public class OpenExamRequest {
 
 
     //TODO I guess exam should fetch this via client_testproperty
+
     /**
      * @return max number of attempts the student has to take the exam
      */

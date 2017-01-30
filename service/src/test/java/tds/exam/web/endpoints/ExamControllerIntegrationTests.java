@@ -15,12 +15,14 @@ import java.util.Optional;
 import java.util.UUID;
 
 import tds.common.ValidationError;
+import tds.common.configuration.JacksonObjectMapperConfiguration;
 import tds.common.web.advice.ExceptionAdvice;
 import tds.exam.Exam;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.error.ValidationErrorCode;
+import tds.exam.services.ExamPageService;
 import tds.exam.services.ExamService;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -35,13 +37,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @RunWith(SpringRunner.class)
 @WebMvcTest(ExamController.class)
-@Import({ExceptionAdvice.class})
+@Import({ExceptionAdvice.class, JacksonObjectMapperConfiguration.class})
 public class ExamControllerIntegrationTests {
     @Autowired
     private MockMvc http;
 
     @MockBean
     private ExamService mockExamService;
+
+    @MockBean
+    private ExamPageService mockExamPageService;
 
     @Test
     public void shouldReturnExam() throws Exception {

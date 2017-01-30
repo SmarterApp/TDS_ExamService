@@ -10,11 +10,11 @@ java \
     -Dspring.ds_queries.jdbcUrl="jdbc:mysql://exam_mysql/${EXAM_DB_NAME}" \
     -Dspring.ds_queries.username="${EXAM_DB_USER}" \
     -Dspring.ds_queries.password="${EXAM_DB_PASSWORD}" \
-    -Dspring.ds_queries.driver-class-name=com.zaxxer.hikari.HikariDataSource \
+    -Dspring.ds_queries.driver-class-name=com.mysql.jdbc.Driver \
     -Dspring.ds_commands.jdbcUrl="jdbc:mysql://exam_mysql/${EXAM_DB_NAME}" \
     -Dspring.ds_commands.username="${EXAM_DB_USER}" \
     -Dspring.ds_commands.password="${EXAM_DB_PASSWORD}" \
-    -Dspring.ds_commands.driver-class-name=com.zaxxer.hikari.HikariDataSource \
+    -Dspring.ds_commands.driver-class-name=com.mysql.jdbc.Driver \
     -Dexam-service.session-url=http://session/ \
     -Dexam-service.student-url=http://student/ \
     -Dexam-service.assessment-url=http://assessment/ \
