@@ -58,7 +58,7 @@ public class ExamApprovalControllerIntegrationTests {
         when(mockExamApprovalService.getApproval(isA(ApprovalRequest.class)))
             .thenReturn(new Response<>(mockApproval));
 
-        http.perform(get("/exam/{id}/get-approval", examId)
+        http.perform(get("/exam/{id}/approval", examId)
             .contentType(MediaType.APPLICATION_JSON)
             .param("sessionId", approvalRequest.getSessionId().toString())
             .param("browserId", approvalRequest.getBrowserId().toString())
@@ -85,7 +85,7 @@ public class ExamApprovalControllerIntegrationTests {
         when(mockExamApprovalService.getApproval(isA(ApprovalRequest.class)))
             .thenReturn(new Response<>(mockFailure));
 
-        http.perform(get("/exam/{id}/get-approval", examId)
+        http.perform(get("/exam/{id}/approval", examId)
             .contentType(MediaType.APPLICATION_JSON)
             .param("sessionId", approvalRequest.getSessionId().toString())
             .param("browserId", approvalRequest.getBrowserId().toString())

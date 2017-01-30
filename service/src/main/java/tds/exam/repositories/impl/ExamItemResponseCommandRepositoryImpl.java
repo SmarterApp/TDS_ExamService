@@ -26,7 +26,7 @@ public class ExamItemResponseCommandRepositoryImpl implements ExamItemResponseCo
     }
 
     @Override
-    public void insertResponses(ExamItemResponse... responses) {
+    public void insert(ExamItemResponse... responses) {
         final SqlParameterSource[] batchParameters = Stream.of(responses)
             .map(response -> new MapSqlParameterSource("examItemId", response.getExamItemId().toString())
                 .addValue("response", response.getResponse())

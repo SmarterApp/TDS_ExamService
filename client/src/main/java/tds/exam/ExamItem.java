@@ -32,9 +32,9 @@ public class ExamItem {
     private ExamItem() {
     }
 
-    public ExamItem(final UUID id) {
-        this.id = id;
-    }
+//    public ExamItem(final UUID id) {
+//        this.id = id;
+//    }
 
     public ExamItem(Builder builder) {
         id = builder.id;
@@ -69,9 +69,8 @@ public class ExamItem {
         private String stimulusFilePath;
         private ExamItemResponse response;
 
-        public Builder withId(UUID newId) {
-            this.id = newId;
-            return this;
+        public Builder(UUID id) {
+            this.id = id;
         }
 
         public Builder withExamPageId(UUID examPageId) {

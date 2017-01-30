@@ -89,6 +89,9 @@ public class ExamApprovalServiceImpl implements ExamApprovalService {
             timeLimitConfigurationService.findTimeLimitConfiguration(approvalRequest.getClientName(), exam.getAssessmentId())
                 .orElseThrow(() -> new IllegalArgumentException(String.format("Could not find time limit configuration for client name %s and assessment id %s", approvalRequest.getClientName(), exam.getAssessmentId())));
 
+        // The Proctor application periodically polls to indicate the session is still "alive" and the Proctor is still
+        // hosting the session.  If the Proctor does not respond or otherwise maintain this keep-alive/"heartbeat",
+        // assume the session has been abandoned, which means the session should be closed.
         Instant sessionDateVisited = Instant.ofEpochMilli(session.getDateVisited().getMillis());
         if (Instant.now().isAfter(sessionDateVisited.plus(timeLimitConfig.getTaCheckinTimeMinutes(), ChronoUnit.MINUTES))) {
             // Legacy code creates an audit record here.  Immutability should provide an audit trail; a new session record

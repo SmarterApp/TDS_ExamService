@@ -27,8 +27,7 @@ public class ExamItemBuilder {
     private ExamItemResponse response;
 
     public ExamItem build() {
-        return new ExamItem.Builder()
-            .withId(id)
+        return new ExamItem.Builder(id)
             .withExamPageId(examPageId)
             .withItemKey(itemKey)
             .withAssessmentItemBankKey(assessmentItemBankKey)

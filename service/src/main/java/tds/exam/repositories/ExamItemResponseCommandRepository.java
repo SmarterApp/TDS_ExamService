@@ -11,5 +11,5 @@ public interface ExamItemResponseCommandRepository {
      *
      * @param responses The collection of {@link tds.exam.ExamItemResponse}s to insert
      */
-    void insertResponses(ExamItemResponse... responses);
+    void insert(ExamItemResponse... responses);
 }

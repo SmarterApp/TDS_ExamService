@@ -21,12 +21,12 @@ public class ExamItemResponse {
     }
 
     public ExamItemResponse(Builder builder) {
-        this.id = builder.id;
-        this.examItemId = builder.examItemId;
-        this.response = builder.response;
-        this.sequence = builder.sequence;
-        this.valid = builder.valid;
-        this.createdAt = builder.createdAt;
+        id = builder.id;
+        examItemId = builder.examItemId;
+        response = builder.response;
+        sequence = builder.sequence;
+        valid = builder.valid;
+        createdAt = builder.createdAt;
     }
 
     public static final class Builder {

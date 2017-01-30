@@ -27,7 +27,7 @@ public class ExamApprovalController {
         this.examApprovalService = examApprovalService;
     }
 
-    @RequestMapping(value = "/{id}/get-approval", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/{id}/approval", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<Response<ExamApproval>> getApproval(@PathVariable final UUID id,
                                                        @RequestParam final UUID sessionId,
                                                        @RequestParam final UUID browserId,

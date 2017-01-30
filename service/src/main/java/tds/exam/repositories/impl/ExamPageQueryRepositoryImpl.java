@@ -174,8 +174,7 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
                         .build();
                 }
 
-                items.add(new ExamItem.Builder()
-                    .withId(UUID.fromString(resultExtractor.getString("item_id")))
+                items.add(new ExamItem.Builder(UUID.fromString(resultExtractor.getString("item_id")))
                     .withItemKey(resultExtractor.getString("item_key"))
                     .withAssessmentItemBankKey(resultExtractor.getLong("assessment_item_bank_key"))
                     .withAssessmentItemKey(resultExtractor.getLong("assessment_item_key"))

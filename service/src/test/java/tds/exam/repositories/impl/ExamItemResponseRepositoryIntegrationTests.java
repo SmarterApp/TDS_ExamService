@@ -101,7 +101,7 @@ public class ExamItemResponseRepositoryIntegrationTests {
             .withCreatedAt(Instant.now().minus(20000))
             .build();
 
-        examItemResponseCommandRepository.insertResponses(response);
+        examItemResponseCommandRepository.insert(response);
     }
 
     @Test
@@ -155,7 +155,7 @@ public class ExamItemResponseRepositoryIntegrationTests {
             .withSequence(3)
             .build();
 
-        examItemResponseCommandRepository.insertResponses(examItem1Response, examItem2Response, examDeletedItemResponse);
+        examItemResponseCommandRepository.insert(examItem1Response, examItem2Response, examDeletedItemResponse);
         int currentPosition = examResponseQueryRepository.getCurrentExamItemPosition(exam.getId());
         assertThat(currentPosition).isEqualTo(2);
     }
@@ -172,8 +172,7 @@ public class ExamItemResponseRepositoryIntegrationTests {
         SqlParameterSource parameters = new MapSqlParameterSource("pageId", pageId.toString());
         final String SQL = "SELECT * FROM exam_item WHERE exam_page_id = :pageId";
 
-        return jdbcTemplate.query(SQL, parameters, (rs, row) -> new ExamItem.Builder()
-            .withId(UUID.fromString(rs.getString("id")))
+        return jdbcTemplate.query(SQL, parameters, (rs, row) -> new ExamItem.Builder(UUID.fromString(rs.getString("id")))
             .withItemKey(rs.getString("item_key"))
             .withAssessmentItemBankKey(rs.getLong("assessment_item_bank_key"))
             .withAssessmentItemKey(rs.getLong("assessment_item_key"))

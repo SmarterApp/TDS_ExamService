@@ -155,7 +155,7 @@ public class ExamPageRepositoryIntegrationTests {
             .withCreatedAt(responseCreatedAt)
             .build();
 
-        examItemResponseCommandRepository.insertResponses(mockResponseForFirstItem);
+        examItemResponseCommandRepository.insert(mockResponseForFirstItem);
 
         Optional<ExamPage> resultWithItemResponses = examPageQueryRepository.findPageWithItems(mockExam.getId(), 1);
         assertThat(resultWithItemResponses).isPresent();
