@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -77,6 +78,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                 .withSegmentKey(accommodation.getSegmentKey() != null ? accommodation.getSegmentKey() : exam.getAssessmentKey())
                 .withValue(accommodation.getValue())
                 .withTotalTypeCount(accommodation.getTypeTotal())
+                .withCustom(!accommodation.isDefaultAccommodation())
                 .build();
 
             examAccommodations.add(examAccommodation);
@@ -94,7 +96,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
     }
 
     @Override
-    public void initializeAccommodationsOnPreviousExam(Exam exam, Assessment assessment, int segmentPosition, boolean restoreRts, String guestAccommodations) {
+    public List<ExamAccommodation> initializeAccommodationsOnPreviousExam(Exam exam, Assessment assessment, int segmentPosition, boolean restoreRts, String guestAccommodations) {
         /*
          This replaces the functionality of the following bits of code
          - StudentDLL 6834 - 6843
@@ -109,16 +111,31 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
         }
 
         //StudentDLL lines 6967 - 6875
-        ExamAccommodation[] examAccommodationsToDenyApproval = examAccommodations.stream()
-            .filter(examAccommodation -> examAccommodation.getTotalTypeCount() > 1)
-            .map(accommodation -> new ExamAccommodation
+        List<ExamAccommodation> accommodationsToDeny = new ArrayList<>();
+        Iterator<ExamAccommodation> iter = examAccommodations.iterator();
+
+        while (iter.hasNext()) {
+            ExamAccommodation accommodation = iter.next();
+            if (accommodation.getTotalTypeCount() > 1) continue;
+
+            ExamAccommodation deniedExamAccommodation = new ExamAccommodation
                 .Builder()
                 .fromExamAccommodation(accommodation)
                 .withDeniedAt(Instant.now())
-                .build())
-            .toArray(ExamAccommodation[]::new);
+                .build();
 
-        examAccommodationCommandRepository.update(examAccommodationsToDenyApproval);
+            accommodationsToDeny.add(deniedExamAccommodation);
+
+            //Remove the existing accommodation since it is being replaced by the denied one
+            iter.remove();
+        }
+
+        examAccommodationCommandRepository.update(accommodationsToDeny.toArray(new ExamAccommodation[accommodationsToDeny.size()]));
+
+        //Since we remove the accommodations that need to be denied we add the denied exam accommodations back
+        examAccommodations.addAll(accommodationsToDeny);
+
+        return examAccommodations;
     }
 
     private static String getOtherAccommodationValue(String formattedValue) {
@@ -164,9 +181,6 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                                                                      List<ExamAccommodation> existingExamAccommodations) {
         //This method replaces CommonDLL._UpdateOpportunityAccommodations_SP.
 
-
-        //TODO - Find out what `customAccommodations`
-
         //CommonDLL line 2590 - gets the accommodation codes based on guest accommodations and the accommodation family for the assessment
         List<String> accommodationCodes = splitAccommodationCodes(assessment.getAccommodationFamily(), guestAccommodations);
 
@@ -203,6 +217,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                 .withValue(accommodation.getValue())
                 .withSegmentPosition(segmentPosition)
                 .withTotalTypeCount(accommodation.getTypeTotal())
+                .withCustom(!accommodation.isDefaultAccommodation())
                 .build())
             .distinct()
             .collect(Collectors.toSet());

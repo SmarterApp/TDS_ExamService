@@ -25,6 +25,7 @@ public class ExamAccommodation {
     private Instant createdAt;
     private Instant deletedAt;
     private int totalTypeCount;
+    private boolean custom;
 
     public static class Builder {
         private UUID id;
@@ -41,6 +42,7 @@ public class ExamAccommodation {
         private String value;
         private int segmentPosition = 1;
         private int totalTypeCount;
+        private boolean custom;
 
         public Builder withId(UUID id) {
             this.id = id;
@@ -112,6 +114,11 @@ public class ExamAccommodation {
             return this;
         }
 
+        public Builder withCustom(boolean custom) {
+            this.custom = custom;
+            return this;
+        }
+
         public Builder fromExamAccommodation(final ExamAccommodation accommodation) {
             id = accommodation.getId();
             examId = accommodation.getExamId();
@@ -126,6 +133,7 @@ public class ExamAccommodation {
             allowChange = accommodation.isAllowChange();
             value = accommodation.getValue();
             totalTypeCount = accommodation.getTotalTypeCount();
+            custom = accommodation.isCustom();
             return this;
         }
 
@@ -149,6 +157,7 @@ public class ExamAccommodation {
         value = builder.value;
         segmentPosition = builder.segmentPosition;
         totalTypeCount = builder.totalTypeCount;
+        custom = builder.custom;
     }
 
     /**
@@ -225,24 +234,46 @@ public class ExamAccommodation {
         return deletedAt;
     }
 
+    /**
+     * @return {@code true} if the accommodation can be selected
+     */
     public boolean isSelectable() {
         return selectable;
     }
 
+    /**
+     * @return {@code true} if the exam accommodation can be changed
+     */
     public boolean isAllowChange() {
         return allowChange;
     }
 
+    /**
+     * @return the value of the accommodation
+     */
     public String getValue() {
         return value;
     }
 
+    /**
+     * @return the segment position associated with this exam accommodation
+     */
     public int getSegmentPosition() {
         return segmentPosition;
     }
 
+    /**
+     * @return the total number of like types
+     */
     public int getTotalTypeCount() {
         return totalTypeCount;
+    }
+
+    /**
+     * @return {@code true} if the accommodation is not a default
+     */
+    public boolean isCustom() {
+        return custom;
     }
 
     @Override

@@ -27,6 +27,7 @@ import tds.config.ClientSystemFlag;
 import tds.config.TimeLimitConfiguration;
 import tds.exam.ApprovalRequest;
 import tds.exam.Exam;
+import tds.exam.ExamAccommodation;
 import tds.exam.ExamApproval;
 import tds.exam.ExamConfiguration;
 import tds.exam.ExamStatusCode;
@@ -562,12 +563,33 @@ class ExamServiceImpl implements ExamService {
 
         //Lines 412 - 421 OpenTestServiceImpl is not implemented.  After talking with data warehouse and Smarter Balanced
         //The initial student attributes are not used and smarter balance suggested removing them
-        examAccommodationService.initializeExamAccommodations(exam);
+        List<ExamAccommodation> examAccommodations = examAccommodationService.initializeExamAccommodations(exam);
+
+        exam = updateExamWithCustomAccommodations(exam, examAccommodations);
 
         //Lines OpenTestServiceImpl lines 428-447 not implemented.  Instead exam status is set during insert instead of inserting
         //and then updating status after accommodations
 
         return new Response<>(exam);
+    }
+
+    private Exam updateExamWithCustomAccommodations(final Exam exam, final List<ExamAccommodation> examAccommodations) {
+        //Pulled from CommonDLL lines 2669 - 2670.  If any of the exam accommodations are custom then we need to flag the exam
+        Optional<ExamAccommodation> maybeExamAccommodation = examAccommodations.stream().
+            filter(ExamAccommodation::isCustom).
+            findFirst();
+
+        if (maybeExamAccommodation.isPresent() != exam.isCustomAccommodations()) {
+            Exam updatedExam = new Exam.Builder()
+                .fromExam(exam)
+                .withCustomAccommodation(maybeExamAccommodation.isPresent())
+                .build();
+
+            examCommandRepository.update(updatedExam);
+            return updatedExam;
+        }
+
+        return exam;
     }
 
     /**
@@ -654,10 +676,9 @@ class ExamServiceImpl implements ExamService {
             }
         }
 
-        examAccommodationService.initializeAccommodationsOnPreviousExam(previousExam, assessment, 0, restoreAccommodations, guestAccommodations);
+        List<ExamAccommodation> examAccommodations = examAccommodationService.initializeAccommodationsOnPreviousExam(previousExam, assessment, 0, restoreAccommodations, guestAccommodations);
 
-        //TODO - Need to add the query to update the custom accommodations flag to exam
-
+        currentExam = updateExamWithCustomAccommodations(currentExam, examAccommodations);
         return new Response<>(currentExam);
     }
 

@@ -52,6 +52,8 @@ public interface ExamAccommodationService {
      * @param segmentPosition     the segment position for the accommodations
      * @param restoreRts          {@code true} if the restore rts
      * @param guestAccommodations the guest accommodations String
+     *
+     * @return list of {@link tds.exam.ExamAccommodation}
      */
-    void initializeAccommodationsOnPreviousExam(Exam exam, Assessment assessment, int segmentPosition, boolean restoreRts, String guestAccommodations);
+    List<ExamAccommodation> initializeAccommodationsOnPreviousExam(Exam exam, Assessment assessment, int segmentPosition, boolean restoreRts, String guestAccommodations);
 }
