@@ -113,4 +113,9 @@ public class AccommodationBuilder {
         builder.withSegmentKey(segmentKey);
         return this;
     }
+
+    public AccommodationBuilder withTypeTotal(int typeTotal) {
+        builder.withTypeTotal(typeTotal);
+        return this;
+    }
 }

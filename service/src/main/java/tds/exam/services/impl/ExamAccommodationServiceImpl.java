@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -112,30 +111,6 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
             examAccommodations = initializePreviousAccommodations(exam, assessment, segmentPosition, restoreRts, guestAccommodations, examAccommodations);
         }
 
-        //StudentDLL lines 6967 - 6875
-        List<ExamAccommodation> accommodationsToDeny = new ArrayList<>();
-        Iterator<ExamAccommodation> iter = examAccommodations.iterator();
-
-        while (iter.hasNext()) {
-            ExamAccommodation accommodation = iter.next();
-            if (accommodation.getTotalTypeCount() > 1) continue;
-
-            ExamAccommodation deniedExamAccommodation = ExamAccommodation.Builder
-                .fromExamAccommodation(accommodation)
-                .withDeniedAt(Instant.now())
-                .build();
-
-            accommodationsToDeny.add(deniedExamAccommodation);
-
-            //Remove the existing accommodation since it is being replaced by the denied one
-            iter.remove();
-        }
-
-        examAccommodationCommandRepository.update(accommodationsToDeny.toArray(new ExamAccommodation[accommodationsToDeny.size()]));
-
-        //Since we remove the accommodations that need to be denied we add the denied exam accommodations back
-        examAccommodations.addAll(accommodationsToDeny);
-
         return examAccommodations;
     }
 
@@ -208,20 +183,30 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                     && !accommodation.isEntryControl()
                     && (exam.getDateStarted() == null || accommodation.isAllowChange())
                     && (!restoreRts || accommodation.isSelectable())
-            ).map(accommodation -> new ExamAccommodation.Builder(UUID.randomUUID())
-                .withExamId(exam.getId())
-                .withCode(accommodation.getCode())
-                .withType(accommodation.getType())
-                .withDescription(accommodation.getValue())
-                .withSegmentKey(accommodation.getSegmentKey())
-                .withAllowChange(accommodation.isAllowChange())
-                .withSelectable(accommodation.isSelectable())
-                .withValue(accommodation.getValue())
-                .withSegmentPosition(segmentPosition)
-                .withTotalTypeCount(accommodation.getTypeTotal())
-                .withCustom(!accommodation.isDefaultAccommodation())
-                .withCreatedAt(now)
-                .build())
+            ).map(accommodation -> {
+                //Conditional below is due to StudentDLL lines 6967 - 6875
+                //We need to mark the exam accommodation as not approved if the type total is greater than 1 forcing the
+                //proctor to approve it.
+                Instant deniedAt = null;
+                if (accommodation.getTypeTotal() > 1) {
+                    deniedAt = now;
+                }
+                return new ExamAccommodation.Builder(UUID.randomUUID())
+                    .withExamId(exam.getId())
+                    .withCode(accommodation.getCode())
+                    .withType(accommodation.getType())
+                    .withDescription(accommodation.getValue())
+                    .withSegmentKey(accommodation.getSegmentKey())
+                    .withAllowChange(accommodation.isAllowChange())
+                    .withSelectable(accommodation.isSelectable())
+                    .withValue(accommodation.getValue())
+                    .withSegmentPosition(segmentPosition)
+                    .withTotalTypeCount(accommodation.getTypeTotal())
+                    .withCustom(!accommodation.isDefaultAccommodation())
+                    .withDeniedAt(deniedAt)
+                    .withCreatedAt(now)
+                    .build();
+            })
             .distinct()
             .collect(Collectors.toSet());
 
