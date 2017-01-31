@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 import tds.accommodation.Accommodation;
 import tds.assessment.Assessment;
@@ -219,7 +220,7 @@ public class ExamAccommodationServiceImplTest {
             accommodationWithRestoreRts,
             accommodationFrench);
 
-        ExamAccommodation existingFrenchExamAccommodation = new ExamAccommodation.Builder()
+        ExamAccommodation existingFrenchExamAccommodation = new ExamAccommodation.Builder(UUID.randomUUID())
             .withExamId(exam.getId())
             .withCode("FRN")
             .withType("Language")
@@ -231,7 +232,7 @@ public class ExamAccommodationServiceImplTest {
             .withTotalTypeCount(2)
             .build();
 
-        ExamAccommodation existingEnglishExamAccommodation = new ExamAccommodation.Builder()
+        ExamAccommodation existingEnglishExamAccommodation = new ExamAccommodation.Builder(UUID.randomUUID())
             .withExamId(exam.getId())
             .withCode("FRN")
             .withType("Language")

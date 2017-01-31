@@ -100,21 +100,21 @@ public class ItemPoolServiceImplTest {
                 .build());
 
         List<ExamAccommodation> examAccommodations = new ArrayList<>();
-        examAccommodations.add(new ExamAccommodation.Builder()
+        examAccommodations.add(new ExamAccommodation.Builder(UUID.randomUUID())
                 .withExamId(examId)
                 .withType("Language")
                 .withCode("ENU")
                 .withDescription("English")
                 .withSegmentKey(segmentKey)
                 .build());
-        examAccommodations.add(new ExamAccommodation.Builder()
+        examAccommodations.add(new ExamAccommodation.Builder(UUID.randomUUID())
                 .withExamId(examId)
                 .withType("type1")
                 .withCode("TDS_T1")
                 .withDescription("type 1 desc")
                 .withSegmentKey(segmentKey)
                 .build());
-        examAccommodations.add(new ExamAccommodation.Builder()
+        examAccommodations.add(new ExamAccommodation.Builder(UUID.randomUUID())
                 .withExamId(examId)
                 .withType("TestAccommodation")
                 .withCode("TEST")
@@ -195,14 +195,14 @@ public class ItemPoolServiceImplTest {
                 .build());
 
         List<ExamAccommodation> examAccommodations = new ArrayList<>();
-        examAccommodations.add(new ExamAccommodation.Builder()
+        examAccommodations.add(new ExamAccommodation.Builder(UUID.randomUUID())
                 .withExamId(examId)
                 .withType("Language")
                 .withCode("ENU")
                 .withDescription("English")
                 .withSegmentKey(segmentKey)
                 .build());
-        examAccommodations.add(new ExamAccommodation.Builder()
+        examAccommodations.add(new ExamAccommodation.Builder(UUID.randomUUID())
                 .withExamId(examId)
                 .withType("type1")
                 .withCode("TDS_T1")
@@ -279,7 +279,7 @@ public class ItemPoolServiceImplTest {
                 .build());
 
         List<ExamAccommodation> examAccommodations = new ArrayList<>();
-        examAccommodations.add(new ExamAccommodation.Builder()
+        examAccommodations.add(new ExamAccommodation.Builder(UUID.randomUUID())
                 .withExamId(examId)
                 .withType("type1")
                 .withCode("TDS_T1")
@@ -340,7 +340,7 @@ public class ItemPoolServiceImplTest {
             .build());
 
         List<ExamAccommodation> examAccommodations = new ArrayList<>();
-        examAccommodations.add(new ExamAccommodation.Builder()
+        examAccommodations.add(new ExamAccommodation.Builder(UUID.randomUUID())
             .withExamId(examId)
             .withType("Language")
             .withCode("ENU")
@@ -413,21 +413,21 @@ public class ItemPoolServiceImplTest {
             .build());
 
         List<ExamAccommodation> examAccommodations = new ArrayList<>();
-        examAccommodations.add(new ExamAccommodation.Builder()
+        examAccommodations.add(new ExamAccommodation.Builder(UUID.randomUUID())
             .withExamId(examId)
             .withType("Language")
             .withCode("ENU")
             .withDescription("English")
             .withSegmentKey(segmentKey)
             .build());
-        examAccommodations.add(new ExamAccommodation.Builder()
+        examAccommodations.add(new ExamAccommodation.Builder(UUID.randomUUID())
             .withExamId(examId)
             .withType("type1")
             .withCode("TDS_T1")
             .withDescription("type 1 desc")
             .withSegmentKey(segmentKey)
             .build());
-        examAccommodations.add(new ExamAccommodation.Builder()
+        examAccommodations.add(new ExamAccommodation.Builder(UUID.randomUUID())
             .withExamId(examId)
             .withType("type1")
             .withCode("TDS_T1")

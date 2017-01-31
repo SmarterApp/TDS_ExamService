@@ -41,10 +41,9 @@ public class ExamAccommodation {
         private String value;
         private int segmentPosition = 1;
         private int totalTypeCount;
-
-        public Builder withId(UUID id) {
+    
+        public Builder(UUID id) {
             this.id = id;
-            return this;
         }
 
         public Builder withExamId(UUID examId) {

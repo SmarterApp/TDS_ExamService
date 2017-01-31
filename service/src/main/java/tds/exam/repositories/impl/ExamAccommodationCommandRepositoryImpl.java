@@ -88,7 +88,7 @@ public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodation
 
         List<ExamAccommodation> accommodationsToDelete = accommodations.stream()
             .map(accommodation -> new ExamAccommodation
-                .Builder()
+                .Builder(accommodation.getId())
                 .fromExamAccommodation(accommodation)
                 .withDeletedAt(deletedAt)
                 .build())

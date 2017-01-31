@@ -69,7 +69,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
 
         List<ExamAccommodation> examAccommodations = new ArrayList<>();
         accommodations.forEach(accommodation -> {
-            ExamAccommodation examAccommodation = new ExamAccommodation.Builder()
+            ExamAccommodation examAccommodation = new ExamAccommodation.Builder(UUID.randomUUID())
                 .withExamId(exam.getId())
                 .withCode(accommodation.getCode())
                 .withType(accommodation.getType())
@@ -112,7 +112,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
         ExamAccommodation[] examAccommodationsToDenyApproval = examAccommodations.stream()
             .filter(examAccommodation -> examAccommodation.getTotalTypeCount() > 1)
             .map(accommodation -> new ExamAccommodation
-                .Builder()
+                .Builder(accommodation.getId())
                 .fromExamAccommodation(accommodation)
                 .withDeniedAt(Instant.now())
                 .build())
@@ -192,7 +192,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                     && !accommodation.isEntryControl()
                     && (exam.getDateStarted() == null || accommodation.isAllowChange())
                     && (!restoreRts || accommodation.isSelectable())
-            ).map(accommodation -> new ExamAccommodation.Builder()
+            ).map(accommodation -> new ExamAccommodation.Builder(UUID.randomUUID())
                 .withExamId(exam.getId())
                 .withCode(accommodation.getCode())
                 .withType(accommodation.getType())
@@ -213,7 +213,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                     filter(examAccommodation -> examAccommodation.getCode().startsWith(OTHER_ACCOMMODATION_VALUE))
                     .collect(Collectors.toSet());
 
-                accommodationsToAdd.add(new ExamAccommodation.Builder()
+                accommodationsToAdd.add(new ExamAccommodation.Builder(UUID.randomUUID())
                     .withExamId(exam.getId())
                     .withType(OTHER_ACCOMMODATION_NAME)
                     .withCode(OTHER_ACCOMMODATION_CODE)
