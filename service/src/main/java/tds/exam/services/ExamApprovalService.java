@@ -1,6 +1,8 @@
 package tds.exam.services;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import tds.common.Response;
 import tds.common.ValidationError;
@@ -23,6 +25,14 @@ public interface ExamApprovalService {
      * @return {@link tds.exam.ExamApproval} describing whether the exam is approved to be opened.
      */
     Response<ExamApproval> getApproval(ApprovalRequest approvalRequest);
+
+    /**
+     * List of exams pending approval from the proctor
+     *
+     * @param sessionId session id of the exams pending approval
+     * @return list of {@link tds.exam.Exam} pending approval
+     */
+    List<Exam> getExamsPendingApproval(UUID sessionId);
 
     /**
      * Verify all the rules for granting approval to an {@link tds.exam.Exam} are satisfied.

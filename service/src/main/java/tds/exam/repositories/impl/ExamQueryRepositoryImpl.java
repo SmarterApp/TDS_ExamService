@@ -294,6 +294,33 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
         return jdbcTemplate.query(SQL, parameters, new AbilityRowMapper());
     }
 
+    @Override
+    public List<Exam> getExamsPendingApproval(UUID sessionId) {
+        final SqlParameterSource parameters = new MapSqlParameterSource("sessionId", UuidAdapter.getBytesFromUUID(sessionId));
+
+        final String SQL =
+            "SELECT \n" +
+                EXAM_QUERY_COLUMN_LIST +
+            "FROM exam e \n" +
+            "JOIN ( \n" +
+            "  SELECT \n" +
+            "    exam_id, \n" +
+            "    MAX(id) as id \n" +
+            "  FROM exam_event \n" +
+            "  GROUP BY exam_id \n" +
+            ") last_event on \n" +
+            "  last_event.exam_id = e.id \n" +
+            "JOIN exam_event ee \n" +
+            "  ON last_event.id = ee.id \n" +
+            "JOIN exam.exam_status_codes esc \n" +
+            "  ON esc.status = ee.status \n" +
+            "WHERE \n" +
+            "  e.session_id = :sessionId and \n" +
+            "  ee.status in ('pending', 'suspended', 'segmentEntry', 'segmentExit')";
+
+        return jdbcTemplate.query(SQL, parameters, new ExamRowMapper());
+    }
+
     private class AbilityRowMapper implements RowMapper<Ability> {
         @Override
         public Ability mapRow(ResultSet rs, int rowNum) throws SQLException {

@@ -61,4 +61,12 @@ public interface ExamQueryRepository {
      * @return a list of {@link Ability} objects for past exams
      */
     List<Ability> findAbilities(UUID exam, String clientName, String subject, Long studentId);
+
+    /**
+     * List of exams pending approval from the proctor
+     *
+     * @param sessionId session id of the exams pending approval
+     * @return list of {@link tds.exam.Exam} pending approval
+     */
+    List<Exam> getExamsPendingApproval(UUID sessionId);
 }
