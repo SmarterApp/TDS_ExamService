@@ -44,9 +44,8 @@ public class ExamAccommodation {
         private int totalTypeCount;
         private boolean custom;
 
-        public Builder withId(UUID id) {
+        public Builder(UUID id) {
             this.id = id;
-            return this;
         }
 
         public Builder withExamId(UUID examId) {
@@ -119,22 +118,20 @@ public class ExamAccommodation {
             return this;
         }
 
-        public Builder fromExamAccommodation(final ExamAccommodation accommodation) {
-            id = accommodation.getId();
-            examId = accommodation.getExamId();
-            segmentKey = accommodation.getSegmentKey();
-            type = accommodation.getType();
-            code = accommodation.getCode();
-            description = accommodation.getDescription();
-            deniedAt = accommodation.getDeniedAt();
-            createdAt = accommodation.getCreatedAt();
-            deletedAt = accommodation.getDeletedAt();
-            selectable = accommodation.isSelectable();
-            allowChange = accommodation.isAllowChange();
-            value = accommodation.getValue();
-            totalTypeCount = accommodation.getTotalTypeCount();
-            custom = accommodation.isCustom();
-            return this;
+        public static Builder fromExamAccommodation(final ExamAccommodation accommodation) {
+            return new Builder(accommodation.getId())
+                .withExamId(accommodation.getExamId())
+                .withSegmentKey(accommodation.getSegmentKey())
+                .withType(accommodation.getType())
+                .withCode(accommodation.getCode())
+                .withDescription(accommodation.getDescription())
+                .withDeniedAt(accommodation.getDeniedAt())
+                .withCreatedAt(accommodation.getCreatedAt())
+                .withDeletedAt(accommodation.getDeletedAt())
+                .withSelectable(accommodation.isSelectable())
+                .withAllowChange(accommodation.isAllowChange())
+                .withValue(accommodation.getValue())
+                .withCustom(accommodation.isCustom());
         }
 
         public ExamAccommodation build() {

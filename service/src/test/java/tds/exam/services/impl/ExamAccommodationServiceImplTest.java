@@ -1,6 +1,7 @@
 package tds.exam.services.impl;
 
 import org.assertj.core.util.Lists;
+import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -13,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 import tds.accommodation.Accommodation;
 import tds.assessment.Assessment;
@@ -219,7 +221,7 @@ public class ExamAccommodationServiceImplTest {
             accommodationWithRestoreRts,
             accommodationFrench);
 
-        ExamAccommodation existingFrenchExamAccommodation = new ExamAccommodation.Builder()
+        ExamAccommodation existingFrenchExamAccommodation = new ExamAccommodation.Builder(UUID.randomUUID())
             .withExamId(exam.getId())
             .withCode("FRN")
             .withType("Language")
@@ -229,9 +231,10 @@ public class ExamAccommodationServiceImplTest {
             .withValue("French")
             .withSegmentPosition(0)
             .withTotalTypeCount(2)
+            .withCreatedAt(Instant.now())
             .build();
 
-        ExamAccommodation existingEnglishExamAccommodation = new ExamAccommodation.Builder()
+        ExamAccommodation existingEnglishExamAccommodation = new ExamAccommodation.Builder(UUID.randomUUID())
             .withExamId(exam.getId())
             .withCode("FRN")
             .withType("Language")
@@ -241,8 +244,8 @@ public class ExamAccommodationServiceImplTest {
             .withValue("French")
             .withSegmentPosition(0)
             .withTotalTypeCount(2)
+            .withCreatedAt(Instant.now())
             .build();
-
 
         when(mockAssessmentService.findAssessmentAccommodationsByAssessmentKey(exam.getClientName(), assessment.getKey())).thenReturn(assessmentAccommodations);
         when(mockExamAccommodationQueryRepository.findAccommodations(exam.getId())).thenReturn(Arrays.asList(existingFrenchExamAccommodation, existingEnglishExamAccommodation));

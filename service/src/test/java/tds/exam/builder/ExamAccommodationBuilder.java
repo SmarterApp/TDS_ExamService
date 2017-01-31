@@ -35,8 +35,7 @@ public class ExamAccommodationBuilder {
     private boolean custom;
 
     public ExamAccommodation build() {
-        return new ExamAccommodation.Builder()
-            .withId(id)
+        return new ExamAccommodation.Builder(id)
             .withExamId(examId)
             .withSegmentKey(segmentKey)
             .withType(type)
