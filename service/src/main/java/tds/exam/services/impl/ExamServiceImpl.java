@@ -511,25 +511,6 @@ class ExamServiceImpl implements ExamService {
         return new Response<>(exam);
     }
 
-    private Exam updateExamWithCustomAccommodations(final Exam exam, final List<ExamAccommodation> examAccommodations) {
-        //Pulled from CommonDLL lines 2669 - 2670.  If any of the exam accommodations are custom then we need to flag the exam
-        Optional<ExamAccommodation> maybeExamAccommodation = examAccommodations.stream().
-            filter(ExamAccommodation::isCustom).
-            findFirst();
-
-        if (maybeExamAccommodation.isPresent() != exam.isCustomAccommodations()) {
-            Exam updatedExam = new Exam.Builder()
-                .fromExam(exam)
-                .withCustomAccommodation(maybeExamAccommodation.isPresent())
-                .build();
-
-            examCommandRepository.update(updatedExam);
-            return updatedExam;
-        }
-
-        return exam;
-    }
-
     /**
      * Gets the most recent {@link tds.exam.models.Ability} based on the dateScored value for the same assessment.
      *
@@ -700,8 +681,8 @@ class ExamServiceImpl implements ExamService {
         return Optional.empty();
     }
 
-    //Should have long term cache
     private boolean allowsGuestStudent(String clientName, ExternalSessionConfiguration externalSessionConfiguration) {
+        //TODO: Should have long term cache?
         if (externalSessionConfiguration.isInSimulationEnvironment()) {
             return true;
         }
@@ -709,5 +690,24 @@ class ExamServiceImpl implements ExamService {
         Optional<ClientSystemFlag> maybeAllowGuestAccessFlag = configService.findClientSystemFlag(clientName, ALLOW_ANONYMOUS_STUDENT_FLAG_TYPE);
 
         return maybeAllowGuestAccessFlag.isPresent() && maybeAllowGuestAccessFlag.get().isEnabled();
+    }
+
+    private Exam updateExamWithCustomAccommodations(final Exam exam, final List<ExamAccommodation> examAccommodations) {
+        //Pulled from CommonDLL lines 2669 - 2670.  If any of the exam accommodations are custom then we need to flag the exam
+        Optional<ExamAccommodation> maybeExamAccommodation = examAccommodations.stream()
+            .filter(ExamAccommodation::isCustom)
+            .findFirst();
+
+        if (maybeExamAccommodation.isPresent() != exam.isCustomAccommodations()) {
+            Exam updatedExam = new Exam.Builder()
+                .fromExam(exam)
+                .withCustomAccommodation(maybeExamAccommodation.isPresent())
+                .build();
+
+            examCommandRepository.update(updatedExam);
+            return updatedExam;
+        }
+
+        return exam;
     }
 }
