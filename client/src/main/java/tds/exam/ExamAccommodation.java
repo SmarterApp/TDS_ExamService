@@ -25,6 +25,7 @@ public class ExamAccommodation {
     private Instant createdAt;
     private Instant deletedAt;
     private int totalTypeCount;
+    private boolean custom;
 
     public static class Builder {
         private UUID id;
@@ -41,10 +42,10 @@ public class ExamAccommodation {
         private String value;
         private int segmentPosition = 1;
         private int totalTypeCount;
+        private boolean custom;
 
-        public Builder withId(UUID id) {
+        public Builder(UUID id) {
             this.id = id;
-            return this;
         }
 
         public Builder withExamId(UUID examId) {
@@ -112,21 +113,25 @@ public class ExamAccommodation {
             return this;
         }
 
-        public Builder fromExamAccommodation(final ExamAccommodation accommodation) {
-            id = accommodation.getId();
-            examId = accommodation.getExamId();
-            segmentKey = accommodation.getSegmentKey();
-            type = accommodation.getType();
-            code = accommodation.getCode();
-            description = accommodation.getDescription();
-            deniedAt = accommodation.getDeniedAt();
-            createdAt = accommodation.getCreatedAt();
-            deletedAt = accommodation.getDeletedAt();
-            selectable = accommodation.isSelectable();
-            allowChange = accommodation.isAllowChange();
-            value = accommodation.getValue();
-            totalTypeCount = accommodation.getTotalTypeCount();
+        public Builder withCustom(boolean custom) {
+            this.custom = custom;
             return this;
+        }
+
+        public static Builder fromExamAccommodation(final ExamAccommodation accommodation) {
+            return new Builder(accommodation.getId())
+                .withExamId(accommodation.getExamId())
+                .withSegmentKey(accommodation.getSegmentKey())
+                .withType(accommodation.getType())
+                .withCode(accommodation.getCode())
+                .withDescription(accommodation.getDescription())
+                .withDeniedAt(accommodation.getDeniedAt())
+                .withCreatedAt(accommodation.getCreatedAt())
+                .withDeletedAt(accommodation.getDeletedAt())
+                .withSelectable(accommodation.isSelectable())
+                .withAllowChange(accommodation.isAllowChange())
+                .withValue(accommodation.getValue())
+                .withCustom(accommodation.isCustom());
         }
 
         public ExamAccommodation build() {
@@ -149,6 +154,7 @@ public class ExamAccommodation {
         value = builder.value;
         segmentPosition = builder.segmentPosition;
         totalTypeCount = builder.totalTypeCount;
+        custom = builder.custom;
     }
 
     /**
@@ -225,24 +231,46 @@ public class ExamAccommodation {
         return deletedAt;
     }
 
+    /**
+     * @return {@code true} if the accommodation can be selected
+     */
     public boolean isSelectable() {
         return selectable;
     }
 
+    /**
+     * @return {@code true} if the exam accommodation can be changed
+     */
     public boolean isAllowChange() {
         return allowChange;
     }
 
+    /**
+     * @return the value of the accommodation
+     */
     public String getValue() {
         return value;
     }
 
+    /**
+     * @return the segment position associated with this exam accommodation
+     */
     public int getSegmentPosition() {
         return segmentPosition;
     }
 
+    /**
+     * @return the total number of like types
+     */
     public int getTotalTypeCount() {
         return totalTypeCount;
+    }
+
+    /**
+     * @return {@code true} if the accommodation is not a default
+     */
+    public boolean isCustom() {
+        return custom;
     }
 
     @Override

@@ -32,10 +32,10 @@ public class ExamAccommodationBuilder {
     private String value = SampleData.DEFAULT_ACCOMMODATION_VALUE;
     private int segmentPosition = 1;
     private int totalTypeCount = 1;
+    private boolean custom;
 
     public ExamAccommodation build() {
-        return new ExamAccommodation.Builder()
-            .withId(id)
+        return new ExamAccommodation.Builder(id)
             .withExamId(examId)
             .withSegmentKey(segmentKey)
             .withType(type)
@@ -49,6 +49,7 @@ public class ExamAccommodationBuilder {
             .withValue(value)
             .withSegmentPosition(segmentPosition)
             .withTotalTypeCount(totalTypeCount)
+            .withCustom(custom)
             .build();
     }
 
@@ -64,6 +65,11 @@ public class ExamAccommodationBuilder {
 
     public ExamAccommodationBuilder withSegmentKey(String segmentKey) {
         this.segmentKey = segmentKey;
+        return this;
+    }
+
+    public ExamAccommodationBuilder withCustom(boolean custom) {
+        this.custom = custom;
         return this;
     }
 

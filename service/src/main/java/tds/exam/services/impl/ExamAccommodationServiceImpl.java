@@ -55,6 +55,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
 
     @Override
     public List<ExamAccommodation> initializeExamAccommodations(Exam exam) {
+        Instant now = Instant.now();
         // This method replaces StudentDLL._InitOpportunityAccommodations_SP.  One note is that the calls to testopporunity_readonly were not implemented because
         // these tables are only used for proctor and that is handled via the proctor related endpoints.
 
@@ -69,7 +70,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
 
         List<ExamAccommodation> examAccommodations = new ArrayList<>();
         accommodations.forEach(accommodation -> {
-            ExamAccommodation examAccommodation = new ExamAccommodation.Builder()
+            ExamAccommodation examAccommodation = new ExamAccommodation.Builder(UUID.randomUUID())
                 .withExamId(exam.getId())
                 .withCode(accommodation.getCode())
                 .withType(accommodation.getType())
@@ -77,6 +78,8 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                 .withSegmentKey(accommodation.getSegmentKey() != null ? accommodation.getSegmentKey() : exam.getAssessmentKey())
                 .withValue(accommodation.getValue())
                 .withTotalTypeCount(accommodation.getTypeTotal())
+                .withCustom(!accommodation.isDefaultAccommodation())
+                .withCreatedAt(now)
                 .build();
 
             examAccommodations.add(examAccommodation);
@@ -94,7 +97,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
     }
 
     @Override
-    public void initializeAccommodationsOnPreviousExam(Exam exam, Assessment assessment, int segmentPosition, boolean restoreRts, String guestAccommodations) {
+    public List<ExamAccommodation> initializeAccommodationsOnPreviousExam(Exam exam, Assessment assessment, int segmentPosition, boolean restoreRts, String guestAccommodations) {
         /*
          This replaces the functionality of the following bits of code
          - StudentDLL 6834 - 6843
@@ -108,17 +111,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
             examAccommodations = initializePreviousAccommodations(exam, assessment, segmentPosition, restoreRts, guestAccommodations, examAccommodations);
         }
 
-        //StudentDLL lines 6967 - 6875
-        ExamAccommodation[] examAccommodationsToDenyApproval = examAccommodations.stream()
-            .filter(examAccommodation -> examAccommodation.getTotalTypeCount() > 1)
-            .map(accommodation -> new ExamAccommodation
-                .Builder()
-                .fromExamAccommodation(accommodation)
-                .withDeniedAt(Instant.now())
-                .build())
-            .toArray(ExamAccommodation[]::new);
-
-        examAccommodationCommandRepository.update(examAccommodationsToDenyApproval);
+        return examAccommodations;
     }
 
     private static String getOtherAccommodationValue(String formattedValue) {
@@ -163,9 +156,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                                                                      String guestAccommodations,
                                                                      List<ExamAccommodation> existingExamAccommodations) {
         //This method replaces CommonDLL._UpdateOpportunityAccommodations_SP.
-
-
-        //TODO - Find out what `customAccommodations`
+        Instant now = Instant.now();
 
         //CommonDLL line 2590 - gets the accommodation codes based on guest accommodations and the accommodation family for the assessment
         List<String> accommodationCodes = splitAccommodationCodes(assessment.getAccommodationFamily(), guestAccommodations);
@@ -192,18 +183,30 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                     && !accommodation.isEntryControl()
                     && (exam.getDateStarted() == null || accommodation.isAllowChange())
                     && (!restoreRts || accommodation.isSelectable())
-            ).map(accommodation -> new ExamAccommodation.Builder()
-                .withExamId(exam.getId())
-                .withCode(accommodation.getCode())
-                .withType(accommodation.getType())
-                .withDescription(accommodation.getValue())
-                .withSegmentKey(accommodation.getSegmentKey())
-                .withAllowChange(accommodation.isAllowChange())
-                .withSelectable(accommodation.isSelectable())
-                .withValue(accommodation.getValue())
-                .withSegmentPosition(segmentPosition)
-                .withTotalTypeCount(accommodation.getTypeTotal())
-                .build())
+            ).map(accommodation -> {
+                //Conditional below is due to StudentDLL lines 6967 - 6875
+                //We need to mark the exam accommodation as not approved if the type total is greater than 1 forcing the
+                //proctor to approve it.
+                Instant deniedAt = null;
+                if (accommodation.getTypeTotal() > 1) {
+                    deniedAt = now;
+                }
+                return new ExamAccommodation.Builder(UUID.randomUUID())
+                    .withExamId(exam.getId())
+                    .withCode(accommodation.getCode())
+                    .withType(accommodation.getType())
+                    .withDescription(accommodation.getValue())
+                    .withSegmentKey(accommodation.getSegmentKey())
+                    .withAllowChange(accommodation.isAllowChange())
+                    .withSelectable(accommodation.isSelectable())
+                    .withValue(accommodation.getValue())
+                    .withSegmentPosition(segmentPosition)
+                    .withTotalTypeCount(accommodation.getTypeTotal())
+                    .withCustom(!accommodation.isDefaultAccommodation())
+                    .withDeniedAt(deniedAt)
+                    .withCreatedAt(now)
+                    .build();
+            })
             .distinct()
             .collect(Collectors.toSet());
 
@@ -213,7 +216,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                     filter(examAccommodation -> examAccommodation.getCode().startsWith(OTHER_ACCOMMODATION_VALUE))
                     .collect(Collectors.toSet());
 
-                accommodationsToAdd.add(new ExamAccommodation.Builder()
+                accommodationsToAdd.add(new ExamAccommodation.Builder(UUID.randomUUID())
                     .withExamId(exam.getId())
                     .withType(OTHER_ACCOMMODATION_NAME)
                     .withCode(OTHER_ACCOMMODATION_CODE)
@@ -221,6 +224,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                     .withAllowChange(false)
                     .withSelectable(false)
                     .withSegmentPosition(segmentPosition)
+                    .withCreatedAt(now)
                     .build()
                 );
 

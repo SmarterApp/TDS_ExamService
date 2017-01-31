@@ -47,7 +47,8 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
                 "   ea.value, \n" +
                 "   ea.segment_position, \n" +
                 "   eae.selectable, \n" +
-                "   eae.total_type_count \n" +
+                "   eae.total_type_count, \n" +
+                "   eae.custom \n" +
                 "FROM \n" +
                 "   exam_accommodation ea \n" +
                 "JOIN ( \n" +
@@ -102,8 +103,9 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
                 "   ea.allow_change, \n" +
                 "   ea.value, \n" +
                 "   ea.segment_position, \n" +
+                "   eae.total_type_count, \n" +
                 "   eae.selectable, \n" +
-                "   eae.total_type_count \n" +
+                "   eae.custom \n" +
                 "FROM \n" +
                 "   exam_accommodation ea \n" +
                 "JOIN ( \n" +
@@ -133,8 +135,7 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
     private class AccommodationRowMapper implements RowMapper<ExamAccommodation> {
         @Override
         public ExamAccommodation mapRow(ResultSet rs, int rowNum) throws SQLException {
-            return new ExamAccommodation.Builder()
-                .withId(UUID.fromString(rs.getString("id")))
+            return new ExamAccommodation.Builder(UUID.fromString(rs.getString("id")))
                 .withExamId(UUID.fromString(rs.getString("exam_id")))
                 .withSegmentKey(rs.getString("segment_key"))
                 .withType(rs.getString("type"))
@@ -147,6 +148,7 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
                 .withValue(rs.getString("value"))
                 .withSegmentPosition(rs.getInt("segment_position"))
                 .withTotalTypeCount(rs.getInt("total_type_count"))
+                .withCustom(rs.getBoolean("custom"))
                 .build();
         }
     }

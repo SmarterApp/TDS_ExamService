@@ -34,11 +34,15 @@ import tds.config.ClientSystemFlag;
 import tds.config.TimeLimitConfiguration;
 import tds.exam.ApprovalRequest;
 import tds.exam.Exam;
+import tds.exam.ExamAccommodation;
+import tds.exam.ExamApproval;
+import tds.exam.ExamApprovalStatus;
 import tds.exam.ExamConfiguration;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
 import tds.exam.OpenExamRequest;
 import tds.exam.builder.AssessmentBuilder;
+import tds.exam.builder.ExamAccommodationBuilder;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.builder.ExternalSessionConfigurationBuilder;
 import tds.exam.builder.OpenExamRequestBuilder;
@@ -404,6 +408,58 @@ public class ExamServiceImplTest {
     }
 
     @Test
+    public void shouldOpenExamWithCustomAccommodations() {
+        OpenExamRequest openExamRequest = new OpenExamRequestBuilder()
+            .withStudentId(1)
+            .withProctorId(99L)
+            .build();
+        Session currentSession = new SessionBuilder()
+            .build();
+
+        Student student = new Student(1, "loginSSD", "CA", "SBAC_PT");
+        Assessment assessment = new AssessmentBuilder().build();
+        ExternalSessionConfiguration extSessionConfig = new ExternalSessionConfigurationBuilder().build();
+        AssessmentWindow window = new AssessmentWindow.Builder()
+            .withAssessmentKey(openExamRequest.getAssessmentKey())
+            .withWindowId("window1")
+            .withStartTime(Instant.now())
+            .withAssessmentKey(openExamRequest.getAssessmentKey())
+            .build();
+
+        RtsStudentPackageAttribute externalIdAttribute = new RtsStudentPackageAttribute(EXTERNAL_ID, "External Id");
+        RtsStudentPackageAttribute entityNameAttribute = new RtsStudentPackageAttribute(ENTITY_NAME, "Entity Id");
+
+        TimeLimitConfiguration configuration = new TimeLimitConfiguration.Builder().withExamDelayDays(0).build();
+
+        ExamAccommodation customExamAccommodation = new ExamAccommodationBuilder()
+            .withCustom(true)
+            .build();
+
+        when(mockSessionService.findSessionById(openExamRequest.getSessionId())).thenReturn(Optional.of(currentSession));
+        when(mockStudentService.getStudentById(openExamRequest.getStudentId())).thenReturn(Optional.of(student));
+        when(mockAssessmentService.findAssessment("SBAC_PT", openExamRequest.getAssessmentKey())).thenReturn(Optional.of(assessment));
+        when(mockExamQueryRepository.getLastAvailableExam(openExamRequest.getStudentId(), assessment.getAssessmentId(), "SBAC_PT")).thenReturn(Optional.empty());
+        when(mockSessionService.findExternalSessionConfigurationByClientName("SBAC_PT")).thenReturn(Optional.of(extSessionConfig));
+        when(mockStudentService.findStudentPackageAttributes(openExamRequest.getStudentId(), "SBAC_PT", EXTERNAL_ID, ENTITY_NAME, ACCOMMODATIONS))
+            .thenReturn(Arrays.asList(externalIdAttribute, entityNameAttribute));
+        when(mockAssessmentService.findAssessmentWindows(currentSession.getClientName(), assessment.getAssessmentId(), openExamRequest.getStudentId(), extSessionConfig))
+            .thenReturn(Collections.singletonList(window));
+        when(mockTimeLimitConfigurationService.findTimeLimitConfiguration("SBAC_PT", openExamRequest.getAssessmentKey())).thenReturn(Optional.of(configuration));
+        when(mockExamStatusQueryRepository.findExamStatusCode(STATUS_PENDING)).thenReturn(new ExamStatusCode(STATUS_PENDING, OPEN));
+        when(mockExamAccommodationService.initializeExamAccommodations(isA(Exam.class))).thenReturn(Collections.singletonList(customExamAccommodation));
+
+        Response<Exam> examResponse = examService.openExam(openExamRequest);
+        verify(mockExamCommandRepository).insert(isA(Exam.class));
+        verify(mockExamAccommodationService).initializeExamAccommodations(isA(Exam.class));
+
+        assertThat(examResponse.hasError()).isFalse();
+
+        Exam exam = examResponse.getData().get();
+        assertThat(exam.getStatus().getCode()).isEqualTo(STATUS_PENDING);
+        assertThat(exam.isCustomAccommodations()).isTrue();
+    }
+
+    @Test
     public void shouldAllowPreviousExamToOpenIfDayHasPassed() {
         OpenExamRequest request = new OpenExamRequestBuilder()
             .withGuestAccommodations("guest")
@@ -545,6 +601,8 @@ public class ExamServiceImplTest {
             .withEnabled(true)
             .build();
 
+        ExamAccommodation examAccommodation = new ExamAccommodationBuilder().withCustom(true).build();
+
         when(mockSessionService.findExternalSessionConfigurationByClientName("SBAC_PT")).thenReturn(Optional.of(externalSessionConfiguration));
         when(mockSessionService.findSessionById(request.getSessionId())).thenReturn(Optional.of(currentSession));
         when(mockStudentService.getStudentById(request.getStudentId())).thenReturn(Optional.of(student));
@@ -554,6 +612,8 @@ public class ExamServiceImplTest {
         when(mockSessionService.findExternalSessionConfigurationByClientName("SBAC_PT")).thenReturn(Optional.of(externalSessionConfiguration));
         when(mockExamStatusQueryRepository.findExamStatusCode(STATUS_PENDING)).thenReturn(new ExamStatusCode(STATUS_PENDING, OPEN));
         when(mockConfigService.findClientSystemFlag("SBAC_PT", RESTORE_ACCOMMODATIONS_TYPE)).thenReturn(Optional.of(restoreAccommodations));
+        when(mockExamAccommodationService.initializeAccommodationsOnPreviousExam(previousExam, assessment, 0, true, request.getGuestAccommodations())).
+            thenReturn(Collections.singletonList(examAccommodation));
 
         Response<Exam> examResponse = examService.openExam(request);
 
@@ -567,6 +627,7 @@ public class ExamServiceImplTest {
         assertThat(savedExam.getStatusChangeDate()).isGreaterThan(approvedStatusDate);
         assertThat(savedExam.getDateChanged()).isNotNull();
         assertThat(savedExam.getDateStarted()).isEqualTo(previousExam.getDateStarted());
+        assertThat(savedExam.isCustomAccommodations()).isTrue();
     }
 
     @Test
