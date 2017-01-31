@@ -27,6 +27,12 @@ public class ApprovalRequest {
     }
 
     /**
+     * Private constructor for frameworks
+     */
+    private ApprovalRequest() {
+    }
+
+    /**
      * @return The id of the exam for which access is being requested
      */
     public UUID getExamId() {
