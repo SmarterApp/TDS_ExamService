@@ -27,6 +27,12 @@ public class ExamAccommodation {
     private int totalTypeCount;
     private boolean custom;
 
+    /**
+     * Private constructor for frameworks
+     */
+    private ExamAccommodation() {
+    }
+
     public static class Builder {
         private UUID id;
         private UUID examId;

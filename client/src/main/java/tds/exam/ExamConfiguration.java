@@ -1,7 +1,5 @@
 package tds.exam;
 
-import java.util.UUID;
-
 /**
  * Class containing exam configuration data
  */
@@ -18,7 +16,11 @@ public class ExamConfiguration {
     private int testLength;
     private boolean validateCompleteness;
 
-    private ExamConfiguration() {}
+    /**
+     * Private constructor for frameworks
+     */
+    private ExamConfiguration() {
+    }
 
     private ExamConfiguration(Builder builder) {
         this.exam = builder.exam;

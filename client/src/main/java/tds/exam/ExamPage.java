@@ -24,12 +24,12 @@ public class ExamPage {
     private Instant startedAt;
 
     /**
-     * For frameworks
+     * Private constructor for frameworks
      */
     private ExamPage() {
     }
 
-    public ExamPage(Builder builder) {
+    private ExamPage(Builder builder) {
         id = builder.id;
         pagePosition = builder.pagePosition;
         segmentKey = builder.segmentKey;

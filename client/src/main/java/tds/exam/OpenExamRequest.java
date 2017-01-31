@@ -46,7 +46,9 @@ public class OpenExamRequest {
         this.browserId = builder.browserId;
     }
 
-    //For frameworks
+    /**
+     * Private constructor for frameworks
+     */
     private OpenExamRequest() {
     }
 
