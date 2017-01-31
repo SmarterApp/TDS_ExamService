@@ -53,6 +53,7 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
             .withSelectable(true)
             .withSegmentPosition(5)
             .withTotalTypeCount(5)
+            .withCustom(true)
             .build());
 
         // Accommodation in second segment that is denied
@@ -115,6 +116,7 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
         assertThat(firstExamAccommodation.getCreatedAt()).isNotNull();
         assertThat(firstExamAccommodation.getCreatedAt()).isLessThan(Instant.now());
         assertThat(firstExamAccommodation.isApproved()).isTrue();
+        assertThat(firstExamAccommodation.isCustom()).isTrue();
 
         assertThat(secondAccommodation.getId()).isNotNull();
         assertThat(secondAccommodation.getExamId()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID);
