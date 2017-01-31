@@ -171,6 +171,7 @@ public class ExamAccommodationServiceImplTest {
             .withEntryControl(false)
             .withAllowChange(true)
             .withSelectable(true)
+            .withDefaultAccommodation(false)
             .build();
 
         Accommodation accommodationFrench = new AccommodationBuilder()
@@ -269,6 +270,7 @@ public class ExamAccommodationServiceImplTest {
         assertThat(examAccommodation.isAllowChange()).isTrue();
         assertThat(examAccommodation.getValue()).isEqualTo(accommodationThatShouldBePresent.getValue());
         assertThat(examAccommodation.isSelectable()).isTrue();
+        assertThat(examAccommodation.isCustom()).isTrue();
     }
 
     @Test
