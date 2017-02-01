@@ -19,6 +19,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import tds.common.data.mapping.ResultSetMapperUtility;
 import tds.common.data.mysql.UuidAdapter;
@@ -29,6 +31,10 @@ import tds.exam.models.Ability;
 import tds.exam.repositories.ExamQueryRepository;
 
 import static tds.common.data.mapping.ResultSetMapperUtility.mapTimestampToJodaInstant;
+import static tds.exam.ExamStatusCode.STATUS_PENDING;
+import static tds.exam.ExamStatusCode.STATUS_SEGMENT_ENTRY;
+import static tds.exam.ExamStatusCode.STATUS_SEGMENT_EXIT;
+import static tds.exam.ExamStatusCode.STATUS_SUSPENDED;
 
 @Repository
 public class ExamQueryRepositoryImpl implements ExamQueryRepository {
@@ -298,6 +304,11 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
     public List<Exam> getExamsPendingApproval(UUID sessionId) {
         final SqlParameterSource parameters = new MapSqlParameterSource("sessionId", UuidAdapter.getBytesFromUUID(sessionId));
 
+        // create list of statuses that require proctor approval
+        final String pendingStatus = Stream.of(
+            STATUS_PENDING, STATUS_SUSPENDED, STATUS_SEGMENT_ENTRY, STATUS_SEGMENT_EXIT).
+            collect(Collectors.joining(", ", "(", ")"));
+
         final String SQL =
             "SELECT \n" +
                 EXAM_QUERY_COLUMN_LIST +
@@ -316,7 +327,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
             "  ON esc.status = ee.status \n" +
             "WHERE \n" +
             "  e.session_id = :sessionId and \n" +
-            "  ee.status in ('pending', 'suspended', 'segmentEntry', 'segmentExit')";
+            "  ee.status in " + pendingStatus;
 
         return jdbcTemplate.query(SQL, parameters, new ExamRowMapper());
     }

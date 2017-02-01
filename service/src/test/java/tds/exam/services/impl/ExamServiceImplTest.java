@@ -763,6 +763,7 @@ public class ExamServiceImplTest {
         assertThat(maybeAbilityReturned.get()).isEqualTo(assessmentAbilityVal);
     }
 
+    @Test
     public void shouldGetInitialAbilityFromHistoryWithoutSlopeIntercept() {
         final UUID sessionId = UUID.randomUUID();
         final UUID thisExamId = UUID.randomUUID();

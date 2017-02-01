@@ -44,7 +44,7 @@ public class ExamApprovalController {
         return ResponseEntity.ok(examApproval);
     }
 
-    @RequestMapping(value = "/exams-pending-approval/{sessionId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/pending-approval/{sessionId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<List<Exam>> getExamsPendingApproval(@PathVariable final UUID sessionId) {
         List<Exam> examsPendingApproval = examApprovalService.getExamsPendingApproval(sessionId);
 

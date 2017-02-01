@@ -52,8 +52,7 @@ public class ExamApprovalServiceImpl implements ExamApprovalService {
 
     @Override
     public List<Exam> getExamsPendingApproval(UUID sessionId) {
-        List<Exam> examsPendingApproval = examQueryRepository.getExamsPendingApproval(sessionId);
-        return examsPendingApproval;
+        return examQueryRepository.getExamsPendingApproval(sessionId);
     }
 
     @Override
