@@ -45,7 +45,7 @@ public class ExamQueryRepositoryImplIntegrationTests {
     private NamedParameterJdbcTemplate jdbcTemplate;
 
     private UUID currentExamId = UUID.fromString("af880054-d1d2-4c24-805c-1f0dfdb45980");
-    private UUID mockSessionId = UUID.randomUUID();
+    private UUID mockSessionId = UUID.fromString("7595f73d-c0d2-4298-b7c8-045bacf1fe89");
     private Set<String> statusesThatCanTransitionToPaused;
 
     private List<Exam> examsInSession;
@@ -282,5 +282,11 @@ public class ExamQueryRepositoryImplIntegrationTests {
                 "VALUES(:examId, :measureLabel, :value, :measureOf, :useForAbility)";
 
         jdbcTemplate.update(SQL, parameters);
+    }
+
+    @Test
+    public void shouldReturnListOfExamsPendingApproval() {
+        List<Exam> examsPendingApproval = examQueryRepository.getExamsPendingApproval(mockSessionId);
+        assertThat(examsPendingApproval.size()).isEqualTo(1);
     }
 }

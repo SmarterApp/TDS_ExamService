@@ -13,12 +13,16 @@ import org.springframework.stereotype.Repository;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import tds.common.data.mapping.ResultSetMapperUtility;
 import tds.common.data.mysql.UuidAdapter;
@@ -29,6 +33,10 @@ import tds.exam.models.Ability;
 import tds.exam.repositories.ExamQueryRepository;
 
 import static tds.common.data.mapping.ResultSetMapperUtility.mapTimestampToJodaInstant;
+import static tds.exam.ExamStatusCode.STATUS_PENDING;
+import static tds.exam.ExamStatusCode.STATUS_SEGMENT_ENTRY;
+import static tds.exam.ExamStatusCode.STATUS_SEGMENT_EXIT;
+import static tds.exam.ExamStatusCode.STATUS_SUSPENDED;
 
 @Repository
 public class ExamQueryRepositoryImpl implements ExamQueryRepository {
@@ -292,6 +300,38 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "ORDER BY ee.date_scored DESC";
 
         return jdbcTemplate.query(SQL, parameters, new AbilityRowMapper());
+    }
+
+    @Override
+    public List<Exam> getExamsPendingApproval(UUID sessionId) {
+        // create list of statuses that require proctor approval
+        final List<String> pendingStatuses = Arrays.asList(
+            STATUS_PENDING, STATUS_SUSPENDED, STATUS_SEGMENT_ENTRY, STATUS_SEGMENT_EXIT);
+
+        final SqlParameterSource parameters = new MapSqlParameterSource("sessionId", UuidAdapter.getBytesFromUUID(sessionId))
+            .addValue("statusSet", pendingStatuses);
+
+        final String SQL =
+            "SELECT \n" +
+                EXAM_QUERY_COLUMN_LIST +
+            "FROM exam e \n" +
+            "JOIN ( \n" +
+            "  SELECT \n" +
+            "    exam_id, \n" +
+            "    MAX(id) as id \n" +
+            "  FROM exam_event \n" +
+            "  GROUP BY exam_id \n" +
+            ") last_event on \n" +
+            "  last_event.exam_id = e.id \n" +
+            "JOIN exam_event ee \n" +
+            "  ON last_event.id = ee.id \n" +
+            "JOIN exam.exam_status_codes esc \n" +
+            "  ON esc.status = ee.status \n" +
+            "WHERE \n" +
+            "  e.session_id = :sessionId and \n" +
+            "  ee.status IN (:statusSet)";
+
+        return jdbcTemplate.query(SQL, parameters, new ExamRowMapper());
     }
 
     private class AbilityRowMapper implements RowMapper<Ability> {

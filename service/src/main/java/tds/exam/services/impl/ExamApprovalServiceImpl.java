@@ -5,7 +5,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import tds.common.Response;
 import tds.common.ValidationError;
@@ -46,6 +48,11 @@ public class ExamApprovalServiceImpl implements ExamApprovalService {
         return maybeAccessViolation.isPresent()
             ? new Response<>(maybeAccessViolation.get())
             : new Response<>(new ExamApproval(approvalRequest.getExamId(), exam.getStatus(), exam.getStatusChangeReason()));
+    }
+
+    @Override
+    public List<Exam> getExamsPendingApproval(UUID sessionId) {
+        return examQueryRepository.getExamsPendingApproval(sessionId);
     }
 
     @Override
