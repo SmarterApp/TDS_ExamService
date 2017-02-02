@@ -305,11 +305,11 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
     @Override
     public List<Exam> getExamsPendingApproval(UUID sessionId) {
         // create list of statuses that require proctor approval
-        final Set<String> pendingStatusSet = new HashSet<>(Arrays.asList(
-            STATUS_PENDING, STATUS_SUSPENDED, STATUS_SEGMENT_ENTRY, STATUS_SEGMENT_EXIT));
+        final List<String> pendingStatuses = Arrays.asList(
+            STATUS_PENDING, STATUS_SUSPENDED, STATUS_SEGMENT_ENTRY, STATUS_SEGMENT_EXIT);
 
         final SqlParameterSource parameters = new MapSqlParameterSource("sessionId", UuidAdapter.getBytesFromUUID(sessionId))
-            .addValue("statusSet", pendingStatusSet);
+            .addValue("statusSet", pendingStatuses);
 
         final String SQL =
             "SELECT \n" +
