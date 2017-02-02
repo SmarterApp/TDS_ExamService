@@ -13,7 +13,9 @@ import org.springframework.stereotype.Repository;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -302,12 +304,12 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
 
     @Override
     public List<Exam> getExamsPendingApproval(UUID sessionId) {
-        final SqlParameterSource parameters = new MapSqlParameterSource("sessionId", UuidAdapter.getBytesFromUUID(sessionId));
-
         // create list of statuses that require proctor approval
-        final String pendingStatus = Stream.of(
-            STATUS_PENDING, STATUS_SUSPENDED, STATUS_SEGMENT_ENTRY, STATUS_SEGMENT_EXIT).
-            collect(Collectors.joining(", ", "(", ")"));
+        final Set<String> pendingStatusSet = new HashSet<>(Arrays.asList(
+            STATUS_PENDING, STATUS_SUSPENDED, STATUS_SEGMENT_ENTRY, STATUS_SEGMENT_EXIT));
+
+        final SqlParameterSource parameters = new MapSqlParameterSource("sessionId", UuidAdapter.getBytesFromUUID(sessionId))
+            .addValue("statusSet", pendingStatusSet);
 
         final String SQL =
             "SELECT \n" +
@@ -327,7 +329,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
             "  ON esc.status = ee.status \n" +
             "WHERE \n" +
             "  e.session_id = :sessionId and \n" +
-            "  ee.status in " + pendingStatus;
+            "  ee.status IN (:statusSet)";
 
         return jdbcTemplate.query(SQL, parameters, new ExamRowMapper());
     }
