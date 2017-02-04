@@ -35,8 +35,6 @@ import tds.config.TimeLimitConfiguration;
 import tds.exam.ApprovalRequest;
 import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
-import tds.exam.ExamApproval;
-import tds.exam.ExamApprovalStatus;
 import tds.exam.ExamConfiguration;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
@@ -686,10 +684,12 @@ public class ExamServiceImplTest {
     @Test
     public void shouldOpenPreviousExamIfPreviousExamIsInactiveStage() {
         OpenExamRequest request = new OpenExamRequestBuilder()
+            .withSessionId(UUID.randomUUID())
             .withStudentId(-1)
             .build();
 
         Session currentSession = new SessionBuilder()
+            .withId(request.getSessionId())
             .build();
 
         Session previousSession = new SessionBuilder()
@@ -704,6 +704,7 @@ public class ExamServiceImplTest {
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.INACTIVE), approvedStatusDate)
             .withDateStarted(Instant.now())
             .build();
+
         ExternalSessionConfiguration externalSessionConfiguration = new ExternalSessionConfiguration("SBAC_PT", SIMULATION_ENVIRONMENT, 0, 0, 0, 0);
         Assessment assessment = new AssessmentBuilder().build();
 
@@ -732,6 +733,7 @@ public class ExamServiceImplTest {
         assertThat(savedExam.getStatusChangeDate()).isGreaterThan(approvedStatusDate);
         assertThat(savedExam.getDateChanged()).isNotNull();
         assertThat(savedExam.getDateStarted()).isEqualTo(previousExam.getDateStarted());
+        assertThat(savedExam.getSessionId()).isEqualTo(request.getSessionId());
     }
 
     @Test
