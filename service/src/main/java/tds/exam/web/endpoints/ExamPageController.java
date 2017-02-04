@@ -31,9 +31,8 @@ public class ExamPageController {
     ResponseEntity<Response<ExamPage>> getPage(@PathVariable final UUID id,
                                                @PathVariable final int position,
                                                @RequestParam final UUID sessionId,
-                                               @RequestParam final UUID browserId,
-                                               @RequestParam final String clientName) {
-        ApprovalRequest approvalRequest = new ApprovalRequest(id, sessionId, browserId, clientName);
+                                               @RequestParam final UUID browserId) {
+        ApprovalRequest approvalRequest = new ApprovalRequest(id, sessionId, browserId);
         Response<ExamPage> page = examPageService.getPage(approvalRequest, position);
 
         if (page.hasError()) {

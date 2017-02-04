@@ -313,7 +313,7 @@ class ExamServiceImpl implements ExamService {
 
         /* StudentDLL [5269] / TestOpportunityServiceImpl [137] */
         Optional<ValidationError> maybeAccessViolation = examApprovalService.verifyAccess(new ApprovalRequest(examId, session.getId(),
-            exam.getBrowserId(), exam.getClientName()), exam);
+            exam.getBrowserId()), exam);
         if (maybeAccessViolation.isPresent()) {
             return new Response<ExamConfiguration>(maybeAccessViolation.get());
         }

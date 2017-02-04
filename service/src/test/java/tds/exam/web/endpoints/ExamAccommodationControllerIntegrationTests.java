@@ -1,5 +1,6 @@
 package tds.exam.web.endpoints;
 
+import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,9 +14,13 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Optional;
 import java.util.UUID;
 
+import tds.common.ValidationError;
 import tds.common.web.advice.ExceptionAdvice;
+import tds.exam.ApproveAccommodationsRequest;
 import tds.exam.ExamAccommodation;
 import tds.exam.builder.ExamAccommodationBuilder;
 import tds.exam.services.ExamAccommodationService;
@@ -25,6 +30,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -34,21 +40,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class ExamAccommodationControllerIntegrationTests {
     @Autowired
     private MockMvc http;
-
+    
     @MockBean
     private ExamAccommodationService mockExamAccommodationService;
-
+    
     @Test
     public void shouldReturnAllExamSegmentAccommodationsWhenTypeIsNotProvided() throws Exception {
         UUID mockExamId = UUID.randomUUID();
-
+        
         ExamAccommodation examAccommodation = new ExamAccommodationBuilder()
             .withExamId(mockExamId)
             .withSegmentKey("unit-test-segment")
             .build();
-
+        
         when(mockExamAccommodationService.findAccommodations(mockExamId, "unit-test-segment", null)).thenReturn(Collections.singletonList(examAccommodation));
-
+        
         http.perform(get(new URI(String.format("/exam/%s/unit-test-segment/accommodations", mockExamId)))
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$", hasSize(1)))
@@ -56,26 +62,26 @@ public class ExamAccommodationControllerIntegrationTests {
             .andExpect(jsonPath("[0].segmentKey", is(examAccommodation.getSegmentKey())))
             .andExpect(status().isOk());
     }
-
+    
     @Test
     public void shouldReturnExamSegmentAccommodationsForType() throws Exception {
         UUID mockExamId = UUID.randomUUID();
-
+        
         ExamAccommodation examAccommodation = new ExamAccommodationBuilder()
             .withExamId(mockExamId)
             .withSegmentKey("unit-test-segment")
             .withType("type1")
             .build();
-
+        
         ExamAccommodation examAccommodation2 = new ExamAccommodationBuilder()
             .withExamId(mockExamId)
             .withSegmentKey("unit-test-segment")
             .withType("type2")
             .build();
-
+        
         when(mockExamAccommodationService.findAccommodations(mockExamId, "unit-test-segment", "type1", "type2"))
             .thenReturn(Arrays.asList(examAccommodation, examAccommodation2));
-
+        
         http.perform(get(new URI(String.format("/exam/%s/unit-test-segment/accommodations?type=type1&type=type2", mockExamId)))
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$", hasSize(2)))
@@ -87,42 +93,82 @@ public class ExamAccommodationControllerIntegrationTests {
             .andExpect(jsonPath("[1].type", is(examAccommodation2.getType())))
             .andExpect(status().isOk());
     }
-
+    
     @Test
     public void shouldReturnAllExamAccommodations() throws Exception {
         UUID examId = UUID.randomUUID();
         ExamAccommodation examAccommodation = new ExamAccommodationBuilder()
             .withExamId(examId)
             .build();
-
+        
         when(mockExamAccommodationService.findAllAccommodations(examId)).thenReturn(Collections.singletonList(examAccommodation));
-
+        
         http.perform(get(new URI(String.format("/exam/%s/accommodations", examId)))
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$", hasSize(1)))
             .andExpect(jsonPath("[0].examId", is(examAccommodation.getExamId().toString())))
             .andExpect(jsonPath("[0].type", is(examAccommodation.getType())));
-
+        
         verify(mockExamAccommodationService).findAllAccommodations(examId);
     }
-
+    
+    @Test
+    public void shouldApproveAccommodationsAndReturnNoContentWithNoErrors() throws Exception {
+        final UUID examId = UUID.randomUUID();
+        final UUID sessionId = UUID.randomUUID();
+        final UUID browserId = UUID.randomUUID();
+        ApproveAccommodationsRequest request = new ApproveAccommodationsRequest(sessionId, browserId, new HashMap<>());
+        
+        when(mockExamAccommodationService.approveAccommodations(examId, request)).thenReturn(Optional.empty());
+        JSONObject requestJson = new JSONObject(request);
+        
+        http.perform(post(new URI(String.format("/exam/%s/accommodations", examId)))
+            .content(requestJson.toString())
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNoContent());
+        
+        verify(mockExamAccommodationService).approveAccommodations(examId, request);
+    }
+    
+    @Test
+    public void shouldReturnUnprocessableEntityWithError() throws Exception {
+        final UUID examId = UUID.randomUUID();
+        final UUID sessionId = UUID.randomUUID();
+        final UUID browserId = UUID.randomUUID();
+        final String errorCode = "ErrorCode";
+        final String errorMsg = "Error!";
+        ApproveAccommodationsRequest request = new ApproveAccommodationsRequest(sessionId, browserId, new HashMap<>());
+        
+        when(mockExamAccommodationService.approveAccommodations(examId, request)).thenReturn(Optional.of(new ValidationError(errorCode, errorMsg)));
+        JSONObject requestJson = new JSONObject(request);
+        
+        http.perform(post(new URI(String.format("/exam/%s/accommodations", examId)))
+            .content(requestJson.toString())
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("errors[0].code", is(errorCode)))
+            .andExpect(jsonPath("errors[0].message", is(errorMsg)))
+            .andExpect(status().isUnprocessableEntity());
+        
+        verify(mockExamAccommodationService).approveAccommodations(examId, request);
+    }
+    
     @Test
     public void shouldReturnApprovedExamAccommodations() throws Exception {
         UUID examId = UUID.randomUUID();
         ExamAccommodation examAccommodation = new ExamAccommodationBuilder()
             .withExamId(examId)
             .build();
-
+        
         when(mockExamAccommodationService.findApprovedAccommodations(examId)).thenReturn(Collections.singletonList(examAccommodation));
-
+        
         http.perform(get(new URI(String.format("/exam/%s/accommodations/approved", examId)))
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$", hasSize(1)))
             .andExpect(jsonPath("[0].examId", is(examAccommodation.getExamId().toString())))
             .andExpect(jsonPath("[0].type", is(examAccommodation.getType())));
-
+        
         verify(mockExamAccommodationService).findApprovedAccommodations(examId);
     }
 }

@@ -16,14 +16,10 @@ public class ApprovalRequest {
     @NotNull
     private UUID browserId;
 
-    @NotNull
-    private String clientName;
-
-    public ApprovalRequest(UUID examId, UUID sessionId, UUID browserId, String clientName) {
+    public ApprovalRequest(UUID examId, UUID sessionId, UUID browserId) {
         this.examId = examId;
         this.sessionId = sessionId;
         this.browserId = browserId;
-        this.clientName = clientName;
     }
 
     /**
@@ -53,16 +49,6 @@ public class ApprovalRequest {
         return browserId;
     }
 
-    /**
-     * @return The name of  the client that owns the exam.
-     * <p>
-     *     Examples include "SBAC" and "SBAC_PT".
-     * </p>
-     */
-    public String getClientName() {
-        return clientName;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -72,8 +58,7 @@ public class ApprovalRequest {
 
         if (!getExamId().equals(that.getExamId())) return false;
         if (!getSessionId().equals(that.getSessionId())) return false;
-        if (!getBrowserId().equals(that.getBrowserId())) return false;
-        return getClientName().equals(that.getClientName());
+        return getBrowserId().equals(that.getBrowserId());
     }
 
     @Override
@@ -81,7 +66,6 @@ public class ApprovalRequest {
         int result = getExamId().hashCode();
         result = 31 * result + getSessionId().hashCode();
         result = 31 * result + getBrowserId().hashCode();
-        result = 31 * result + getClientName().hashCode();
         return result;
     }
 }

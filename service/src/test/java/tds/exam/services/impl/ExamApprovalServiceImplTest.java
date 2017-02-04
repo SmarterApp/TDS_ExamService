@@ -66,6 +66,7 @@ public class ExamApprovalServiceImplTest {
                 .withId(examId)
                 .withSessionId(sessionId)
                 .withBrowserId(browserKey)
+                .withClientName(clientName)
                 .withAssessmentId(mockAssessmentId)
                 .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN), Instant.now())
                 .build()));
@@ -87,7 +88,7 @@ public class ExamApprovalServiceImplTest {
                 .withTaCheckinTimeMinutes(20)
                 .build()));
 
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey, clientName);
+        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey);
 
         Response<ExamApproval> result = examApprovalService.getApproval(approvalRequest);
 
@@ -110,6 +111,7 @@ public class ExamApprovalServiceImplTest {
             .thenReturn(Optional.of(new Exam.Builder()
                 .withId(examId)
                 .withSessionId(sessionId)
+                .withClientName(clientName)
                 .withBrowserId(browserKey)
                 .withAssessmentId(mockAssessmentId)
                 .withStatus(new ExamStatusCode(STATUS_PENDING, OPEN), Instant.now())
@@ -132,7 +134,7 @@ public class ExamApprovalServiceImplTest {
                 .withTaCheckinTimeMinutes(20)
                 .build()));
 
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey, clientName);
+        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey);
 
         Response<ExamApproval> result = examApprovalService.getApproval(approvalRequest);
 
@@ -154,6 +156,7 @@ public class ExamApprovalServiceImplTest {
         when(mockExamQueryRepository.getExamById(examId))
             .thenReturn(Optional.of(new Exam.Builder()
                 .withId(examId)
+                .withClientName(clientName)
                 .withSessionId(sessionId)
                 .withBrowserId(browserKey)
                 .withAssessmentId(mockAssessmentId)
@@ -177,7 +180,7 @@ public class ExamApprovalServiceImplTest {
                 .withTaCheckinTimeMinutes(20)
                 .build()));
 
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey, clientName);
+        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey);
 
         Response<ExamApproval> result = examApprovalService.getApproval(approvalRequest);
 
@@ -200,6 +203,7 @@ public class ExamApprovalServiceImplTest {
             .thenReturn(Optional.of(new Exam.Builder()
                 .withId(examId)
                 .withSessionId(sessionId)
+                .withClientName(clientName)
                 .withBrowserId(browserKey)
                 .withAssessmentId(mockAssessmentId)
                 .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN), Instant.now())
@@ -222,7 +226,7 @@ public class ExamApprovalServiceImplTest {
                 .withTaCheckinTimeMinutes(20)
                 .build()));
 
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey, clientName);
+        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey);
 
         Response<ExamApproval> result = examApprovalService.getApproval(approvalRequest);
 
@@ -245,6 +249,7 @@ public class ExamApprovalServiceImplTest {
             .thenReturn(Optional.of(new Exam.Builder()
                 .withId(examId)
                 .withSessionId(sessionId)
+                .withClientName(clientName)
                 .withBrowserId(UUID.randomUUID())
                 .withAssessmentId(mockAssessmentId)
                 .build()));
@@ -266,7 +271,7 @@ public class ExamApprovalServiceImplTest {
                 .withTaCheckinTimeMinutes(20)
                 .build()));
 
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey, clientName);
+        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey);
 
         Response<ExamApproval> result = examApprovalService.getApproval(approvalRequest);
 
@@ -287,6 +292,7 @@ public class ExamApprovalServiceImplTest {
             .thenReturn(Optional.of(new Exam.Builder()
                 .withId(examId)
                 .withSessionId(UUID.randomUUID())
+                .withClientName(clientName)
                 .withBrowserId(browserKey)
                 .withAssessmentId(mockAssessmentId)
                 .build()));
@@ -308,7 +314,7 @@ public class ExamApprovalServiceImplTest {
                 .withTaCheckinTimeMinutes(20)
                 .build()));
 
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey, clientName);
+        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey);
 
         Response<ExamApproval> result = examApprovalService.getApproval(approvalRequest);
 
@@ -328,6 +334,7 @@ public class ExamApprovalServiceImplTest {
         when(mockExamQueryRepository.getExamById(examId))
             .thenReturn(Optional.of(new Exam.Builder()
                 .withId(examId)
+                .withClientName(clientName)
                 .withSessionId(sessionId)
                 .withBrowserId(browserKey)
                 .withAssessmentId(mockAssessmentId)
@@ -350,7 +357,7 @@ public class ExamApprovalServiceImplTest {
                 .withTaCheckinTimeMinutes(20)
                 .build()));
 
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey, clientName);
+        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey);
 
         Response<ExamApproval> result = examApprovalService.getApproval(approvalRequest);
 
@@ -371,6 +378,7 @@ public class ExamApprovalServiceImplTest {
             .thenReturn(Optional.of(new Exam.Builder()
                 .withId(examId)
                 .withSessionId(sessionId)
+                .withClientName(clientName)
                 .withBrowserId(browserKey)
                 .withAssessmentId(mockAssessmentId)
                 .build()));
@@ -392,7 +400,7 @@ public class ExamApprovalServiceImplTest {
                 .withTaCheckinTimeMinutes(20)
                 .build()));
 
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey, clientName);
+        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey);
 
         Response<ExamApproval> result = examApprovalService.getApproval(approvalRequest);
 
@@ -429,7 +437,7 @@ public class ExamApprovalServiceImplTest {
                 .withTaCheckinTimeMinutes(20)
                 .build()));
 
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey, clientName);
+        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey);
 
         examApprovalService.getApproval(approvalRequest);
     }
@@ -446,6 +454,7 @@ public class ExamApprovalServiceImplTest {
         when(mockExamQueryRepository.getExamById(examId))
             .thenReturn(Optional.of(new Exam.Builder()
                 .withId(examId)
+                .withClientName(clientName)
                 .withSessionId(sessionId)
                 .withBrowserId(browserKey)
                 .withAssessmentId(mockAssessmentId)
@@ -461,7 +470,7 @@ public class ExamApprovalServiceImplTest {
                 .withTaCheckinTimeMinutes(20)
                 .build()));
 
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey, clientName);
+        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey);
 
         examApprovalService.getApproval(approvalRequest);
     }
@@ -479,6 +488,7 @@ public class ExamApprovalServiceImplTest {
             .thenReturn(Optional.of(new Exam.Builder()
                 .withId(examId)
                 .withSessionId(sessionId)
+                .withClientName(clientName)
                 .withBrowserId(browserKey)
                 .withAssessmentId(mockAssessmentId)
                 .build()));
@@ -500,7 +510,7 @@ public class ExamApprovalServiceImplTest {
                 .withTaCheckinTimeMinutes(20)
                 .build()));
 
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey, clientName);
+        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey);
 
         examApprovalService.getApproval(approvalRequest);
     }
@@ -517,6 +527,7 @@ public class ExamApprovalServiceImplTest {
         when(mockExamQueryRepository.getExamById(examId))
             .thenReturn(Optional.of(new Exam.Builder()
                 .withId(examId)
+                .withClientName(clientName)
                 .withSessionId(sessionId)
                 .withBrowserId(browserKey)
                 .withAssessmentId(mockAssessmentId)
@@ -535,7 +546,7 @@ public class ExamApprovalServiceImplTest {
         when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(clientName, mockAssessmentId))
             .thenReturn(Optional.empty());
 
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey, clientName);
+        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey);
 
         examApprovalService.getApproval(approvalRequest);
     }

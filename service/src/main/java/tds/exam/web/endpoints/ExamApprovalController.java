@@ -32,9 +32,8 @@ public class ExamApprovalController {
     @RequestMapping(value = "/{id}/approval", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<Response<ExamApproval>> getApproval(@PathVariable final UUID id,
                                                        @RequestParam final UUID sessionId,
-                                                       @RequestParam final UUID browserId,
-                                                       @RequestParam final String clientName) {
-        ApprovalRequest approvalRequest = new ApprovalRequest(id, sessionId, browserId, clientName);
+                                                       @RequestParam final UUID browserId) {
+        ApprovalRequest approvalRequest = new ApprovalRequest(id, sessionId, browserId);
         Response<ExamApproval> examApproval = examApprovalService.getApproval(approvalRequest);
 
         if (examApproval.hasError()) {

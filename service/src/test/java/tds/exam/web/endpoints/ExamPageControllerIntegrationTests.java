@@ -59,8 +59,7 @@ public class ExamPageControllerIntegrationTests {
             .build();
         ApprovalRequest approvalRequest = new ApprovalRequest(examPage.getExamId(),
             UUID.randomUUID(),
-            UUID.randomUUID(),
-            "UNIT_TEST");
+            UUID.randomUUID());
 
         ArgumentCaptor<ApprovalRequest> approvalRequestArgumentCaptor = ArgumentCaptor.forClass(ApprovalRequest.class);
         when(mockExamPageService.getPage(isA(ApprovalRequest.class), isA(Integer.class)))
@@ -69,8 +68,7 @@ public class ExamPageControllerIntegrationTests {
         http.perform(get("/exam/{id}/page/{position}", examPage.getExamId(), examPage.getPagePosition())
             .contentType(MediaType.APPLICATION_JSON)
             .param("sessionId", approvalRequest.getSessionId().toString())
-            .param("browserId", approvalRequest.getBrowserId().toString())
-            .param("clientName", approvalRequest.getClientName()))
+            .param("browserId", approvalRequest.getBrowserId().toString()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("data").isNotEmpty())
             .andExpect(jsonPath("data.id", is(examPage.getId().toString())))
@@ -116,8 +114,7 @@ public class ExamPageControllerIntegrationTests {
             .build();
         ApprovalRequest approvalRequest = new ApprovalRequest(examPage.getExamId(),
             UUID.randomUUID(),
-            UUID.randomUUID(),
-            "UNIT_TEST");
+            UUID.randomUUID());
 
         ArgumentCaptor<ApprovalRequest> approvalRequestArgumentCaptor = ArgumentCaptor.forClass(ApprovalRequest.class);
         when(mockExamPageService.getPage(isA(ApprovalRequest.class), isA(Integer.class)))
@@ -126,8 +123,7 @@ public class ExamPageControllerIntegrationTests {
         http.perform(get("/exam/{id}/page/{position}", examPage.getExamId(), examPage.getPagePosition())
             .contentType(MediaType.APPLICATION_JSON)
             .param("sessionId", approvalRequest.getSessionId().toString())
-            .param("browserId", approvalRequest.getBrowserId().toString())
-            .param("clientName", approvalRequest.getClientName()))
+            .param("browserId", approvalRequest.getBrowserId().toString()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("data").isNotEmpty())
             .andExpect(jsonPath("data.id", is(examPage.getId().toString())))
@@ -162,8 +158,7 @@ public class ExamPageControllerIntegrationTests {
     public void shouldNotGetAnExamPageForAClosedSession() throws Exception {
         ApprovalRequest approvalRequest = new ApprovalRequest(UUID.randomUUID(),
             UUID.randomUUID(),
-            UUID.randomUUID(),
-            "UNIT_TEST");
+            UUID.randomUUID());
 
         ArgumentCaptor<ApprovalRequest> approvalRequestArgumentCaptor = ArgumentCaptor.forClass(ApprovalRequest.class);
         when(mockExamPageService.getPage(isA(ApprovalRequest.class), isA(Integer.class)))
@@ -172,8 +167,7 @@ public class ExamPageControllerIntegrationTests {
         http.perform(get("/exam/{id}/page/{position}", approvalRequest.getExamId(), 1)
             .contentType(MediaType.APPLICATION_JSON)
             .param("sessionId", approvalRequest.getSessionId().toString())
-            .param("browserId", approvalRequest.getBrowserId().toString())
-            .param("clientName", approvalRequest.getClientName()))
+            .param("browserId", approvalRequest.getBrowserId().toString()))
             .andExpect(status().isUnprocessableEntity())
             .andExpect(jsonPath("error").isNotEmpty())
             .andExpect(jsonPath("error.code", is("sessionClosed")))

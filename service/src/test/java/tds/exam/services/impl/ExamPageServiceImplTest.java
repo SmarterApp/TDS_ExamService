@@ -109,7 +109,6 @@ public class ExamPageServiceImplTest {
         UUID mockExamId = UUID.randomUUID();
         UUID mockSessionId = UUID.randomUUID();
         UUID mockBrowserId = UUID.randomUUID();
-        String mockClientName = "UNIT_TEST";
 
         Instant respondedAtInstant = Instant.now().minus(200000);
         ExamItem mockFirstExamItem = new ExamItemBuilder()
@@ -138,10 +137,7 @@ public class ExamPageServiceImplTest {
             .withExamItems(mockExamItems)
             .build();
 
-        ApprovalRequest mockApprovalRequest = new ApprovalRequest(mockExamId,
-            mockSessionId,
-            mockBrowserId,
-            mockClientName);
+        ApprovalRequest mockApprovalRequest = new ApprovalRequest(mockExamId, mockSessionId, mockBrowserId);
 
         ExamApproval mockExamApproval = new ExamApproval(mockExamId,
             new ExamStatusCode(ExamStatusCode.STATUS_STARTED, ExamStatusStage.IN_PROGRESS),
@@ -169,11 +165,9 @@ public class ExamPageServiceImplTest {
         UUID mockExamId = UUID.randomUUID();
         UUID mockSessionId = UUID.randomUUID();
         UUID mockBrowserId = UUID.randomUUID();
-        String mockClientName = "UNIT_TEST";
         ApprovalRequest mockApprovalRequest = new ApprovalRequest(mockExamId,
             mockSessionId,
-            mockBrowserId,
-            mockClientName);
+            mockBrowserId);
 
         Response<ExamApproval> mockApprovalFailure = new Response<>(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_SESSION_CLOSED, "The session is not available for testing, please check with your test administrator."));
 
