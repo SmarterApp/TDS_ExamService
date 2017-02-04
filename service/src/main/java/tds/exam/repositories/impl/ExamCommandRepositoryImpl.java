@@ -30,7 +30,6 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
         SqlParameterSource examParameters = new MapSqlParameterSource("id", exam.getId().toString())
             .addValue("clientName", exam.getClientName())
             .addValue("environment", exam.getEnvironment())
-            .addValue("sessionId", getBytesFromUUID(exam.getSessionId()))
             .addValue("subject", exam.getSubject())
             .addValue("loginSsid", exam.getLoginSSID())
             .addValue("studentId", exam.getStudentId())
@@ -47,7 +46,6 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
             "  id,\n" +
             "  client_name, \n" +
             "  environment,\n" +
-            "  session_id,\n" +
             "  subject,\n" +
             "  login_ssid,\n" +
             "  student_id,\n" +
@@ -64,7 +62,6 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
             "  :id,\n" +
             "  :clientName,\n" +
             "  :environment,\n" +
-            "  :sessionId,\n" +
             "  :subject,\n" +
             "  :loginSsid,\n" +
             "  :studentId,\n" +
@@ -91,6 +88,7 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
         SqlParameterSource[] batchParameters = Stream.of(exams)
             .map(exam -> new MapSqlParameterSource("examId", exam.getId().toString())
                 .addValue("attempts", exam.getAttempts())
+                .addValue("sessionId", exam.getSessionId().toString())
                 .addValue("status", exam.getStatus().getCode())
                 .addValue("statusChangeDate", mapJodaInstantToTimestamp(exam.getStatusChangeDate()))
                 .addValue("browserId", getBytesFromUUID(exam.getBrowserId()))
@@ -116,6 +114,7 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
                 "max_items, \n" +
                 "language_code, \n" +
                 "expire_from, \n" +
+                "session_id, \n" +
                 "browser_id, \n" +
                 "status, \n" +
                 "status_change_date, \n" +
@@ -137,6 +136,7 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
                 ":maxItems, \n" +
                 ":languageCode, \n" +
                 ":expireFrom, \n" +
+                ":sessionId, \n" +
                 ":browserId, \n" +
                 ":status, \n" +
                 ":statusChangeDate, \n" +
