@@ -8,18 +8,26 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import tds.accommodation.Accommodation;
 import tds.assessment.Assessment;
+import tds.common.ValidationError;
+import tds.exam.ApprovalRequest;
+import tds.exam.ApproveAccommodationsRequest;
 import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
 import tds.exam.repositories.ExamAccommodationCommandRepository;
 import tds.exam.repositories.ExamAccommodationQueryRepository;
+import tds.exam.repositories.ExamQueryRepository;
 import tds.exam.services.AssessmentService;
 import tds.exam.services.ExamAccommodationService;
+import tds.exam.services.ExamApprovalService;
+import tds.exam.services.SessionService;
+import tds.session.Session;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
@@ -32,15 +40,24 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
 
     private final ExamAccommodationQueryRepository examAccommodationQueryRepository;
     private final ExamAccommodationCommandRepository examAccommodationCommandRepository;
+    private final ExamApprovalService examApprovalService;
+    private final SessionService sessionService;
     private final AssessmentService assessmentService;
-
+    private final ExamQueryRepository examQueryRepository;
+    
     @Autowired
     public ExamAccommodationServiceImpl(ExamAccommodationQueryRepository examAccommodationQueryRepository,
                                         ExamAccommodationCommandRepository examAccommodationCommandRepository,
-                                        AssessmentService assessmentService) {
+                                        AssessmentService assessmentService,
+                                        SessionService sessionService,
+                                        ExamApprovalService examApprovalService,
+                                        ExamQueryRepository examQueryRepository) {
         this.examAccommodationQueryRepository = examAccommodationQueryRepository;
         this.examAccommodationCommandRepository = examAccommodationCommandRepository;
         this.assessmentService = assessmentService;
+        this.sessionService = sessionService;
+        this.examApprovalService = examApprovalService;
+        this.examQueryRepository = examQueryRepository;
     }
 
     @Override
@@ -108,29 +125,72 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
         if (examAccommodations.isEmpty()) {
             examAccommodations = initializeExamAccommodations(exam);
         } else {
-            examAccommodations = initializePreviousAccommodations(exam, assessment, segmentPosition, restoreRts, guestAccommodations, examAccommodations);
+            //CommonDLL line 2590 - gets the accommodation codes based on guest accommodations and the accommodation family for the assessment
+            Set<String> accommodationCodes = splitAccommodationCodes(assessment.getAccommodationFamily(), guestAccommodations);
+            examAccommodations = initializePreviousAccommodations(exam, segmentPosition, restoreRts, examAccommodations, accommodationCodes);
         }
 
         return examAccommodations;
     }
-
+    
+    @Override
+    public Optional<ValidationError> approveAccommodations(UUID examId, ApproveAccommodationsRequest request) {
+        /* This method is a port of StudentDLL.T_ApproveAccommodations_SP, starting at line 11429 */
+        ApprovalRequest approvalRequest = new ApprovalRequest(examId, request.getSessionId(), request.getBrowserId());
+    
+        Optional<Exam> maybeExam = examQueryRepository.getExamById(examId);
+        
+        if (!maybeExam.isPresent()) {
+            return Optional.of(new ValidationError("T_ApproveAccommodations", "The test opportunity does not exist"));
+        }
+        
+        Exam exam = maybeExam.get();
+        /* line 11441 */
+        Optional<ValidationError> maybeError = examApprovalService.verifyAccess(approvalRequest, exam);
+        
+        if (maybeError.isPresent()) {
+            return maybeError;
+        }
+    
+        /* lines 11465-11473 */
+        Optional<Session> maybeSession = sessionService.findSessionById(exam.getSessionId());
+        
+        if (!maybeSession.isPresent()) {
+            return Optional.of(new ValidationError("T_ApproveAccommodations", "The test opportunity is not enrolled in this session"));
+        } else if (maybeSession.isPresent() && maybeSession.get().getProctorId() != null) {
+            return Optional.of(new ValidationError("T_ApproveAccommodations", "Student can only self-approve unproctored sessions"));
+        }
+        
+        // Get the list of current exam accomms in case we need to update them (for example, if a pre-initialized default was changed by the guest user)
+        List<ExamAccommodation> currentAccommodations = examAccommodationQueryRepository.findApprovedAccommodations(examId);
+    
+        // For each assessment and segments separately, initialize their respective accommodations
+        request.getAccommodationCodes().forEach((segmentPosition, guestAccommodationCodes) -> {
+            initializePreviousAccommodations(exam, segmentPosition, false, currentAccommodations, guestAccommodationCodes);
+        });
+        
+        return Optional.empty();
+    }
+    
+//    private updateExamAccommodations
+    
     private static String getOtherAccommodationValue(String formattedValue) {
         return formattedValue.substring("TDS_Other#".length());
     }
 
-    private List<String> splitAccommodationCodes(String accommodationFamily, String accommodationsAsConcatenatedString) {
+    private Set<String> splitAccommodationCodes(String accommodationFamily, String accommodationsAsConcatenatedString) {
         /*
             This replaces CommonDLL._SplitAccomCodes_FN.  It takes the accommodation family from an Assessment (via configs.client_testproperties)
             and the guest accommodations, which are both delimited Strings, and creates a List of code strings.  The existing code creates a
             temporary table with an additional 'idx' column that is never used upstream.
         */
         if (isEmpty(accommodationsAsConcatenatedString) || isEmpty(accommodationFamily)) {
-            return new ArrayList<>();
+            return new HashSet<>();
         }
 
         accommodationFamily += ":";
 
-        List<String> accommodationCodes = new ArrayList<>();
+        Set<String> accommodationCodes = new HashSet<>();
         for (String accommodation : accommodationsAsConcatenatedString.split(";")) {
             String accommodationCode = "";
             if (accommodation.indexOf(':') > -1 && !accommodation.contains(accommodationFamily)) {
@@ -150,16 +210,12 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
     }
 
     private List<ExamAccommodation> initializePreviousAccommodations(Exam exam,
-                                                                     Assessment assessment,
                                                                      int segmentPosition,
                                                                      boolean restoreRts,
-                                                                     String guestAccommodations,
-                                                                     List<ExamAccommodation> existingExamAccommodations) {
+                                                                     List<ExamAccommodation> existingExamAccommodations,
+                                                                     Set<String> accommodationCodes) {
         //This method replaces CommonDLL._UpdateOpportunityAccommodations_SP.
         Instant now = Instant.now();
-
-        //CommonDLL line 2590 - gets the accommodation codes based on guest accommodations and the accommodation family for the assessment
-        List<String> accommodationCodes = splitAccommodationCodes(assessment.getAccommodationFamily(), guestAccommodations);
 
         // CommonDLL line 2593 fetches the key accommodations via CommonDLL.TestKeyAccommodations_FN which this call replicates.  The legacy application leverages
         // temporary tables for most of its data structures which is unnecessary in this case so a collection is returned.

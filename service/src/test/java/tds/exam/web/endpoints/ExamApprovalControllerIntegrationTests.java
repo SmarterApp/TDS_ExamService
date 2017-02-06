@@ -47,9 +47,8 @@ public class ExamApprovalControllerIntegrationTests {
         UUID examId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
         UUID browserId = UUID.randomUUID();
-        String clientName = "UNIT_TEST";
 
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserId, clientName);
+        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserId);
         ArgumentCaptor<ApprovalRequest> approvalRequestArgumentCaptor = ArgumentCaptor.forClass(ApprovalRequest.class);
         ExamApproval mockApproval = new ExamApproval(examId,
             new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.INACTIVE),
@@ -61,8 +60,7 @@ public class ExamApprovalControllerIntegrationTests {
         http.perform(get("/exam/{id}/approval", examId)
             .contentType(MediaType.APPLICATION_JSON)
             .param("sessionId", approvalRequest.getSessionId().toString())
-            .param("browserId", approvalRequest.getBrowserId().toString())
-            .param("clientName", approvalRequest.getClientName()))
+            .param("browserId", approvalRequest.getBrowserId().toString()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("data").isNotEmpty())
             .andExpect(jsonPath("data.examId", is(examId.toString())))
@@ -76,9 +74,8 @@ public class ExamApprovalControllerIntegrationTests {
         UUID examId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
         UUID browserId = UUID.randomUUID();
-        String clientName = "UNIT_TEST";
 
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserId, clientName);
+        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserId);
         ArgumentCaptor<ApprovalRequest> approvalRequestArgumentCaptor = ArgumentCaptor.forClass(ApprovalRequest.class);
         ValidationError mockFailure = new ValidationError(ValidationErrorCode.EXAM_APPROVAL_SESSION_CLOSED, "session is closed");
 
@@ -88,8 +85,7 @@ public class ExamApprovalControllerIntegrationTests {
         http.perform(get("/exam/{id}/approval", examId)
             .contentType(MediaType.APPLICATION_JSON)
             .param("sessionId", approvalRequest.getSessionId().toString())
-            .param("browserId", approvalRequest.getBrowserId().toString())
-            .param("clientName", approvalRequest.getClientName()))
+            .param("browserId", approvalRequest.getBrowserId().toString()))
             .andExpect(status().isUnprocessableEntity())
             .andExpect(jsonPath("error").isNotEmpty())
             .andExpect(jsonPath("error.code", is(ValidationErrorCode.EXAM_APPROVAL_SESSION_CLOSED)))
