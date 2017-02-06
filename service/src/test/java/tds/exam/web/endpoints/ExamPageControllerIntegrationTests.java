@@ -49,51 +49,50 @@ public class ExamPageControllerIntegrationTests {
 
     @Test
     public void shouldGetAnExamPage() throws Exception {
-        ExamItem examItem = new ExamItemBuilder()
+        ExamItem mockExamItem = new ExamItemBuilder()
             .withStimulusFilePath("/path/to/stimulus/187-1234.xml")
             .build();
-        List<ExamItem> examItems = Arrays.asList(examItem);
+        List<ExamItem> mockExamItems = Arrays.asList(mockExamItem);
 
-        ExamPage examPage = new ExamPageBuilder()
-            .withExamItems(examItems)
+        ExamPage mockExamPage = new ExamPageBuilder()
+            .withExamItems(mockExamItems)
             .build();
-        ApprovalRequest approvalRequest = new ApprovalRequest(examPage.getExamId(),
+        ApprovalRequest approvalRequest = new ApprovalRequest(mockExamPage.getExamId(),
             UUID.randomUUID(),
             UUID.randomUUID(),
             "UNIT_TEST");
 
         ArgumentCaptor<ApprovalRequest> approvalRequestArgumentCaptor = ArgumentCaptor.forClass(ApprovalRequest.class);
         when(mockExamPageService.getPage(isA(ApprovalRequest.class), isA(Integer.class)))
-            .thenReturn(new Response<>(examPage));
+            .thenReturn(new Response<>(mockExamPage));
 
-        http.perform(get("/exam/{id}/page/{position}", examPage.getExamId(), examPage.getPagePosition())
+        http.perform(get("/exam/{id}/page/{position}", mockExamPage.getExamId(), mockExamPage.getPagePosition())
             .contentType(MediaType.APPLICATION_JSON)
             .param("sessionId", approvalRequest.getSessionId().toString())
             .param("browserId", approvalRequest.getBrowserId().toString())
             .param("clientName", approvalRequest.getClientName()))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("data").isNotEmpty())
-            .andExpect(jsonPath("data.id", is(examPage.getId().toString())))
-            .andExpect(jsonPath("data.pagePosition", is(examPage.getPagePosition())))
-            .andExpect(jsonPath("data.segmentKey", is(examPage.getSegmentKey())))
-            .andExpect(jsonPath("data.segmentId", is(examPage.getSegmentId())))
-            .andExpect(jsonPath("data.segmentPosition", is(examPage.getSegmentPosition())))
-            .andExpect(jsonPath("data.itemGroupKey", is(examPage.getItemGroupKey())))
-            .andExpect(jsonPath("data.groupItemsRequired", is(examPage.isGroupItemsRequired())))
-            .andExpect(jsonPath("data.examId", is(examPage.getExamId().toString())))
+
+            .andExpect(jsonPath("data.id", is(mockExamPage.getId().toString())))
+            .andExpect(jsonPath("data.pagePosition", is(mockExamPage.getPagePosition())))
+            .andExpect(jsonPath("data.segmentKey", is(mockExamPage.getSegmentKey())))
+            .andExpect(jsonPath("data.segmentId", is(mockExamPage.getSegmentId())))
+            .andExpect(jsonPath("data.segmentPosition", is(mockExamPage.getSegmentPosition())))
+            .andExpect(jsonPath("data.itemGroupKey", is(mockExamPage.getItemGroupKey())))
+            .andExpect(jsonPath("data.groupItemsRequired", is(mockExamPage.isGroupItemsRequired())))
+            .andExpect(jsonPath("data.examId", is(mockExamPage.getExamId().toString())))
             .andExpect(jsonPath("data.examItems").isArray())
-            .andExpect(jsonPath("data.examItems[0].id", is((examItem.getId().toString()))))
-            .andExpect(jsonPath("data.examItems[0].examPageId", is((examItem.getExamPageId().toString()))))
-            .andExpect(jsonPath("data.examItems[0].assessmentItemBankKey", is((int) examItem.getAssessmentItemBankKey())))
-            .andExpect(jsonPath("data.examItems[0].assessmentItemKey", is((int) examItem.getAssessmentItemKey())))
-            .andExpect(jsonPath("data.examItems[0].itemType", is(examItem.getItemType())))
-            .andExpect(jsonPath("data.examItems[0].position", is(examItem.getPosition())))
-            .andExpect(jsonPath("data.examItems[0].required", is(examItem.isRequired())))
-            .andExpect(jsonPath("data.examItems[0].selected", is(examItem.isSelected())))
-            .andExpect(jsonPath("data.examItems[0].markedForReview", is(examItem.isMarkedForReview())))
-            .andExpect(jsonPath("data.examItems[0].fieldTest", is(examItem.isFieldTest())))
-            .andExpect(jsonPath("data.examItems[0].itemFilePath", is(examItem.getItemFilePath())))
-            .andExpect(jsonPath("data.examItems[0].stimulusFilePath", is(examItem.getStimulusFilePath().get())));
+            .andExpect(jsonPath("data.examItems[0].id", is((mockExamItem.getId().toString()))))
+            .andExpect(jsonPath("data.examItems[0].examPageId", is((mockExamItem.getExamPageId().toString()))))
+            .andExpect(jsonPath("data.examItems[0].assessmentItemBankKey", is((int) mockExamItem.getAssessmentItemBankKey())))
+            .andExpect(jsonPath("data.examItems[0].assessmentItemKey", is((int) mockExamItem.getAssessmentItemKey())))
+            .andExpect(jsonPath("data.examItems[0].itemType", is(mockExamItem.getItemType())))
+            .andExpect(jsonPath("data.examItems[0].position", is(mockExamItem.getPosition())))
+            .andExpect(jsonPath("data.examItems[0].required", is(mockExamItem.isRequired())))
+            .andExpect(jsonPath("data.examItems[0].markedForReview", is(mockExamItem.isMarkedForReview())))
+            .andExpect(jsonPath("data.examItems[0].fieldTest", is(mockExamItem.isFieldTest())))
+            .andExpect(jsonPath("data.examItems[0].itemFilePath", is(mockExamItem.getItemFilePath())))
+            .andExpect(jsonPath("data.examItems[0].stimulusFilePath", is(mockExamItem.getStimulusFilePath().get())));
 
         verify(mockExamPageService).getPage(approvalRequestArgumentCaptor.capture(), isA(Integer.class));
     }
@@ -146,7 +145,6 @@ public class ExamPageControllerIntegrationTests {
             .andExpect(jsonPath("data.examItems[0].itemType", is(examItem.getItemType())))
             .andExpect(jsonPath("data.examItems[0].position", is(examItem.getPosition())))
             .andExpect(jsonPath("data.examItems[0].required", is(examItem.isRequired())))
-            .andExpect(jsonPath("data.examItems[0].selected", is(examItem.isSelected())))
             .andExpect(jsonPath("data.examItems[0].markedForReview", is(examItem.isMarkedForReview())))
             .andExpect(jsonPath("data.examItems[0].fieldTest", is(examItem.isFieldTest())))
             .andExpect(jsonPath("data.examItems[0].itemFilePath", is(examItem.getItemFilePath())))

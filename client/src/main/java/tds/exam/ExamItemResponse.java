@@ -1,5 +1,7 @@
 package tds.exam;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.Optional;
 import org.joda.time.Instant;
 
 import java.util.UUID;
@@ -15,8 +17,13 @@ public class ExamItemResponse {
     private String response;
     private int sequence;
     private boolean valid;
+    private boolean selected;
+    private ExamItemResponseScore score;
     private Instant createdAt;
 
+    /**
+     * For frameworks
+     */
     private ExamItemResponse() {
     }
 
@@ -26,6 +33,8 @@ public class ExamItemResponse {
         response = builder.response;
         sequence = builder.sequence;
         valid = builder.valid;
+        selected = builder.selected;
+        score = builder.score;
         createdAt = builder.createdAt;
     }
 
@@ -35,7 +44,22 @@ public class ExamItemResponse {
         private String response;
         private int sequence;
         private boolean valid;
+        private boolean selected;
+        private ExamItemResponseScore score;
         private Instant createdAt;
+
+        public Builder fromExamItemResponse(ExamItemResponse examItemResponse) {
+            id = examItemResponse.id;
+            examItemId = examItemResponse.examItemId;
+            response = examItemResponse.response;
+            sequence = examItemResponse.sequence;
+            valid = examItemResponse.valid;
+            selected = examItemResponse.selected;
+            score = examItemResponse.score;
+            createdAt = examItemResponse.createdAt;
+            return this;
+        }
+
 
         public Builder withId(long id) {
             this.id = id;
@@ -63,6 +87,16 @@ public class ExamItemResponse {
 
         public Builder withValid(boolean valid) {
             this.valid = valid;
+            return this;
+        }
+
+        public Builder withSelected(boolean selected) {
+            this.selected = selected;
+            return this;
+        }
+
+        public Builder withScore(ExamItemResponseScore score) {
+            this.score = score;
             return this;
         }
 
@@ -98,12 +132,14 @@ public class ExamItemResponse {
     }
 
     /**
+     * TODO: This description is not correct; find better/more accurate description
+     *
      * @return The sequence in which the {@link tds.exam.ExamItem} was responded to (e.g. the third item might be
      * responded to first)
      * <p>
-     *     Response sequence is 1-based.  If a student has never responded to an item, there will not be a record in the
-     *     {@code exam_item_response} table.  In legacy, if a student has never responded to an item, the
-     *     {@code testeeresponse.responsesequence} value will be 0.
+     * Response sequence is 1-based.  If a student has never responded to an item, there will not be a record in the
+     * {@code exam_item_response} table.  In legacy, if a student has never responded to an item, the
+     * {@code testeeresponse.responsesequence} value will be 0.
      * </p>
      */
     public int getSequence() {
@@ -118,9 +154,57 @@ public class ExamItemResponse {
     }
 
     /**
+     * @return True if this {@link tds.exam.ExamItem} has been selected; otherwise false
+     */
+    public boolean isSelected() {
+        return selected;
+    }
+
+    /**
+     * @return The {@link tds.exam.ExamItemResponseScore} for this {@link tds.exam.ExamItemResponse}, if one has been
+     * provided
+     */
+    @JsonIgnore
+    public Optional<ExamItemResponseScore> getScore() {
+        // NOTE:  Scores should not be exposed outside of the server thus should not be returned to the caller.  There
+        // is a debug setting in the legacy Student application that allows for returning the scores to the client.
+        // Since we are not porting the debugging behavior to the microservice(s), that feature will not be implemented.
+        return Optional.fromNullable(score);
+    }
+
+    /**
      * @return The date the exam item response was created at
      */
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ExamItemResponse)) return false;
+
+        ExamItemResponse that = (ExamItemResponse) o;
+
+        if (getId() != that.getId()) return false;
+        if (getSequence() != that.getSequence()) return false;
+        if (isValid() != that.isValid()) return false;
+        if (isSelected() != that.isSelected()) return false;
+        if (!getExamItemId().equals(that.getExamItemId())) return false;
+        if (!getResponse().equals(that.getResponse())) return false;
+        if (!getScore().equals(that.getScore())) return false;
+        return getCreatedAt().equals(that.getCreatedAt());
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (int) (getId() ^ (getId() >>> 32));
+        result = 31 * result + getExamItemId().hashCode();
+        result = 31 * result + getResponse().hashCode();
+        result = 31 * result + getSequence();
+        result = 31 * result + (isValid() ? 1 : 0);
+        result = 31 * result + (isSelected() ? 1 : 0);
+
+        return result;
     }
 }

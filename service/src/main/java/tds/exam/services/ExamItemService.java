@@ -5,6 +5,7 @@ import java.util.UUID;
 import tds.common.Response;
 import tds.exam.ApprovalRequest;
 import tds.exam.ExamItemResponse;
+import tds.exam.ExamPage;
 
 /**
  * A service for interacting with an {@link tds.exam.Exam}'s {@link tds.exam.ExamItem}s and their associated
@@ -14,11 +15,12 @@ public interface ExamItemService {
     /**
      * Persist one or more {@link tds.exam.ExamItemResponse}s
      *
-     * @param request The data required to verify the requester can fetch the requested page
-     * @param responses The collection of the {@link tds.exam.ExamItemResponse}s to persist
-     * @return
+     * @param request                The data required to verify the requester can fetch the requested page
+     * @param mostRecentPagePosition The last page number that has responses
+     * @param responses              The collection of the {@link tds.exam.ExamItemResponse}s to persist
+     * @return The next {@link tds.exam.ExamPage} that has {@link tds.exam.ExamItem}s that require student responses
      */
-    Response<String> insertResponses(ApprovalRequest request, ExamItemResponse... responses);
+    Response<ExamPage> insertResponses(ApprovalRequest request, int mostRecentPagePosition, ExamItemResponse... responses);
 
 
     /**

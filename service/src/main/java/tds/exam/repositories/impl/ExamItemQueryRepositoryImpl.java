@@ -9,14 +9,14 @@ import org.springframework.stereotype.Repository;
 
 import java.util.UUID;
 
-import tds.exam.repositories.ExamResponseQueryRepository;
+import tds.exam.repositories.ExamItemQueryRepository;
 
 @Repository
-public class ExamResponseQueryRepositoryImpl implements ExamResponseQueryRepository {
+public class ExamItemQueryRepositoryImpl implements ExamItemQueryRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     @Autowired
-    public ExamResponseQueryRepositoryImpl(@Qualifier("queryJdbcTemplate") NamedParameterJdbcTemplate queryJdbcTemplate) {
+    public ExamItemQueryRepositoryImpl(@Qualifier("queryJdbcTemplate") NamedParameterJdbcTemplate queryJdbcTemplate) {
         this.jdbcTemplate = queryJdbcTemplate;
     }
 

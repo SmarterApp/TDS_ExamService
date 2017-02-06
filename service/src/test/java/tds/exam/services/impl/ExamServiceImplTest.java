@@ -35,8 +35,6 @@ import tds.config.TimeLimitConfiguration;
 import tds.exam.ApprovalRequest;
 import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
-import tds.exam.ExamApproval;
-import tds.exam.ExamApprovalStatus;
 import tds.exam.ExamConfiguration;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
@@ -57,6 +55,7 @@ import tds.exam.services.AssessmentService;
 import tds.exam.services.ConfigService;
 import tds.exam.services.ExamAccommodationService;
 import tds.exam.services.ExamApprovalService;
+import tds.exam.services.ExamItemService;
 import tds.exam.services.ExamPageService;
 import tds.exam.services.ExamSegmentService;
 import tds.exam.services.ExamService;
@@ -122,7 +121,10 @@ public class ExamServiceImplTest {
     private ExamSegmentService mockExamSegmentService;
 
     @Mock
-    private ExamPageService mockExamItemService;
+    private ExamPageService mockExamPageService;
+
+    @Mock
+    private ExamItemService mockExamItemService;
 
     @Mock
     private ExamApprovalService mockExamApprovalService;
@@ -144,6 +146,7 @@ public class ExamServiceImplTest {
             mockTimeLimitConfigurationService,
             mockConfigService,
             mockExamCommandRepository,
+            mockExamPageService,
             mockExamItemService,
             mockExamStatusQueryRepository,
             mockExamAccommodationService,

@@ -5,7 +5,7 @@ import java.util.UUID;
 /**
  * Handles data reads from the exam_item_response table
  */
-public interface ExamResponseQueryRepository {
+public interface ExamItemQueryRepository {
 
     /**
      * Gets the item position of the last item that has a response

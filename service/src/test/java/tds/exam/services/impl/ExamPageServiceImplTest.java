@@ -27,7 +27,6 @@ import tds.exam.builder.ExamPageBuilder;
 import tds.exam.error.ValidationErrorCode;
 import tds.exam.repositories.ExamPageCommandRepository;
 import tds.exam.repositories.ExamPageQueryRepository;
-import tds.exam.repositories.ExamResponseQueryRepository;
 import tds.exam.services.ExamApprovalService;
 import tds.exam.services.ExamPageService;
 
@@ -39,8 +38,6 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ExamPageServiceImplTest {
-    @Mock
-    private ExamResponseQueryRepository mockExamResponseQueryRepository;
 
     @Mock
     private ExamPageCommandRepository mockExamPageCommandRepository;
@@ -57,18 +54,7 @@ public class ExamPageServiceImplTest {
     public void setUp() {
         examPageService = new ExamPageServiceImpl(mockExamPageQueryRepository,
             mockExamPageCommandRepository,
-            mockExamResponseQueryRepository,
             mockExamApprovalService);
-    }
-
-    @Test
-    public void shouldReturnLatestExamPositionForExamId() {
-        final UUID examId = UUID.randomUUID();
-        final int currentExamPosition = 9;
-        when(mockExamResponseQueryRepository.getCurrentExamItemPosition(examId)).thenReturn(currentExamPosition);
-        int examPosition = examPageService.getExamPosition(examId);
-        assertThat(examPosition).isEqualTo(currentExamPosition);
-        verify(mockExamResponseQueryRepository).getCurrentExamItemPosition(examId);
     }
 
     @Test
