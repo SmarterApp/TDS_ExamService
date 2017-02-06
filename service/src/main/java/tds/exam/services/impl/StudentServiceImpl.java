@@ -42,7 +42,7 @@ class StudentServiceImpl implements StudentService {
 
         Optional<Student> maybeStudent = Optional.empty();
         try {
-            final Student student = restTemplate.getForObject(builder.toUriString(), Student.class);
+            final Student student = restTemplate.getForObject(builder.build().toUri(), Student.class);
             maybeStudent = Optional.of(student);
         } catch (HttpClientErrorException hce) {
             if (hce.getStatusCode() != HttpStatus.NOT_FOUND) {
@@ -66,7 +66,7 @@ class StudentServiceImpl implements StudentService {
                     String.join(",", (CharSequence[]) attributeNames))
                 );
 
-        ResponseEntity<List<RtsStudentPackageAttribute>> responseEntity = restTemplate.exchange(builder.toUriString(),
+        ResponseEntity<List<RtsStudentPackageAttribute>> responseEntity = restTemplate.exchange(builder.build().toUri(),
             HttpMethod.GET, null, new ParameterizedTypeReference<List<RtsStudentPackageAttribute>>() {
         });
 

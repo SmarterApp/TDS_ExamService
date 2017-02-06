@@ -13,6 +13,8 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -50,13 +52,13 @@ public class SessionServiceImplTest {
     }
 
     @Test
-    public void shouldReturnSession() {
+    public void shouldReturnSession() throws URISyntaxException {
         UUID sessionUUID = UUID.randomUUID();
         Session session = new Session.Builder()
             .withId(sessionUUID)
             .build();
 
-        String url = String.format("%s/%s/%s", BASE_URL, SESSION_APP_CONTEXT, sessionUUID);
+        URI url = new URI(String.format("%s/%s/%s", BASE_URL, SESSION_APP_CONTEXT, sessionUUID));
 
         when(restTemplate.getForObject(url, Session.class)).thenReturn(session);
         Optional<Session> maybeSession = sessionService.findSessionById(sessionUUID);
@@ -67,9 +69,9 @@ public class SessionServiceImplTest {
     }
 
     @Test
-    public void shouldReturnEmptySessionWhenStatusIsNotFound() {
+    public void shouldReturnEmptySessionWhenStatusIsNotFound() throws URISyntaxException {
         UUID sessionUUID = UUID.randomUUID();
-        String url = String.format("%s/%s/%s", BASE_URL, SESSION_APP_CONTEXT, sessionUUID);
+        URI url = new URI(String.format("%s/%s/%s", BASE_URL, SESSION_APP_CONTEXT, sessionUUID));
         when(restTemplate.getForObject(url, Session.class)).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
         Optional<Session> maybeSession = sessionService.findSessionById(sessionUUID);
         verify(restTemplate).getForObject(url, Session.class);
@@ -78,7 +80,7 @@ public class SessionServiceImplTest {
     }
 
     @Test
-    public void shouldPauseASession() {
+    public void shouldPauseASession() throws URISyntaxException {
         String sessionStatus = "closed";
         Session mockSession = new Session.Builder()
             .withId(UUID.randomUUID())
@@ -86,7 +88,7 @@ public class SessionServiceImplTest {
             .withDateChanged(Instant.now())
             .withDateEnd(Instant.now())
             .build();
-        String url = String.format("%s/%s/%s/pause", BASE_URL, SESSION_APP_CONTEXT, mockSession.getId());
+        URI url = new URI(String.format("%s/%s/%s/pause", BASE_URL, SESSION_APP_CONTEXT, mockSession.getId()));
         when(restTemplate.getForObject(url, PauseSessionResponse.class)).thenReturn(new PauseSessionResponse(mockSession));
 
         Optional<PauseSessionResponse> maybePauseResponse = sessionService.pause(mockSession.getId(), sessionStatus);
@@ -96,9 +98,9 @@ public class SessionServiceImplTest {
     }
 
     @Test
-    public void shouldReturnOptionalEmptyWhenAttemptingToPauseASessionThatIsNotFound() {
+    public void shouldReturnOptionalEmptyWhenAttemptingToPauseASessionThatIsNotFound() throws URISyntaxException {
         UUID sessionId = UUID.randomUUID();
-        String url = String.format("%s/%s/%s/pause", BASE_URL, SESSION_APP_CONTEXT, sessionId);
+        URI url = new URI(String.format("%s/%s/%s/pause", BASE_URL, SESSION_APP_CONTEXT, sessionId));
         when(restTemplate.getForObject(url, PauseSessionResponse.class)).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
 
         Optional<PauseSessionResponse> maybePauseResponse = sessionService.pause(sessionId, "closed");
@@ -107,17 +109,17 @@ public class SessionServiceImplTest {
     }
 
     @Test(expected = RestClientException.class)
-    public void shouldThrowWhenSessionErrorIsNotNotFound() {
+    public void shouldThrowWhenSessionErrorIsNotNotFound() throws URISyntaxException {
         UUID sessionUUID = UUID.randomUUID();
-        String url = String.format("%s/%s/%s", BASE_URL, SESSION_APP_CONTEXT, sessionUUID);
+        URI url = new URI(String.format("%s/%s/%s", BASE_URL, SESSION_APP_CONTEXT, sessionUUID));
         when(restTemplate.getForObject(url, Session.class)).thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
         sessionService.findSessionById(sessionUUID);
     }
 
 
     @Test
-    public void shouldReturnExternalSessionConfigForClientName() {
-        String url = BASE_URL + "/" + SESSION_APP_CONTEXT + "/external-config/SBAC";
+    public void shouldReturnExternalSessionConfigForClientName() throws URISyntaxException {
+        URI url = new URI(BASE_URL + "/" + SESSION_APP_CONTEXT + "/external-config/SBAC");
         ExternalSessionConfiguration externalSessionConfiguration = new ExternalSessionConfigurationBuilder().withClientName("SBAC").build();
         when(restTemplate.getForObject(url, ExternalSessionConfiguration.class)).thenReturn(externalSessionConfiguration);
         Optional<ExternalSessionConfiguration> maybeExternalSessionConfiguration = sessionService.findExternalSessionConfigurationByClientName("SBAC");
@@ -127,8 +129,8 @@ public class SessionServiceImplTest {
     }
 
     @Test
-    public void shouldReturnEmptyExternalSessionConfigForClientNameWhenNotFound() {
-        String url = String.format("%s/%s/%s", BASE_URL, SESSION_APP_CONTEXT, "external-config/SBAC");
+    public void shouldReturnEmptyExternalSessionConfigForClientNameWhenNotFound() throws URISyntaxException {
+        URI url = new URI(String.format("%s/%s/%s", BASE_URL, SESSION_APP_CONTEXT, "external-config/SBAC"));
         when(restTemplate.getForObject(url, ExternalSessionConfiguration.class)).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
         Optional<ExternalSessionConfiguration> maybeExternalSessionConfiguration = sessionService.findExternalSessionConfigurationByClientName("SBAC");
         verify(restTemplate).getForObject(url, ExternalSessionConfiguration.class);
@@ -137,8 +139,8 @@ public class SessionServiceImplTest {
     }
 
     @Test(expected = RestClientException.class)
-    public void shouldThrowIfStatusNotNotFoundFetchingExternalSessionConfigurationByClientName() {
-        String url = String.format("%s/%s/%s", BASE_URL, SESSION_APP_CONTEXT, "external-config/SBAC");
+    public void shouldThrowIfStatusNotNotFoundFetchingExternalSessionConfigurationByClientName() throws URISyntaxException {
+        URI url = new URI(String.format("%s/%s/%s", BASE_URL, SESSION_APP_CONTEXT, "external-config/SBAC"));
         when(restTemplate.getForObject(url, ExternalSessionConfiguration.class)).thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
         sessionService.findExternalSessionConfigurationByClientName("SBAC");
     }
@@ -147,9 +149,10 @@ public class SessionServiceImplTest {
     public void shouldReturnSessionAssessment() {
         UUID sessionId = UUID.randomUUID();
 
-        String url = UriComponentsBuilder
+        URI url = UriComponentsBuilder
             .fromHttpUrl(String.format("%s/%s/%s/assessment/%s", BASE_URL, SESSION_APP_CONTEXT, sessionId, "(SBAC) ELA 11 2015 - 2016"))
-            .toUriString();
+            .build()
+            .toUri();
 
         SessionAssessment sessionAssessment = new SessionAssessment(sessionId, "ELA 11", "(SBAC) ELA 11 2015 - 2016");
         when(restTemplate.getForObject(url, SessionAssessment.class)).thenReturn(sessionAssessment);
@@ -163,9 +166,10 @@ public class SessionServiceImplTest {
     public void shouldReturnEmptySessionAssessmentWhenNotFound() {
         UUID sessionId = UUID.randomUUID();
 
-        String url = UriComponentsBuilder
+        URI url = UriComponentsBuilder
             .fromHttpUrl(String.format("%s/%s/%s/assessment/%s", BASE_URL, SESSION_APP_CONTEXT, sessionId, "(SBAC) ELA 11 2015 - 2016"))
-            .toUriString();
+            .build()
+            .toUri();
 
         when(restTemplate.getForObject(url, SessionAssessment.class)).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
         Optional<SessionAssessment> maybeSessionAssessment = sessionService.findSessionAssessment(sessionId, "(SBAC) ELA 11 2015 - 2016");
@@ -177,9 +181,10 @@ public class SessionServiceImplTest {
     @Test(expected = RestClientException.class)
     public void shouldThrowIfStatusNotNotFoundFetchingSessionAssessment() {
         UUID sessionId = UUID.randomUUID();
-        String url = UriComponentsBuilder
+        URI url = UriComponentsBuilder
             .fromHttpUrl(String.format("%s/%s/%s/assessment/%s", BASE_URL, SESSION_APP_CONTEXT, sessionId, "(SBAC) ELA 11 2015 - 2016"))
-            .toUriString();
+            .build()
+            .toUri();
         when(restTemplate.getForObject(url, SessionAssessment.class)).thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
         sessionService.findSessionAssessment(sessionId, "(SBAC) ELA 11 2015 - 2016");
     }
