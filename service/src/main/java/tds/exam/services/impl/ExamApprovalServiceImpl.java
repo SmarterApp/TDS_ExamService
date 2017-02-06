@@ -5,7 +5,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import tds.common.Response;
 import tds.common.ValidationError;
@@ -49,6 +51,11 @@ public class ExamApprovalServiceImpl implements ExamApprovalService {
     }
 
     @Override
+    public List<Exam> getExamsPendingApproval(UUID sessionId) {
+        return examQueryRepository.getExamsPendingApproval(sessionId);
+    }
+
+    @Override
     public Optional<ValidationError> verifyAccess(final ApprovalRequest approvalRequest, final Exam exam) {
         // RULE:  The browser key for the approval request must match the browser key of the exam.
         if (!exam.getBrowserId().equals(approvalRequest.getBrowserId())) {
@@ -61,8 +68,8 @@ public class ExamApprovalServiceImpl implements ExamApprovalService {
         }
 
         ExternalSessionConfiguration externalSessionConfig =
-            sessionService.findExternalSessionConfigurationByClientName(approvalRequest.getClientName())
-                .orElseThrow(() -> new IllegalStateException(String.format("External Session Configuration could not be found for client name %s", approvalRequest.getClientName())));
+            sessionService.findExternalSessionConfigurationByClientName(exam.getClientName())
+                .orElseThrow(() -> new IllegalStateException(String.format("External Session Configuration could not be found for client name %s", exam.getClientName())));
 
         // RULE:  If the environment is set to "simulation" or "development", there is no need to check anything else.
         if (externalSessionConfig.isInSimulationEnvironment()
@@ -86,8 +93,8 @@ public class ExamApprovalServiceImpl implements ExamApprovalService {
 
         // RULE:  Student should not be able to start an exam if the TA check-in window has expired.
         TimeLimitConfiguration timeLimitConfig =
-            timeLimitConfigurationService.findTimeLimitConfiguration(approvalRequest.getClientName(), exam.getAssessmentId())
-                .orElseThrow(() -> new IllegalArgumentException(String.format("Could not find time limit configuration for client name %s and assessment id %s", approvalRequest.getClientName(), exam.getAssessmentId())));
+            timeLimitConfigurationService.findTimeLimitConfiguration(exam.getClientName(), exam.getAssessmentId())
+                .orElseThrow(() -> new IllegalArgumentException(String.format("Could not find time limit configuration for client name %s and assessment id %s", exam.getClientName(), exam.getAssessmentId())));
 
         // The Proctor application periodically polls to indicate the session is still "alive" and the Proctor is still
         // hosting the session.  If the Proctor does not respond or otherwise maintain this keep-alive/"heartbeat",

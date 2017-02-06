@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,12 +30,16 @@ import tds.exam.models.Ability;
 import tds.exam.repositories.ExamQueryRepository;
 
 import static tds.common.data.mapping.ResultSetMapperUtility.mapTimestampToJodaInstant;
+import static tds.exam.ExamStatusCode.STATUS_PENDING;
+import static tds.exam.ExamStatusCode.STATUS_SEGMENT_ENTRY;
+import static tds.exam.ExamStatusCode.STATUS_SEGMENT_EXIT;
+import static tds.exam.ExamStatusCode.STATUS_SUSPENDED;
 
 @Repository
 public class ExamQueryRepositoryImpl implements ExamQueryRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
     private final String EXAM_QUERY_COLUMN_LIST = "e.id, \n" +
-        "e.session_id, \n" +
+        "ee.session_id, \n" +
         "ee.browser_id, \n" +
         "e.assessment_id, \n" +
         "e.student_id, \n" +
@@ -204,7 +209,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "   WHERE \n" +
                 "       P.exam_id = :examId AND\n" +
                 "       PE.deleted_at IS NULL \n" +
-                ") as lastStudentActivityTime";
+                ") AS lastStudentActivityTime";
 
         Optional<Instant> maybeLastStudentActivityTime;
         try {
@@ -219,7 +224,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
 
     @Override
     public List<Exam> findAllExamsInSessionWithStatus(UUID sessionId, Set<String> statusSet) {
-        final SqlParameterSource parameters = new MapSqlParameterSource("sessionId", UuidAdapter.getBytesFromUUID(sessionId))
+        final SqlParameterSource parameters = new MapSqlParameterSource("sessionId", sessionId.toString())
             .addValue("statusSet", statusSet);
 
         final String SQL =
@@ -240,7 +245,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "     last_event.id = ee.id\n" +
                 "JOIN exam.exam_status_codes esc \n" +
                 "  ON esc.status = ee.status \n" +
-                "WHERE e.session_id = :sessionId \n" +
+                "WHERE ee.session_id = :sessionId \n" +
                 "AND ee.status IN (:statusSet)";
 
         return jdbcTemplate.query(SQL, parameters, new ExamRowMapper());
@@ -277,21 +282,53 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "JOIN exam.exam_status_codes esc \n" +
                 "  ON esc.status = ee.status \n" +
                 "INNER JOIN \n" +
-                "exam_scores \n" +
+                "  exam_scores \n" +
                 "ON \n" +
-                "exam.id = exam_scores.exam_id \n" +
+                "  exam.id = exam_scores.exam_id \n" +
                 "WHERE\n" +
-                "exam.client_name = :clientName AND\n" +
-                "exam.student_id = :studentId AND\n" +
-                "exam.subject = :subject AND\n" +
-                "ee.date_deleted IS NULL AND\n" +
-                "ee.date_scored IS NOT NULL AND\n" +
-                "exam.id <> :examId AND\n" +
-                "exam_scores.use_for_ability = 1 AND\n" +
-                "exam_scores.value IS NOT NULL \n" +
+                "  exam.client_name = :clientName AND\n" +
+                "  exam.student_id = :studentId AND\n" +
+                "  exam.subject = :subject AND\n" +
+                "  ee.date_deleted IS NULL AND\n" +
+                "  ee.date_scored IS NOT NULL AND\n" +
+                "  exam.id <> :examId AND\n" +
+                "  exam_scores.use_for_ability = 1 AND\n" +
+                "  exam_scores.value IS NOT NULL \n" +
                 "ORDER BY ee.date_scored DESC";
 
         return jdbcTemplate.query(SQL, parameters, new AbilityRowMapper());
+    }
+
+    @Override
+    public List<Exam> getExamsPendingApproval(UUID sessionId) {
+        // create list of statuses that require proctor approval
+        final List<String> pendingStatuses = Arrays.asList(
+            STATUS_PENDING, STATUS_SUSPENDED, STATUS_SEGMENT_ENTRY, STATUS_SEGMENT_EXIT);
+
+        final SqlParameterSource parameters = new MapSqlParameterSource("sessionId", sessionId.toString())
+            .addValue("statusSet", pendingStatuses);
+
+        final String SQL =
+            "SELECT \n" +
+                EXAM_QUERY_COLUMN_LIST +
+                "FROM exam e \n" +
+                "JOIN ( \n" +
+                "  SELECT \n" +
+                "    exam_id, \n" +
+                "    MAX(id) AS id \n" +
+                "  FROM exam_event \n" +
+                "  GROUP BY exam_id \n" +
+                ") last_event ON \n" +
+                "  last_event.exam_id = e.id \n" +
+                "JOIN exam_event ee \n" +
+                "  ON last_event.id = ee.id \n" +
+                "JOIN exam.exam_status_codes esc \n" +
+                "  ON esc.status = ee.status \n" +
+                "WHERE \n" +
+                "  ee.session_id = :sessionId AND \n" +
+                "  ee.status IN (:statusSet)";
+
+        return jdbcTemplate.query(SQL, parameters, new ExamRowMapper());
     }
 
     private class AbilityRowMapper implements RowMapper<Ability> {
@@ -312,7 +349,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
         public Exam mapRow(ResultSet rs, int rowNum) throws SQLException {
             return new Exam.Builder()
                 .withId(UUID.fromString(rs.getString("id")))
-                .withSessionId(UuidAdapter.getUUIDFromBytes(rs.getBytes("session_id")))
+                .withSessionId(UUID.fromString(rs.getString("session_id")))
                 .withBrowserId(UuidAdapter.getUUIDFromBytes(rs.getBytes("browser_id")))
                 .withAssessmentId(rs.getString("assessment_id"))
                 .withAssessmentKey(rs.getString("assessment_key"))

@@ -1,11 +1,16 @@
 package tds.exam.services;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import tds.assessment.Assessment;
+import tds.common.Response;
+import tds.common.ValidationError;
+import tds.exam.ApproveAccommodationsRequest;
 import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
+import tds.exam.ExamApproval;
 
 /**
  * Handles interaction with {@link tds.exam.ExamAccommodation}s associated to an {@link tds.exam.Exam}
@@ -56,4 +61,13 @@ public interface ExamAccommodationService {
      * @return list of {@link tds.exam.ExamAccommodation}
      */
     List<ExamAccommodation> initializeAccommodationsOnPreviousExam(Exam exam, Assessment assessment, int segmentPosition, boolean restoreRts, String guestAccommodations);
+    
+    /**
+     * Approves {@link tds.exam.ExamAccommodation}s for an exam and set of accommodation codes.
+     *
+     * @param examId  the id of the {@link tds.exam.Exam} to approve accommodations for
+     * @param request the {@link tds.exam.ApproveAccommodationsRequest} containing request datazz
+     * @return an optional {@link tds.common.ValidationError}
+     */
+    Optional<ValidationError> approveAccommodations(UUID examId, ApproveAccommodationsRequest request);
 }

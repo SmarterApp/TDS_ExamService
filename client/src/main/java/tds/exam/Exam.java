@@ -45,6 +45,12 @@ public class Exam {
     private int resumptions;
     private int restartsAndResumptions;
 
+    /**
+     * Private constructor for frameworks
+     */
+    private Exam() {
+    }
+
     public static class Builder {
         private UUID id;
         private UUID sessionId;

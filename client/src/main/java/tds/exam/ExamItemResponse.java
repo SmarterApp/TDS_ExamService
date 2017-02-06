@@ -22,12 +22,12 @@ public class ExamItemResponse {
     private Instant createdAt;
 
     /**
-     * For frameworks
+     * Private constructor for frameworks
      */
     private ExamItemResponse() {
     }
 
-    public ExamItemResponse(Builder builder) {
+    private ExamItemResponse(Builder builder) {
         id = builder.id;
         examItemId = builder.examItemId;
         response = builder.response;

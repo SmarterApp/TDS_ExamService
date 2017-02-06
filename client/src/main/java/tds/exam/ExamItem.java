@@ -25,12 +25,13 @@ public class ExamItem {
     private ExamItemResponse response;
 
     /**
-     * For frameworks
+     * Private constructor for frameworks
      */
     private ExamItem() {
     }
 
-    public ExamItem(Builder builder) {
+
+    private ExamItem(Builder builder) {
         id = builder.id;
         examPageId = builder.examPageId;
         itemKey = builder.itemKey;

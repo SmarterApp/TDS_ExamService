@@ -17,6 +17,12 @@ public class ExamApproval {
     }
 
     /**
+     * Private constructor for frameworks
+     */
+    private ExamApproval() {
+    }
+
+    /**
      * @return The id of the {@link Exam} for which approval is requested.
      */
     public UUID getExamId() {

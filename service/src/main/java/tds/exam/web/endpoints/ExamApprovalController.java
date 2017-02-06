@@ -10,10 +10,12 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.UUID;
 
 import tds.common.Response;
 import tds.exam.ApprovalRequest;
+import tds.exam.Exam;
 import tds.exam.ExamApproval;
 import tds.exam.services.ExamApprovalService;
 
@@ -30,9 +32,8 @@ public class ExamApprovalController {
     @RequestMapping(value = "/{id}/approval", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<Response<ExamApproval>> getApproval(@PathVariable final UUID id,
                                                        @RequestParam final UUID sessionId,
-                                                       @RequestParam final UUID browserId,
-                                                       @RequestParam final String clientName) {
-        ApprovalRequest approvalRequest = new ApprovalRequest(id, sessionId, browserId, clientName);
+                                                       @RequestParam final UUID browserId) {
+        ApprovalRequest approvalRequest = new ApprovalRequest(id, sessionId, browserId);
         Response<ExamApproval> examApproval = examApprovalService.getApproval(approvalRequest);
 
         if (examApproval.hasError()) {
@@ -40,5 +41,12 @@ public class ExamApprovalController {
         }
 
         return ResponseEntity.ok(examApproval);
+    }
+
+    @RequestMapping(value = "/pending-approval/{sessionId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<List<Exam>> getExamsPendingApproval(@PathVariable final UUID sessionId) {
+        List<Exam> examsPendingApproval = examApprovalService.getExamsPendingApproval(sessionId);
+
+        return ResponseEntity.ok(examsPendingApproval);
     }
 }

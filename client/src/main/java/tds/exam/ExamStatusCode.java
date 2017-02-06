@@ -35,7 +35,7 @@ public class ExamStatusCode {
     }
 
     /**
-     * For Frameworks
+     * Private constructor for frameworks
      */
     private ExamStatusCode() {
     }

@@ -94,8 +94,7 @@ public class ExamItemServiceImplTest {
     public void shouldInsertAResponse() {
         ApprovalRequest approvalRequest = new ApprovalRequest(UUID.randomUUID(),
             UUID.randomUUID(),
-            UUID.randomUUID(),
-            "UNIT_TEST");
+            UUID.randomUUID());
         int currentPagePosition = 1;
         ExamItemResponse response = new ExamItemResponseBuilder().build();
 
@@ -138,8 +137,7 @@ public class ExamItemServiceImplTest {
     public void shouldNotInsertAResponseAndReturnValidationErrorBecauseApprovalIsDenied() {
         ApprovalRequest approvalRequest = new ApprovalRequest(UUID.randomUUID(),
             UUID.randomUUID(),
-            UUID.randomUUID(),
-            "UNIT_TEST");
+            UUID.randomUUID());
         int currentPagePosition = 1;
         ExamItemResponse response = new ExamItemResponseBuilder().build();
 
@@ -164,8 +162,7 @@ public class ExamItemServiceImplTest {
     public void shouldNotInsertAResponseAndReturnValidationErrorBecasueExamIsNotInStartedOrReviewStatus() {
         ApprovalRequest approvalRequest = new ApprovalRequest(UUID.randomUUID(),
             UUID.randomUUID(),
-            UUID.randomUUID(),
-            "UNIT_TEST");
+            UUID.randomUUID());
         int currentPagePosition = 1;
         ExamItemResponse response = new ExamItemResponseBuilder().build();
 
@@ -198,8 +195,7 @@ public class ExamItemServiceImplTest {
     public void shouldThrowNotFoundExceptionWhenExamDoesNotExist() {
         ApprovalRequest approvalRequest = new ApprovalRequest(UUID.randomUUID(),
             UUID.randomUUID(),
-            UUID.randomUUID(),
-            "UNIT_TEST");
+            UUID.randomUUID());
         int currentPagePosition = 1;
         ExamItemResponse response = new ExamItemResponseBuilder().build();
 
@@ -221,8 +217,7 @@ public class ExamItemServiceImplTest {
     public void shouldThrowNotFoundExceptionWhenExamPageForCurrentPositionCannotBeFound() {
         ApprovalRequest approvalRequest = new ApprovalRequest(UUID.randomUUID(),
             UUID.randomUUID(),
-            UUID.randomUUID(),
-            "UNIT_TEST");
+            UUID.randomUUID());
         int currentPagePosition = 1;
         ExamItemResponse response = new ExamItemResponseBuilder().build();
 

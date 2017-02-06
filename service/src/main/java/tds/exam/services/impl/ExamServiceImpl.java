@@ -157,7 +157,7 @@ class ExamServiceImpl implements ExamService {
 
         //Line OpenTestServiceImp line 126 - 130
         if (!currentSession.isOpen()) {
-            return new Response<Exam>(new ValidationError(ValidationErrorCode.SESSION_NOT_OPEN, String.format("Session %s is not open", currentSession.getId())));
+            return new Response<>(new ValidationError(ValidationErrorCode.SESSION_NOT_OPEN, String.format("Session %s is not open", currentSession.getId())));
         }
 
         if (!openExamRequest.isGuestStudent()) {
@@ -167,7 +167,7 @@ class ExamServiceImpl implements ExamService {
         } else {
             //OpenTestServiceImpl lines 103 - 104
             if (!allowsGuestStudent(currentSession.getClientName(), externalSessionConfiguration)) {
-                return new Response<Exam>(new ValidationError(ANONYMOUS_STUDENT_NOT_ALLOWED, String.format("Anonymous students not allowed for this client %s", currentSession.getClientName())));
+                return new Response<>(new ValidationError(ANONYMOUS_STUDENT_NOT_ALLOWED, String.format("Anonymous students not allowed for this client %s", currentSession.getClientName())));
             }
         }
 
@@ -194,7 +194,7 @@ class ExamServiceImpl implements ExamService {
         }
 
         if (canOpenPreviousExam) {
-            return openPreviousExam(currentSession.getClientName(), openExamRequest, externalSessionConfiguration, maybePreviousExam.get(), assessment);
+            return openPreviousExam(currentSession.getClientName(), openExamRequest, maybePreviousExam.get(), assessment);
         }
 
         Exam previousExam = maybePreviousExam.isPresent() ? maybePreviousExam.get() : null;
@@ -294,7 +294,7 @@ class ExamServiceImpl implements ExamService {
         ExamConfiguration examConfig;
         Optional<Exam> maybeExam = examQueryRepository.getExamById(examId);
         if (!maybeExam.isPresent()) {
-            return new Response<ExamConfiguration>(new ValidationError(
+            return new Response<>(new ValidationError(
                 ExamStatusCode.STATUS_FAILED, String.format("No exam found for id %s", examId)
             ));
         }
@@ -302,7 +302,7 @@ class ExamServiceImpl implements ExamService {
 
         /* TestOpportunityServiceImpl [155] No need to go any further, so moving before service calls */
         if (!exam.getStatus().getCode().equalsIgnoreCase(ExamStatusCode.STATUS_APPROVED)) {
-            return new Response<ExamConfiguration>(new ValidationError(
+            return new Response<>(new ValidationError(
                 ExamStatusCode.STATUS_FAILED, String.format("Cannot start exam %s: Exam was not approved.", examId)
             ));
         }
@@ -310,21 +310,21 @@ class ExamServiceImpl implements ExamService {
         /* TestOpportunityServiceImpl [131] */
         Optional<Session> maybeSession = sessionService.findSessionById(exam.getSessionId());
         if (!maybeSession.isPresent()) {
-            return new Response<ExamConfiguration>(new ValidationError(
+            return new Response<>(new ValidationError(
                 ExamStatusCode.STATUS_FAILED, String.format("No session found for session id %s", exam.getSessionId())));
         }
         Session session = maybeSession.get();
 
         /* StudentDLL [5269] / TestOpportunityServiceImpl [137] */
         Optional<ValidationError> maybeAccessViolation = examApprovalService.verifyAccess(new ApprovalRequest(examId, session.getId(),
-            exam.getBrowserId(), exam.getClientName()), exam);
+            exam.getBrowserId()), exam);
         if (maybeAccessViolation.isPresent()) {
-            return new Response<ExamConfiguration>(maybeAccessViolation.get());
+            return new Response<>(maybeAccessViolation.get());
         }
         /* TestOpportunityServiceImpl [147] */
         Optional<Assessment> maybeAssessment = assessmentService.findAssessment(exam.getClientName(), exam.getAssessmentKey());
         if (!maybeAssessment.isPresent()) {
-            return new Response<ExamConfiguration>(new ValidationError(
+            return new Response<>(new ValidationError(
                 ExamStatusCode.STATUS_FAILED, String.format("No assessment found for assessment key '%s'.", exam.getAssessmentKey())
             ));
         }
@@ -349,7 +349,7 @@ class ExamServiceImpl implements ExamService {
             org.joda.time.Instant now = org.joda.time.Instant.now();
             Optional<org.joda.time.Instant> maybeLastActivity = examQueryRepository.findLastStudentActivity(examId);
 
-            /* [178] In the legacy app, if lastActiviy = null, then DbComparator.lessThan(null, <not-null>) = false */
+            /* [178] In the legacy app, if lastActivity = null, then DbComparator.lessThan(null, <not-null>) = false */
             boolean isResumable = maybeLastActivity.isPresent()
                 && Minutes.minutesBetween(maybeLastActivity.get(), now).getMinutes() < timeLimitConfiguration.getExamRestartWindowMinutes();
 
@@ -382,7 +382,7 @@ class ExamServiceImpl implements ExamService {
 
             examCommandRepository.update(restartedExam);
             /* Skip restart increment on [209] because we are already incrementing earlier in this method */
-            /* [212] No need to call updateUnifnishedResponsePages since we no longer need to keep count of "opportunityrestart" */
+            /* [212] No need to call updateUnfinishedResponsePages since we no longer need to keep count of "opportunityrestart" */
             examConfig = getExamConfiguration(exam, assessment, timeLimitConfiguration, startPosition);
         }
 
@@ -476,7 +476,7 @@ class ExamServiceImpl implements ExamService {
 
         //OpenTestServiceImpl line 367 - 368 validation check.  no window no exam
         if (!maybeWindow.isPresent()) {
-            return new Response<Exam>(new ValidationError(NO_OPEN_ASSESSMENT_WINDOW, "Could not find an open assessment window"));
+            return new Response<>(new ValidationError(NO_OPEN_ASSESSMENT_WINDOW, "Could not find an open assessment window"));
         }
 
         AssessmentWindow assessmentWindow = maybeWindow.get();
@@ -553,7 +553,7 @@ class ExamServiceImpl implements ExamService {
         return Optional.empty();
     }
 
-    private Response<Exam> openPreviousExam(String clientName, OpenExamRequest openExamRequest, ExternalSessionConfiguration externalSessionConfiguration, Exam previousExam, Assessment assessment) {
+    private Response<Exam> openPreviousExam(String clientName, OpenExamRequest openExamRequest, Exam previousExam, Assessment assessment) {
         /*
          Represents StudentDLL._OpenExistingOpportunity_SP in the legacy code.  The beginning of the method
          goes and fetches statuses and previous exams which we do not need to do here since that is done earlier
@@ -578,6 +578,7 @@ class ExamServiceImpl implements ExamService {
             .fromExam(previousExam)
             .withStatus(status, org.joda.time.Instant.now())
             .withBrowserId(openExamRequest.getBrowserId())
+            .withSessionId(openExamRequest.getSessionId())
             .withDateChanged(org.joda.time.Instant.now())
             .withAbnormalStarts(previousExam.getAbnormalStarts() + abnormalIncrement)
             .build();

@@ -50,8 +50,7 @@ public class ExamItemControllerIntegrationTests {
     public void shouldInsertResponse() throws Exception {
         ApprovalRequest approvalRequest = new ApprovalRequest(UUID.randomUUID(),
             UUID.randomUUID(),
-            UUID.randomUUID(),
-            "UNIT_TEST");
+            UUID.randomUUID());
         int pagePosition = 1;
         ExamItemResponse response = new ExamItemResponseBuilder().build();
         UUID mockExamItemId = UUID.randomUUID();
@@ -82,8 +81,7 @@ public class ExamItemControllerIntegrationTests {
             .contentType(MediaType.APPLICATION_JSON)
             .content(examItemResponseJson)
             .param("sessionId", approvalRequest.getSessionId().toString())
-            .param("browserId", approvalRequest.getBrowserId().toString())
-            .param("clientName", approvalRequest.getClientName()))
+            .param("browserId", approvalRequest.getBrowserId().toString()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("data").isNotEmpty())
             .andExpect(jsonPath("data.id", is(mockNextExamPage.getId().toString())))

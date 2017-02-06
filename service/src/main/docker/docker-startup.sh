@@ -15,10 +15,10 @@ java \
     -Dspring.ds_commands.username="${EXAM_DB_USER}" \
     -Dspring.ds_commands.password="${EXAM_DB_PASSWORD}" \
     -Dspring.ds_commands.driver-class-name=com.mysql.jdbc.Driver \
-    -Dexam-service.session-url=http://session/ \
-    -Dexam-service.student-url=http://student/ \
-    -Dexam-service.assessment-url=http://assessment/ \
-    -Dexam-service.config-url=http://config/ \
+    -Dexam-service.session-url=http://session:8080/ \
+    -Dexam-service.student-url=http://student:8080/ \
+    -Dexam-service.assessment-url=http://assessment:8080/ \
+    -Dexam-service.config-url=http://config:8080/ \
     -Dflyway.enabled=${EXAM_FLYWAY_ENABLED} \
     -Dflyway.url="jdbc:mysql://exam_mysql/${EXAM_DB_NAME}" \
     -Dflyway.user="${EXAM_DB_USER}" \

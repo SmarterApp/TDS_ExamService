@@ -43,10 +43,9 @@ public class ExamPageControllerTest {
         UUID examId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
         UUID browserId = UUID.randomUUID();
-        String clientName = "UNIT_TEST";
         int pageNumber = 1;
 
-        ApprovalRequest mockApprovalRequest = new ApprovalRequest(examId, sessionId, browserId, clientName);
+        ApprovalRequest mockApprovalRequest = new ApprovalRequest(examId, sessionId, browserId);
 
         ExamItem mockFirstExamItem = new ExamItemBuilder()
             .withExamPageId(ExamPageBuilder.DEFAULT_ID)
@@ -68,7 +67,7 @@ public class ExamPageControllerTest {
         when(mockExamPageService.getPage(isA(ApprovalRequest.class), isA(Integer.class)))
             .thenReturn(mockExamPageResponse);
 
-        ResponseEntity<Response<ExamPage>> result = controller.getPage(examId, pageNumber, sessionId, browserId, clientName);
+        ResponseEntity<Response<ExamPage>> result = controller.getPage(examId, pageNumber, sessionId, browserId);
         verify(mockExamPageService).getPage(approvalRequestArgumentCaptor.capture(), isA(Integer.class));
 
         assertThat(approvalRequestArgumentCaptor.getValue()).isEqualTo(mockApprovalRequest);

@@ -34,9 +34,8 @@ public class ExamItemController {
                                                        @PathVariable final int position,
                                                        @RequestParam final UUID sessionId,
                                                        @RequestParam final UUID browserId,
-                                                       @RequestParam final String clientName,
                                                        @RequestBody final ExamItemResponse[] responses) {
-        ApprovalRequest approvalRequest = new ApprovalRequest(id, sessionId, browserId, clientName);
+        ApprovalRequest approvalRequest = new ApprovalRequest(id, sessionId, browserId);
         Response<ExamPage> nextPage = examItemService.insertResponses(approvalRequest,
             position,
             responses);

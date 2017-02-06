@@ -45,8 +45,7 @@ public class ExamItemControllerTest {
     public void shouldInsertExamItemResponses() {
         ApprovalRequest mockApprovalRequest = new ApprovalRequest(UUID.randomUUID(),
             UUID.randomUUID(),
-            UUID.randomUUID(),
-            "UNIT_TEST");
+            UUID.randomUUID());
         ExamItem mockExamItem = new ExamItemBuilder().build();
         List<ExamItem> mockExamItems = Arrays.asList(mockExamItem);
         ExamPage mockNextExamPage = new ExamPageBuilder()
@@ -67,7 +66,6 @@ public class ExamItemControllerTest {
             1,
             mockApprovalRequest.getSessionId(),
             mockApprovalRequest.getBrowserId(),
-            mockApprovalRequest.getClientName(),
             responses);
         verify(mockExamItemService).insertResponses(approvalRequestArgumentCaptor.capture(), isA(Integer.class), any(ExamItemResponse[].class));
 

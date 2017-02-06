@@ -51,8 +51,7 @@ public class ExamApprovalControllerTest {
         UUID examId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
         UUID browserId = UUID.randomUUID();
-        String clientName = "UNIT_TEST";
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserId, clientName);
+        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserId);
 
         ExamApproval mockExamApproval = new ExamApproval(examId,
             new ExamStatusCode(STATUS_APPROVED,
@@ -63,8 +62,7 @@ public class ExamApprovalControllerTest {
         ResponseEntity<Response<ExamApproval>> response = controller.getApproval(
             approvalRequest.getExamId(),
             approvalRequest.getSessionId(),
-            approvalRequest.getBrowserId(),
-            approvalRequest.getClientName());
+            approvalRequest.getBrowserId());
         verify(mockExamApprovalService).getApproval(isA(ApprovalRequest.class));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -79,8 +77,7 @@ public class ExamApprovalControllerTest {
         UUID examId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
         UUID browserId = UUID.randomUUID();
-        String clientName = "UNIT_TEST";
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserId, clientName);
+        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserId);
 
         Response<ExamApproval> errorResponse = new Response<ExamApproval>(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_BROWSER_ID_MISMATCH, "foo"));
         when(mockExamApprovalService.getApproval(isA(ApprovalRequest.class))).thenReturn(errorResponse);
@@ -88,8 +85,7 @@ public class ExamApprovalControllerTest {
         ResponseEntity<Response<ExamApproval>> response = controller.getApproval(
             approvalRequest.getExamId(),
             approvalRequest.getSessionId(),
-            approvalRequest.getBrowserId(),
-            approvalRequest.getClientName());
+            approvalRequest.getBrowserId());
         verify(mockExamApprovalService).getApproval(isA(ApprovalRequest.class));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
