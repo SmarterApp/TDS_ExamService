@@ -132,8 +132,6 @@ public class ExamItemResponse {
     }
 
     /**
-     * TODO: This description is not correct; find better/more accurate description
-     *
      * @return The sequence in which the {@link tds.exam.ExamItem} was responded to (e.g. the third item might be
      * responded to first)
      * <p>
