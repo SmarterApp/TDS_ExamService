@@ -3,6 +3,7 @@ package tds.exam.services.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -55,13 +56,17 @@ public class ExamItemServiceImpl implements ExamItemService {
 
     @Override
     public Response<ExamPage> insertResponses(final ApprovalRequest request, final int mostRecentPagePosition, final ExamItemResponse... responses) {
-        Response<ExamApproval> approval = examApprovalService.getApproval(request);
-        if (approval.getError().isPresent()) {
-            return new Response<>(approval.getError().get());
-        }
-
         Exam exam = examQueryRepository.getExamById(request.getExamId())
             .orElseThrow(() -> new NotFoundException(String.format("Could not find an exam for exam id %s", request.getExamId())));
+        
+        Optional<ValidationError> maybeValidationError = examApprovalService.verifyAccess(request, exam);
+        if (maybeValidationError.isPresent()) {
+            return new Response<>(maybeValidationError.get());
+        }
+
+        // Get the current page, which will be used as the basis for creating the next page
+        ExamPage currentPage = examPageQueryRepository.find(request.getExamId(), mostRecentPagePosition)
+            .orElseThrow(() -> new NotFoundException(String.format("Could not find exam page for id %s and position %d", request.getExamId(), mostRecentPagePosition)));
 
         // RULE:  An exam must be in the "started" or "review" status for responses to be saved.  Legacy rule location:
         // StudentDLL.T_UpdateScoredResponse_common, line 2031
@@ -82,10 +87,6 @@ public class ExamItemServiceImpl implements ExamItemService {
         }).toArray(ExamItemResponse[]::new);
 
         examItemCommandRepository.insertResponses(scoredResponses);
-
-        // Create a record for the next page
-        ExamPage currentPage = examPageQueryRepository.find(request.getExamId(), mostRecentPagePosition)
-            .orElseThrow(() -> new NotFoundException(String.format("Could not find exam page for id %s and position %d", request.getExamId(), mostRecentPagePosition)));
 
         ExamPage nextPage = new ExamPage.Builder()
             .fromExamPage(currentPage)

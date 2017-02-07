@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -29,7 +30,8 @@ public class ExamItemController {
         this.examItemService = examItemService;
     }
 
-    @RequestMapping(value = "/{id}/page/{position}/responses", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    //@RequestMapping(value = "/{id}/page/{position}/responses", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping("/{id}/page/{position}/responses")
     ResponseEntity<Response<ExamPage>> insertResponses(@PathVariable final UUID id,
                                                        @PathVariable final int position,
                                                        @RequestParam final UUID sessionId,
