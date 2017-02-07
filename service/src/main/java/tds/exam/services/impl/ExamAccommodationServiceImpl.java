@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 import tds.accommodation.Accommodation;
 import tds.assessment.Assessment;
 import tds.common.ValidationError;
-import tds.exam.ApprovalRequest;
+import tds.exam.ExamInfo;
 import tds.exam.ApproveAccommodationsRequest;
 import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
@@ -136,7 +136,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
     @Override
     public Optional<ValidationError> approveAccommodations(UUID examId, ApproveAccommodationsRequest request) {
         /* This method is a port of StudentDLL.T_ApproveAccommodations_SP, starting at line 11429 */
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, request.getSessionId(), request.getBrowserId());
+        ExamInfo examInfo = new ExamInfo(examId, request.getSessionId(), request.getBrowserId());
     
         Optional<Exam> maybeExam = examQueryRepository.getExamById(examId);
         
@@ -146,7 +146,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
         
         Exam exam = maybeExam.get();
         /* line 11441 */
-        Optional<ValidationError> maybeError = examApprovalService.verifyAccess(approvalRequest, exam);
+        Optional<ValidationError> maybeError = examApprovalService.verifyAccess(examInfo, exam);
         
         if (maybeError.isPresent()) {
             return maybeError;

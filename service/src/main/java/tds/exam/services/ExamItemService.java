@@ -3,7 +3,7 @@ package tds.exam.services;
 import java.util.UUID;
 
 import tds.common.Response;
-import tds.exam.ApprovalRequest;
+import tds.exam.ExamInfo;
 import tds.exam.ExamItemResponse;
 import tds.exam.ExamPage;
 
@@ -20,7 +20,7 @@ public interface ExamItemService {
      * @param responses              The collection of the {@link tds.exam.ExamItemResponse}s to persist
      * @return The next {@link tds.exam.ExamPage} that has {@link tds.exam.ExamItem}s that require student responses
      */
-    Response<ExamPage> insertResponses(ApprovalRequest request, int mostRecentPagePosition, ExamItemResponse... responses);
+    Response<ExamPage> insertResponses(ExamInfo request, int mostRecentPagePosition, ExamItemResponse... responses);
 
 
     /**

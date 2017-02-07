@@ -8,7 +8,7 @@ import java.util.UUID;
 
 import tds.common.Response;
 import tds.common.web.exceptions.NotFoundException;
-import tds.exam.ApprovalRequest;
+import tds.exam.ExamInfo;
 import tds.exam.ExamApproval;
 import tds.exam.ExamPage;
 import tds.exam.repositories.ExamPageCommandRepository;
@@ -47,7 +47,7 @@ public class ExamPageServiceImpl implements ExamPageService {
     }
 
     @Override
-    public Response<ExamPage> getPage(final ApprovalRequest request, final int pageNumber) {
+    public Response<ExamPage> getPage(final ExamInfo request, final int pageNumber) {
         Response<ExamApproval> approval = examApprovalService.getApproval(request);
 
         if (approval.getError().isPresent()) {

@@ -24,7 +24,7 @@ import tds.common.data.legacy.LegacyComparer;
 import tds.common.web.exceptions.NotFoundException;
 import tds.config.ClientSystemFlag;
 import tds.config.TimeLimitConfiguration;
-import tds.exam.ApprovalRequest;
+import tds.exam.ExamInfo;
 import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
 import tds.exam.ExamConfiguration;
@@ -316,7 +316,7 @@ class ExamServiceImpl implements ExamService {
         Session session = maybeSession.get();
 
         /* StudentDLL [5269] / TestOpportunityServiceImpl [137] */
-        Optional<ValidationError> maybeAccessViolation = examApprovalService.verifyAccess(new ApprovalRequest(examId, session.getId(),
+        Optional<ValidationError> maybeAccessViolation = examApprovalService.verifyAccess(new ExamInfo(examId, session.getId(),
             exam.getBrowserId()), exam);
         if (maybeAccessViolation.isPresent()) {
             return new Response<>(maybeAccessViolation.get());

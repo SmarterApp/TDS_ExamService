@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 import tds.common.Response;
-import tds.exam.ApprovalRequest;
+import tds.exam.ExamInfo;
 import tds.exam.ExamItem;
 import tds.exam.ExamPage;
 import tds.exam.builder.ExamItemBuilder;
@@ -45,7 +45,7 @@ public class ExamPageControllerTest {
         UUID browserId = UUID.randomUUID();
         int pageNumber = 1;
 
-        ApprovalRequest mockApprovalRequest = new ApprovalRequest(examId, sessionId, browserId);
+        ExamInfo mockExamInfo = new ExamInfo(examId, sessionId, browserId);
 
         ExamItem mockFirstExamItem = new ExamItemBuilder()
             .withExamPageId(ExamPageBuilder.DEFAULT_ID)
@@ -63,14 +63,14 @@ public class ExamPageControllerTest {
             .withExamItems(mockExamItems)
             .build());
 
-        ArgumentCaptor<ApprovalRequest> approvalRequestArgumentCaptor = ArgumentCaptor.forClass(ApprovalRequest.class);
-        when(mockExamPageService.getPage(isA(ApprovalRequest.class), isA(Integer.class)))
+        ArgumentCaptor<ExamInfo> approvalRequestArgumentCaptor = ArgumentCaptor.forClass(ExamInfo.class);
+        when(mockExamPageService.getPage(isA(ExamInfo.class), isA(Integer.class)))
             .thenReturn(mockExamPageResponse);
 
         ResponseEntity<Response<ExamPage>> result = controller.getPage(examId, pageNumber, sessionId, browserId);
         verify(mockExamPageService).getPage(approvalRequestArgumentCaptor.capture(), isA(Integer.class));
 
-        assertThat(approvalRequestArgumentCaptor.getValue()).isEqualTo(mockApprovalRequest);
+        assertThat(approvalRequestArgumentCaptor.getValue()).isEqualTo(mockExamInfo);
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(result.getBody().getData().isPresent()).isTrue();
         assertThat(result.getBody().getError().isPresent()).isFalse();

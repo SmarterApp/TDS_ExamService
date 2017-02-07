@@ -18,7 +18,7 @@ import java.util.UUID;
 import tds.common.Response;
 import tds.common.configuration.JacksonObjectMapperConfiguration;
 import tds.common.web.advice.ExceptionAdvice;
-import tds.exam.ApprovalRequest;
+import tds.exam.ExamInfo;
 import tds.exam.ExamItem;
 import tds.exam.ExamItemResponse;
 import tds.exam.ExamPage;
@@ -48,7 +48,7 @@ public class ExamItemControllerIntegrationTests {
 
     @Test
     public void shouldInsertResponse() throws Exception {
-        ApprovalRequest approvalRequest = new ApprovalRequest(UUID.randomUUID(),
+        ExamInfo examInfo = new ExamInfo(UUID.randomUUID(),
             UUID.randomUUID(),
             UUID.randomUUID());
         int pagePosition = 1;
@@ -65,23 +65,23 @@ public class ExamItemControllerIntegrationTests {
             .build();
         List<ExamItem> mockExamItems = Arrays.asList(mockExamItem);
         ExamPage mockNextExamPage = new ExamPageBuilder()
-            .withExamId(approvalRequest.getExamId())
+            .withExamId(examInfo.getExamId())
             .withPagePosition(2)
             .withExamItems(mockExamItems)
             .build();
 
-        when(mockExamItemService.insertResponses(isA(ApprovalRequest.class),
+        when(mockExamItemService.insertResponses(isA(ExamInfo.class),
             isA(Integer.class),
             any(ExamItemResponse[].class)))
             .thenReturn(new Response<>(mockNextExamPage));
 
         String examItemResponseJson = new ObjectMapper().writeValueAsString(Arrays.asList(response));
 
-        http.perform(post("/exam/{id}/page/{position}/responses", approvalRequest.getExamId(), pagePosition)
+        http.perform(post("/exam/{id}/page/{position}/responses", examInfo.getExamId(), pagePosition)
             .contentType(MediaType.APPLICATION_JSON)
             .content(examItemResponseJson)
-            .param("sessionId", approvalRequest.getSessionId().toString())
-            .param("browserId", approvalRequest.getBrowserId().toString()))
+            .param("sessionId", examInfo.getSessionId().toString())
+            .param("browserId", examInfo.getBrowserId().toString()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("data").isNotEmpty())
             .andExpect(jsonPath("data.id", is(mockNextExamPage.getId().toString())))

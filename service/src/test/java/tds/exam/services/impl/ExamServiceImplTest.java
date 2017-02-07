@@ -32,7 +32,7 @@ import tds.common.ValidationError;
 import tds.common.web.exceptions.NotFoundException;
 import tds.config.ClientSystemFlag;
 import tds.config.TimeLimitConfiguration;
-import tds.exam.ApprovalRequest;
+import tds.exam.ExamInfo;
 import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
 import tds.exam.ExamConfiguration;
@@ -1010,7 +1010,7 @@ public class ExamServiceImplTest {
         when(mockExamQueryRepository.getExamById(exam.getId())).thenReturn(Optional.of(exam));
         when(mockSessionService.findSessionById(exam.getSessionId())).thenReturn(Optional.of(session));
         when(mockAssessmentService.findAssessment(exam.getClientName(), exam.getAssessmentKey())).thenReturn(Optional.empty());
-        when(mockExamApprovalService.verifyAccess(isA(ApprovalRequest.class), isA(Exam.class)))
+        when(mockExamApprovalService.verifyAccess(isA(ExamInfo.class), isA(Exam.class)))
             .thenReturn(Optional.empty());
 
         Response<ExamConfiguration> response = examService.startExam(exam.getId());
@@ -1056,7 +1056,7 @@ public class ExamServiceImplTest {
         when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(exam.getClientName(), assessment.getAssessmentId()))
             .thenReturn(Optional.of(timeLimitConfiguration));
         when(mockExamSegmentService.initializeExamSegments(exam, assessment)).thenReturn(testLength);
-        when(mockExamApprovalService.verifyAccess(isA(ApprovalRequest.class), isA(Exam.class)))
+        when(mockExamApprovalService.verifyAccess(isA(ExamInfo.class), isA(Exam.class)))
             .thenReturn(Optional.empty());
 
         Response<ExamConfiguration> examConfigurationResponse = examService.startExam(exam.getId());
@@ -1127,7 +1127,7 @@ public class ExamServiceImplTest {
         when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(exam.getClientName(), assessment.getAssessmentId()))
             .thenReturn(Optional.of(timeLimitConfiguration));
         when(mockExamSegmentService.initializeExamSegments(exam, assessment)).thenReturn(testLength);
-        when(mockExamApprovalService.verifyAccess(isA(ApprovalRequest.class), isA(Exam.class)))
+        when(mockExamApprovalService.verifyAccess(isA(ExamInfo.class), isA(Exam.class)))
             .thenReturn(Optional.empty());
 
         Response<ExamConfiguration> examConfigurationResponse = examService.startExam(exam.getId());
@@ -1205,7 +1205,7 @@ public class ExamServiceImplTest {
         when(mockExamSegmentService.initializeExamSegments(exam, assessment)).thenReturn(testLength);
         when(mockExamItemService.getExamPosition(exam.getId())).thenReturn(resumePosition);
         when(mockExamItemService.getExamPosition(exam.getId())).thenReturn(5);
-        when(mockExamApprovalService.verifyAccess(isA(ApprovalRequest.class), isA(Exam.class)))
+        when(mockExamApprovalService.verifyAccess(isA(ExamInfo.class), isA(Exam.class)))
             .thenReturn(Optional.empty());
 
         Response<ExamConfiguration> examConfigurationResponse = examService.startExam(exam.getId());

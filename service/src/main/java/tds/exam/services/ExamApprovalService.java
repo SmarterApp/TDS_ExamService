@@ -6,7 +6,7 @@ import java.util.UUID;
 
 import tds.common.Response;
 import tds.common.ValidationError;
-import tds.exam.ApprovalRequest;
+import tds.exam.ExamInfo;
 import tds.exam.Exam;
 import tds.exam.ExamApproval;
 
@@ -21,10 +21,10 @@ public interface ExamApprovalService {
      * the Student's request to start his/her exam.
      * </p>
      *
-     * @param approvalRequest The {@link tds.exam.ApprovalRequest} representing the request to open the specified exam.
+     * @param examInfo The {@link tds.exam.ExamInfo} representing the request to open the specified exam.
      * @return {@link tds.exam.ExamApproval} describing whether the exam is approved to be opened.
      */
-    Response<ExamApproval> getApproval(ApprovalRequest approvalRequest);
+    Response<ExamApproval> getApproval(ExamInfo examInfo);
 
     /**
      * List of exams pending approval from the proctor
@@ -48,10 +48,10 @@ public interface ExamApprovalService {
      * or is otherwise proctor-less), approval is granted as long as the {@link tds.session.Session} is open.
      * </p>
      *
-     * @param approvalRequest The {@link ApprovalRequest} being evaluated
+     * @param examInfo The {@link tds.exam.ExamInfo} being evaluated
      * @param exam            The {@link tds.exam.Exam} for which approval is being requested
      * @return An empty optional if the approval rules are satisfied; otherwise an optional containing a
      * {@link tds.common.ValidationError} describing the rule that was not satisfied
      */
-    Optional<ValidationError> verifyAccess(ApprovalRequest approvalRequest, Exam exam);
+    Optional<ValidationError> verifyAccess(ExamInfo examInfo, Exam exam);
 }

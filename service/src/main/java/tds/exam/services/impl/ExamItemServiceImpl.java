@@ -10,9 +10,8 @@ import java.util.stream.Stream;
 import tds.common.Response;
 import tds.common.ValidationError;
 import tds.common.web.exceptions.NotFoundException;
-import tds.exam.ApprovalRequest;
+import tds.exam.ExamInfo;
 import tds.exam.Exam;
-import tds.exam.ExamApproval;
 import tds.exam.ExamItemResponse;
 import tds.exam.ExamItemResponseScore;
 import tds.exam.ExamPage;
@@ -55,18 +54,14 @@ public class ExamItemServiceImpl implements ExamItemService {
     }
 
     @Override
-    public Response<ExamPage> insertResponses(final ApprovalRequest request, final int mostRecentPagePosition, final ExamItemResponse... responses) {
+    public Response<ExamPage> insertResponses(final ExamInfo request, final int mostRecentPagePosition, final ExamItemResponse... responses) {
         Exam exam = examQueryRepository.getExamById(request.getExamId())
             .orElseThrow(() -> new NotFoundException(String.format("Could not find an exam for exam id %s", request.getExamId())));
-        
+
         Optional<ValidationError> maybeValidationError = examApprovalService.verifyAccess(request, exam);
         if (maybeValidationError.isPresent()) {
             return new Response<>(maybeValidationError.get());
         }
-
-        // Get the current page, which will be used as the basis for creating the next page
-        ExamPage currentPage = examPageQueryRepository.find(request.getExamId(), mostRecentPagePosition)
-            .orElseThrow(() -> new NotFoundException(String.format("Could not find exam page for id %s and position %d", request.getExamId(), mostRecentPagePosition)));
 
         // RULE:  An exam must be in the "started" or "review" status for responses to be saved.  Legacy rule location:
         // StudentDLL.T_UpdateScoredResponse_common, line 2031
@@ -74,6 +69,10 @@ public class ExamItemServiceImpl implements ExamItemService {
             || exam.getStatus().getCode().equals(ExamStatusCode.STATUS_REVIEW))) {
             return new Response<>(new ValidationError(ValidationErrorCode.EXAM_INTERRUPTED, "Your test opportunity has been interrupted. Please check with your Test Administrator to resume your test."));
         }
+
+        // Get the current page, which will be used as the basis for creating the next page
+        ExamPage currentPage = examPageQueryRepository.find(request.getExamId(), mostRecentPagePosition)
+            .orElseThrow(() -> new NotFoundException(String.format("Could not find exam page for id %s and position %d", request.getExamId(), mostRecentPagePosition)));
 
         // Score each response
         // TODO:  Revisit this once scoring logic has been ported over; getting a score may be more complex and/or require more data

@@ -20,7 +20,7 @@ import tds.common.Response;
 import tds.common.ValidationError;
 import tds.common.configuration.JacksonObjectMapperConfiguration;
 import tds.common.web.advice.ExceptionAdvice;
-import tds.exam.ApprovalRequest;
+import tds.exam.ExamInfo;
 import tds.exam.ExamItem;
 import tds.exam.ExamItemResponse;
 import tds.exam.ExamPage;
@@ -57,18 +57,18 @@ public class ExamPageControllerIntegrationTests {
         ExamPage mockExamPage = new ExamPageBuilder()
             .withExamItems(mockExamItems)
             .build();
-        ApprovalRequest approvalRequest = new ApprovalRequest(mockExamPage.getExamId(),
+        ExamInfo examInfo = new ExamInfo(mockExamPage.getExamId(),
             UUID.randomUUID(),
             UUID.randomUUID());
 
-        ArgumentCaptor<ApprovalRequest> approvalRequestArgumentCaptor = ArgumentCaptor.forClass(ApprovalRequest.class);
-        when(mockExamPageService.getPage(isA(ApprovalRequest.class), isA(Integer.class)))
+        ArgumentCaptor<ExamInfo> approvalRequestArgumentCaptor = ArgumentCaptor.forClass(ExamInfo.class);
+        when(mockExamPageService.getPage(isA(ExamInfo.class), isA(Integer.class)))
             .thenReturn(new Response<>(mockExamPage));
 
         http.perform(get("/exam/{id}/page/{position}", mockExamPage.getExamId(), mockExamPage.getPagePosition())
             .contentType(MediaType.APPLICATION_JSON)
-            .param("sessionId", approvalRequest.getSessionId().toString())
-            .param("browserId", approvalRequest.getBrowserId().toString()))
+            .param("sessionId", examInfo.getSessionId().toString())
+            .param("browserId", examInfo.getBrowserId().toString()))
             .andExpect(status().isOk())
 
             .andExpect(jsonPath("data.id", is(mockExamPage.getId().toString())))
@@ -111,18 +111,18 @@ public class ExamPageControllerIntegrationTests {
         ExamPage examPage = new ExamPageBuilder()
             .withExamItems(examItems)
             .build();
-        ApprovalRequest approvalRequest = new ApprovalRequest(examPage.getExamId(),
+        ExamInfo examInfo = new ExamInfo(examPage.getExamId(),
             UUID.randomUUID(),
             UUID.randomUUID());
 
-        ArgumentCaptor<ApprovalRequest> approvalRequestArgumentCaptor = ArgumentCaptor.forClass(ApprovalRequest.class);
-        when(mockExamPageService.getPage(isA(ApprovalRequest.class), isA(Integer.class)))
+        ArgumentCaptor<ExamInfo> approvalRequestArgumentCaptor = ArgumentCaptor.forClass(ExamInfo.class);
+        when(mockExamPageService.getPage(isA(ExamInfo.class), isA(Integer.class)))
             .thenReturn(new Response<>(examPage));
 
         http.perform(get("/exam/{id}/page/{position}", examPage.getExamId(), examPage.getPagePosition())
             .contentType(MediaType.APPLICATION_JSON)
-            .param("sessionId", approvalRequest.getSessionId().toString())
-            .param("browserId", approvalRequest.getBrowserId().toString()))
+            .param("sessionId", examInfo.getSessionId().toString())
+            .param("browserId", examInfo.getBrowserId().toString()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("data").isNotEmpty())
             .andExpect(jsonPath("data.id", is(examPage.getId().toString())))
@@ -154,18 +154,18 @@ public class ExamPageControllerIntegrationTests {
 
     @Test
     public void shouldNotGetAnExamPageForAClosedSession() throws Exception {
-        ApprovalRequest approvalRequest = new ApprovalRequest(UUID.randomUUID(),
+        ExamInfo examInfo = new ExamInfo(UUID.randomUUID(),
             UUID.randomUUID(),
             UUID.randomUUID());
 
-        ArgumentCaptor<ApprovalRequest> approvalRequestArgumentCaptor = ArgumentCaptor.forClass(ApprovalRequest.class);
-        when(mockExamPageService.getPage(isA(ApprovalRequest.class), isA(Integer.class)))
+        ArgumentCaptor<ExamInfo> approvalRequestArgumentCaptor = ArgumentCaptor.forClass(ExamInfo.class);
+        when(mockExamPageService.getPage(isA(ExamInfo.class), isA(Integer.class)))
             .thenReturn(new Response<>(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_SESSION_CLOSED, "session is closed")));
 
-        http.perform(get("/exam/{id}/page/{position}", approvalRequest.getExamId(), 1)
+        http.perform(get("/exam/{id}/page/{position}", examInfo.getExamId(), 1)
             .contentType(MediaType.APPLICATION_JSON)
-            .param("sessionId", approvalRequest.getSessionId().toString())
-            .param("browserId", approvalRequest.getBrowserId().toString()))
+            .param("sessionId", examInfo.getSessionId().toString())
+            .param("browserId", examInfo.getBrowserId().toString()))
             .andExpect(status().isUnprocessableEntity())
             .andExpect(jsonPath("error").isNotEmpty())
             .andExpect(jsonPath("error.code", is("sessionClosed")))

@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 import tds.common.Response;
-import tds.exam.ApprovalRequest;
+import tds.exam.ExamInfo;
 import tds.exam.ExamItem;
 import tds.exam.ExamItemResponse;
 import tds.exam.ExamPage;
@@ -43,33 +43,33 @@ public class ExamItemControllerTest {
 
     @Test
     public void shouldInsertExamItemResponses() {
-        ApprovalRequest mockApprovalRequest = new ApprovalRequest(UUID.randomUUID(),
+        ExamInfo mockExamInfo = new ExamInfo(UUID.randomUUID(),
             UUID.randomUUID(),
             UUID.randomUUID());
         ExamItem mockExamItem = new ExamItemBuilder().build();
         List<ExamItem> mockExamItems = Arrays.asList(mockExamItem);
         ExamPage mockNextExamPage = new ExamPageBuilder()
-            .withExamId(mockApprovalRequest.getExamId())
+            .withExamId(mockExamInfo.getExamId())
             .withPagePosition(2)
             .withExamItems(mockExamItems)
             .build();
 
-        ArgumentCaptor<ApprovalRequest> approvalRequestArgumentCaptor = ArgumentCaptor.forClass(ApprovalRequest.class);
-        when(mockExamItemService.insertResponses(isA(ApprovalRequest.class),
+        ArgumentCaptor<ExamInfo> approvalRequestArgumentCaptor = ArgumentCaptor.forClass(ExamInfo.class);
+        when(mockExamItemService.insertResponses(isA(ExamInfo.class),
             isA(Integer.class),
             any(ExamItemResponse[].class)))
             .thenReturn(new Response<>(mockNextExamPage));
 
         ExamItemResponse[] responses = new ExamItemResponse[] { new ExamItemResponseBuilder().build() };
 
-        ResponseEntity<Response<ExamPage>> result = examItemController.insertResponses(mockApprovalRequest.getExamId(),
+        ResponseEntity<Response<ExamPage>> result = examItemController.insertResponses(mockExamInfo.getExamId(),
             1,
-            mockApprovalRequest.getSessionId(),
-            mockApprovalRequest.getBrowserId(),
+            mockExamInfo.getSessionId(),
+            mockExamInfo.getBrowserId(),
             responses);
         verify(mockExamItemService).insertResponses(approvalRequestArgumentCaptor.capture(), isA(Integer.class), any(ExamItemResponse[].class));
 
-        assertThat(approvalRequestArgumentCaptor.getValue()).isEqualTo(mockApprovalRequest);
+        assertThat(approvalRequestArgumentCaptor.getValue()).isEqualTo(mockExamInfo);
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(result.getBody().getData().isPresent()).isTrue();
         assertThat(result.getBody().getError().isPresent()).isFalse();
