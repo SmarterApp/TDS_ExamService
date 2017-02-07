@@ -3,18 +3,16 @@ package tds.exam.services.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
 import tds.common.Response;
 import tds.common.web.exceptions.NotFoundException;
-import tds.exam.ApprovalRequest;
+import tds.exam.ExamInfo;
 import tds.exam.ExamApproval;
 import tds.exam.ExamPage;
 import tds.exam.repositories.ExamPageCommandRepository;
 import tds.exam.repositories.ExamPageQueryRepository;
-import tds.exam.repositories.ExamResponseQueryRepository;
 import tds.exam.services.ExamApprovalService;
 import tds.exam.services.ExamPageService;
 
@@ -22,18 +20,14 @@ import tds.exam.services.ExamPageService;
 public class ExamPageServiceImpl implements ExamPageService {
     private final ExamPageCommandRepository examPageCommandRepository;
     private final ExamPageQueryRepository examPageQueryRepository;
-    private final ExamResponseQueryRepository examResponseQueryRepository;
     private final ExamApprovalService examApprovalService;
 
     @Autowired
     public ExamPageServiceImpl(ExamPageQueryRepository examPageQueryRepository,
                                ExamPageCommandRepository examPageCommandRepository,
-                               ExamResponseQueryRepository examResponseQueryRepository,
                                ExamApprovalService examApprovalService) {
-
         this.examPageCommandRepository = examPageCommandRepository;
         this.examPageQueryRepository = examPageQueryRepository;
-        this.examResponseQueryRepository = examResponseQueryRepository;
         this.examApprovalService = examApprovalService;
     }
 
@@ -48,17 +42,12 @@ public class ExamPageServiceImpl implements ExamPageService {
     }
 
     @Override
-    public int getExamPosition(final UUID examId) {
-        return examResponseQueryRepository.getCurrentExamItemPosition(examId);
-    }
-
-    @Override
     public List<ExamPage> findAllPages(final UUID examId) {
         return examPageQueryRepository.findAll(examId);
     }
 
     @Override
-    public Response<ExamPage> getPage(final ApprovalRequest request, final int pageNumber) {
+    public Response<ExamPage> getPage(final ExamInfo request, final int pageNumber) {
         Response<ExamApproval> approval = examApprovalService.getApproval(request);
 
         if (approval.getError().isPresent()) {

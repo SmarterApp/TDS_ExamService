@@ -35,7 +35,6 @@ public class ExamItemBuilder {
             .withItemType(itemType)
             .withPosition(position)
             .withRequired(required)
-            .withSelected(selected)
             .withMarkedForReview(markedForReview)
             .withFieldTest(fieldTest)
             .withItemFilePath(itemFilePath)
@@ -81,11 +80,6 @@ public class ExamItemBuilder {
 
     public ExamItemBuilder withRequired(boolean required) {
         this.required = required;
-        return this;
-    }
-
-    public ExamItemBuilder withSelected(boolean selected) {
-        this.selected = selected;
         return this;
     }
 

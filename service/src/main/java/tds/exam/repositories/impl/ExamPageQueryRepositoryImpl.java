@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -19,7 +20,9 @@ import java.util.UUID;
 import tds.common.data.mapping.ResultSetMapperUtility;
 import tds.exam.ExamItem;
 import tds.exam.ExamItemResponse;
+import tds.exam.ExamItemResponseScore;
 import tds.exam.ExamPage;
+import tds.exam.ExamScoringStatus;
 import tds.exam.repositories.ExamPageQueryRepository;
 
 @Repository
@@ -68,6 +71,47 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
     }
 
     @Override
+    public Optional<ExamPage> find(UUID examId, int position) {
+        final MapSqlParameterSource parameters = new MapSqlParameterSource("examId", examId.toString())
+            .addValue("position", position);
+
+        final String SQL =
+            "SELECT \n" +
+                "   P.id, \n" +
+                "   P.page_position, \n" +
+                "   P.item_group_key, \n" +
+                "   P.exam_id, \n" +
+                "   P.created_at, \n" +
+                "   PE.started_at \n" +
+                "FROM \n" +
+                "   exam_page P\n" +
+                "JOIN ( \n" +
+                "   SELECT \n" +
+                "       exam_page_id, \n" +
+                "       MAX(id) AS id \n" +
+                "   FROM \n" +
+                "       exam_page_event \n" +
+                "   GROUP BY exam_page_id \n" +
+                ") last_event \n" +
+                "   ON P.id = last_event.exam_page_id \n" +
+                "JOIN exam_page_event PE \n" +
+                "   ON last_event.id = PE.id \n" +
+                "WHERE \n" +
+                "   P.exam_id = :examId " +
+                "   AND P.page_position = :position \n" +
+                "   AND PE.deleted_at IS NULL";
+
+        Optional<ExamPage> maybeExamPage;
+        try {
+            maybeExamPage = Optional.of(jdbcTemplate.queryForObject(SQL, parameters, examPageRowMapper));
+        } catch (EmptyResultDataAccessException e) {
+            maybeExamPage = Optional.empty();
+        }
+
+        return maybeExamPage;
+    }
+
+    @Override
     public Optional<ExamPage> findPageWithItems(UUID examId, int position) {
         final MapSqlParameterSource parameters = new MapSqlParameterSource("examId", examId.toString())
             .addValue("position", position);
@@ -90,14 +134,19 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
                 "   item.position AS item_position, \n" +
                 "   item.is_fieldtest, \n" +
                 "   item.is_required, \n" +
-                "   item.is_selected, \n" +
                 "   item.is_marked_for_review, \n" +
                 "   item.item_file_path, \n" +
                 "   item.stimulus_file_path, \n" +
                 "   response.response, \n" +
                 "   response.sequence, \n" +
                 "   response.is_valid, \n" +
+                "   response.is_selected, \n" +
+                "   response.score, \n" +
+                "   response.scoring_status, \n" +
+                "   response.scoring_rationale, \n" +
+                "   response.scoring_dimensions, \n" +
                 "   response.created_at AS response_created_at, \n" +
+                "   response.scored_at, \n" +
                 "   segment.segment_key, \n" +
                 "   segment.segment_id, \n" +
                 "   segment.segment_position \n" +
@@ -170,6 +219,14 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
                         .withResponse(resultExtractor.getString("response"))
                         .withSequence(resultExtractor.getInt("sequence"))
                         .withValid(resultExtractor.getBoolean("is_valid"))
+                        .withSelected(resultExtractor.getBoolean("is_selected"))
+                        .withScore(new ExamItemResponseScore.Builder()
+                            .withScore(resultExtractor.getInt("score"))
+                            .withScoringStatus(ExamScoringStatus.fromType(resultExtractor.getString("scoring_status")))
+                            .withScoringRationale(resultExtractor.getString("scoring_rationale"))
+                            .withScoringDimensions(resultExtractor.getString("scoring_dimensions"))
+                            .withScoredAt(ResultSetMapperUtility.mapTimestampToJodaInstant(resultExtractor, "scored_at"))
+                            .build())
                         .withCreatedAt(ResultSetMapperUtility.mapTimestampToJodaInstant(resultExtractor, "response_created_at"))
                         .build();
                 }
@@ -183,7 +240,6 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
                     .withPosition(resultExtractor.getInt("item_position"))
                     .withFieldTest(resultExtractor.getBoolean("is_fieldtest"))
                     .withRequired(resultExtractor.getBoolean("is_required"))
-                    .withSelected(resultExtractor.getBoolean("is_selected"))
                     .withMarkedForReview(resultExtractor.getBoolean("is_marked_for_review"))
                     .withItemFilePath(resultExtractor.getString("item_file_path"))
                     .withStimulusFilePath(resultExtractor.getString("stimulus_file_path"))
