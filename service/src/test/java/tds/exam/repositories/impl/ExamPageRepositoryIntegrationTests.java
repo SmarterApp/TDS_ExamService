@@ -21,12 +21,12 @@ import tds.exam.ExamItemResponse;
 import tds.exam.ExamPage;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.builder.ExamItemBuilder;
+import tds.exam.builder.ExamItemResponseBuilder;
 import tds.exam.builder.ExamPageBuilder;
 import tds.exam.builder.ExamSegmentBuilder;
 import tds.exam.models.ExamSegment;
 import tds.exam.repositories.ExamCommandRepository;
 import tds.exam.repositories.ExamItemCommandRepository;
-import tds.exam.repositories.ExamItemResponseCommandRepository;
 import tds.exam.repositories.ExamPageCommandRepository;
 import tds.exam.repositories.ExamPageQueryRepository;
 import tds.exam.repositories.ExamSegmentCommandRepository;
@@ -40,12 +40,10 @@ public class ExamPageRepositoryIntegrationTests {
     @Autowired
     @Qualifier("commandJdbcTemplate")
     private NamedParameterJdbcTemplate commandJdbcTemplate;
+    private ExamItemCommandRepository examItemCommandRepository;
     private ExamPageCommandRepository examPageCommandRepository;
     private ExamPageQueryRepository examPageQueryRepository;
-    private ExamSegmentCommandRepository examSegmentCommandRepository;
     private ExamCommandRepository examCommandRepository;
-    private ExamItemCommandRepository examItemCommandRepository;
-    private ExamItemResponseCommandRepository examItemResponseCommandRepository;
 
     private final Exam mockExam = new ExamBuilder().build();
     private final ExamSegment mockExamSegment = new ExamSegmentBuilder()
@@ -74,12 +72,12 @@ public class ExamPageRepositoryIntegrationTests {
 
     @Before
     public void setUp() {
+        examItemCommandRepository = new ExamItemCommandRepositoryImpl(commandJdbcTemplate);
         examPageCommandRepository = new ExamPageCommandRepositoryImpl(commandJdbcTemplate);
         examPageQueryRepository = new ExamPageQueryRepositoryImpl(commandJdbcTemplate);
-        examSegmentCommandRepository = new ExamSegmentCommandRepositoryImpl(commandJdbcTemplate);
+        ExamSegmentCommandRepository examSegmentCommandRepository = new ExamSegmentCommandRepositoryImpl(commandJdbcTemplate);
         examCommandRepository = new ExamCommandRepositoryImpl(commandJdbcTemplate);
-        examItemCommandRepository = new ExamItemCommandRepositoryImpl(commandJdbcTemplate);
-        examItemResponseCommandRepository = new ExamItemResponseCommandRepositoryImpl(commandJdbcTemplate);
+        ExamItemCommandRepository examItemCommandRepository = new ExamItemCommandRepositoryImpl(commandJdbcTemplate);
 
         // Seed the database with mock records for integration testing
         examCommandRepository.insert(mockExam);
@@ -148,14 +146,14 @@ public class ExamPageRepositoryIntegrationTests {
 
         // ...and responds to the first item
         Instant responseCreatedAt = Instant.now();
-        ExamItemResponse mockResponseForFirstItem = new ExamItemResponse.Builder()
+        ExamItemResponse mockResponseForFirstItem = new ExamItemResponseBuilder()
             .withExamItemId(examPage.getExamItems().get(0).getId())
             .withResponse("first item response")
             .withSequence(1)
             .withCreatedAt(responseCreatedAt)
             .build();
 
-        examItemResponseCommandRepository.insert(mockResponseForFirstItem);
+        examItemCommandRepository.insertResponses(mockResponseForFirstItem);
 
         Optional<ExamPage> resultWithItemResponses = examPageQueryRepository.findPageWithItems(mockExam.getId(), 1);
         assertThat(resultWithItemResponses).isPresent();
@@ -172,7 +170,6 @@ public class ExamPageRepositoryIntegrationTests {
         assertThat(firstExamItem.getAssessmentItemKey()).isEqualTo(1234L);
         assertThat(firstExamItem.getItemType()).isEqualTo("MS");
         assertThat(firstExamItem.getPosition()).isEqualTo(1);
-        assertThat(firstExamItem.isSelected()).isFalse();
         assertThat(firstExamItem.isRequired()).isTrue();
         assertThat(firstExamItem.isMarkedForReview()).isFalse();
         assertThat(firstExamItem.isFieldTest()).isFalse();

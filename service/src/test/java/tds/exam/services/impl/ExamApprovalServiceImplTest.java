@@ -13,7 +13,7 @@ import java.util.UUID;
 
 import tds.common.Response;
 import tds.config.TimeLimitConfiguration;
-import tds.exam.ApprovalRequest;
+import tds.exam.ExamInfo;
 import tds.exam.Exam;
 import tds.exam.ExamApproval;
 import tds.exam.ExamApprovalStatus;
@@ -88,9 +88,9 @@ public class ExamApprovalServiceImplTest {
                 .withTaCheckinTimeMinutes(20)
                 .build()));
 
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey);
+        ExamInfo examInfo = new ExamInfo(examId, sessionId, browserKey);
 
-        Response<ExamApproval> result = examApprovalService.getApproval(approvalRequest);
+        Response<ExamApproval> result = examApprovalService.getApproval(examInfo);
 
         assertThat(result.hasError()).isFalse();
         assertThat(result.getData().isPresent()).isTrue();
@@ -134,9 +134,9 @@ public class ExamApprovalServiceImplTest {
                 .withTaCheckinTimeMinutes(20)
                 .build()));
 
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey);
+        ExamInfo examInfo = new ExamInfo(examId, sessionId, browserKey);
 
-        Response<ExamApproval> result = examApprovalService.getApproval(approvalRequest);
+        Response<ExamApproval> result = examApprovalService.getApproval(examInfo);
 
         assertThat(result.hasError()).isFalse();
         assertThat(result.getData().isPresent()).isTrue();
@@ -180,9 +180,9 @@ public class ExamApprovalServiceImplTest {
                 .withTaCheckinTimeMinutes(20)
                 .build()));
 
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey);
+        ExamInfo examInfo = new ExamInfo(examId, sessionId, browserKey);
 
-        Response<ExamApproval> result = examApprovalService.getApproval(approvalRequest);
+        Response<ExamApproval> result = examApprovalService.getApproval(examInfo);
 
         assertThat(result.hasError()).isFalse();
         assertThat(result.getData().isPresent()).isTrue();
@@ -226,9 +226,9 @@ public class ExamApprovalServiceImplTest {
                 .withTaCheckinTimeMinutes(20)
                 .build()));
 
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey);
+        ExamInfo examInfo = new ExamInfo(examId, sessionId, browserKey);
 
-        Response<ExamApproval> result = examApprovalService.getApproval(approvalRequest);
+        Response<ExamApproval> result = examApprovalService.getApproval(examInfo);
 
         assertThat(result.hasError()).isFalse();
         assertThat(result.getData().isPresent()).isTrue();
@@ -271,9 +271,9 @@ public class ExamApprovalServiceImplTest {
                 .withTaCheckinTimeMinutes(20)
                 .build()));
 
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey);
+        ExamInfo examInfo = new ExamInfo(examId, sessionId, browserKey);
 
-        Response<ExamApproval> result = examApprovalService.getApproval(approvalRequest);
+        Response<ExamApproval> result = examApprovalService.getApproval(examInfo);
 
         assertThat(result.hasError()).isTrue();
         assertThat(result.getError().get().getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_BROWSER_ID_MISMATCH);
@@ -314,9 +314,9 @@ public class ExamApprovalServiceImplTest {
                 .withTaCheckinTimeMinutes(20)
                 .build()));
 
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey);
+        ExamInfo examInfo = new ExamInfo(examId, sessionId, browserKey);
 
-        Response<ExamApproval> result = examApprovalService.getApproval(approvalRequest);
+        Response<ExamApproval> result = examApprovalService.getApproval(examInfo);
 
         assertThat(result.hasError()).isTrue();
         assertThat(result.getError().get().getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_SESSION_ID_MISMATCH);
@@ -357,9 +357,9 @@ public class ExamApprovalServiceImplTest {
                 .withTaCheckinTimeMinutes(20)
                 .build()));
 
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey);
+        ExamInfo examInfo = new ExamInfo(examId, sessionId, browserKey);
 
-        Response<ExamApproval> result = examApprovalService.getApproval(approvalRequest);
+        Response<ExamApproval> result = examApprovalService.getApproval(examInfo);
 
         assertThat(result.hasError()).isTrue();
         assertThat(result.getError().get().getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_SESSION_CLOSED);
@@ -400,9 +400,9 @@ public class ExamApprovalServiceImplTest {
                 .withTaCheckinTimeMinutes(20)
                 .build()));
 
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey);
+        ExamInfo examInfo = new ExamInfo(examId, sessionId, browserKey);
 
-        Response<ExamApproval> result = examApprovalService.getApproval(approvalRequest);
+        Response<ExamApproval> result = examApprovalService.getApproval(examInfo);
 
         assertThat(result.hasError()).isTrue();
         assertThat(result.getError().get().getCode()).isEqualTo(ValidationErrorCode.EXAM_APPROVAL_TA_CHECKIN_TIMEOUT);
@@ -437,9 +437,9 @@ public class ExamApprovalServiceImplTest {
                 .withTaCheckinTimeMinutes(20)
                 .build()));
 
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey);
+        ExamInfo examInfo = new ExamInfo(examId, sessionId, browserKey);
 
-        examApprovalService.getApproval(approvalRequest);
+        examApprovalService.getApproval(examInfo);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -470,9 +470,9 @@ public class ExamApprovalServiceImplTest {
                 .withTaCheckinTimeMinutes(20)
                 .build()));
 
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey);
+        ExamInfo examInfo = new ExamInfo(examId, sessionId, browserKey);
 
-        examApprovalService.getApproval(approvalRequest);
+        examApprovalService.getApproval(examInfo);
     }
 
     @Test(expected = IllegalStateException.class)
@@ -510,9 +510,9 @@ public class ExamApprovalServiceImplTest {
                 .withTaCheckinTimeMinutes(20)
                 .build()));
 
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey);
+        ExamInfo examInfo = new ExamInfo(examId, sessionId, browserKey);
 
-        examApprovalService.getApproval(approvalRequest);
+        examApprovalService.getApproval(examInfo);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -546,8 +546,8 @@ public class ExamApprovalServiceImplTest {
         when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(clientName, mockAssessmentId))
             .thenReturn(Optional.empty());
 
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserKey);
+        ExamInfo examInfo = new ExamInfo(examId, sessionId, browserKey);
 
-        examApprovalService.getApproval(approvalRequest);
+        examApprovalService.getApproval(examInfo);
     }
 }

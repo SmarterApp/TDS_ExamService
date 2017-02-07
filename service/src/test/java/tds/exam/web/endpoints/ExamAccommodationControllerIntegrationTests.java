@@ -52,9 +52,10 @@ public class ExamAccommodationControllerIntegrationTests {
             .withExamId(mockExamId)
             .withSegmentKey("unit-test-segment")
             .build();
-        
-        when(mockExamAccommodationService.findAccommodations(mockExamId, "unit-test-segment", null)).thenReturn(Collections.singletonList(examAccommodation));
-        
+
+        when(mockExamAccommodationService.findAccommodations(mockExamId, "unit-test-segment", null))
+            .thenReturn(Collections.singletonList(examAccommodation));
+
         http.perform(get(new URI(String.format("/exam/%s/unit-test-segment/accommodations", mockExamId)))
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$", hasSize(1)))

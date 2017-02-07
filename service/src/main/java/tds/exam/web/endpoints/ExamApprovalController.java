@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 import tds.common.Response;
-import tds.exam.ApprovalRequest;
+import tds.exam.ExamInfo;
 import tds.exam.Exam;
 import tds.exam.ExamApproval;
 import tds.exam.services.ExamApprovalService;
@@ -33,8 +33,8 @@ public class ExamApprovalController {
     ResponseEntity<Response<ExamApproval>> getApproval(@PathVariable final UUID id,
                                                        @RequestParam final UUID sessionId,
                                                        @RequestParam final UUID browserId) {
-        ApprovalRequest approvalRequest = new ApprovalRequest(id, sessionId, browserId);
-        Response<ExamApproval> examApproval = examApprovalService.getApproval(approvalRequest);
+        ExamInfo examInfo = new ExamInfo(id, sessionId, browserId);
+        Response<ExamApproval> examApproval = examApprovalService.getApproval(examInfo);
 
         if (examApproval.hasError()) {
             return new ResponseEntity<>(examApproval, HttpStatus.UNPROCESSABLE_ENTITY);
