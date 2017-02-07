@@ -16,7 +16,7 @@ import java.util.UUID;
 
 import tds.common.Response;
 import tds.common.ValidationError;
-import tds.exam.ApprovalRequest;
+import tds.exam.ExamInfo;
 import tds.exam.ExamApproval;
 import tds.exam.ExamApprovalStatus;
 import tds.exam.ExamStatusCode;
@@ -51,19 +51,19 @@ public class ExamApprovalControllerTest {
         UUID examId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
         UUID browserId = UUID.randomUUID();
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserId);
+        ExamInfo examInfo = new ExamInfo(examId, sessionId, browserId);
 
         ExamApproval mockExamApproval = new ExamApproval(examId,
             new ExamStatusCode(STATUS_APPROVED,
                 ExamStatusStage.OPEN),
             null);
-        when(mockExamApprovalService.getApproval(isA(ApprovalRequest.class))).thenReturn(new Response<>(mockExamApproval));
+        when(mockExamApprovalService.getApproval(isA(ExamInfo.class))).thenReturn(new Response<>(mockExamApproval));
 
         ResponseEntity<Response<ExamApproval>> response = controller.getApproval(
-            approvalRequest.getExamId(),
-            approvalRequest.getSessionId(),
-            approvalRequest.getBrowserId());
-        verify(mockExamApprovalService).getApproval(isA(ApprovalRequest.class));
+            examInfo.getExamId(),
+            examInfo.getSessionId(),
+            examInfo.getBrowserId());
+        verify(mockExamApprovalService).getApproval(isA(ExamInfo.class));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody().hasError()).isFalse();
@@ -77,16 +77,16 @@ public class ExamApprovalControllerTest {
         UUID examId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
         UUID browserId = UUID.randomUUID();
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserId);
+        ExamInfo examInfo = new ExamInfo(examId, sessionId, browserId);
 
         Response<ExamApproval> errorResponse = new Response<ExamApproval>(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_BROWSER_ID_MISMATCH, "foo"));
-        when(mockExamApprovalService.getApproval(isA(ApprovalRequest.class))).thenReturn(errorResponse);
+        when(mockExamApprovalService.getApproval(isA(ExamInfo.class))).thenReturn(errorResponse);
 
         ResponseEntity<Response<ExamApproval>> response = controller.getApproval(
-            approvalRequest.getExamId(),
-            approvalRequest.getSessionId(),
-            approvalRequest.getBrowserId());
-        verify(mockExamApprovalService).getApproval(isA(ApprovalRequest.class));
+            examInfo.getExamId(),
+            examInfo.getSessionId(),
+            examInfo.getBrowserId());
+        verify(mockExamApprovalService).getApproval(isA(ExamInfo.class));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
         Response<ExamApproval> body = response.getBody();

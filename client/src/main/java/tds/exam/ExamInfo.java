@@ -6,7 +6,7 @@ import java.util.UUID;
 /**
  * Request approval to an {@link Exam}.
  */
-public class ApprovalRequest {
+public class ExamInfo {
     @NotNull
     private UUID examId;
 
@@ -16,7 +16,7 @@ public class ApprovalRequest {
     @NotNull
     private UUID browserId;
 
-    public ApprovalRequest(UUID examId, UUID sessionId, UUID browserId) {
+    public ExamInfo(UUID examId, UUID sessionId, UUID browserId) {
         this.examId = examId;
         this.sessionId = sessionId;
         this.browserId = browserId;
@@ -25,7 +25,7 @@ public class ApprovalRequest {
     /**
      * Private constructor for frameworks
      */
-    private ApprovalRequest() {
+    private ExamInfo() {
     }
 
     /**
@@ -52,9 +52,9 @@ public class ApprovalRequest {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ApprovalRequest)) return false;
+        if (!(o instanceof ExamInfo)) return false;
 
-        ApprovalRequest that = (ApprovalRequest) o;
+        ExamInfo that = (ExamInfo) o;
 
         if (!getExamId().equals(that.getExamId())) return false;
         if (!getSessionId().equals(that.getSessionId())) return false;
