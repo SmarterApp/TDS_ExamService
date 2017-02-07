@@ -38,7 +38,7 @@ class TimeLimitConfigurationServiceImpl implements TimeLimitConfigurationService
         Optional<TimeLimitConfiguration> maybeTimeLimitConfig = Optional.empty();
         try {
             final TimeLimitConfiguration timeLimitConfiguration =
-                    restTemplate.getForObject(uriBuilder.toUriString(), TimeLimitConfiguration.class);
+                    restTemplate.getForObject(uriBuilder.build().toUri(), TimeLimitConfiguration.class);
             maybeTimeLimitConfig = Optional.of(timeLimitConfiguration);
         } catch (HttpClientErrorException e) {
             if (e.getStatusCode() != HttpStatus.NOT_FOUND) {

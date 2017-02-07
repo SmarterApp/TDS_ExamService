@@ -15,6 +15,9 @@ java \
     -Dspring.ds_commands.username="${EXAM_DB_USER}" \
     -Dspring.ds_commands.password="${EXAM_DB_PASSWORD}" \
     -Dspring.ds_commands.driver-class-name=com.mysql.jdbc.Driver \
+    -Dspring.datasource.testWhileIdle=true \
+    -Dspring.datasource.timeBetweenEvictionRunsMillis=60000 \
+    -Dspring.datasource.validationQuery="SELECT 1" \
     -Dexam-service.session-url=http://session:8080/ \
     -Dexam-service.student-url=http://student:8080/ \
     -Dexam-service.assessment-url=http://assessment:8080/ \

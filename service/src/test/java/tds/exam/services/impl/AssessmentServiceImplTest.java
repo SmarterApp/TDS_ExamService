@@ -10,6 +10,8 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -47,7 +49,7 @@ public class AssessmentServiceImplTest {
     }
 
     @Test
-    public void shouldFindSetOfAdminSubjectsByKey() {
+    public void shouldFindAssessmentByKey() throws URISyntaxException {
         List<Segment> segments = new ArrayList<>();
         Segment segment = new Segment("segkey", Algorithm.FIXED_FORM);
         segment.setSegmentId("segid");
@@ -62,31 +64,33 @@ public class AssessmentServiceImplTest {
         assessment.setSelectionAlgorithm(Algorithm.VIRTUAL);
         assessment.setStartAbility(100);
 
-        when(restTemplate.getForObject(BASE_URL + "clientname/assessments/key", Assessment.class)).thenReturn(assessment);
+        URI uri = new URI(BASE_URL + "clientname/assessments/key");
+
+        when(restTemplate.getForObject(uri, Assessment.class)).thenReturn(assessment);
         Optional<Assessment> maybeAssessment = assessmentService.findAssessment("clientname", "key");
-        verify(restTemplate).getForObject(BASE_URL + "clientname/assessments/key", Assessment.class);
+        verify(restTemplate).getForObject(uri, Assessment.class);
 
         assertThat(maybeAssessment.get()).isEqualTo(assessment);
     }
 
     @Test
-    public void shouldReturnEmptyWhenSetOfAdminSubjectNotFound() {
-        when(restTemplate.getForObject(isA(String.class), isA(Class.class))).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
+    public void shouldReturnEmptyWhenAssessmentNotFound() {
+        when(restTemplate.getForObject(isA(URI.class), isA(Class.class))).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
         Optional<Assessment> maybeAssessment = assessmentService.findAssessment("clientname", "key");
 
         assertThat(maybeAssessment).isNotPresent();
     }
 
     @Test(expected = RestClientException.class)
-    public void shouldThrowIfStatusNotNotFoundWhenUnexpectedErrorFindingSetOfAdminSubject() {
-        when(restTemplate.getForObject(isA(String.class), isA(Class.class))).thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
+    public void shouldThrowIfStatusNotNotFoundWhenUnexpectedErrorFindingAssessment() {
+        when(restTemplate.getForObject(isA(URI.class), isA(Class.class))).thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
         assessmentService.findAssessment("clientname", "key");
     }
 
     @Test
     public void shouldFindAssessmentWindows() {
         AssessmentWindow window = new AssessmentWindow.Builder().build();
-        String url = UriComponentsBuilder
+        URI url = UriComponentsBuilder
             .fromHttpUrl(String.format("%s/%s/%s/%s/windows/student/%d",
                 BASE_URL,
                 "SBAC_PT",
@@ -97,7 +101,8 @@ public class AssessmentServiceImplTest {
             .queryParam("shiftWindowEnd", 2)
             .queryParam("shiftFormStart", 10)
             .queryParam("shiftFormEnd", 11)
-            .toUriString();
+            .build()
+            .toUri();
 
         ExternalSessionConfiguration config = new ExternalSessionConfigurationBuilder()
             .withShiftWindowStart(1)
@@ -122,10 +127,11 @@ public class AssessmentServiceImplTest {
         Accommodation accommodation = new Accommodation.Builder().build();
         ResponseEntity<List<Accommodation>> entity = new ResponseEntity<>(Collections.singletonList(accommodation), HttpStatus.OK);
 
-        String url = UriComponentsBuilder
+        URI url = UriComponentsBuilder
             .fromHttpUrl(String.format("%s/SBAC/assessments/accommodations", BASE_URL))
             .queryParam("assessmentKey", "key")
-            .toUriString();
+            .build()
+            .toUri();
 
         when(restTemplate.exchange(url, GET, null, new ParameterizedTypeReference<List<Accommodation>>() {
         })).thenReturn(entity);
@@ -140,10 +146,11 @@ public class AssessmentServiceImplTest {
         Accommodation accommodation = new Accommodation.Builder().build();
         ResponseEntity<List<Accommodation>> entity = new ResponseEntity<>(Collections.singletonList(accommodation), HttpStatus.OK);
 
-        String url = UriComponentsBuilder
+        URI url = UriComponentsBuilder
             .fromHttpUrl(String.format("%s/SBAC/assessments/accommodations", BASE_URL))
             .queryParam("assessmentId", "id")
-            .toUriString();
+            .build()
+            .toUri();
 
         when(restTemplate.exchange(url, GET, null, new ParameterizedTypeReference<List<Accommodation>>() {
         })).thenReturn(entity);

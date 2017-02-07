@@ -7,6 +7,8 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Optional;
 
 import tds.config.ClientSystemFlag;
@@ -38,26 +40,31 @@ public class ConfigServiceImplTest {
     }
 
     @Test
-    public void shouldFindClientSystemFlag() {
+    public void shouldFindClientSystemFlag() throws URISyntaxException {
         ClientSystemFlag flag = new ClientSystemFlag.Builder().withAuditObject(ATTRIBUTE_OBJECT).build();
 
-        when(restTemplate.getForObject(String.format("%s/%s/client-system-flags/%s/%s", BASE_URL, CONFIG_APP_CONTEXT, CLIENT_NAME, ATTRIBUTE_OBJECT), ClientSystemFlag.class)).thenReturn(flag);
+        URI url = new URI(String.format("%s/%s/client-system-flags/%s/%s", BASE_URL, CONFIG_APP_CONTEXT, CLIENT_NAME, ATTRIBUTE_OBJECT));
+
+        when(restTemplate.getForObject(url, ClientSystemFlag.class)).thenReturn(flag);
         Optional<ClientSystemFlag> maybeClientSystemFlag = configService.findClientSystemFlag(CLIENT_NAME, ATTRIBUTE_OBJECT);
 
         assertThat(maybeClientSystemFlag.get()).isEqualTo(flag);
     }
 
     @Test
-    public void shouldReturnEmptyWhenClientSystemFlagNotFound() {
-        when(restTemplate.getForObject(String.format("%s/%s/client-system-flags/%s/%s", BASE_URL, CONFIG_APP_CONTEXT, CLIENT_NAME, ATTRIBUTE_OBJECT), ClientSystemFlag.class)).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
+    public void shouldReturnEmptyWhenClientSystemFlagNotFound() throws URISyntaxException {
+        URI url = new URI(String.format("%s/%s/client-system-flags/%s/%s", BASE_URL, CONFIG_APP_CONTEXT, CLIENT_NAME, ATTRIBUTE_OBJECT));
+
+        when(restTemplate.getForObject(url, ClientSystemFlag.class)).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
         Optional<ClientSystemFlag> maybeClientSystemFlag = configService.findClientSystemFlag(CLIENT_NAME, ATTRIBUTE_OBJECT);
 
         assertThat(maybeClientSystemFlag).isNotPresent();
     }
 
     @Test(expected = RestClientException.class)
-    public void shouldThrowIfStatusNotNotFoundWhenUnexpectedErrorFindingClientSystemFlag() {
-        when(restTemplate.getForObject(String.format("%s/%s/client-system-flags/%s/%s", BASE_URL, CONFIG_APP_CONTEXT, CLIENT_NAME, ATTRIBUTE_OBJECT), ClientSystemFlag.class)).thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
+    public void shouldThrowIfStatusNotNotFoundWhenUnexpectedErrorFindingClientSystemFlag() throws URISyntaxException {
+        URI url = new URI(String.format("%s/%s/client-system-flags/%s/%s", BASE_URL, CONFIG_APP_CONTEXT, CLIENT_NAME, ATTRIBUTE_OBJECT));
+        when(restTemplate.getForObject(url, ClientSystemFlag.class)).thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
         configService.findClientSystemFlag(CLIENT_NAME, ATTRIBUTE_OBJECT);
     }
 }
