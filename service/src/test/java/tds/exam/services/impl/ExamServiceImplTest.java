@@ -488,7 +488,7 @@ public class ExamServiceImplTest {
             .withSessionId(previousSession.getId())
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN), approvedStatusDate)
             .withBrowserId(UUID.randomUUID())
-            .withDateChanged(Instant.now().minus(Days.days(2).toStandardDuration()))
+            .withChangedAt(Instant.now().minus(Days.days(2).toStandardDuration()))
             .build();
 
         Assessment assessment = new AssessmentBuilder().build();
@@ -523,9 +523,9 @@ public class ExamServiceImplTest {
         assertThat(savedExam.getBrowserId()).isEqualTo(request.getBrowserId());
         assertThat(savedExam.getBrowserId()).isNotEqualTo(previousExam.getBrowserId());
         assertThat(savedExam.getStatus().getCode()).isEqualTo(STATUS_PENDING);
-        assertThat(savedExam.getStatusChangeDate()).isGreaterThan(approvedStatusDate);
-        assertThat(savedExam.getDateChanged()).isNotNull();
-        assertThat(savedExam.getDateStarted()).isEqualTo(previousExam.getDateStarted());
+        assertThat(savedExam.getStatusChangedAt()).isGreaterThan(approvedStatusDate);
+        assertThat(savedExam.getChangedAt()).isNotNull();
+        assertThat(savedExam.getStartedAt()).isEqualTo(previousExam.getStartedAt());
     }
 
     @Test
@@ -552,7 +552,7 @@ public class ExamServiceImplTest {
             .withId(UUID.randomUUID())
             .withSessionId(previousSession.getId())
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN), approvedStatusDate)
-            .withDateChanged(Instant.now())
+            .withChangedAt(Instant.now())
             .build();
         Assessment assessment = new AssessmentBuilder().build();
         ExternalSessionConfiguration extSessionConfig = new ExternalSessionConfiguration("SBAC_PT", SIMULATION_ENVIRONMENT, 0, 0, 0, 0);
@@ -578,9 +578,9 @@ public class ExamServiceImplTest {
         assertThat(savedExam.getBrowserId()).isEqualTo(request.getBrowserId());
         assertThat(savedExam.getBrowserId()).isNotEqualTo(previousExam.getBrowserId());
         assertThat(savedExam.getStatus().getCode()).isEqualTo(STATUS_PENDING);
-        assertThat(savedExam.getStatusChangeDate()).isGreaterThan(approvedStatusDate);
-        assertThat(savedExam.getDateChanged()).isNotNull();
-        assertThat(savedExam.getDateStarted()).isEqualTo(previousExam.getDateStarted());
+        assertThat(savedExam.getStatusChangedAt()).isGreaterThan(approvedStatusDate);
+        assertThat(savedExam.getChangedAt()).isNotNull();
+        assertThat(savedExam.getStartedAt()).isEqualTo(previousExam.getStartedAt());
     }
 
     @Test
@@ -604,7 +604,7 @@ public class ExamServiceImplTest {
             .withId(UUID.randomUUID())
             .withSessionId(previousSession.getId())
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN), approvedStatusDate)
-            .withDateChanged(Instant.now())
+            .withChangedAt(Instant.now())
             .build();
         Assessment assessment = new AssessmentBuilder().build();
 
@@ -638,9 +638,9 @@ public class ExamServiceImplTest {
         assertThat(savedExam.getBrowserId()).isEqualTo(request.getBrowserId());
         assertThat(savedExam.getBrowserId()).isNotEqualTo(previousExam.getBrowserId());
         assertThat(savedExam.getStatus().getCode()).isEqualTo(STATUS_PENDING);
-        assertThat(savedExam.getStatusChangeDate()).isGreaterThan(approvedStatusDate);
-        assertThat(savedExam.getDateChanged()).isNotNull();
-        assertThat(savedExam.getDateStarted()).isEqualTo(previousExam.getDateStarted());
+        assertThat(savedExam.getStatusChangedAt()).isGreaterThan(approvedStatusDate);
+        assertThat(savedExam.getChangedAt()).isNotNull();
+        assertThat(savedExam.getStartedAt()).isEqualTo(previousExam.getStartedAt());
         assertThat(savedExam.isCustomAccommodations()).isTrue();
     }
 
@@ -666,7 +666,7 @@ public class ExamServiceImplTest {
             .withId(UUID.randomUUID())
             .withSessionId(previousSession.getId())
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN), approvedStatusDate)
-            .withDateChanged(Instant.now())
+            .withChangedAt(Instant.now())
             .build();
 
         Assessment assessment = new AssessmentBuilder().build();
@@ -695,9 +695,9 @@ public class ExamServiceImplTest {
         assertThat(savedExam.getBrowserId()).isEqualTo(request.getBrowserId());
         assertThat(savedExam.getBrowserId()).isNotEqualTo(previousExam.getBrowserId());
         assertThat(savedExam.getStatus().getCode()).isEqualTo(STATUS_PENDING);
-        assertThat(savedExam.getStatusChangeDate()).isGreaterThan(approvedStatusDate);
-        assertThat(savedExam.getDateChanged()).isNotNull();
-        assertThat(savedExam.getDateStarted()).isEqualTo(previousExam.getDateStarted());
+        assertThat(savedExam.getStatusChangedAt()).isGreaterThan(approvedStatusDate);
+        assertThat(savedExam.getChangedAt()).isNotNull();
+        assertThat(savedExam.getStartedAt()).isEqualTo(previousExam.getStartedAt());
     }
 
     @Test
@@ -721,7 +721,7 @@ public class ExamServiceImplTest {
             .withId(UUID.randomUUID())
             .withSessionId(previousSession.getId())
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.INACTIVE), approvedStatusDate)
-            .withDateStarted(Instant.now())
+            .withStartedAt(Instant.now())
             .build();
 
         ExternalSessionConfiguration externalSessionConfiguration = new ExternalSessionConfiguration("SBAC_PT", SIMULATION_ENVIRONMENT, 0, 0, 0, 0);
@@ -749,9 +749,9 @@ public class ExamServiceImplTest {
         assertThat(savedExam.getBrowserId()).isEqualTo(request.getBrowserId());
         assertThat(savedExam.getBrowserId()).isNotEqualTo(previousExam.getBrowserId());
         assertThat(savedExam.getStatus().getCode()).isEqualTo(STATUS_SUSPENDED);
-        assertThat(savedExam.getStatusChangeDate()).isGreaterThan(approvedStatusDate);
-        assertThat(savedExam.getDateChanged()).isNotNull();
-        assertThat(savedExam.getDateStarted()).isEqualTo(previousExam.getDateStarted());
+        assertThat(savedExam.getStatusChangedAt()).isGreaterThan(approvedStatusDate);
+        assertThat(savedExam.getChangedAt()).isNotNull();
+        assertThat(savedExam.getStartedAt()).isEqualTo(previousExam.getStartedAt());
         assertThat(savedExam.getSessionId()).isEqualTo(request.getSessionId());
     }
 
@@ -1023,8 +1023,8 @@ public class ExamServiceImplTest {
         Exam exam = new ExamBuilder()
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.OPEN), approvedStatusDate)
             .withSessionId(session.getId())
-            .withDateChanged(Instant.now().minus(50000))
-            .withDateStarted(null)
+            .withChangedAt(Instant.now().minus(50000))
+            .withStartedAt(null)
             .build();
         Assessment assessment = new AssessmentBuilder().build();
         TimeLimitConfiguration timeLimitConfiguration = new TimeLimitConfiguration.Builder()
@@ -1078,12 +1078,12 @@ public class ExamServiceImplTest {
         assertThat(updatedExam.getAttempts()).isEqualTo(0);
         assertThat(updatedExam.getId()).isEqualTo(exam.getId());
         assertThat(updatedExam.getMaxItems()).isEqualTo(testLength);
-        assertThat(updatedExam.getDateStarted()).isNotNull();
-        assertThat(updatedExam.getDateChanged()).isGreaterThan(exam.getDateChanged());
-        assertThat(updatedExam.getExpireFrom()).isNotNull();
+        assertThat(updatedExam.getStartedAt()).isNotNull();
+        assertThat(updatedExam.getChangedAt()).isGreaterThan(exam.getChangedAt());
+        assertThat(updatedExam.getExpiresAt()).isNotNull();
         assertThat(updatedExam.getStatus().getStage()).isEqualTo(ExamStatusStage.IN_PROGRESS);
         assertThat(updatedExam.getStatus().getCode()).isEqualTo(ExamStatusCode.STATUS_STARTED);
-        assertThat(updatedExam.getStatusChangeDate()).isGreaterThan(approvedStatusDate);
+        assertThat(updatedExam.getStatusChangedAt()).isGreaterThan(approvedStatusDate);
     }
 
     @Test
@@ -1097,10 +1097,10 @@ public class ExamServiceImplTest {
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.OPEN), approvedStatusDate)
             .withSessionId(session.getId())
             .withResumptions(3)
-            .withDateChanged(Instant.now().minus(50000))
+            .withChangedAt(Instant.now().minus(50000))
             .withRestartsAndResumptions(5)
             .withMaxItems(10)
-            .withDateStarted(Instant.now().minus(60000))
+            .withStartedAt(Instant.now().minus(60000))
             .build();
         Assessment assessment = new AssessmentBuilder().build();
         TimeLimitConfiguration timeLimitConfiguration = new TimeLimitConfiguration.Builder()
@@ -1151,14 +1151,14 @@ public class ExamServiceImplTest {
         assertThat(updatedExam.getAttempts()).isEqualTo(0);
         assertThat(updatedExam.getId()).isEqualTo(exam.getId());
         assertThat(updatedExam.getMaxItems()).isEqualTo(testLength);
-        assertThat(updatedExam.getDateStarted()).isNotNull();
+        assertThat(updatedExam.getStartedAt()).isNotNull();
         assertThat(updatedExam.getResumptions()).isEqualTo(3);
         assertThat(updatedExam.getRestartsAndResumptions()).isEqualTo(6);
-        assertThat(updatedExam.getDateChanged()).isGreaterThan(exam.getDateChanged());
-        assertThat(updatedExam.getExpireFrom()).isNull();
+        assertThat(updatedExam.getChangedAt()).isGreaterThan(exam.getChangedAt());
+        assertThat(updatedExam.getExpiresAt()).isNull();
         assertThat(updatedExam.getStatus().getStage()).isEqualTo(ExamStatusStage.IN_PROGRESS);
         assertThat(updatedExam.getStatus().getCode()).isEqualTo(ExamStatusCode.STATUS_STARTED);
-        assertThat(updatedExam.getStatusChangeDate()).isGreaterThan(approvedStatusDate);
+        assertThat(updatedExam.getStatusChangedAt()).isGreaterThan(approvedStatusDate);
     }
 
     @Test
@@ -1173,10 +1173,10 @@ public class ExamServiceImplTest {
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.OPEN), approvedStatusDate)
             .withSessionId(session.getId())
             .withResumptions(3)
-            .withDateChanged(Instant.now().minus(50000))
+            .withChangedAt(Instant.now().minus(50000))
             .withRestartsAndResumptions(5)
             .withMaxItems(10)
-            .withDateStarted(Instant.now().minus(60000))
+            .withStartedAt(Instant.now().minus(60000))
             .build();
         Assessment assessment = new AssessmentBuilder().build();
         TimeLimitConfiguration timeLimitConfiguration = new TimeLimitConfiguration.Builder()
@@ -1231,14 +1231,14 @@ public class ExamServiceImplTest {
         assertThat(updatedExam.getAttempts()).isEqualTo(0);
         assertThat(updatedExam.getId()).isEqualTo(exam.getId());
         assertThat(updatedExam.getMaxItems()).isEqualTo(testLength);
-        assertThat(updatedExam.getDateStarted()).isNotNull();
+        assertThat(updatedExam.getStartedAt()).isNotNull();
         assertThat(updatedExam.getResumptions()).isEqualTo(4);
         assertThat(updatedExam.getRestartsAndResumptions()).isEqualTo(6);
-        assertThat(updatedExam.getDateChanged()).isGreaterThan(exam.getDateChanged());
-        assertThat(updatedExam.getExpireFrom()).isNull();
+        assertThat(updatedExam.getChangedAt()).isGreaterThan(exam.getChangedAt());
+        assertThat(updatedExam.getExpiresAt()).isNull();
         assertThat(updatedExam.getStatus().getStage()).isEqualTo(ExamStatusStage.IN_PROGRESS);
         assertThat(updatedExam.getStatus().getCode()).isEqualTo(ExamStatusCode.STATUS_STARTED);
-        assertThat(updatedExam.getStatusChangeDate()).isGreaterThan(approvedStatusDate);
+        assertThat(updatedExam.getStatusChangedAt()).isGreaterThan(approvedStatusDate);
     }
 
     @Test(expected = NotFoundException.class)
@@ -1301,8 +1301,8 @@ public class ExamServiceImplTest {
             .withSubject("ELA")
             .withStudentId(studentId)
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN), Instant.now())
-            .withDateChanged(Instant.now())
-            .withDateScored(Instant.now())
+            .withChangedAt(Instant.now())
+            .withScoredAt(Instant.now())
             .build();
     }
 }

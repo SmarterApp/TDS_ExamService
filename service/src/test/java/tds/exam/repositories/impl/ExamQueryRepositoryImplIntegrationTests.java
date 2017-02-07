@@ -62,7 +62,7 @@ public class ExamQueryRepositoryImplIntegrationTests {
         exams.add(new ExamBuilder()
             .withId(UUID.fromString("ab880054-d1d2-4c24-805c-0dfdb45a0d24"))
             .withAssessmentId("assementId2")
-            .withDateDeleted(Instant.now().minus(Minutes.minutes(5).toStandardDuration()))
+            .withDeletedAt(Instant.now().minus(Minutes.minutes(5).toStandardDuration()))
             .build());
 
         // Build an exam record that is a subsequent attempt of an exam
@@ -72,7 +72,7 @@ public class ExamQueryRepositoryImplIntegrationTests {
             .withAssessmentId("assessmentId3")
             .withStudentId(9999L)
             .withAttempts(2)
-            .withDateScored(Instant.now().minus(Minutes.minutes(5).toStandardDuration()))
+            .withScoredAt(Instant.now().minus(Minutes.minutes(5).toStandardDuration()))
             .build());
 
         exams.forEach(exam -> examCommandRepository.insert(exam));
@@ -151,10 +151,10 @@ public class ExamQueryRepositoryImplIntegrationTests {
 
     @Test
     public void shouldReturnLastPausedDate() {
-        Instant datePaused = Instant.now().minus(99999);
+        Instant pausedAt = Instant.now().minus(99999);
         Exam exam = new ExamBuilder()
-            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE), datePaused)
-            .withDateChanged(datePaused)
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE), pausedAt)
+            .withChangedAt(pausedAt)
             .build();
         examCommandRepository.insert(exam);
 
@@ -167,61 +167,61 @@ public class ExamQueryRepositoryImplIntegrationTests {
 
         Optional<Instant> maybeLastTimePaused = examQueryRepository.findLastStudentActivity(exam.getId());
         assertThat(maybeLastTimePaused).isPresent();
-        assertThat(maybeLastTimePaused.get()).isEqualTo(datePaused);
+        assertThat(maybeLastTimePaused.get()).isEqualTo(pausedAt);
     }
 
     @Test
     public void shouldReturnLastResponseDate() {
-        Instant datePaused = Instant.now().minus(50000);
-        Instant datePageCreated = Instant.now().minus(70000);
-        Instant dateLastResponseSubmitted = Instant.now().minus(20000);
-        Instant dateEarlierResponseSubmitted = Instant.now().minus(30000);
+        Instant pausedAt = Instant.now().minus(50000);
+        Instant pageCreatedAt = Instant.now().minus(70000);
+        Instant lastResponseSubmittedAt = Instant.now().minus(20000);
+        Instant earlierResponseSubmittedAt = Instant.now().minus(30000);
 
         Exam exam = new ExamBuilder()
-            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE), datePaused)
-            .withDateChanged(datePaused)
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE), pausedAt)
+            .withChangedAt(pausedAt)
             .build();
         examCommandRepository.insert(exam);
 
-        insertTestDataForResponses(datePageCreated, dateLastResponseSubmitted, dateEarlierResponseSubmitted, exam);
+        insertTestDataForResponses(pageCreatedAt, lastResponseSubmittedAt, earlierResponseSubmittedAt, exam);
 
         Optional<Instant> maybeLastTimeStudentResponded = examQueryRepository.findLastStudentActivity(exam.getId());
         assertThat(maybeLastTimeStudentResponded).isPresent();
-        assertThat(maybeLastTimeStudentResponded.get()).isEqualTo(dateLastResponseSubmitted);
+        assertThat(maybeLastTimeStudentResponded.get()).isEqualTo(lastResponseSubmittedAt);
     }
 
     @Test
     public void shouldReturnLastPageCreated() {
-        Instant datePaused = Instant.now().minus(50000);
-        Instant datePageCreated = Instant.now().minus(20000);
-        Instant dateLastResponseSubmitted = Instant.now().minus(40000);
-        Instant dateEarlierResponseSubmitted = Instant.now().minus(30000);
+        Instant pausedAt = Instant.now().minus(50000);
+        Instant pageCreatedAt = Instant.now().minus(20000);
+        Instant lastResponseSubmittedAt = Instant.now().minus(40000);
+        Instant earlierResponseSubmittedAt = Instant.now().minus(30000);
 
         Exam exam = new ExamBuilder()
-            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE), datePaused)
-            .withDateChanged(datePaused)
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE), pausedAt)
+            .withChangedAt(pausedAt)
             .build();
         examCommandRepository.insert(exam);
 
-        insertTestDataForResponses(datePageCreated, dateLastResponseSubmitted, dateEarlierResponseSubmitted, exam);
+        insertTestDataForResponses(pageCreatedAt, lastResponseSubmittedAt, earlierResponseSubmittedAt, exam);
 
         Optional<Instant> maybeLastTimeStudentResponded = examQueryRepository.findLastStudentActivity(exam.getId());
         assertThat(maybeLastTimeStudentResponded).isPresent();
-        assertThat(maybeLastTimeStudentResponded.get()).isEqualTo(datePageCreated);
+        assertThat(maybeLastTimeStudentResponded.get()).isEqualTo(pageCreatedAt);
     }
 
-    private void insertTestDataForResponses(Instant datePageCreated, Instant dateLastResponseSubmitted, Instant dateEarlierResponseSubmitted, Exam exam) {
+    private void insertTestDataForResponses(Instant pageCreatedAt, Instant lastResponseSubmittedAt, Instant earlierResponseSubmittedAt, Exam exam) {
         MapSqlParameterSource testParams = new MapSqlParameterSource("examId", exam.getId().toString())
-            .addValue("datePageCreated", new Timestamp(datePageCreated.getMillis()))
-            .addValue("dateLastResponseSubmitted", new Timestamp(dateLastResponseSubmitted.getMillis()))
-            .addValue("dateEarlierResponseSubmitted", new Timestamp(dateEarlierResponseSubmitted.getMillis()));
+            .addValue("pageCreatedAt", new Timestamp(pageCreatedAt.getMillis()))
+            .addValue("lastResponseSubmittedAt", new Timestamp(lastResponseSubmittedAt.getMillis()))
+            .addValue("earlierResponseSubmittedAt", new Timestamp(earlierResponseSubmittedAt.getMillis()));
 
         final String insertSegmentSQL =
             "INSERT INTO exam_segment(exam_id, segment_key, segment_id, segment_position, created_at)" +
                 "VALUES (:examId, 'segment-key-1', 'segment-id-1', 1, CURRENT_TIMESTAMP)";
         final String insertPageSQL =
             "INSERT INTO exam_page (id, page_position, exam_segment_key, item_group_key, exam_id, created_at) " +
-                "VALUES (805, 1, 'segment-key-1', 'GroupKey1', :examId, :datePageCreated)";
+                "VALUES (805, 1, 'segment-key-1', 'GroupKey1', :examId, :pageCreatedAt)";
         final String insertPageEventSQL =
             "INSERT INTO exam_page_event (exam_page_id, started_at) VALUES (805, now())";
         final String insertItemSQL =
@@ -230,8 +230,8 @@ public class ExamQueryRepositoryImplIntegrationTests {
         final String insertResponsesSQL =
             "INSERT INTO exam_item_response (id, exam_item_id, response, sequence, created_at) " +
                 "VALUES " +
-                "(1337, 2112, 'Response 1', 1, :dateLastResponseSubmitted), " +
-                "(1338, 2112, 'Response 2', 1, :dateEarlierResponseSubmitted)";
+                "(1337, 2112, 'Response 1', 1, :lastResponseSubmittedAt), " +
+                "(1338, 2112, 'Response 2', 1, :earlierResponseSubmittedAt)";
 
         jdbcTemplate.update(insertSegmentSQL, testParams);
         jdbcTemplate.update(insertPageSQL, testParams);
