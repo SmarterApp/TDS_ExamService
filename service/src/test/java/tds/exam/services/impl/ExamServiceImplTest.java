@@ -167,7 +167,7 @@ public class ExamServiceImplTest {
 
         when(mockSessionService.findExternalSessionConfigurationByClientName("SBAC_PT")).thenReturn(Optional.of(extSessionConfig));
         when(mockSessionService.findSessionById(openExamRequest.getSessionId())).thenReturn(Optional.empty());
-        when(mockStudentService.getStudentById(openExamRequest.getStudentId())).thenReturn(Optional.of(new Student(1, "testId", "CA", "clientName")));
+        when(mockStudentService.getStudentById(openExamRequest.getStudentId())).thenReturn(Optional.of(new Student.Builder(1, "testId").build()));
 
         examService.openExam(openExamRequest);
     }
@@ -218,7 +218,7 @@ public class ExamServiceImplTest {
             .withId(UUID.randomUUID())
             .build();
 
-        Student student = new Student(1, "testId", "CA", "clientName");
+        Student student = new Student.Builder(1, "testId").build();
 
         Exam previousExam = new Exam.Builder()
             .withId(UUID.randomUUID())
@@ -366,7 +366,11 @@ public class ExamServiceImplTest {
         Session currentSession = new SessionBuilder()
             .build();
 
-        Student student = new Student(1, "loginSSD", "CA", "SBAC_PT");
+        Student student = new Student.Builder(1, "clientName")
+            .withStateCode("CA")
+            .withLoginSSID("loginSSID")
+            .build();
+
         Assessment assessment = new AssessmentBuilder().build();
         ExternalSessionConfiguration extSessionConfig = new ExternalSessionConfigurationBuilder().build();
         AssessmentWindow window = new AssessmentWindow.Builder()
@@ -414,7 +418,10 @@ public class ExamServiceImplTest {
         Session currentSession = new SessionBuilder()
             .build();
 
-        Student student = new Student(1, "loginSSD", "CA", "SBAC_PT");
+        Student student = new Student.Builder(1, "clientName")
+            .withStateCode("CA")
+            .withLoginSSID("loginSSID")
+            .build();
         Assessment assessment = new AssessmentBuilder().build();
         ExternalSessionConfiguration extSessionConfig = new ExternalSessionConfigurationBuilder().build();
         AssessmentWindow window = new AssessmentWindow.Builder()
@@ -470,7 +477,10 @@ public class ExamServiceImplTest {
             .withId(UUID.randomUUID())
             .build();
 
-        Student student = new Student(1, "loginSSD", "CA", "SBAC_PT");
+        Student student = new Student.Builder(1, "clientName")
+            .withStateCode("CA")
+            .withLoginSSID("loginSSID")
+            .build();
 
         Instant approvedStatusDate = org.joda.time.Instant.now().minus(5000);
         Exam previousExam = new Exam.Builder()
@@ -532,7 +542,10 @@ public class ExamServiceImplTest {
             .withStatus("closed")
             .build();
 
-        Student student = new Student(request.getStudentId(), "testId", "CA", "SBAC_PT");
+        Student student = new Student.Builder(1, "clientName")
+            .withStateCode("CA")
+            .withLoginSSID("loginSSID")
+            .build();
 
         Instant approvedStatusDate = org.joda.time.Instant.now().minus(5000);
         Exam previousExam = new Exam.Builder()
@@ -581,7 +594,10 @@ public class ExamServiceImplTest {
             .withId(request.getSessionId())
             .build();
 
-        Student student = new Student(1, "testId", "CA", "SBAC_PT");
+        Student student = new Student.Builder(1, "clientName")
+            .withStateCode("CA")
+            .withLoginSSID("loginSSID")
+            .build();
 
         Instant approvedStatusDate = org.joda.time.Instant.now().minus(5000);
         Exam previousExam = new Exam.Builder()
@@ -640,7 +656,10 @@ public class ExamServiceImplTest {
             .withDateEnd(Instant.now().minus(Days.days(1).toStandardDuration()))
             .build();
 
-        Student student = new Student(1, "testId", "CA", "clientName");
+        Student student = new Student.Builder(1, "clientName")
+            .withStateCode("CA")
+            .withLoginSSID("loginSSID")
+            .build();
 
         Instant approvedStatusDate = org.joda.time.Instant.now().minus(5000);
         Exam previousExam = new Exam.Builder()

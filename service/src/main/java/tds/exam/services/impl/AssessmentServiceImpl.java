@@ -11,6 +11,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,17 +39,17 @@ class AssessmentServiceImpl implements AssessmentService {
     @Override
     @Cacheable(CacheType.LONG_TERM)
     public Optional<Assessment> findAssessment(final String clientName, final String key) {
-        UriComponentsBuilder builder =
+        URI uri =
             UriComponentsBuilder
                 .fromHttpUrl(String.format("%s/%s/%s/%s",
                     examServiceProperties.getAssessmentUrl(),
                     clientName,
                     ASSESSMENT_APP_CONTEXT,
-                    key));
+                    key)).build().toUri();
 
         Optional<Assessment> maybeAssessment = Optional.empty();
         try {
-            final Assessment assessment = restTemplate.getForObject(builder.toUriString(), Assessment.class);
+            final Assessment assessment = restTemplate.getForObject(uri, Assessment.class);
             maybeAssessment = Optional.of(assessment);
         } catch (HttpClientErrorException hce) {
             if (hce.getStatusCode() != HttpStatus.NOT_FOUND) {
@@ -79,7 +80,7 @@ class AssessmentServiceImpl implements AssessmentService {
         builder.queryParam("shiftFormStart", configuration.getShiftFormStart());
         builder.queryParam("shiftFormEnd", configuration.getShiftFormEnd());
 
-        ResponseEntity<List<AssessmentWindow>> responseEntity = restTemplate.exchange(builder.toUriString(),
+        ResponseEntity<List<AssessmentWindow>> responseEntity = restTemplate.exchange(builder.build().toUri(),
             HttpMethod.GET, null, new ParameterizedTypeReference<List<AssessmentWindow>>() {
             });
 
@@ -96,7 +97,7 @@ class AssessmentServiceImpl implements AssessmentService {
                     ASSESSMENT_APP_CONTEXT))
                 .queryParam("assessmentKey", assessmentKey);
 
-        ResponseEntity<List<Accommodation>> responseEntity = restTemplate.exchange(builder.toUriString(),
+        ResponseEntity<List<Accommodation>> responseEntity = restTemplate.exchange(builder.build().toUri(),
             HttpMethod.GET, null, new ParameterizedTypeReference<List<Accommodation>>() {
             });
 
@@ -114,7 +115,7 @@ class AssessmentServiceImpl implements AssessmentService {
                 .queryParam("assessmentId", assessmentId);
 
 
-        ResponseEntity<List<Accommodation>> responseEntity = restTemplate.exchange(builder.toUriString(),
+        ResponseEntity<List<Accommodation>> responseEntity = restTemplate.exchange(builder.build().toUri(),
             HttpMethod.GET, null, new ParameterizedTypeReference<List<Accommodation>>() {
             });
 
