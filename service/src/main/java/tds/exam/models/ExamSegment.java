@@ -25,7 +25,7 @@ public class ExamSegment {
     private String restorePermeableCondition;
     private String formCohort;
     private boolean isSatisfied;
-    private Instant dateExited;
+    private Instant exitedAt;
     private Set<String> itemPool;
     private int poolCount;
     private Instant createdAt;
@@ -44,7 +44,7 @@ public class ExamSegment {
         this.restorePermeableCondition = builder.restorePermeableCondition;
         this.formCohort = builder.formCohort;
         this.isSatisfied = builder.isSatisfied;
-        this.dateExited = builder.dateExited;
+        this.exitedAt = builder.exitedAt;
         this.itemPool = builder.itemPool;
         this.poolCount = builder.poolCount;
         this.createdAt = builder.createdAt;
@@ -64,7 +64,7 @@ public class ExamSegment {
         private String restorePermeableCondition;
         private String formCohort;
         private boolean isSatisfied;
-        private Instant dateExited;
+        private Instant exitedAt;
         private Set<String> itemPool;
         private int poolCount;
         private Instant createdAt;
@@ -134,8 +134,8 @@ public class ExamSegment {
             return this;
         }
 
-        public Builder withDateExited(Instant newDateExited) {
-            this.dateExited = newDateExited;
+        public Builder withExitedAt(Instant exitedAt) {
+            this.exitedAt = exitedAt;
             return this;
         }
 
@@ -253,8 +253,8 @@ public class ExamSegment {
     /**
      * @return the {@link Instant} the segment was exited
      */
-    public Instant getDateExited() {
-        return dateExited;
+    public Instant getExitedAt() {
+        return exitedAt;
     }
 
     /**

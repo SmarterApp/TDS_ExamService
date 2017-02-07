@@ -237,7 +237,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                 accommodationCodes.contains(accommodation.getCode())
                     && accommodation.getSegmentPosition() == segmentPosition
                     && !accommodation.isEntryControl()
-                    && (exam.getDateStarted() == null || accommodation.isAllowChange())
+                    && (exam.getStartedAt() == null || accommodation.isAllowChange())
                     && (!restoreRts || accommodation.isSelectable())
             ).map(accommodation -> {
                 //Conditional below is due to StudentDLL lines 6967 - 6875
