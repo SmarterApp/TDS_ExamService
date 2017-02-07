@@ -44,7 +44,7 @@ class ConfigServiceImpl implements ConfigService {
 
         Optional<ClientSystemFlag> maybeClientSystemFlag = Optional.empty();
         try {
-            final ClientSystemFlag clientSystemFlag = restTemplate.getForObject(builder.toUriString(), ClientSystemFlag.class);
+            final ClientSystemFlag clientSystemFlag = restTemplate.getForObject(builder.build().toUri(), ClientSystemFlag.class);
             maybeClientSystemFlag = Optional.of(clientSystemFlag);
         } catch (HttpClientErrorException hce) {
             if (hce.getStatusCode() != HttpStatus.NOT_FOUND) {

@@ -44,7 +44,7 @@ class SessionServiceImpl implements SessionService {
 
         Optional<Session> maybeSession = Optional.empty();
         try {
-            final Session session = restTemplate.getForObject(builder.toUriString(), Session.class);
+            final Session session = restTemplate.getForObject(builder.build().toUri(), Session.class);
             maybeSession = Optional.of(session);
         } catch (HttpClientErrorException hce) {
             if (hce.getStatusCode() != HttpStatus.NOT_FOUND) {
@@ -67,7 +67,7 @@ class SessionServiceImpl implements SessionService {
 
         Optional<ExternalSessionConfiguration> maybeExternalSessionConfig = Optional.empty();
         try {
-            final ExternalSessionConfiguration externalSessionConfiguration = restTemplate.getForObject(builder.toUriString(), ExternalSessionConfiguration.class);
+            final ExternalSessionConfiguration externalSessionConfiguration = restTemplate.getForObject(builder.build().toUri(), ExternalSessionConfiguration.class);
             maybeExternalSessionConfig = Optional.of(externalSessionConfiguration);
         } catch (HttpClientErrorException hce) {
             if (hce.getStatusCode() != HttpStatus.NOT_FOUND) {
@@ -89,7 +89,7 @@ class SessionServiceImpl implements SessionService {
         Optional<PauseSessionResponse> maybePauseSessionResponse = Optional.empty();
 
         try {
-            final PauseSessionResponse pauseSessionResponse = restTemplate.getForObject(builder.toUriString(), PauseSessionResponse.class);
+            final PauseSessionResponse pauseSessionResponse = restTemplate.getForObject(builder.build().toUri(), PauseSessionResponse.class);
             maybePauseSessionResponse = Optional.of(pauseSessionResponse);
         } catch (HttpClientErrorException hce) {
             if (hce.getStatusCode() != HttpStatus.NOT_FOUND) {
@@ -113,7 +113,7 @@ class SessionServiceImpl implements SessionService {
         Optional<SessionAssessment> maybeSessionAssessment = Optional.empty();
 
         try {
-            final SessionAssessment sessionAssessment = restTemplate.getForObject(builder.toUriString(), SessionAssessment.class);
+            final SessionAssessment sessionAssessment = restTemplate.getForObject(builder.build().toUri(), SessionAssessment.class);
             maybeSessionAssessment = Optional.of(sessionAssessment);
         } catch (HttpClientErrorException hce) {
             if (hce.getStatusCode() != HttpStatus.NOT_FOUND) {

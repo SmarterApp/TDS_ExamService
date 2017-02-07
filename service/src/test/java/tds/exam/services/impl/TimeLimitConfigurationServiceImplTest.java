@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Optional;
 
 import tds.config.TimeLimitConfiguration;
@@ -41,9 +43,9 @@ public class TimeLimitConfigurationServiceImplTest {
     }
 
     @Test
-    public void shouldFindTimeLimitConfiguration() {
+    public void shouldFindTimeLimitConfiguration() throws URISyntaxException {
         TimeLimitConfiguration timeLimitConfiguration = new TimeLimitConfiguration.Builder().build();
-        String url = String.format("%s/%s/time-limits/%s/%s", BASE_URL, CONFIG_APP_CONTEXT, "client", "assessmentId");
+        URI url = new URI(String.format("%s/%s/time-limits/%s/%s", BASE_URL, CONFIG_APP_CONTEXT, "client", "assessmentId"));
         when(restTemplate.getForObject(url, TimeLimitConfiguration.class)).thenReturn(timeLimitConfiguration);
         Optional<TimeLimitConfiguration> maybeTimeLimit = timeLimitConfigurationService.findTimeLimitConfiguration("client", "assessmentId");
         verify(restTemplate).getForObject(url, TimeLimitConfiguration.class);
@@ -52,8 +54,8 @@ public class TimeLimitConfigurationServiceImplTest {
     }
 
     @Test
-    public void shouldReturnEmptyTimeLimitConfiguration() {
-        String url = String.format("%s/%s/time-limits/%s/%s", BASE_URL, CONFIG_APP_CONTEXT, "client", "assessmentId");
+    public void shouldReturnEmptyTimeLimitConfiguration() throws URISyntaxException {
+        URI url = new URI(String.format("%s/%s/time-limits/%s/%s", BASE_URL, CONFIG_APP_CONTEXT, "client", "assessmentId"));
         when(restTemplate.getForObject(url, TimeLimitConfiguration.class)).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
         Optional<TimeLimitConfiguration> maybeTimeLimit = timeLimitConfigurationService.findTimeLimitConfiguration("client", "assessmentId");
         verify(restTemplate).getForObject(url, TimeLimitConfiguration.class);

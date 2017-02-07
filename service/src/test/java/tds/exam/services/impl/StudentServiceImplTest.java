@@ -12,6 +12,8 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -40,39 +42,48 @@ public class StudentServiceImplTest {
     }
 
     @Test
-    public void shouldFindStudentById() {
-        Student student = new Student(1, "testId", "CA", "clientName");
+    public void shouldFindStudentById() throws URISyntaxException {
+        Student student = new Student.Builder(1, "clientName")
+            .withStateCode("CA")
+            .withLoginSSID("loginSSID")
+            .build();
 
-        when(restTemplate.getForObject("http://localhost:8080/students/1", Student.class)).thenReturn(student);
+        URI uri = new URI("http://localhost:8080/students/1");
+
+        when(restTemplate.getForObject(uri, Student.class)).thenReturn(student);
         Optional<Student> maybeStudent = studentService.getStudentById(1);
-        verify(restTemplate).getForObject("http://localhost:8080/students/1", Student.class);
+        verify(restTemplate).getForObject(uri, Student.class);
 
         assertThat(maybeStudent.get()).isEqualTo(student);
     }
 
     @Test
-    public void shouldReturnEmptyWhenStudentNotFound() {
-        when(restTemplate.getForObject("http://localhost:8080/students/1", Student.class)).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
+    public void shouldReturnEmptyWhenStudentNotFound() throws URISyntaxException {
+        URI uri = new URI("http://localhost:8080/students/1");
+        when(restTemplate.getForObject(uri, Student.class)).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
         Optional<Student> maybeStudent = studentService.getStudentById(1);
-        verify(restTemplate).getForObject("http://localhost:8080/students/1", Student.class);
+        verify(restTemplate).getForObject(uri, Student.class);
 
         assertThat(maybeStudent).isNotPresent();
     }
 
     @Test (expected = RestClientException.class)
-    public void shouldThrowIfStatusNotNotFoundWhenFindingStudentById() {
-        when(restTemplate.getForObject("http://localhost:8080/students/1", Student.class)).thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
-        studentService.getStudentById(1);;
+    public void shouldThrowIfStatusNotNotFoundWhenFindingStudentById() throws URISyntaxException {
+        URI uri = new URI("http://localhost:8080/students/1");
+        when(restTemplate.getForObject(uri, Student.class)).thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
+        studentService.getStudentById(1);
     }
 
     @Test
-    public void shouldFindAttributes() {
+    public void shouldFindAttributes() throws URISyntaxException {
         RtsStudentPackageAttribute attribute = new RtsStudentPackageAttribute("test1", "test1Val");
         RtsStudentPackageAttribute attribute2 = new RtsStudentPackageAttribute("test2", "test2Val");
         List<RtsStudentPackageAttribute> attributes = Arrays.asList(attribute, attribute2);
         ResponseEntity<List<RtsStudentPackageAttribute>> entity = new ResponseEntity<>(attributes, HttpStatus.OK);
 
-        when(restTemplate.exchange("http://localhost:8080/students/1/rts/SBAC_PT/attributes=test1,test2", GET, null, new ParameterizedTypeReference<List<RtsStudentPackageAttribute>>() {}))
+        URI url = new URI("http://localhost:8080/students/1/rts/SBAC_PT/attributes=test1,test2");
+
+        when(restTemplate.exchange(url, GET, null, new ParameterizedTypeReference<List<RtsStudentPackageAttribute>>() {}))
             .thenReturn(entity);
 
         List<RtsStudentPackageAttribute> foundAttributes = studentService.findStudentPackageAttributes(1, "SBAC_PT", "test1", "test2");

@@ -8,6 +8,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -40,7 +42,7 @@ public class AssessmentServiceImplIntegrationTests {
     private AssessmentService assessmentService;
 
     @Test
-    public void shouldReturnCachedAssessment() {
+    public void shouldReturnCachedAssessment() throws URISyntaxException {
 
 
         List<Segment> segments = new ArrayList<>();
@@ -57,11 +59,13 @@ public class AssessmentServiceImplIntegrationTests {
         assessment.setSelectionAlgorithm(Algorithm.VIRTUAL);
         assessment.setStartAbility(100);
 
+        URI url = new URI("http://localhost:8080/clientname/assessments/key");
+
         when(properties.getAssessmentUrl()).thenReturn("http://localhost:8080");
-        when(mockRestTemplate.getForObject("http://localhost:8080/clientname/assessments/key", Assessment.class)).thenReturn(assessment);
+        when(mockRestTemplate.getForObject(url, Assessment.class)).thenReturn(assessment);
         Optional<Assessment> maybeAssessment1 = assessmentService.findAssessment("clientname", "key");
         Optional<Assessment> maybeAssessment2 = assessmentService.findAssessment("clientname", "key");
-        verify(mockRestTemplate, times(1)).getForObject("http://localhost:8080/clientname/assessments/key", Assessment.class);
+        verify(mockRestTemplate, times(1)).getForObject(url, Assessment.class);
         assertThat(maybeAssessment1).isEqualTo(maybeAssessment2);
     }
 }
