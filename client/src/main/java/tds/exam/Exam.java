@@ -28,7 +28,7 @@ public class Exam {
     private Instant scoredAt;
     private Instant completedAt;
     private Instant createdAt;
-    private Instant expireFrom;
+    private Instant expiresAt;
     private String loginSSID;
     private String studentName;
     private Instant dateJoined;
@@ -70,7 +70,7 @@ public class Exam {
         private Instant createdAt;
         private Instant scoredAt;
         private Instant completedAt;
-        private Instant expireFrom;
+        private Instant expiresAt;
         private String loginSSID;
         private String studentName;
         private Instant dateJoined;
@@ -216,8 +216,8 @@ public class Exam {
             return this;
         }
 
-        public Builder withExpireFrom(Instant expireFrom) {
-            this.expireFrom = expireFrom;
+        public Builder withExpiresAt(Instant expiresAt) {
+            this.expiresAt = expiresAt;
             return this;
         }
 
@@ -275,7 +275,7 @@ public class Exam {
             scoredAt = exam.scoredAt;
             createdAt = exam.createdAt;
             completedAt = exam.completedAt;
-            expireFrom = exam.expireFrom;
+            expiresAt = exam.expiresAt;
             loginSSID = exam.loginSSID;
             studentName = exam.studentName;
             dateJoined = exam.dateJoined;
@@ -318,7 +318,7 @@ public class Exam {
         scoredAt = builder.scoredAt;
         createdAt = builder.createdAt;
         completedAt = builder.completedAt;
-        expireFrom = builder.expireFrom;
+        expiresAt = builder.expiresAt;
         loginSSID = builder.loginSSID;
         studentName = builder.studentName;
         dateJoined = builder.dateJoined;
@@ -472,8 +472,8 @@ public class Exam {
     /**
      * @return The date and time of when the exam expires from.
      */
-    public Instant getExpireFrom() {
-        return expireFrom;
+    public Instant getExpiresAt() {
+        return expiresAt;
     }
 
     /**

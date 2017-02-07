@@ -57,7 +57,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
         "ee.status, \n" +
         "ee.status_changed_at, \n" +
         "ee.max_items, \n" +
-        "ee.expire_from, \n" +
+        "ee.expires_at, \n" +
         "ee.language_code, \n" +
         "ee.status_change_reason, \n" +
         "ee.deleted_at, \n" +
@@ -371,7 +371,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 .withCompletedAt(mapTimestampToJodaInstant(rs, "completed_at"))
                 .withCreatedAt(mapTimestampToJodaInstant(rs, "created_at"))
                 .withJoinedAt(mapTimestampToJodaInstant(rs, "joined_at"))
-                .withExpireFrom(mapTimestampToJodaInstant(rs, "expire_from"))
+                .withExpiresAt(mapTimestampToJodaInstant(rs, "expires_at"))
                 .withStatus(new ExamStatusCode(
                     rs.getString("status"),
                     ExamStatusStage.fromType(rs.getString("stage"))

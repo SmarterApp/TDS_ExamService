@@ -28,13 +28,13 @@ public class ExamBuilder {
     private Instant changedAt = null;
     private Instant startedAt = null;
     private Instant completedAt = null;
-    private Instant expireFrom = null;
+    private Instant expiresAt = null;
     private ExamStatusCode status = new ExamStatusCode(STATUS_PENDING, ExamStatusStage.IN_USE);
     private Instant statusChangeDate = Instant.now();
     private String subject = "ELA";
     private String studentKey = "ADV001";
     private String studentName = "Darth";
-    private Instant dateJoined = null;
+    private Instant joinedAt = null;
     private String assessmentWindowId = "ANNUAL";
     private String assessmentAlgorithm = "fixedForm";
     private String assessmentKey = "(SBAC_PT)SBAC-IRP-CAT-ELA-3-Summer-2015-2016";
@@ -66,7 +66,7 @@ public class ExamBuilder {
             .withStatus(status, statusChangeDate)
             .withSubject(subject)
             .withLoginSSID(studentKey)
-            .withJoinedAt(dateJoined)
+            .withJoinedAt(joinedAt)
             .withMaxItems(maxItems)
             .withAssessmentWindowId(assessmentWindowId)
             .withStudentName(studentName)
@@ -76,7 +76,7 @@ public class ExamBuilder {
             .withSegmented(segmented)
             .withAbnormalStarts(abnormalStarts)
             .withLanguageCode(languageCode)
-            .withExpireFrom(expireFrom)
+            .withExpiresAt(expiresAt)
             .withWaitingForSegmentApproval(waitingForSegmentApproval)
             .withCurrentSegmentPosition(currentSegmentPosition)
             .withCustomAccommodation(customAccommodations)
@@ -96,7 +96,7 @@ public class ExamBuilder {
     }
 
     public ExamBuilder withJoinedAt(Instant joinedAt) {
-        this.dateJoined = joinedAt;
+        this.joinedAt = joinedAt;
         return this;
     }
 
@@ -185,8 +185,8 @@ public class ExamBuilder {
         return this;
     }
 
-    public ExamBuilder withExpireFrom(Instant expireFrom) {
-        this.expireFrom = expireFrom;
+    public ExamBuilder withExpiresAt(Instant expiresAt) {
+        this.expiresAt = expiresAt;
         return this;
     }
 

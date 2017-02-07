@@ -396,7 +396,7 @@ class ExamServiceImpl implements ExamService {
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_STARTED, ExamStatusStage.IN_PROGRESS), org.joda.time.Instant.now())
             .withStartedAt(now)
             .withChangedAt(now)
-            .withExpireFrom(now)
+            .withExpiresAt(now)
             .withRestartsAndResumptions(0)
             .withMaxItems(testLength)
             .build();

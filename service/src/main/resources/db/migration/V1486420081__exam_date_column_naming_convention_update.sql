@@ -16,7 +16,8 @@ ALTER TABLE exam_event
   CHANGE date_completed completed_at DATETIME(3) NULL,
   CHANGE date_scored scored_at DATETIME(3) NULL,
   CHANGE date_started started_at DATETIME(3) NULL,
-  CHANGE status_change_date status_changed_at DATETIME(3) NOT NULL;
+  CHANGE status_change_date status_changed_at DATETIME(3) NOT NULL,
+  CHANGE expire_from expires_at DATETIME(3) NULL;
 
 ALTER TABLE exam_segment_event
   CHANGE date_exited exited_at DATETIME(3) NULL;

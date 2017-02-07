@@ -99,7 +99,7 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
                 .addValue("deletedAt", mapJodaInstantToTimestamp(exam.getDeletedAt()))
                 .addValue("completedAt", mapJodaInstantToTimestamp(exam.getCompletedAt()))
                 .addValue("scoredAt", mapJodaInstantToTimestamp(exam.getScoredAt()))
-                .addValue("expireFrom", mapJodaInstantToTimestamp(exam.getExpireFrom()))
+                .addValue("expiresAt", mapJodaInstantToTimestamp(exam.getExpiresAt()))
                 .addValue("abnormalStarts", exam.getAbnormalStarts())
                 .addValue("waitingForSegmentApproval", exam.isWaitingForSegmentApproval())
                 .addValue("currentSegmentPosition", exam.getCurrentSegmentPosition())
@@ -113,7 +113,7 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
                 "attempts, \n" +
                 "max_items, \n" +
                 "language_code, \n" +
-                "expire_from, \n" +
+                "expires_at, \n" +
                 "session_id, \n" +
                 "browser_id, \n" +
                 "status, \n" +
@@ -135,7 +135,7 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
                 ":attempts, \n" +
                 ":maxItems, \n" +
                 ":languageCode, \n" +
-                ":expireFrom, \n" +
+                ":expiresAt, \n" +
                 ":sessionId, \n" +
                 ":browserId, \n" +
                 ":status, \n" +

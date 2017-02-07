@@ -1061,7 +1061,7 @@ public class ExamServiceImplTest {
         assertThat(updatedExam.getMaxItems()).isEqualTo(testLength);
         assertThat(updatedExam.getStartedAt()).isNotNull();
         assertThat(updatedExam.getChangedAt()).isGreaterThan(exam.getChangedAt());
-        assertThat(updatedExam.getExpireFrom()).isNotNull();
+        assertThat(updatedExam.getExpiresAt()).isNotNull();
         assertThat(updatedExam.getStatus().getStage()).isEqualTo(ExamStatusStage.IN_PROGRESS);
         assertThat(updatedExam.getStatus().getCode()).isEqualTo(ExamStatusCode.STATUS_STARTED);
         assertThat(updatedExam.getStatusChangedAt()).isGreaterThan(approvedStatusDate);
@@ -1136,7 +1136,7 @@ public class ExamServiceImplTest {
         assertThat(updatedExam.getResumptions()).isEqualTo(3);
         assertThat(updatedExam.getRestartsAndResumptions()).isEqualTo(6);
         assertThat(updatedExam.getChangedAt()).isGreaterThan(exam.getChangedAt());
-        assertThat(updatedExam.getExpireFrom()).isNull();
+        assertThat(updatedExam.getExpiresAt()).isNull();
         assertThat(updatedExam.getStatus().getStage()).isEqualTo(ExamStatusStage.IN_PROGRESS);
         assertThat(updatedExam.getStatus().getCode()).isEqualTo(ExamStatusCode.STATUS_STARTED);
         assertThat(updatedExam.getStatusChangedAt()).isGreaterThan(approvedStatusDate);
@@ -1216,7 +1216,7 @@ public class ExamServiceImplTest {
         assertThat(updatedExam.getResumptions()).isEqualTo(4);
         assertThat(updatedExam.getRestartsAndResumptions()).isEqualTo(6);
         assertThat(updatedExam.getChangedAt()).isGreaterThan(exam.getChangedAt());
-        assertThat(updatedExam.getExpireFrom()).isNull();
+        assertThat(updatedExam.getExpiresAt()).isNull();
         assertThat(updatedExam.getStatus().getStage()).isEqualTo(ExamStatusStage.IN_PROGRESS);
         assertThat(updatedExam.getStatus().getCode()).isEqualTo(ExamStatusCode.STATUS_STARTED);
         assertThat(updatedExam.getStatusChangedAt()).isGreaterThan(approvedStatusDate);
