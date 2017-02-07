@@ -23,11 +23,11 @@ public class ExamBuilder {
     private int attempts = 0;
     private int maxItems = 6;
     private String clientName = "clientName";
-    private Instant dateDeleted = null;
-    private Instant dateScored = null;
-    private Instant dateChanged = null;
-    private Instant dateStarted = null;
-    private Instant dateCompleted = null;
+    private Instant deletedAt = null;
+    private Instant scoredAt = null;
+    private Instant changedAt = null;
+    private Instant startedAt = null;
+    private Instant completedAt = null;
     private Instant expireFrom = null;
     private ExamStatusCode status = new ExamStatusCode(STATUS_PENDING, ExamStatusStage.IN_USE);
     private Instant statusChangeDate = Instant.now();
@@ -58,15 +58,15 @@ public class ExamBuilder {
             .withStudentId(studentId)
             .withAttempts(attempts)
             .withClientName(clientName)
-            .withDateDeleted(dateDeleted)
-            .withDateScored(dateScored)
-            .withDateChanged(dateChanged)
-            .withDateStarted(dateStarted)
-            .withDateCompleted(dateCompleted)
+            .withDeletedAt(deletedAt)
+            .withScoredAt(scoredAt)
+            .withChangedAt(changedAt)
+            .withStartedAt(startedAt)
+            .withCompletedAt(completedAt)
             .withStatus(status, statusChangeDate)
             .withSubject(subject)
             .withLoginSSID(studentKey)
-            .withDateJoined(dateJoined)
+            .withJoinedAt(dateJoined)
             .withMaxItems(maxItems)
             .withAssessmentWindowId(assessmentWindowId)
             .withStudentName(studentName)
@@ -95,8 +95,8 @@ public class ExamBuilder {
         return this;
     }
 
-    public ExamBuilder withDateJoined(Instant dateJoined) {
-        this.dateJoined = dateJoined;
+    public ExamBuilder withJoinedAt(Instant joinedAt) {
+        this.dateJoined = joinedAt;
         return this;
     }
 
@@ -160,28 +160,28 @@ public class ExamBuilder {
         return this;
     }
 
-    public ExamBuilder withDateDeleted(Instant dateDeleted) {
-        this.dateDeleted = dateDeleted;
+    public ExamBuilder withDeletedAt(Instant deletedAt) {
+        this.deletedAt = deletedAt;
         return this;
     }
 
-    public ExamBuilder withDateScored(Instant dateScored) {
-        this.dateScored = dateScored;
+    public ExamBuilder withScoredAt(Instant scoredAt) {
+        this.scoredAt = scoredAt;
         return this;
     }
 
-    public ExamBuilder withDateChanged(Instant dateChanged) {
-        this.dateChanged = dateChanged;
+    public ExamBuilder withChangedAt(Instant changedAt) {
+        this.changedAt = changedAt;
         return this;
     }
 
-    public ExamBuilder withDateStarted(Instant dateStarted) {
-        this.dateStarted = dateStarted;
+    public ExamBuilder withStartedAt(Instant startedAt) {
+        this.startedAt = startedAt;
         return this;
     }
 
-    public ExamBuilder withDateCompleted(Instant dateCompleted) {
-        this.dateCompleted = dateCompleted;
+    public ExamBuilder withCompletedAt(Instant completedAt) {
+        this.completedAt = completedAt;
         return this;
     }
 

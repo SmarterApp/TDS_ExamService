@@ -48,23 +48,23 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
         "e.subject, \n" +
         "e.login_ssid,\n" +
         "e.student_name,\n" +
-        "e.date_joined, \n" +
+        "e.joined_at, \n" +
         "e.assessment_key, \n" +
         "e.assessment_window_id, \n" +
         "e.assessment_algorithm, \n" +
         "e.segmented, \n" +
         "ee.attempts, \n" +
         "ee.status, \n" +
-        "ee.status_change_date, \n" +
+        "ee.status_changed_at, \n" +
         "ee.max_items, \n" +
         "ee.expire_from, \n" +
         "ee.language_code, \n" +
         "ee.status_change_reason, \n" +
-        "ee.date_deleted, \n" +
-        "ee.date_changed, \n" +
-        "ee.date_completed, \n" +
-        "ee.date_started, \n" +
-        "ee.date_scored, \n" +
+        "ee.deleted_at, \n" +
+        "ee.changed_at, \n" +
+        "ee.completed_at, \n" +
+        "ee.started_at, \n" +
+        "ee.scored_at, \n" +
         "ee.abnormal_starts, \n" +
         "ee.waiting_for_segment_approval, \n" +
         "ee.current_segment_position, \n" +
@@ -132,7 +132,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "       MAX(id) AS id \n" +
                 "   FROM \n" +
                 "       exam.exam_event \n" +
-                "   WHERE date_deleted IS NULL \n" +
+                "   WHERE deleted_at IS NULL \n" +
                 "   GROUP BY exam_id \n" +
                 ") last_event \n" +
                 "  ON e.id = last_event.exam_id \n" +
@@ -167,7 +167,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "   MAX(lastStudentActivityTime)\n" +
                 "FROM (\n" +
                 "   SELECT \n" +
-                "       MAX(ee.date_changed) AS lastStudentActivityTime\n" +
+                "       MAX(ee.changed_at) AS lastStudentActivityTime\n" +
                 "   FROM \n" +
                 "       exam e \n" +
                 "   JOIN \n" +
@@ -264,7 +264,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "exam.id,\n" +
                 "exam.assessment_id,\n" +
                 "ee.attempts,\n" +
-                "ee.date_scored,\n" +
+                "ee.scored_at,\n" +
                 "exam_scores.value AS score\n" +
                 "FROM exam exam \n" +
                 "JOIN ( \n" +
@@ -289,12 +289,12 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "  exam.client_name = :clientName AND\n" +
                 "  exam.student_id = :studentId AND\n" +
                 "  exam.subject = :subject AND\n" +
-                "  ee.date_deleted IS NULL AND\n" +
-                "  ee.date_scored IS NOT NULL AND\n" +
+                "  ee.deleted_at IS NULL AND\n" +
+                "  ee.scored_at IS NOT NULL AND\n" +
                 "  exam.id <> :examId AND\n" +
                 "  exam_scores.use_for_ability = 1 AND\n" +
                 "  exam_scores.value IS NOT NULL \n" +
-                "ORDER BY ee.date_scored DESC";
+                "ORDER BY ee.scored_at DESC";
 
         return jdbcTemplate.query(SQL, parameters, new AbilityRowMapper());
     }
@@ -338,7 +338,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 UUID.fromString(rs.getString("id")),
                 rs.getString("assessment_id"),
                 rs.getInt("attempts"),
-                ResultSetMapperUtility.mapTimestampToInstant(rs, "date_scored"),
+                ResultSetMapperUtility.mapTimestampToInstant(rs, "scored_at"),
                 rs.getDouble("score")
             );
         }
@@ -364,18 +364,18 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 .withAttempts(rs.getInt("attempts"))
                 .withClientName(rs.getString("client_name"))
                 .withSubject(rs.getString("subject"))
-                .withDateStarted(mapTimestampToJodaInstant(rs, "date_started"))
-                .withDateChanged(mapTimestampToJodaInstant(rs, "date_changed"))
-                .withDateDeleted(mapTimestampToJodaInstant(rs, "date_deleted"))
-                .withDateScored(mapTimestampToJodaInstant(rs, "date_scored"))
-                .withDateCompleted(mapTimestampToJodaInstant(rs, "date_completed"))
+                .withStartedAt(mapTimestampToJodaInstant(rs, "started_at"))
+                .withChangedAt(mapTimestampToJodaInstant(rs, "changed_at"))
+                .withDeletedAt(mapTimestampToJodaInstant(rs, "deleted_at"))
+                .withScoredAt(mapTimestampToJodaInstant(rs, "scored_at"))
+                .withCompletedAt(mapTimestampToJodaInstant(rs, "completed_at"))
                 .withCreatedAt(mapTimestampToJodaInstant(rs, "created_at"))
-                .withDateJoined(mapTimestampToJodaInstant(rs, "date_joined"))
+                .withJoinedAt(mapTimestampToJodaInstant(rs, "joined_at"))
                 .withExpireFrom(mapTimestampToJodaInstant(rs, "expire_from"))
                 .withStatus(new ExamStatusCode(
                     rs.getString("status"),
                     ExamStatusStage.fromType(rs.getString("stage"))
-                ), mapTimestampToJodaInstant(rs, "status_change_date"))
+                ), mapTimestampToJodaInstant(rs, "status_changed_at"))
                 .withStatusChangeReason(rs.getString("status_change_reason"))
                 .withAbnormalStarts(rs.getInt("abnormal_starts"))
                 .withWaitingForSegmentApproval(rs.getBoolean("waiting_for_segment_approval"))

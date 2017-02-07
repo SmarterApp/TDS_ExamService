@@ -27,7 +27,7 @@ public class ExamSegmentBuilder {
     private String restorePermeableCondition = "restore-permeable-condition";
     private String formCohort = "form-cohort-1";
     private boolean isSatisfied = true;
-    private Instant dateExited;
+    private Instant exitedAt;
     private Set<String> itemPool = new HashSet<>(Arrays.asList("187-1234", "187-5678"));
     private int poolCount = 2;
     private Instant createdAt = Instant.now().minus(10L, ChronoUnit.MINUTES);
@@ -47,7 +47,7 @@ public class ExamSegmentBuilder {
             .withRestorePermeableCondition(restorePermeableCondition)
             .withFormCohort(formCohort)
             .withIsSatisfied(isSatisfied)
-            .withDateExited(dateExited)
+            .withExitedAt(exitedAt)
             .withItemPool(itemPool)
             .withPoolCount(poolCount)
             .withCreatedAt(createdAt)
@@ -119,8 +119,8 @@ public class ExamSegmentBuilder {
         return this;
     }
 
-    public ExamSegmentBuilder withDateExited(Instant dateExited) {
-        this.dateExited = dateExited;
+    public ExamSegmentBuilder withExitedAt(Instant exitedAt) {
+        this.exitedAt = exitedAt;
         return this;
     }
 

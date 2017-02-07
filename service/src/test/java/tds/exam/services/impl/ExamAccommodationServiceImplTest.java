@@ -184,7 +184,7 @@ public class ExamAccommodationServiceImplTest {
         Exam exam = new ExamBuilder()
             .withAssessmentId(assessment.getAssessmentId())
             .withAssessmentKey(assessment.getKey())
-            .withDateStarted(null)
+            .withStartedAt(null)
             .build();
 
         Accommodation languageAccommodationThatShouldBePresent = new AccommodationBuilder()

@@ -39,7 +39,7 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
             .addValue("assessmentWindowId", exam.getAssessmentWindowId())
             .addValue("assessmentAlgorithm", exam.getAssessmentAlgorithm())
             .addValue("segmented", exam.isSegmented())
-            .addValue("dateJoined", mapJodaInstantToTimestamp(exam.getDateJoined()));
+            .addValue("joinedAt", mapJodaInstantToTimestamp(exam.getDateJoined()));
 
         String examInsertSQL = "INSERT INTO exam \n" +
             "(\n" +
@@ -55,7 +55,7 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
             "  assessment_window_id,\n" +
             "  assessment_algorithm,\n" +
             "  segmented,\n" +
-            "  date_joined\n" +
+            "  joined_at \n" +
             ")\n" +
             "VALUES\n" +
             "(\n" +
@@ -71,7 +71,7 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
             "  :assessmentWindowId,\n" +
             "  :assessmentAlgorithm,\n" +
             "  :segmented,\n" +
-            "  :dateJoined \n" +
+            "  :joinedAt \n" +
             ");";
 
         int insertCount = jdbcTemplate.update(examInsertSQL, examParameters);
@@ -90,21 +90,21 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
                 .addValue("attempts", exam.getAttempts())
                 .addValue("sessionId", exam.getSessionId().toString())
                 .addValue("status", exam.getStatus().getCode())
-                .addValue("statusChangeDate", mapJodaInstantToTimestamp(exam.getStatusChangeDate()))
+                .addValue("statusChangedAt", mapJodaInstantToTimestamp(exam.getStatusChangedAt()))
                 .addValue("browserId", getBytesFromUUID(exam.getBrowserId()))
                 .addValue("maxItems", exam.getMaxItems())
                 .addValue("languageCode", exam.getLanguageCode())
                 .addValue("statusChangeReason", exam.getStatusChangeReason())
-                .addValue("dateChanged", mapJodaInstantToTimestamp(exam.getDateChanged()))
-                .addValue("dateDeleted", mapJodaInstantToTimestamp(exam.getDateDeleted()))
-                .addValue("dateCompleted", mapJodaInstantToTimestamp(exam.getDateCompleted()))
-                .addValue("dateScored", mapJodaInstantToTimestamp(exam.getDateScored()))
+                .addValue("changedAt", mapJodaInstantToTimestamp(exam.getChangedAt()))
+                .addValue("deletedAt", mapJodaInstantToTimestamp(exam.getDeletedAt()))
+                .addValue("completedAt", mapJodaInstantToTimestamp(exam.getCompletedAt()))
+                .addValue("scoredAt", mapJodaInstantToTimestamp(exam.getScoredAt()))
                 .addValue("expireFrom", mapJodaInstantToTimestamp(exam.getExpireFrom()))
                 .addValue("abnormalStarts", exam.getAbnormalStarts())
                 .addValue("waitingForSegmentApproval", exam.isWaitingForSegmentApproval())
                 .addValue("currentSegmentPosition", exam.getCurrentSegmentPosition())
                 .addValue("customAccommodations", exam.isCustomAccommodations())
-                .addValue("dateStarted", mapJodaInstantToTimestamp(exam.getDateStarted())))
+                .addValue("startedAt", mapJodaInstantToTimestamp(exam.getStartedAt())))
             .toArray(MapSqlParameterSource[]::new);
 
         final String SQL =
@@ -117,13 +117,13 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
                 "session_id, \n" +
                 "browser_id, \n" +
                 "status, \n" +
-                "status_change_date, \n" +
+                "status_changed_at, \n" +
                 "status_change_reason, \n" +
-                "date_changed, \n" +
-                "date_deleted, \n" +
-                "date_completed, \n" +
-                "date_scored, \n" +
-                "date_started, \n" +
+                "changed_at, \n" +
+                "deleted_at, \n" +
+                "completed_at, \n" +
+                "scored_at, \n" +
+                "started_at, \n" +
                 "waiting_for_segment_approval, \n" +
                 "current_segment_position, \n" +
                 "custom_accommodations, \n" +
@@ -139,13 +139,13 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
                 ":sessionId, \n" +
                 ":browserId, \n" +
                 ":status, \n" +
-                ":statusChangeDate, \n" +
+                ":statusChangedAt, \n" +
                 ":statusChangeReason, \n" +
-                ":dateChanged, \n" +
-                ":dateDeleted, \n" +
-                ":dateCompleted, \n" +
-                ":dateScored, \n" +
-                ":dateStarted, \n" +
+                ":changedAt, \n" +
+                ":deletedAt, \n" +
+                ":completedAt, \n" +
+                ":scoredAt, \n" +
+                ":startedAt, \n" +
                 ":waitingForSegmentApproval,\n" +
                 ":currentSegmentPosition, \n" +
                 ":customAccommodations, \n" +

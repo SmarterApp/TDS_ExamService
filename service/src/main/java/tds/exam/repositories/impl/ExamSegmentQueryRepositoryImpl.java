@@ -59,7 +59,7 @@ public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepositor
                 "   se.restore_permeable_condition, \n" +
                 "   s.form_cohort, \n" +
                 "   se.satisfied, \n" +
-                "   se.date_exited, \n" +
+                "   se.exited_at, \n" +
                 "   se.item_pool, \n" +
                 "   s.pool_count, \n" +
                 "   s.created_at \n" +
@@ -113,7 +113,7 @@ public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepositor
                 "   se.restore_permeable_condition, \n" +
                 "   s.form_cohort, \n" +
                 "   se.satisfied, \n" +
-                "   se.date_exited, \n" +
+                "   se.exited_at, \n" +
                 "   se.item_pool, \n" +
                 "   s.pool_count, \n" +
                 "   s.created_at \n" +
@@ -163,7 +163,7 @@ public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepositor
                 .withRestorePermeableCondition(rs.getString("restore_permeable_condition"))
                 .withFormCohort(rs.getString("form_cohort"))
                 .withIsSatisfied(rs.getBoolean("satisfied"))
-                .withDateExited(ResultSetMapperUtility.mapTimestampToInstant(rs, "date_exited"))
+                .withExitedAt(ResultSetMapperUtility.mapTimestampToInstant(rs, "exited_at"))
                 .withItemPool(createItemsFromString(rs.getString("item_pool")))
                 .withPoolCount(rs.getInt("pool_count"))
                 .withCreatedAt(ResultSetMapperUtility.mapTimestampToInstant(rs, "created_at"))

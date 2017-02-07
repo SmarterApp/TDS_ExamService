@@ -19,14 +19,14 @@ public class Exam {
     private int maxItems;
     private ExamStatusCode status;
     private String statusChangeReason;
-    private Instant statusChangeDate;
+    private Instant statusChangedAt;
     private String clientName;
     private String subject;
-    private Instant dateStarted;
-    private Instant dateChanged;
-    private Instant dateDeleted;
-    private Instant dateScored;
-    private Instant dateCompleted;
+    private Instant startedAt;
+    private Instant changedAt;
+    private Instant deletedAt;
+    private Instant scoredAt;
+    private Instant completedAt;
     private Instant createdAt;
     private Instant expireFrom;
     private String loginSSID;
@@ -61,15 +61,15 @@ public class Exam {
         private int maxItems;
         private ExamStatusCode status;
         private String statusChangeReason;
-        private Instant statusChangeDate;
+        private Instant statusChangedAt;
         private String clientName;
         private String subject;
-        private Instant dateStarted;
-        private Instant dateChanged;
-        private Instant dateDeleted;
+        private Instant startedAt;
+        private Instant changedAt;
+        private Instant deletedAt;
         private Instant createdAt;
-        private Instant dateScored;
-        private Instant dateCompleted;
+        private Instant scoredAt;
+        private Instant completedAt;
         private Instant expireFrom;
         private String loginSSID;
         private String studentName;
@@ -102,8 +102,8 @@ public class Exam {
             return this;
         }
 
-        public Builder withDateJoined(Instant dateJoined) {
-            this.dateJoined = dateJoined;
+        public Builder withJoinedAt(Instant joinedAt) {
+            this.dateJoined = joinedAt;
             return this;
         }
 
@@ -162,12 +162,12 @@ public class Exam {
             return this;
         }
 
-        public Builder withStatus(ExamStatusCode newStatus, Instant newStatusChangeDate) {
+        public Builder withStatus(ExamStatusCode newStatus, Instant statusChangedAt) {
             Preconditions.checkNotNull(newStatus, "status cannot be null");
-            Preconditions.checkNotNull(newStatusChangeDate, "status change date cannot be null");
+            Preconditions.checkNotNull(statusChangedAt, "status change date cannot be null");
 
             status = newStatus;
-            statusChangeDate = newStatusChangeDate;
+            this.statusChangedAt = statusChangedAt;
             return this;
         }
 
@@ -186,23 +186,23 @@ public class Exam {
             return this;
         }
 
-        public Builder withDateScored(Instant newDateScored) {
-            dateScored = newDateScored;
+        public Builder withScoredAt(Instant scoredAt) {
+            this.scoredAt = scoredAt;
             return this;
         }
 
-        public Builder withDateStarted(Instant newDateStarted) {
-            dateStarted = newDateStarted;
+        public Builder withStartedAt(Instant startedAt) {
+            this.startedAt = startedAt;
             return this;
         }
 
-        public Builder withDateChanged(Instant newDateChanged) {
-            dateChanged = newDateChanged;
+        public Builder withChangedAt(Instant changedAt) {
+            this.changedAt = changedAt;
             return this;
         }
 
-        public Builder withDateDeleted(Instant newDateDeleted) {
-            dateDeleted = newDateDeleted;
+        public Builder withDeletedAt(Instant deletedAt) {
+            this.deletedAt = deletedAt;
             return this;
         }
 
@@ -211,8 +211,8 @@ public class Exam {
             return this;
         }
 
-        public Builder withDateCompleted(Instant dateCompleted) {
-            this.dateCompleted = dateCompleted;
+        public Builder withCompletedAt(Instant completedAt) {
+            this.completedAt = completedAt;
             return this;
         }
 
@@ -266,15 +266,15 @@ public class Exam {
             maxItems = exam.maxItems;
             status = exam.status;
             statusChangeReason = exam.statusChangeReason;
-            statusChangeDate = exam.statusChangeDate;
+            statusChangedAt = exam.statusChangedAt;
             subject = exam.subject;
             clientName = exam.clientName;
-            dateStarted = exam.dateStarted;
-            dateChanged = exam.dateChanged;
-            dateDeleted = exam.dateDeleted;
-            dateScored = exam.dateScored;
+            startedAt = exam.startedAt;
+            changedAt = exam.changedAt;
+            deletedAt = exam.deletedAt;
+            scoredAt = exam.scoredAt;
             createdAt = exam.createdAt;
-            dateCompleted = exam.dateCompleted;
+            completedAt = exam.completedAt;
             expireFrom = exam.expireFrom;
             loginSSID = exam.loginSSID;
             studentName = exam.studentName;
@@ -309,15 +309,15 @@ public class Exam {
         maxItems = builder.maxItems;
         status = builder.status;
         statusChangeReason = builder.statusChangeReason;
-        statusChangeDate = builder.statusChangeDate;
+        statusChangedAt = builder.statusChangedAt;
         subject = builder.subject;
         clientName = builder.clientName;
-        dateStarted = builder.dateStarted;
-        dateChanged = builder.dateChanged;
-        dateDeleted = builder.dateDeleted;
-        dateScored = builder.dateScored;
+        startedAt = builder.startedAt;
+        changedAt = builder.changedAt;
+        deletedAt = builder.deletedAt;
+        scoredAt = builder.scoredAt;
         createdAt = builder.createdAt;
-        dateCompleted = builder.dateCompleted;
+        completedAt = builder.completedAt;
         expireFrom = builder.expireFrom;
         loginSSID = builder.loginSSID;
         studentName = builder.studentName;
@@ -408,8 +408,8 @@ public class Exam {
     /**
      * @return The date when the {@link tds.exam.Exam}'s status changed.
      */
-    public Instant getStatusChangeDate() {
-        return statusChangeDate;
+    public Instant getStatusChangedAt() {
+        return statusChangedAt;
     }
 
     /**
@@ -430,29 +430,29 @@ public class Exam {
     /**
      * @return The date and time when the exam was started
      */
-    public Instant getDateStarted() {
-        return dateStarted;
+    public Instant getStartedAt() {
+        return startedAt;
     }
 
     /**
      * @return The most recent date and time at which the exam was changed
      */
-    public Instant getDateChanged() {
-        return dateChanged;
+    public Instant getChangedAt() {
+        return changedAt;
     }
 
     /**
      * @return The date and time when the exam was deleted
      */
-    public Instant getDateDeleted() {
-        return dateDeleted;
+    public Instant getDeletedAt() {
+        return deletedAt;
     }
 
     /**
      * @return The date and time when the exam was completed
      */
-    public Instant getDateCompleted() {
-        return dateCompleted;
+    public Instant getCompletedAt() {
+        return completedAt;
     }
 
     /**
@@ -465,8 +465,8 @@ public class Exam {
     /**
      * @return The date and time when the exam was scored
      */
-    public Instant getDateScored() {
-        return dateScored;
+    public Instant getScoredAt() {
+        return scoredAt;
     }
 
     /**
