@@ -433,7 +433,7 @@ class ExamServiceImpl implements ExamService {
         Exam.Builder examBuilder = new Exam.Builder();
 
         //From OpenTestServiceImpl lines 160 -163
-        if (openExamRequest.getProctorId() == null) {
+        if (session.getProctorId() == null) {
             examBuilder.withStatus(examStatusQueryRepository.findExamStatusCode(ExamStatusCode.STATUS_APPROVED), org.joda.time.Instant.now());
         } else {
             examBuilder.withStatus(examStatusQueryRepository.findExamStatusCode(ExamStatusCode.STATUS_PENDING), org.joda.time.Instant.now());

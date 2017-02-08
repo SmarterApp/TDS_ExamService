@@ -26,11 +26,6 @@ public class OpenExamRequest {
     @Min(0)
     private int numberOfDaysToDelay;
 
-    /**
-     * TODO - This should be fetched from session instead of passed in
-     */
-    private Long proctorId;
-
     private String guestAccommodations;
 
     private UUID browserId;
@@ -41,7 +36,6 @@ public class OpenExamRequest {
         this.maxAttempts = builder.maxAttempts;
         this.sessionId = builder.sessionId;
         this.numberOfDaysToDelay = builder.numberOfDaysToDelay;
-        this.proctorId = builder.proctorId;
         this.guestAccommodations = builder.guestAccommodations;
         this.browserId = builder.browserId;
     }
@@ -57,13 +51,6 @@ public class OpenExamRequest {
      */
     public String getGuestAccommodations() {
         return guestAccommodations;
-    }
-
-    /**
-     * @return proctor id or null
-     */
-    public Long getProctorId() {
-        return proctorId;
     }
 
     /**
@@ -121,7 +108,6 @@ public class OpenExamRequest {
         private int maxAttempts;
         private UUID sessionId;
         private int numberOfDaysToDelay;
-        private Long proctorId;
         private String guestAccommodations;
         private UUID browserId;
 
@@ -150,11 +136,6 @@ public class OpenExamRequest {
             return this;
         }
 
-        public Builder withProctorId(Long proctorId) {
-            this.proctorId = proctorId;
-            return this;
-        }
-
         public Builder withGuestAccommodations(String guestAccommodations) {
             this.guestAccommodations = guestAccommodations;
             return this;
@@ -178,7 +159,6 @@ public class OpenExamRequest {
             ", maxAttempts=" + maxAttempts +
             ", sessionId=" + sessionId +
             ", numberOfDaysToDelay=" + numberOfDaysToDelay +
-            ", proctorId=" + proctorId +
             ", guestAccommodations='" + guestAccommodations + '\'' +
             ", browserId=" + browserId +
             '}';
