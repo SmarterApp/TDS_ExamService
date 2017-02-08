@@ -314,10 +314,10 @@ public class ExamServiceImplTest {
     public void shouldOpenNewExamWithoutProctor() {
         OpenExamRequest openExamRequest = new OpenExamRequestBuilder()
             .withStudentId(-1)
-            .withProctorId(null)
             .build();
 
         Session currentSession = new SessionBuilder()
+            .withProctorId(null)
             .build();
 
         ClientSystemFlag clientSystemFlag = new ClientSystemFlag.Builder().withEnabled(true).build();
@@ -366,9 +366,10 @@ public class ExamServiceImplTest {
     public void shouldOpenNewExamWithProctor() {
         OpenExamRequest openExamRequest = new OpenExamRequestBuilder()
             .withStudentId(1)
-            .withProctorId(99L)
             .build();
+
         Session currentSession = new SessionBuilder()
+            .withProctorId(99L)
             .build();
 
         Student student = new Student.Builder(1, "clientName")
@@ -418,8 +419,8 @@ public class ExamServiceImplTest {
     public void shouldOpenExamWithCustomAccommodations() {
         OpenExamRequest openExamRequest = new OpenExamRequestBuilder()
             .withStudentId(1)
-            .withProctorId(99L)
             .build();
+
         Session currentSession = new SessionBuilder()
             .build();
 

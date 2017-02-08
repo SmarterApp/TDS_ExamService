@@ -10,7 +10,6 @@ public class OpenExamRequestBuilder {
     private int maxAttempts = 0;
     private UUID sessionId = UUID.randomUUID();
     private int numberOfDaysToDelay = 0;
-    private Long proctorId = 99L;
     private String guestAccommodations;
     private UUID browserId = UUID.randomUUID();
 
@@ -39,11 +38,6 @@ public class OpenExamRequestBuilder {
         return this;
     }
 
-    public OpenExamRequestBuilder withProctorId(Long proctorId) {
-        this.proctorId = proctorId;
-        return this;
-    }
-
     public OpenExamRequestBuilder withGuestAccommodations(String guestAccommodations) {
         this.guestAccommodations = guestAccommodations;
         return this;
@@ -61,7 +55,6 @@ public class OpenExamRequestBuilder {
             .withMaxAttempts(maxAttempts)
             .withSessionId(sessionId)
             .withNumberOfDaysToDelay(numberOfDaysToDelay)
-            .withProctorId(proctorId)
             .withGuestAccommodations(guestAccommodations)
             .withBrowserId(browserId)
             .build();
