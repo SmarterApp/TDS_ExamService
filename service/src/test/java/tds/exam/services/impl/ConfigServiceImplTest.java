@@ -6,9 +6,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.text.MessageFormat;
 import java.util.Optional;
 
 import tds.config.ClientSystemFlag;
@@ -27,6 +29,10 @@ public class ConfigServiceImplTest {
     private static final String CLIENT_NAME = "CLIENT_TEST";
     private static final String BASE_URL = "http://localhost:8080";
     private static final String ATTRIBUTE_OBJECT = "AnonymousTestee";
+    private static final String MESSAGE_KEY = "Replacement message";
+    private static final String MESSAGE_TEXT = "Replace {0} and {1}.";
+    private static final String LANGUAGE_CODE = "ENU";
+    private static final String CONTEXT = "Context";
 
     private RestTemplate restTemplate;
     private ConfigService configService;
@@ -66,5 +72,48 @@ public class ConfigServiceImplTest {
         URI url = new URI(String.format("%s/%s/client-system-flags/%s/%s", BASE_URL, CONFIG_APP_CONTEXT, CLIENT_NAME, ATTRIBUTE_OBJECT));
         when(restTemplate.getForObject(url, ClientSystemFlag.class)).thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
         configService.findClientSystemFlag(CLIENT_NAME, ATTRIBUTE_OBJECT);
+    }
+
+    @Test
+    public void shouldFindSystemMessage() throws URISyntaxException {
+        Object[] replacements = new Object[] {1, "2"};
+        String expectedMessage = MessageFormat.format(MESSAGE_TEXT, replacements);
+
+        UriComponentsBuilder builder =
+            UriComponentsBuilder
+                .fromHttpUrl(String.format("%s/%s/messages/%s/%s/%s/%s",
+                    BASE_URL,
+                    CONFIG_APP_CONTEXT,
+                    CLIENT_NAME,
+                    CONTEXT,
+                    MESSAGE_KEY,
+                    LANGUAGE_CODE))
+                .queryParam("grade", null)
+                .queryParam("subject", null);
+
+        when(restTemplate.getForObject(builder.build().toUri(), String.class)).thenReturn(MESSAGE_TEXT);
+        String systemMessage = configService.getSystemMessage(CLIENT_NAME, MESSAGE_KEY, LANGUAGE_CODE, CONTEXT, replacements);
+
+        assertThat(systemMessage).isEqualTo(expectedMessage);
+    }
+
+    @Test
+    public void shouldReturnMessageKeyWhenMessageKeyNotFound() throws URISyntaxException {
+        UriComponentsBuilder builder =
+            UriComponentsBuilder
+                .fromHttpUrl(String.format("%s/%s/messages/%s/%s/%s/%s",
+                    BASE_URL,
+                    CONFIG_APP_CONTEXT,
+                    CLIENT_NAME,
+                    CONTEXT,
+                    MESSAGE_KEY,
+                    LANGUAGE_CODE))
+                .queryParam("grade", null)
+                .queryParam("subject", null);
+
+        when(restTemplate.getForObject(builder.build().toUri(), String.class)).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
+        String systemMessage = configService.getSystemMessage(CLIENT_NAME, MESSAGE_KEY, LANGUAGE_CODE, CONTEXT, new Object[] {1, "2"});
+
+        assertThat(systemMessage).isEqualTo(MESSAGE_KEY);
     }
 }
