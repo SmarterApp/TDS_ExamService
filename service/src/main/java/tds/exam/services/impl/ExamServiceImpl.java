@@ -24,7 +24,7 @@ import tds.common.data.legacy.LegacyComparer;
 import tds.common.web.exceptions.NotFoundException;
 import tds.config.ClientSystemFlag;
 import tds.config.TimeLimitConfiguration;
-import tds.exam.ApprovalRequest;
+import tds.exam.ExamInfo;
 import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
 import tds.exam.ExamConfiguration;
@@ -41,6 +41,7 @@ import tds.exam.services.AssessmentService;
 import tds.exam.services.ConfigService;
 import tds.exam.services.ExamAccommodationService;
 import tds.exam.services.ExamApprovalService;
+import tds.exam.services.ExamItemService;
 import tds.exam.services.ExamPageService;
 import tds.exam.services.ExamSegmentService;
 import tds.exam.services.ExamService;
@@ -72,6 +73,7 @@ class ExamServiceImpl implements ExamService {
     private final ExamQueryRepository examQueryRepository;
     private final ExamCommandRepository examCommandRepository;
     private final ExamPageService examPageService;
+    private final ExamItemService examItemService;
     private final HistoryQueryRepository historyQueryRepository;
     private final SessionService sessionService;
     private final StudentService studentService;
@@ -96,6 +98,7 @@ class ExamServiceImpl implements ExamService {
                            ConfigService configService,
                            ExamCommandRepository examCommandRepository,
                            ExamPageService examPageService,
+                           ExamItemService examItemService,
                            ExamStatusQueryRepository examStatusQueryRepository,
                            ExamAccommodationService examAccommodationService,
                            ExamApprovalService examApprovalService) {
@@ -109,6 +112,7 @@ class ExamServiceImpl implements ExamService {
         this.configService = configService;
         this.examCommandRepository = examCommandRepository;
         this.examPageService = examPageService;
+        this.examItemService = examItemService;
         this.examStatusQueryRepository = examStatusQueryRepository;
         this.examAccommodationService = examAccommodationService;
         this.examApprovalService = examApprovalService;
@@ -312,7 +316,7 @@ class ExamServiceImpl implements ExamService {
         Session session = maybeSession.get();
 
         /* StudentDLL [5269] / TestOpportunityServiceImpl [137] */
-        Optional<ValidationError> maybeAccessViolation = examApprovalService.verifyAccess(new ApprovalRequest(examId, session.getId(),
+        Optional<ValidationError> maybeAccessViolation = examApprovalService.verifyAccess(new ExamInfo(examId, session.getId(),
             exam.getBrowserId()), exam);
         if (maybeAccessViolation.isPresent()) {
             return new Response<>(maybeAccessViolation.get());
@@ -334,7 +338,7 @@ class ExamServiceImpl implements ExamService {
 
         /* StudentDLL [5344] Skipping getInitialAbility() call here - the ability is retrieved in legacy but never set on TestConfig */
 
-        if (exam.getDateStarted() == null) { // Start a new exam
+        if (exam.getStartedAt() == null) { // Start a new exam
             // Initialize the segments in the exam and get the testlength.
             Exam initializedExam = initializeExam(exam, assessment);
             /* StudentDLL [5367] and TestOppServiceImpl [167] */
@@ -359,7 +363,7 @@ class ExamServiceImpl implements ExamService {
 
             if (isResumable) { // Resume exam
                 /* TestOpportunityServiceImpl [215] - Only need to get latest position when resuming, else its 1 */
-                startPosition = examPageService.getExamPosition(exam.getId());
+                startPosition = examItemService.getExamPosition(exam.getId());
                 /* This increment is done in TestOpportunityServiceImpl [179] */
                 resumptions++;
             } else if (assessment.shouldDeleteUnansweredItems()) { // Restart exam
@@ -370,10 +374,10 @@ class ExamServiceImpl implements ExamService {
             Exam restartedExam = new Exam.Builder()
                 .fromExam(exam)
                 .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_STARTED, ExamStatusStage.IN_PROGRESS), now)
-                .withDateChanged(now)
+                .withChangedAt(now)
                 .withResumptions(resumptions)
                 .withRestartsAndResumptions(restartsAndResumptions)
-                .withDateStarted(now)
+                .withStartedAt(now)
                 .build();
 
             examCommandRepository.update(restartedExam);
@@ -394,9 +398,9 @@ class ExamServiceImpl implements ExamService {
         Exam initializedExam = new Exam.Builder()
             .fromExam(exam)
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_STARTED, ExamStatusStage.IN_PROGRESS), org.joda.time.Instant.now())
-            .withDateStarted(now)
-            .withDateChanged(now)
-            .withExpireFrom(now)
+            .withStartedAt(now)
+            .withChangedAt(now)
+            .withExpiresAt(now)
             .withRestartsAndResumptions(0)
             .withMaxItems(testLength)
             .build();
@@ -491,7 +495,7 @@ class ExamServiceImpl implements ExamService {
             .withAttempts(previousExam == null ? 1 : previousExam.getAttempts() + 1)
             .withAssessmentAlgorithm(assessment.getSelectionAlgorithm().getType())
             .withSegmented(assessment.isSegmented())
-            .withDateJoined(org.joda.time.Instant.now())
+            .withJoinedAt(org.joda.time.Instant.now())
             .withAssessmentWindowId(assessmentWindow.getWindowId())
             .withEnvironment(externalSessionConfiguration.getEnvironment())
             .withSubject(assessment.getSubject())
@@ -560,7 +564,7 @@ class ExamServiceImpl implements ExamService {
         //If the student already has started the exam then the exam starts in a suspended state otherwise
         //the new exam being opened is treated as a fresh one which is pending state waiting for the proctor to approve
         ExamStatusCode status = examStatusQueryRepository.findExamStatusCode(STATUS_PENDING);
-        if (previousExam.getDateStarted() != null) {
+        if (previousExam.getStartedAt() != null) {
             status = examStatusQueryRepository.findExamStatusCode(STATUS_SUSPENDED);
         }
 
@@ -575,7 +579,7 @@ class ExamServiceImpl implements ExamService {
             .withStatus(status, org.joda.time.Instant.now())
             .withBrowserId(openExamRequest.getBrowserId())
             .withSessionId(openExamRequest.getSessionId())
-            .withDateChanged(org.joda.time.Instant.now())
+            .withChangedAt(org.joda.time.Instant.now())
             .withAbnormalStarts(previousExam.getAbnormalStarts() + abnormalIncrement)
             .build();
 
@@ -626,8 +630,8 @@ class ExamServiceImpl implements ExamService {
         reasons for this logic. StudentDLL lines 5569 - 5589
          */
         boolean daysSinceLastChange = false;
-        if (previousExam.getDateChanged() != null) {
-            daysSinceLastChange = DAYS.between(Instant.ofEpochMilli(previousExam.getDateChanged().getMillis()), Instant.now()) >= 1;
+        if (previousExam.getChangedAt() != null) {
+            daysSinceLastChange = DAYS.between(Instant.ofEpochMilli(previousExam.getChangedAt().getMillis()), Instant.now()) >= 1;
         }
 
         if (daysSinceLastChange ||
@@ -666,8 +670,8 @@ class ExamServiceImpl implements ExamService {
             }
 
             //Verifies that the new exam does not exceed attempts and there are enough days since the last attempt
-            boolean daysSinceLastExamThreshold = previousExam.getDateCompleted() == null ||
-                LegacyComparer.greaterThan(Duration.between(convertJodaInstant(previousExam.getDateCompleted()), Instant.now()).get(DAYS), numberOfDaysToDelay);
+            boolean daysSinceLastExamThreshold = previousExam.getCompletedAt() == null ||
+                LegacyComparer.greaterThan(Duration.between(convertJodaInstant(previousExam.getCompletedAt()), Instant.now()).get(DAYS), numberOfDaysToDelay);
 
             if (LegacyComparer.lessThan(previousExam.getAttempts(), openExamRequest.getMaxAttempts()) &&
                 daysSinceLastExamThreshold) {

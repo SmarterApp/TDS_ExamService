@@ -23,7 +23,7 @@ import java.util.UUID;
 import tds.accommodation.Accommodation;
 import tds.assessment.Assessment;
 import tds.common.ValidationError;
-import tds.exam.ApprovalRequest;
+import tds.exam.ExamInfo;
 import tds.exam.ApproveAccommodationsRequest;
 import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
@@ -184,7 +184,7 @@ public class ExamAccommodationServiceImplTest {
         Exam exam = new ExamBuilder()
             .withAssessmentId(assessment.getAssessmentId())
             .withAssessmentKey(assessment.getKey())
-            .withDateStarted(null)
+            .withStartedAt(null)
             .build();
 
         Accommodation languageAccommodationThatShouldBePresent = new AccommodationBuilder()
@@ -345,29 +345,29 @@ public class ExamAccommodationServiceImplTest {
     public void shouldReturnValidationErrorForFailedVerifyAccess() {
         Exam exam = new ExamBuilder().build();
         ApproveAccommodationsRequest approveAccommodationsRequest = new ApproveAccommodationsRequest(exam.getSessionId(), exam.getBrowserId(), new HashMap<>());
-        ApprovalRequest approvalRequest = new ApprovalRequest(exam.getId(), exam.getSessionId(), exam.getBrowserId());
+        ExamInfo examInfo = new ExamInfo(exam.getId(), exam.getSessionId(), exam.getBrowserId());
         
         when(mockExamQueryRepository.getExamById(exam.getId())).thenReturn(Optional.of(exam));
-        when(mockExamApprovalService.verifyAccess(approvalRequest, exam)).thenReturn(Optional.of(new ValidationError("ErrorCode", "Error Message")));
+        when(mockExamApprovalService.verifyAccess(examInfo, exam)).thenReturn(Optional.of(new ValidationError("ErrorCode", "Error Message")));
         Optional<ValidationError> maybeError = examAccommodationService.approveAccommodations(exam.getId(), approveAccommodationsRequest);
         assertThat(maybeError).isPresent();
         verify(mockExamQueryRepository).getExamById(exam.getId());
-        verify(mockExamApprovalService).verifyAccess(approvalRequest, exam);
+        verify(mockExamApprovalService).verifyAccess(examInfo, exam);
     }
     
     @Test
     public void shouldReturnValidationErrorForNoSessionFound() {
         Exam exam = new ExamBuilder().build();
         ApproveAccommodationsRequest approveAccommodationsRequest = new ApproveAccommodationsRequest(exam.getSessionId(), exam.getBrowserId(), new HashMap<>());
-        ApprovalRequest approvalRequest = new ApprovalRequest(exam.getId(), exam.getSessionId(), exam.getBrowserId());
+        ExamInfo examInfo = new ExamInfo(exam.getId(), exam.getSessionId(), exam.getBrowserId());
         
         when(mockExamQueryRepository.getExamById(exam.getId())).thenReturn(Optional.of(exam));
-        when(mockExamApprovalService.verifyAccess(approvalRequest, exam)).thenReturn(Optional.empty());
+        when(mockExamApprovalService.verifyAccess(examInfo, exam)).thenReturn(Optional.empty());
         when(mockSessionService.findSessionById(exam.getSessionId())).thenReturn(Optional.empty());
         Optional<ValidationError> maybeError = examAccommodationService.approveAccommodations(exam.getId(), approveAccommodationsRequest);
         assertThat(maybeError).isPresent();
         verify(mockExamQueryRepository).getExamById(exam.getId());
-        verify(mockExamApprovalService).verifyAccess(approvalRequest, exam);
+        verify(mockExamApprovalService).verifyAccess(examInfo, exam);
         verify(mockSessionService).findSessionById(exam.getSessionId());
     }
     
@@ -376,15 +376,15 @@ public class ExamAccommodationServiceImplTest {
         Session session = new SessionBuilder().withProctorId(1L).build();
         Exam exam = new ExamBuilder().withSessionId(session.getId()).build();
         ApproveAccommodationsRequest approveAccommodationsRequest = new ApproveAccommodationsRequest(exam.getSessionId(), exam.getBrowserId(), new HashMap<>());
-        ApprovalRequest approvalRequest = new ApprovalRequest(exam.getId(), exam.getSessionId(), exam.getBrowserId());
+        ExamInfo examInfo = new ExamInfo(exam.getId(), exam.getSessionId(), exam.getBrowserId());
         
         when(mockExamQueryRepository.getExamById(exam.getId())).thenReturn(Optional.of(exam));
-        when(mockExamApprovalService.verifyAccess(approvalRequest, exam)).thenReturn(Optional.empty());
+        when(mockExamApprovalService.verifyAccess(examInfo, exam)).thenReturn(Optional.empty());
         when(mockSessionService.findSessionById(exam.getSessionId())).thenReturn(Optional.of(session));
         Optional<ValidationError> maybeError = examAccommodationService.approveAccommodations(exam.getId(), approveAccommodationsRequest);
         assertThat(maybeError).isPresent();
         verify(mockExamQueryRepository).getExamById(exam.getId());
-        verify(mockExamApprovalService).verifyAccess(approvalRequest, exam);
+        verify(mockExamApprovalService).verifyAccess(examInfo, exam);
         verify(mockSessionService).findSessionById(exam.getSessionId());
     }
     
@@ -404,10 +404,10 @@ public class ExamAccommodationServiceImplTest {
         segmentPosToAccCodes.put(2, segment2Accoms);
     
         ApproveAccommodationsRequest approveAccommodationsRequest = new ApproveAccommodationsRequest(exam.getSessionId(), exam.getBrowserId(), segmentPosToAccCodes);
-        ApprovalRequest approvalRequest = new ApprovalRequest(exam.getId(), exam.getSessionId(), exam.getBrowserId());
+        ExamInfo examInfo = new ExamInfo(exam.getId(), exam.getSessionId(), exam.getBrowserId());
         
         when(mockExamQueryRepository.getExamById(exam.getId())).thenReturn(Optional.of(exam));
-        when(mockExamApprovalService.verifyAccess(approvalRequest, exam)).thenReturn(Optional.empty());
+        when(mockExamApprovalService.verifyAccess(examInfo, exam)).thenReturn(Optional.empty());
         when(mockSessionService.findSessionById(exam.getSessionId())).thenReturn(Optional.of(session));
         when(mockExamAccommodationQueryRepository.findApprovedAccommodations(exam.getId())).thenReturn(new ArrayList<>());
         
@@ -441,7 +441,7 @@ public class ExamAccommodationServiceImplTest {
         assertThat(maybeError).isNotPresent();
         
         verify(mockExamQueryRepository).getExamById(exam.getId());
-        verify(mockExamApprovalService).verifyAccess(approvalRequest, exam);
+        verify(mockExamApprovalService).verifyAccess(examInfo, exam);
         verify(mockExamAccommodationQueryRepository).findApprovedAccommodations(exam.getId());
         verify(mockAssessmentService, times(3)).findAssessmentAccommodationsByAssessmentKey(exam.getClientName(), exam.getAssessmentKey());
         verify(mockSessionService).findSessionById(session.getId());

@@ -12,7 +12,7 @@ import java.util.UUID;
 import tds.common.Response;
 import tds.common.ValidationError;
 import tds.config.TimeLimitConfiguration;
-import tds.exam.ApprovalRequest;
+import tds.exam.ExamInfo;
 import tds.exam.Exam;
 import tds.exam.ExamApproval;
 import tds.exam.error.ValidationErrorCode;
@@ -39,15 +39,15 @@ public class ExamApprovalServiceImpl implements ExamApprovalService {
     }
 
     @Override
-    public Response<ExamApproval> getApproval(final ApprovalRequest approvalRequest) {
-        Exam exam = examQueryRepository.getExamById(approvalRequest.getExamId())
-            .orElseThrow(() -> new IllegalArgumentException(String.format("Exam could not be found for id %s", approvalRequest.getExamId())));
+    public Response<ExamApproval> getApproval(final ExamInfo examInfo) {
+        Exam exam = examQueryRepository.getExamById(examInfo.getExamId())
+            .orElseThrow(() -> new IllegalArgumentException(String.format("Exam could not be found for id %s", examInfo.getExamId())));
 
-        Optional<ValidationError> maybeAccessViolation = verifyAccess(approvalRequest, exam);
+        Optional<ValidationError> maybeAccessViolation = verifyAccess(examInfo, exam);
 
         return maybeAccessViolation.isPresent()
             ? new Response<>(maybeAccessViolation.get())
-            : new Response<>(new ExamApproval(approvalRequest.getExamId(), exam.getStatus(), exam.getStatusChangeReason()));
+            : new Response<>(new ExamApproval(examInfo.getExamId(), exam.getStatus(), exam.getStatusChangeReason()));
     }
 
     @Override
@@ -56,14 +56,14 @@ public class ExamApprovalServiceImpl implements ExamApprovalService {
     }
 
     @Override
-    public Optional<ValidationError> verifyAccess(final ApprovalRequest approvalRequest, final Exam exam) {
+    public Optional<ValidationError> verifyAccess(final ExamInfo examInfo, final Exam exam) {
         // RULE:  The browser key for the approval request must match the browser key of the exam.
-        if (!exam.getBrowserId().equals(approvalRequest.getBrowserId())) {
+        if (!exam.getBrowserId().equals(examInfo.getBrowserId())) {
             return Optional.of(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_BROWSER_ID_MISMATCH, "Access violation: System access denied"));
         }
 
         // RULE:  Session id for the approval request must match the session id of the exam.
-        if (!exam.getSessionId().equals(approvalRequest.getSessionId())) {
+        if (!exam.getSessionId().equals(examInfo.getSessionId())) {
             return Optional.of(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_SESSION_ID_MISMATCH, "The session keys do not match; please consult your test administrator"));
         }
 
@@ -77,8 +77,8 @@ public class ExamApprovalServiceImpl implements ExamApprovalService {
             return Optional.empty();
         }
 
-        Session session = sessionService.findSessionById(approvalRequest.getSessionId())
-            .orElseThrow(() -> new IllegalArgumentException("Could not find session for id " + approvalRequest.getSessionId()));
+        Session session = sessionService.findSessionById(examInfo.getSessionId())
+            .orElseThrow(() -> new IllegalArgumentException("Could not find session for id " + examInfo.getSessionId()));
 
         // RULE:  the exam's session must be open.
         if (!session.isOpen()) {

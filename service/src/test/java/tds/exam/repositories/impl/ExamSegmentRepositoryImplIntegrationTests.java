@@ -67,7 +67,7 @@ public class ExamSegmentRepositoryImplIntegrationTests {
         final String segmentKey2 = "Segment-key-2";
         final int segmentPos2 = 2;
         final Algorithm algorithm = Algorithm.FIXED_FORM;
-        final Instant dateExited = Instant.now(Clock.systemUTC());
+        final Instant exitedAt = Instant.now(Clock.systemUTC());
         final UUID examId = exam.getId();
         final int examItemCount = 3;
         final int ftItemCount = 0;
@@ -87,7 +87,7 @@ public class ExamSegmentRepositoryImplIntegrationTests {
             .withSegmentKey(segmentKey1)
             .withSegmentPosition(segmentPos1)
             .withAlgorithm(algorithm)
-            .withDateExited(dateExited)
+            .withExitedAt(exitedAt)
             .withExamId(examId)
             .withExamItemCount(examItemCount)
             .withFieldTestItemCount(ftItemCount)
@@ -106,7 +106,7 @@ public class ExamSegmentRepositoryImplIntegrationTests {
             .withSegmentKey(segmentKey2)
             .withSegmentPosition(segmentPos2)
             .withAlgorithm(algorithm)
-            .withDateExited(dateExited)
+            .withExitedAt(exitedAt)
             .withExamId(examId)
             .withExamItemCount(examItemCount)
             .withFieldTestItemCount(ftItemCount)
@@ -129,7 +129,7 @@ public class ExamSegmentRepositoryImplIntegrationTests {
         assertThat(maybeRetrievedSegment.get().getSegmentPosition()).isEqualTo(segmentPos2);
         assertThat(maybeRetrievedSegment.get().getAlgorithm()).isEqualTo(algorithm);
         assertThat(maybeRetrievedSegment.get().getCreatedAt()).isNotNull();
-        assertThat(maybeRetrievedSegment.get().getDateExited()).isEqualTo(dateExited);
+        assertThat(maybeRetrievedSegment.get().getExitedAt()).isEqualTo(exitedAt);
         assertThat(maybeRetrievedSegment.get().getExamId()).isEqualTo(examId);
         assertThat(maybeRetrievedSegment.get().getExamItemCount()).isEqualTo(examItemCount);
         assertThat(maybeRetrievedSegment.get().getItemPool()).contains(item);
@@ -149,7 +149,7 @@ public class ExamSegmentRepositoryImplIntegrationTests {
         final String segmentKey = "Segment-key-1";
         final int segmentPos = 1;
         final Algorithm algorithm = Algorithm.FIXED_FORM;
-        final Instant dateExited = Instant.now(Clock.systemUTC());
+        final Instant exitedAt = Instant.now(Clock.systemUTC());
         final UUID examId = exam.getId();
         final int examItemCount = 3;
         final int ftItemCount = 0;
@@ -190,7 +190,7 @@ public class ExamSegmentRepositoryImplIntegrationTests {
             .withSegmentKey(segmentKey)
             .withSegmentPosition(segmentPos)
             .withAlgorithm(algorithm)
-            .withDateExited(dateExited)
+            .withExitedAt(exitedAt)
             .withExamId(examId)
             .withExamItemCount(examItemCount)
             .withFieldTestItemCount(ftItemCount)
@@ -213,7 +213,7 @@ public class ExamSegmentRepositoryImplIntegrationTests {
         assertThat(maybeRetrievedSegment.get().getSegmentPosition()).isEqualTo(segmentPos);
         assertThat(maybeRetrievedSegment.get().getAlgorithm()).isEqualTo(algorithm);
         assertThat(maybeRetrievedSegment.get().getCreatedAt()).isNotNull();
-        assertThat(maybeRetrievedSegment.get().getDateExited()).isEqualTo(dateExited);
+        assertThat(maybeRetrievedSegment.get().getExitedAt()).isEqualTo(exitedAt);
         assertThat(maybeRetrievedSegment.get().getExamId()).isEqualTo(examId);
         assertThat(maybeRetrievedSegment.get().getExamItemCount()).isEqualTo(examItemCount);
         assertThat(maybeRetrievedSegment.get().getItemPool()).contains(item);
@@ -237,7 +237,7 @@ public class ExamSegmentRepositoryImplIntegrationTests {
         final int segmentPos2 = 2;
         final Algorithm algorithm1 = Algorithm.ADAPTIVE_2;
         final Algorithm algorithm2 = Algorithm.FIXED_FORM;
-        final Instant dateExited = Instant.now(Clock.systemUTC());
+        final Instant exitedAt = Instant.now(Clock.systemUTC());
         final UUID examId = exam.getId();
         final UUID differentExamid = otherExam.getId();
         final int examItemCount = 3;
@@ -258,7 +258,7 @@ public class ExamSegmentRepositoryImplIntegrationTests {
             .withSegmentKey(segmentKey1)
             .withSegmentPosition(segmentPos1)
             .withAlgorithm(algorithm1)
-            .withDateExited(dateExited)
+            .withExitedAt(exitedAt)
             .withExamId(examId)
             .withExamItemCount(examItemCount)
             .withFieldTestItemCount(ftItemCount)
@@ -277,7 +277,7 @@ public class ExamSegmentRepositoryImplIntegrationTests {
             .withSegmentKey(segmentKey2)
             .withSegmentPosition(segmentPos2)
             .withAlgorithm(algorithm2)
-            .withDateExited(dateExited)
+            .withExitedAt(exitedAt)
             .withExamId(examId)
             .withExamItemCount(examItemCount)
             .withFieldTestItemCount(ftItemCount)
@@ -296,7 +296,7 @@ public class ExamSegmentRepositoryImplIntegrationTests {
             .withSegmentKey(segmentKey2)
             .withSegmentPosition(segmentPos2)
             .withAlgorithm(algorithm2)
-            .withDateExited(dateExited)
+            .withExitedAt(exitedAt)
             .withExamId(differentExamid)
             .withExamItemCount(examItemCount)
             .withFieldTestItemCount(ftItemCount)
@@ -317,7 +317,7 @@ public class ExamSegmentRepositoryImplIntegrationTests {
             .withSegmentKey(segmentKey1)
             .withSegmentPosition(segmentPos1)
             .withAlgorithm(algorithm1)
-            .withDateExited(dateExited)
+            .withExitedAt(exitedAt)
             .withExamId(examId)
             .withExamItemCount(examItemCount)
             .withFieldTestItemCount(ftItemCount)
@@ -338,7 +338,7 @@ public class ExamSegmentRepositoryImplIntegrationTests {
             .withSegmentKey(segmentKey2)
             .withSegmentPosition(segmentPos2)
             .withAlgorithm(algorithm2)
-            .withDateExited(dateExited)
+            .withExitedAt(exitedAt)
             .withExamId(examId)
             .withExamItemCount(examItemCount)
             .withFieldTestItemCount(ftItemCount)
@@ -363,7 +363,7 @@ public class ExamSegmentRepositoryImplIntegrationTests {
         assertThat(retSegment1.getSegmentPosition()).isEqualTo(segmentPos1);
         assertThat(retSegment1.getAlgorithm()).isEqualTo(algorithm1);
         assertThat(retSegment1.getCreatedAt()).isNotNull();
-        assertThat(retSegment1.getDateExited()).isEqualTo(dateExited);
+        assertThat(retSegment1.getExitedAt()).isEqualTo(exitedAt);
         assertThat(retSegment1.getExamId()).isEqualTo(examId);
         assertThat(retSegment1.getExamItemCount()).isEqualTo(examItemCount);
         assertThat(retSegment1.getItemPool()).contains(item);
@@ -381,7 +381,7 @@ public class ExamSegmentRepositoryImplIntegrationTests {
         assertThat(retSegment2.getSegmentPosition()).isEqualTo(segmentPos2);
         assertThat(retSegment2.getAlgorithm()).isEqualTo(algorithm2);
         assertThat(retSegment2.getCreatedAt()).isNotNull();
-        assertThat(retSegment2.getDateExited()).isEqualTo(dateExited);
+        assertThat(retSegment2.getExitedAt()).isEqualTo(exitedAt);
         assertThat(retSegment2.getExamId()).isEqualTo(examId);
         assertThat(retSegment2.getExamItemCount()).isEqualTo(examItemCount);
         assertThat(retSegment2.getItemPool()).contains(item);

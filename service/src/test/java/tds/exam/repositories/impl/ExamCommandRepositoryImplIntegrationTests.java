@@ -45,7 +45,7 @@ public class ExamCommandRepositoryImplIntegrationTests {
     public void shouldInsertExam() {
         Instant now = Instant.now();
         Exam exam = new ExamBuilder()
-            .withDateJoined(now)
+            .withJoinedAt(now)
             .withAbnormalStarts(5)
             .build();
         assertThat(examQueryRepository.getExamById(exam.getId())).isNotPresent();
@@ -69,11 +69,11 @@ public class ExamCommandRepositoryImplIntegrationTests {
         assertThat(savedExam.getAssessmentKey()).isEqualTo(exam.getAssessmentKey());
         assertThat(savedExam.getAssessmentWindowId()).isEqualTo(exam.getAssessmentWindowId());
         assertThat(savedExam.getDateJoined()).isEqualTo(now);
-        assertThat(savedExam.getDateChanged()).isEqualTo(exam.getDateChanged());
-        assertThat(savedExam.getDateStarted()).isEqualTo(exam.getDateStarted());
-        assertThat(savedExam.getDateScored()).isEqualTo(exam.getDateScored());
-        assertThat(savedExam.getDateCompleted()).isEqualTo(exam.getDateCompleted());
-        assertThat(savedExam.getDateDeleted()).isEqualTo(exam.getDateDeleted());
+        assertThat(savedExam.getChangedAt()).isEqualTo(exam.getChangedAt());
+        assertThat(savedExam.getStartedAt()).isEqualTo(exam.getStartedAt());
+        assertThat(savedExam.getScoredAt()).isEqualTo(exam.getScoredAt());
+        assertThat(savedExam.getCompletedAt()).isEqualTo(exam.getCompletedAt());
+        assertThat(savedExam.getDeletedAt()).isEqualTo(exam.getDeletedAt());
         assertThat(savedExam.getBrowserId()).isEqualTo(exam.getBrowserId());
         assertThat(savedExam.getLoginSSID()).isEqualTo(exam.getLoginSSID());
         assertThat(savedExam.getStatusChangeReason()).isEqualTo(exam.getStatusChangeReason());
@@ -109,7 +109,7 @@ public class ExamCommandRepositoryImplIntegrationTests {
 
         Exam updatedExam = maybeUpdatedExam.get();
         assertThat(updatedExam.getStatus()).isEqualTo(pausedStatus);
-        assertThat(updatedExam.getStatusChangeDate()).isEqualTo(pausedStatusDate);
+        assertThat(updatedExam.getStatusChangedAt()).isEqualTo(pausedStatusDate);
     }
 
     @Test
@@ -143,7 +143,7 @@ public class ExamCommandRepositoryImplIntegrationTests {
         assertThat(maybeMockFirstExamAfterUpdate).isPresent();
         Exam mockFirstExamAfterUpdate = maybeMockFirstExamAfterUpdate.get();
         assertThat(mockFirstExamAfterUpdate.getStatus().getCode()).isEqualTo(ExamStatusCode.STATUS_APPROVED);
-        assertThat(mockFirstExamAfterUpdate.getStatusChangeDate().getMillis()).isGreaterThan(mockFirstExam.getStatusChangeDate().getMillis());
+        assertThat(mockFirstExamAfterUpdate.getStatusChangedAt().getMillis()).isGreaterThan(mockFirstExam.getStatusChangedAt().getMillis());
         assertThat(mockFirstExamAfterUpdate.getAttempts()).isEqualTo(500);
         assertThat(mockFirstExamAfterUpdate.getStatusChangeReason()).isEqualTo("unit test");
 
@@ -153,7 +153,7 @@ public class ExamCommandRepositoryImplIntegrationTests {
         assertThat(maybeMockSecondExamAfterUpdate).isPresent();
         Exam mockSecondExamAfterUpdate = maybeMockSecondExamAfterUpdate.get();
         assertThat(mockSecondExamAfterUpdate.getStatus().getCode()).isEqualTo(ExamStatusCode.STATUS_STARTED);
-        assertThat(mockSecondExamAfterUpdate.getStatusChangeDate().getMillis()).isGreaterThan(mockSecondExam.getStatusChangeDate().getMillis());
+        assertThat(mockSecondExamAfterUpdate.getStatusChangedAt().getMillis()).isGreaterThan(mockSecondExam.getStatusChangedAt().getMillis());
         assertThat(mockSecondExamAfterUpdate.getMaxItems()).isEqualTo(600);
         assertThat(mockSecondExamAfterUpdate.getStatusChangeReason()).isEqualTo("unit test 2");
     }

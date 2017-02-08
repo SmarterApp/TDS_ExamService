@@ -17,7 +17,7 @@ import tds.common.Response;
 import tds.common.ValidationError;
 import tds.common.configuration.JacksonObjectMapperConfiguration;
 import tds.common.web.advice.ExceptionAdvice;
-import tds.exam.ApprovalRequest;
+import tds.exam.ExamInfo;
 import tds.exam.ExamApproval;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
@@ -48,19 +48,19 @@ public class ExamApprovalControllerIntegrationTests {
         UUID sessionId = UUID.randomUUID();
         UUID browserId = UUID.randomUUID();
 
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserId);
-        ArgumentCaptor<ApprovalRequest> approvalRequestArgumentCaptor = ArgumentCaptor.forClass(ApprovalRequest.class);
+        ExamInfo examInfo = new ExamInfo(examId, sessionId, browserId);
+        ArgumentCaptor<ExamInfo> approvalRequestArgumentCaptor = ArgumentCaptor.forClass(ExamInfo.class);
         ExamApproval mockApproval = new ExamApproval(examId,
             new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.INACTIVE),
             null);
 
-        when(mockExamApprovalService.getApproval(isA(ApprovalRequest.class)))
+        when(mockExamApprovalService.getApproval(isA(ExamInfo.class)))
             .thenReturn(new Response<>(mockApproval));
 
         http.perform(get("/exam/{id}/approval", examId)
             .contentType(MediaType.APPLICATION_JSON)
-            .param("sessionId", approvalRequest.getSessionId().toString())
-            .param("browserId", approvalRequest.getBrowserId().toString()))
+            .param("sessionId", examInfo.getSessionId().toString())
+            .param("browserId", examInfo.getBrowserId().toString()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("data").isNotEmpty())
             .andExpect(jsonPath("data.examId", is(examId.toString())))
@@ -75,17 +75,17 @@ public class ExamApprovalControllerIntegrationTests {
         UUID sessionId = UUID.randomUUID();
         UUID browserId = UUID.randomUUID();
 
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, sessionId, browserId);
-        ArgumentCaptor<ApprovalRequest> approvalRequestArgumentCaptor = ArgumentCaptor.forClass(ApprovalRequest.class);
+        ExamInfo examInfo = new ExamInfo(examId, sessionId, browserId);
+        ArgumentCaptor<ExamInfo> approvalRequestArgumentCaptor = ArgumentCaptor.forClass(ExamInfo.class);
         ValidationError mockFailure = new ValidationError(ValidationErrorCode.EXAM_APPROVAL_SESSION_CLOSED, "session is closed");
 
-        when(mockExamApprovalService.getApproval(isA(ApprovalRequest.class)))
+        when(mockExamApprovalService.getApproval(isA(ExamInfo.class)))
             .thenReturn(new Response<>(mockFailure));
 
         http.perform(get("/exam/{id}/approval", examId)
             .contentType(MediaType.APPLICATION_JSON)
-            .param("sessionId", approvalRequest.getSessionId().toString())
-            .param("browserId", approvalRequest.getBrowserId().toString()))
+            .param("sessionId", examInfo.getSessionId().toString())
+            .param("browserId", examInfo.getBrowserId().toString()))
             .andExpect(status().isUnprocessableEntity())
             .andExpect(jsonPath("error").isNotEmpty())
             .andExpect(jsonPath("error.code", is(ValidationErrorCode.EXAM_APPROVAL_SESSION_CLOSED)))

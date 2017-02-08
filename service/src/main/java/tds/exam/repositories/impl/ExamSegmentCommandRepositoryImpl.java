@@ -49,7 +49,7 @@ public class ExamSegmentCommandRepositoryImpl implements ExamSegmentCommandRepos
                 .addValue("isSatisfied", segment.isSatisfied())
                 .addValue("isPermeable", segment.isPermeable())
                 .addValue("restorePermeableOn", segment.getRestorePermeableCondition())
-                .addValue("dateExited", ResultSetMapperUtility.mapInstantToTimestamp(segment.getDateExited()))
+                .addValue("exitedAt", ResultSetMapperUtility.mapInstantToTimestamp(segment.getExitedAt()))
                 .addValue("itemPool", String.join(",", segment.getItemPool())))
             .collect(Collectors.toList());
 
@@ -100,7 +100,7 @@ public class ExamSegmentCommandRepositoryImpl implements ExamSegmentCommandRepos
                 .addValue("isSatisfied", segment.isSatisfied())
                 .addValue("isPermeable", segment.isPermeable())
                 .addValue("restorePermeableCondition", segment.getRestorePermeableCondition())
-                .addValue("dateExited", ResultSetMapperUtility.mapInstantToTimestamp(segment.getDateExited()))
+                .addValue("exitedAt", ResultSetMapperUtility.mapInstantToTimestamp(segment.getExitedAt()))
                 .addValue("itemPool", String.join(",", segment.getItemPool()));
             parameterSources.add(parameters);
         });
@@ -112,7 +112,7 @@ public class ExamSegmentCommandRepositoryImpl implements ExamSegmentCommandRepos
                 "   satisfied, \n" +
                 "   permeable, \n" +
                 "   restore_permeable_condition, \n" +
-                "   date_exited, \n" +
+                "   exited_at, \n" +
                 "   item_pool \n" +
                 ") \n" +
                 "VALUES ( \n" +
@@ -121,7 +121,7 @@ public class ExamSegmentCommandRepositoryImpl implements ExamSegmentCommandRepos
                 "   :isSatisfied, \n" +
                 "   :isPermeable, \n" +
                 "   :restorePermeableCondition, \n" +
-                "   :dateExited, \n" +
+                "   :exitedAt, \n" +
                 "   :itemPool \n" +
                 ")";
 

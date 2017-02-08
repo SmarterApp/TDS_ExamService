@@ -18,11 +18,9 @@ public class ExamItem {
     private String itemType;
     private int position;
     private boolean required;
-    private boolean selected;
     private boolean markedForReview;
     private boolean fieldTest;
     private String itemFilePath;
-
     private String stimulusFilePath;
     private ExamItemResponse response;
 
@@ -31,6 +29,7 @@ public class ExamItem {
      */
     private ExamItem() {
     }
+
 
     private ExamItem(Builder builder) {
         id = builder.id;
@@ -41,7 +40,6 @@ public class ExamItem {
         itemType = builder.itemType;
         position = builder.position;
         required = builder.required;
-        selected = builder.selected;
         markedForReview = builder.markedForReview;
         fieldTest = builder.fieldTest;
         itemFilePath = builder.itemFilePath;
@@ -58,7 +56,7 @@ public class ExamItem {
         private String itemType;
         private int position;
         private boolean required;
-        private boolean selected;
+
         private boolean markedForReview;
         private boolean fieldTest;
         private String itemFilePath;
@@ -101,11 +99,6 @@ public class ExamItem {
 
         public Builder withRequired(boolean required) {
             this.required = required;
-            return this;
-        }
-
-        public Builder withSelected(boolean selected) {
-            this.selected = selected;
             return this;
         }
 
@@ -194,13 +187,6 @@ public class ExamItem {
      */
     public boolean isRequired() {
         return required;
-    }
-
-    /**
-     * @return True if this {@link tds.exam.ExamItem} has been selected; otherwise false
-     */
-    public boolean isSelected() {
-        return selected;
     }
 
     /**

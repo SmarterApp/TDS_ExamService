@@ -16,10 +16,11 @@ import java.util.stream.Collectors;
 import tds.accommodation.Accommodation;
 import tds.assessment.Assessment;
 import tds.common.ValidationError;
-import tds.exam.ApprovalRequest;
+import tds.exam.ExamInfo;
 import tds.exam.ApproveAccommodationsRequest;
 import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
+import tds.exam.error.ValidationErrorCode;
 import tds.exam.repositories.ExamAccommodationCommandRepository;
 import tds.exam.repositories.ExamAccommodationQueryRepository;
 import tds.exam.repositories.ExamQueryRepository;
@@ -136,17 +137,17 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
     @Override
     public Optional<ValidationError> approveAccommodations(UUID examId, ApproveAccommodationsRequest request) {
         /* This method is a port of StudentDLL.T_ApproveAccommodations_SP, starting at line 11429 */
-        ApprovalRequest approvalRequest = new ApprovalRequest(examId, request.getSessionId(), request.getBrowserId());
+        ExamInfo examInfo = new ExamInfo(examId, request.getSessionId(), request.getBrowserId());
     
         Optional<Exam> maybeExam = examQueryRepository.getExamById(examId);
         
         if (!maybeExam.isPresent()) {
-            return Optional.of(new ValidationError("T_ApproveAccommodations", "The test opportunity does not exist"));
+            return Optional.of(new ValidationError(ValidationErrorCode.EXAM_DOES_NOT_EXIST, "The test opportunity does not exist"));
         }
         
         Exam exam = maybeExam.get();
         /* line 11441 */
-        Optional<ValidationError> maybeError = examApprovalService.verifyAccess(approvalRequest, exam);
+        Optional<ValidationError> maybeError = examApprovalService.verifyAccess(examInfo, exam);
         
         if (maybeError.isPresent()) {
             return maybeError;
@@ -156,9 +157,9 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
         Optional<Session> maybeSession = sessionService.findSessionById(exam.getSessionId());
         
         if (!maybeSession.isPresent()) {
-            return Optional.of(new ValidationError("T_ApproveAccommodations", "The test opportunity is not enrolled in this session"));
-        } else if (maybeSession.isPresent() && maybeSession.get().getProctorId() != null) {
-            return Optional.of(new ValidationError("T_ApproveAccommodations", "Student can only self-approve unproctored sessions"));
+            return Optional.of(new ValidationError(ValidationErrorCode.EXAM_NOT_ENROLLED_IN_SESSION, "The test opportunity is not enrolled in this session"));
+        } else if (maybeSession.isPresent() && !maybeSession.get().isProctorless()) {
+            return Optional.of(new ValidationError(ValidationErrorCode.STUDENT_SELF_APPROVE_UNPROCTORED_SESSION, "Student can only self-approve unproctored sessions"));
         }
         
         // Get the list of current exam accomms in case we need to update them (for example, if a pre-initialized default was changed by the guest user)
@@ -171,8 +172,6 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
         
         return Optional.empty();
     }
-    
-//    private updateExamAccommodations
     
     private static String getOtherAccommodationValue(String formattedValue) {
         return formattedValue.substring("TDS_Other#".length());
@@ -237,7 +236,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                 accommodationCodes.contains(accommodation.getCode())
                     && accommodation.getSegmentPosition() == segmentPosition
                     && !accommodation.isEntryControl()
-                    && (exam.getDateStarted() == null || accommodation.isAllowChange())
+                    && (exam.getStartedAt() == null || accommodation.isAllowChange())
                     && (!restoreRts || accommodation.isSelectable())
             ).map(accommodation -> {
                 //Conditional below is due to StudentDLL lines 6967 - 6875

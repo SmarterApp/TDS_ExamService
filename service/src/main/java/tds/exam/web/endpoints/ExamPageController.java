@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.UUID;
 
 import tds.common.Response;
-import tds.exam.ApprovalRequest;
+import tds.exam.ExamInfo;
 import tds.exam.ExamPage;
 import tds.exam.services.ExamPageService;
 
@@ -32,8 +32,8 @@ public class ExamPageController {
                                                @PathVariable final int position,
                                                @RequestParam final UUID sessionId,
                                                @RequestParam final UUID browserId) {
-        ApprovalRequest approvalRequest = new ApprovalRequest(id, sessionId, browserId);
-        Response<ExamPage> page = examPageService.getPage(approvalRequest, position);
+        ExamInfo examInfo = new ExamInfo(id, sessionId, browserId);
+        Response<ExamPage> page = examPageService.getPage(examInfo, position);
 
         if (page.hasError()) {
             return new ResponseEntity<>(page, HttpStatus.UNPROCESSABLE_ENTITY);

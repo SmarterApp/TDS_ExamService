@@ -19,4 +19,12 @@ public class ValidationErrorCode {
 
     // Exam status transition error codes
     public static final String EXAM_STATUS_TRANSITION_FAILURE = "badStatusTransition";
+
+    // Save responses error codes
+    public static final String EXAM_INTERRUPTED = "examInterrupted";
+
+    // Exam acccommodations approval validation errors
+    public static final String EXAM_DOES_NOT_EXIST = "examDoesNotExist";
+    public static final String EXAM_NOT_ENROLLED_IN_SESSION = "examNotEnrolledInSession";
+    public static final String STUDENT_SELF_APPROVE_UNPROCTORED_SESSION = "studentSelfApproveUnproctoredSession";
 }

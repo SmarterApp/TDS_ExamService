@@ -1,6 +1,7 @@
 package tds.exam;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.joda.time.Instant;
 
 import java.util.UUID;
@@ -10,6 +11,7 @@ import static tds.common.util.Preconditions.checkNotNull;
 /**
  * An accommodation that is approved for use during an {@link Exam}.
  */
+@JsonIgnoreProperties(value="approved", allowGetters=true)
 public class ExamAccommodation {
     private UUID id;
     private UUID examId;

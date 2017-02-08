@@ -23,18 +23,18 @@ public class ExamBuilder {
     private int attempts = 0;
     private int maxItems = 6;
     private String clientName = "clientName";
-    private Instant dateDeleted = null;
-    private Instant dateScored = null;
-    private Instant dateChanged = null;
-    private Instant dateStarted = null;
-    private Instant dateCompleted = null;
-    private Instant expireFrom = null;
+    private Instant deletedAt = null;
+    private Instant scoredAt = null;
+    private Instant changedAt = null;
+    private Instant startedAt = null;
+    private Instant completedAt = null;
+    private Instant expiresAt = null;
     private ExamStatusCode status = new ExamStatusCode(STATUS_PENDING, ExamStatusStage.IN_USE);
     private Instant statusChangeDate = Instant.now();
     private String subject = "ELA";
     private String studentKey = "ADV001";
     private String studentName = "Darth";
-    private Instant dateJoined = null;
+    private Instant joinedAt = null;
     private String assessmentWindowId = "ANNUAL";
     private String assessmentAlgorithm = "fixedForm";
     private String assessmentKey = "(SBAC_PT)SBAC-IRP-CAT-ELA-3-Summer-2015-2016";
@@ -58,15 +58,15 @@ public class ExamBuilder {
             .withStudentId(studentId)
             .withAttempts(attempts)
             .withClientName(clientName)
-            .withDateDeleted(dateDeleted)
-            .withDateScored(dateScored)
-            .withDateChanged(dateChanged)
-            .withDateStarted(dateStarted)
-            .withDateCompleted(dateCompleted)
+            .withDeletedAt(deletedAt)
+            .withScoredAt(scoredAt)
+            .withChangedAt(changedAt)
+            .withStartedAt(startedAt)
+            .withCompletedAt(completedAt)
             .withStatus(status, statusChangeDate)
             .withSubject(subject)
             .withLoginSSID(studentKey)
-            .withDateJoined(dateJoined)
+            .withJoinedAt(joinedAt)
             .withMaxItems(maxItems)
             .withAssessmentWindowId(assessmentWindowId)
             .withStudentName(studentName)
@@ -76,7 +76,7 @@ public class ExamBuilder {
             .withSegmented(segmented)
             .withAbnormalStarts(abnormalStarts)
             .withLanguageCode(languageCode)
-            .withExpireFrom(expireFrom)
+            .withExpiresAt(expiresAt)
             .withWaitingForSegmentApproval(waitingForSegmentApproval)
             .withCurrentSegmentPosition(currentSegmentPosition)
             .withCustomAccommodation(customAccommodations)
@@ -95,8 +95,8 @@ public class ExamBuilder {
         return this;
     }
 
-    public ExamBuilder withDateJoined(Instant dateJoined) {
-        this.dateJoined = dateJoined;
+    public ExamBuilder withJoinedAt(Instant joinedAt) {
+        this.joinedAt = joinedAt;
         return this;
     }
 
@@ -160,33 +160,33 @@ public class ExamBuilder {
         return this;
     }
 
-    public ExamBuilder withDateDeleted(Instant dateDeleted) {
-        this.dateDeleted = dateDeleted;
+    public ExamBuilder withDeletedAt(Instant deletedAt) {
+        this.deletedAt = deletedAt;
         return this;
     }
 
-    public ExamBuilder withDateScored(Instant dateScored) {
-        this.dateScored = dateScored;
+    public ExamBuilder withScoredAt(Instant scoredAt) {
+        this.scoredAt = scoredAt;
         return this;
     }
 
-    public ExamBuilder withDateChanged(Instant dateChanged) {
-        this.dateChanged = dateChanged;
+    public ExamBuilder withChangedAt(Instant changedAt) {
+        this.changedAt = changedAt;
         return this;
     }
 
-    public ExamBuilder withDateStarted(Instant dateStarted) {
-        this.dateStarted = dateStarted;
+    public ExamBuilder withStartedAt(Instant startedAt) {
+        this.startedAt = startedAt;
         return this;
     }
 
-    public ExamBuilder withDateCompleted(Instant dateCompleted) {
-        this.dateCompleted = dateCompleted;
+    public ExamBuilder withCompletedAt(Instant completedAt) {
+        this.completedAt = completedAt;
         return this;
     }
 
-    public ExamBuilder withExpireFrom(Instant expireFrom) {
-        this.expireFrom = expireFrom;
+    public ExamBuilder withExpiresAt(Instant expiresAt) {
+        this.expiresAt = expiresAt;
         return this;
     }
 
