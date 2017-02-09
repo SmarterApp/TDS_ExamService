@@ -673,7 +673,6 @@ class ExamServiceImpl implements ExamService {
         if (previousExam != null) {
             //This is done with a query in the legacy application but we can just check the status of the previous exam fetched in a previous step.
             if (!ExamStatusStage.CLOSED.equals(previousExam.getStatus().getStage())) {
-                // TODO: find if this is an existing message to translate?
                 return Optional.of(new ValidationError(ValidationErrorCode.PREVIOUS_EXAM_NOT_CLOSED, "Previous exam is not closed"));
             }
 
