@@ -68,6 +68,7 @@ import tds.student.RtsStudentPackageAttribute;
 import tds.student.Student;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -151,6 +152,12 @@ public class ExamServiceImplTest {
             mockExamStatusQueryRepository,
             mockExamAccommodationService,
             mockExamApprovalService);
+
+        // Calls to get formatted message are throughout the exam service
+        // Since we aren't testing that it returns anything specific in these tests I each option here for simplicity
+        when(mockConfigService.getFormattedMessage(any(), any(), any())).thenReturn("Formatted message");
+        when(mockConfigService.getFormattedMessage(any(), any(), any(), any())).thenReturn("Formatted message");
+        when(mockConfigService.getFormattedMessage(any(), any(), any(), any(), any(), any(), any())).thenReturn("Formatted message");
     }
 
     @After
@@ -247,6 +254,7 @@ public class ExamServiceImplTest {
         assertThat(examResponse.hasError()).isTrue();
 
         ValidationError validationError = examResponse.getError().get();
+        verify(mockConfigService).getFormattedMessage("SBAC_PT", "_CanOpenTestOpportunity", "Current opportunity is active");
         assertThat(validationError.getCode()).isEqualTo(ValidationErrorCode.CURRENT_EXAM_OPEN);
     }
 

@@ -25,6 +25,8 @@ import static tds.exam.configuration.SupportApplicationConfiguration.CONFIG_APP_
  */
 @Service
 class ConfigServiceImpl implements ConfigService {
+    private static final String DEFAULT_LANGUAGE = "ENU";
+
     private final RestTemplate restTemplate;
     private final ExamServiceProperties examServiceProperties;
 
@@ -59,12 +61,20 @@ class ConfigServiceImpl implements ConfigService {
     }
 
     @Override
-    public String getSystemMessage(String clientName, String messageKey, String languageCode, String context, Object[] replacements) {
-        return getSystemMessage(clientName, messageKey, languageCode, context, null, null, replacements);
+    @Cacheable(CacheType.LONG_TERM)
+    public String getFormattedMessage(String clientName, String context, String messageKey, Object... replacements) {
+        return getFormattedMessage(clientName, context, messageKey, DEFAULT_LANGUAGE, replacements);
     }
 
     @Override
-    public String getSystemMessage(String clientName, String messageKey, String languageCode, String context, String subject, String grade, Object[] replacements) {
+    @Cacheable(CacheType.LONG_TERM)
+    public String getFormattedMessage(String clientName, String context, String messageKey, String languageCode, Object... replacements) {
+        return getFormattedMessage(clientName, context, messageKey, languageCode, null, null, replacements);
+    }
+
+    @Override
+    @Cacheable(CacheType.LONG_TERM)
+    public String getFormattedMessage(String clientName, String context, String messageKey, String languageCode, String subject, String grade, Object... replacements) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
                 .fromHttpUrl(String.format("%s/%s/messages/%s/%s/%s/%s",
@@ -74,8 +84,8 @@ class ConfigServiceImpl implements ConfigService {
                     context,
                     messageKey,
                     languageCode))
-            .queryParam("grade", grade)
-            .queryParam("subject", subject);
+                .queryParam("grade", grade)
+                .queryParam("subject", subject);
 
         String messageTemplate;
         try {

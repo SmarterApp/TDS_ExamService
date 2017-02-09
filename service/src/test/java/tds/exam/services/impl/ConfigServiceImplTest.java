@@ -32,7 +32,7 @@ public class ConfigServiceImplTest {
     private static final String MESSAGE_KEY = "Replacement message";
     private static final String MESSAGE_TEXT = "Replace {0} and {1}.";
     private static final String LANGUAGE_CODE = "ENU";
-    private static final String CONTEXT = "Context";
+    private static final String CONTEXT = "_ContextMethod";
 
     private RestTemplate restTemplate;
     private ConfigService configService;
@@ -92,7 +92,7 @@ public class ConfigServiceImplTest {
                 .queryParam("subject", null);
 
         when(restTemplate.getForObject(builder.build().toUri(), String.class)).thenReturn(MESSAGE_TEXT);
-        String systemMessage = configService.getSystemMessage(CLIENT_NAME, MESSAGE_KEY, LANGUAGE_CODE, CONTEXT, replacements);
+        String systemMessage = configService.getFormattedMessage(CLIENT_NAME, CONTEXT, MESSAGE_KEY, LANGUAGE_CODE, replacements);
 
         assertThat(systemMessage).isEqualTo(expectedMessage);
     }
@@ -112,7 +112,7 @@ public class ConfigServiceImplTest {
                 .queryParam("subject", null);
 
         when(restTemplate.getForObject(builder.build().toUri(), String.class)).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
-        String systemMessage = configService.getSystemMessage(CLIENT_NAME, MESSAGE_KEY, LANGUAGE_CODE, CONTEXT, new Object[] {1, "2"});
+        String systemMessage = configService.getFormattedMessage(CLIENT_NAME, CONTEXT, MESSAGE_KEY, LANGUAGE_CODE, new Object[] {1, "2"});
 
         assertThat(systemMessage).isEqualTo(MESSAGE_KEY);
     }
