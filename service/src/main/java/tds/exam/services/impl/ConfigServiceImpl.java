@@ -89,7 +89,7 @@ class ConfigServiceImpl implements ConfigService {
 
         String messageTemplate;
         try {
-            messageTemplate = restTemplate.getForObject(builder.buildAndExpand().toUri(), String.class);
+            messageTemplate = restTemplate.getForObject(builder.build().toUri(), String.class);
         } catch (HttpClientErrorException hce) {
             // If there is an HTTP error we can return the messageKey which is the english message version, since it is
             //  better to return a message in English than error out.  This is a suitable recovery.
