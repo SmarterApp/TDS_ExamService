@@ -45,23 +45,23 @@ public class ApproveAccommodationsRequest {
       return accommodationCodes;
     }
   
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      
+      ApproveAccommodationsRequest that = (ApproveAccommodationsRequest) o;
+      
+      if (!sessionId.equals(that.sessionId)) return false;
+      if (!browserId.equals(that.browserId)) return false;
+      return accommodationCodes.equals(that.accommodationCodes);
+    }
     
-    ApproveAccommodationsRequest that = (ApproveAccommodationsRequest) o;
-    
-    if (!sessionId.equals(that.sessionId)) return false;
-    if (!browserId.equals(that.browserId)) return false;
-    return accommodationCodes.equals(that.accommodationCodes);
-  }
-  
-  @Override
-  public int hashCode() {
-    int result = sessionId.hashCode();
-    result = 31 * result + browserId.hashCode();
-    result = 31 * result + accommodationCodes.hashCode();
-    return result;
-  }
+    @Override
+    public int hashCode() {
+      int result = sessionId.hashCode();
+      result = 31 * result + browserId.hashCode();
+      result = 31 * result + accommodationCodes.hashCode();
+      return result;
+    }
 }
