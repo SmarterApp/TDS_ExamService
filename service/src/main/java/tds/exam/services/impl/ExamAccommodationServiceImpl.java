@@ -212,7 +212,8 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                                                                      int segmentPosition,
                                                                      boolean restoreRts,
                                                                      List<ExamAccommodation> existingExamAccommodations,
-                                                                     Set<String> accommodationCodes) {
+                                                                     Set<String> accommodationCodes,
+                                                                     boolean isGuestAccommodations) {
         //This method replaces CommonDLL._UpdateOpportunityAccommodations_SP.
         Instant now = Instant.now();
 
