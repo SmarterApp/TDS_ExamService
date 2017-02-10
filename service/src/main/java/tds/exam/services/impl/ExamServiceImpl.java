@@ -7,7 +7,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -476,7 +478,14 @@ class ExamServiceImpl implements ExamService {
 
         //OpenTestServiceImpl line 367 - 368 validation check.  no window no exam
         if (!maybeWindow.isPresent()) {
-            return new Response<>(new ValidationError(NO_OPEN_ASSESSMENT_WINDOW, "Could not find an open assessment window"));
+            return new Response<>(new ValidationError(
+                NO_OPEN_ASSESSMENT_WINDOW,
+                configService.getFormattedMessage(
+                    clientName,
+                    "_OpenNewOpportunity",
+                    "There is no active testing window for this student at this time"
+                )
+            ));
         }
 
         AssessmentWindow assessmentWindow = maybeWindow.get();
@@ -642,7 +651,10 @@ class ExamServiceImpl implements ExamService {
         }
 
         //Port of Student.DLL line 5593
-        return Optional.of(new ValidationError(ValidationErrorCode.CURRENT_EXAM_OPEN, "Current exam is active"));
+        return Optional.of(new ValidationError(
+            ValidationErrorCode.CURRENT_EXAM_OPEN,
+            configService.getFormattedMessage(currentSession.getClientName(),"_CanOpenTestOpportunity", "Current opportunity is active")
+        ));
     }
 
     private Optional<ValidationError> canCreateNewExam(String clientName, OpenExamRequest openExamRequest, Exam previousExam, ExternalSessionConfiguration externalSessionConfiguration) {
@@ -677,9 +689,18 @@ class ExamServiceImpl implements ExamService {
                 daysSinceLastExamThreshold) {
                 return Optional.empty();
             } else if (LegacyComparer.greaterOrEqual(previousExam.getAttempts(), openExamRequest.getMaxAttempts())) {
-                return Optional.of(new ValidationError(ValidationErrorCode.MAX_OPPORTUNITY_EXCEEDED, "Max number of attempts for exam exceeded"));
+                return Optional.of(new ValidationError(
+                    ValidationErrorCode.MAX_OPPORTUNITY_EXCEEDED,
+                    configService.getFormattedMessage(clientName, "_CanOpenTestOpportunity", "All opportunities have been used for this test")
+                ));
             } else {
-                return Optional.of(new ValidationError(ValidationErrorCode.NOT_ENOUGH_DAYS_PASSED, String.format("Next exam cannot be started until %s days pass since last exam", numberOfDaysToDelay)));
+                Instant examCompletedAt = convertJodaInstant(previousExam.getCompletedAt());
+                Instant nextAvailableDate = examCompletedAt.plus(numberOfDaysToDelay, ChronoUnit.DAYS);
+
+                return Optional.of(new ValidationError(
+                    ValidationErrorCode.NOT_ENOUGH_DAYS_PASSED,
+                    configService.getFormattedMessage(clientName, "_CanOpenTestOpportunity", "Your next test opportunity is not yet available.", nextAvailableDate)
+                ));
             }
         }
 
