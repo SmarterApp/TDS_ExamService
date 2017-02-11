@@ -128,7 +128,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
         } else {
             //CommonDLL line 2590 - gets the accommodation codes based on guest accommodations and the accommodation family for the assessment
             Set<String> accommodationCodes = splitAccommodationCodes(assessment.getAccommodationFamily(), guestAccommodations);
-            examAccommodations = initializePreviousAccommodations(exam, segmentPosition, restoreRts, examAccommodations, accommodationCodes);
+            examAccommodations = initializePreviousAccommodations(exam, segmentPosition, restoreRts, examAccommodations, accommodationCodes, false);
         }
 
         return examAccommodations;
@@ -167,7 +167,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
     
         // For each assessment and segments separately, initialize their respective accommodations
         request.getAccommodationCodes().forEach((segmentPosition, guestAccommodationCodes) -> {
-            initializePreviousAccommodations(exam, segmentPosition, false, currentAccommodations, guestAccommodationCodes);
+            initializePreviousAccommodations(exam, segmentPosition, false, currentAccommodations, guestAccommodationCodes, true);
         });
         
         return Optional.empty();
@@ -212,7 +212,8 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                                                                      int segmentPosition,
                                                                      boolean restoreRts,
                                                                      List<ExamAccommodation> existingExamAccommodations,
-                                                                     Set<String> accommodationCodes) {
+                                                                     Set<String> accommodationCodes,
+                                                                     boolean isGuestAccommodations) {
         //This method replaces CommonDLL._UpdateOpportunityAccommodations_SP.
         Instant now = Instant.now();
 
@@ -242,8 +243,9 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                 //Conditional below is due to StudentDLL lines 6967 - 6875
                 //We need to mark the exam accommodation as not approved if the type total is greater than 1 forcing the
                 //proctor to approve it.
+                // Note: this conditional is exclusive to logic in  _OpenExistingOpportunity_SP
                 Instant deniedAt = null;
-                if (accommodation.getTypeTotal() > 1) {
+                if (!isGuestAccommodations && accommodation.getTypeTotal() > 1) {
                     deniedAt = now;
                 }
                 return new ExamAccommodation.Builder(UUID.randomUUID())
