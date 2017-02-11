@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -75,6 +76,25 @@ public class ExamController {
         }
 
         return ResponseEntity.ok(examConfiguration);
+    }
+    
+    @RequestMapping(value = "/{examId}/status")
+    ResponseEntity<NoContentResponseResource> updateStatus(@PathVariable final UUID examId, @RequestParam final String status,
+                                                           @RequestParam final String stage, @RequestParam(required = false) final String reason) {
+    
+        ExamStatusCode examStatus = (stage == null) ? new ExamStatusCode(status) : new ExamStatusCode(status, ExamStatusStage.fromType(stage));
+        final Optional<ValidationError> maybeStatusTransitionFailure = examService.updateExamStatus(examId, examStatus, reason);
+    
+        if (maybeStatusTransitionFailure.isPresent()) {
+            NoContentResponseResource response = new NoContentResponseResource(maybeStatusTransitionFailure.get());
+            return new ResponseEntity<>(response, HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+    
+        Link link = linkTo(methodOn(ExamController.class).getExamById(examId)).withSelfRel();
+        final HttpHeaders headers = new HttpHeaders();
+        headers.add("Location", link.getHref());
+    
+        return new ResponseEntity<>(headers, HttpStatus.NO_CONTENT);
     }
 
     @RequestMapping(value = "/{examId}/pause", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)

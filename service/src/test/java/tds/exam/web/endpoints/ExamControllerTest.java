@@ -33,6 +33,9 @@ import tds.exam.error.ValidationErrorCode;
 import tds.exam.services.ExamService;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -175,5 +178,48 @@ public class ExamControllerTest {
         controller.pauseExamsInSession(sessionId);
 
         verify(mockExamService).pauseAllExamsInSession(sessionId);
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldThrowForStatusWithStageNotFound() {
+        final UUID examId = UUID.randomUUID();
+        final String statusWithNoStage = "foo";
+        controller.updateStatus(examId, statusWithNoStage, null, null);
+    }
+    
+    @Test
+    public void shouldUpdateStatusWithNoStageProvided() {
+        final UUID examId = UUID.randomUUID();
+        final String statusCode = ExamStatusCode.STATUS_APPROVED;
+        
+        when(mockExamService.updateExamStatus(eq(examId), any(), (String) isNull())).thenReturn(Optional.empty());
+        ResponseEntity<NoContentResponseResource> response = controller.updateStatus(examId, statusCode, null, null);
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+    }
+    
+    @Test
+    public void shouldUpdateStatusWithStageAndReasonProvided() {
+        final UUID examId = UUID.randomUUID();
+        final String statusCode = ExamStatusCode.STATUS_APPROVED;
+        final String stage = ExamStatusStage.OPEN.getType();
+        final String reason = "Nausea";
+        
+        when(mockExamService.updateExamStatus(eq(examId), any(), eq(reason))).thenReturn(Optional.empty());
+        ResponseEntity<NoContentResponseResource> response = controller.updateStatus(examId, statusCode, stage, reason);
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+    }
+    
+    @Test
+    public void shouldReturn422ForValidationErrors() {
+        final UUID examId = UUID.randomUUID();
+        final String statusCode = ExamStatusCode.STATUS_APPROVED;
+        final String stage = ExamStatusStage.OPEN.getType();
+        final String reason = "Puppies";
+        
+        when(mockExamService.updateExamStatus(eq(examId), any(), eq(reason))).thenReturn(Optional.of(new ValidationError("Some", "Error")));
+        ResponseEntity<NoContentResponseResource> response = controller.updateStatus(examId, statusCode, stage, reason);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
     }
 }
