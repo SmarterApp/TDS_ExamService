@@ -48,7 +48,7 @@ public class ExamineeQueryRepositoryImpl implements ExamineeQueryRepository {
             .withContext(ExamineeContext.fromType(rs.getString("context")))
             .withName(rs.getString("attribute_name"))
             .withValue(rs.getString("attribute_value"))
-            .withCreatedAt(ResultSetMapperUtility.mapTimestampToJodaInstant(rs, "crated_at"))
+            .withCreatedAt(ResultSetMapperUtility.mapTimestampToJodaInstant(rs, "created_at"))
             .build());
     }
 

@@ -42,6 +42,7 @@ public class ExamineeCommandRepositoryImpl implements ExamineeCommandRepository 
                 "VALUES (\n" +
                 "   :examId, \n" +
                 "   :context, \n" +
+                "   :attributeName, \n" +
                 "   :attributeValue, \n" +
                 "   :createdAt)";
 
@@ -52,7 +53,7 @@ public class ExamineeCommandRepositoryImpl implements ExamineeCommandRepository 
     public void insertRelationships(ExamineeRelationship... relationships) {
         final SqlParameterSource[] batchParameters = Stream.of(relationships)
             .map(relationship -> new MapSqlParameterSource("examId", relationship.getExamId().toString())
-                .addValue("attributeName", relationship.getId())
+                .addValue("attributeName", relationship.getName())
                 .addValue("attributeValue", relationship.getValue())
                 .addValue("attributeRelationship", relationship.getType())
                 .addValue("context", relationship.getContext().toString())

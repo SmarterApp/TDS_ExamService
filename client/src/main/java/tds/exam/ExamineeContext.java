@@ -3,8 +3,8 @@ package tds.exam;
 /**
  * Enumerate the possible contexts for an {@link tds.exam.ExamineeAttribute} or {@link tds.exam.ExamineeRelationship}:
  * <ul>
- *     <li>{@link #INITIAL}</li>
- *     <li>{@link #FINAL}</li>
+ * <li>{@link #INITIAL}</li>
+ * <li>{@link #FINAL}</li>
  * </ul>
  */
 public enum ExamineeContext {

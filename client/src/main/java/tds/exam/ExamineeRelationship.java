@@ -131,4 +131,32 @@ public class ExamineeRelationship {
     public Instant getCreatedAt() {
         return createdAt;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ExamineeRelationship)) return false;
+
+        ExamineeRelationship that = (ExamineeRelationship) o;
+
+        if (getId() != that.getId()) return false;
+        if (!getExamId().equals(that.getExamId())) return false;
+        if (!getName().equals(that.getName())) return false;
+        if (!getValue().equals(that.getValue())) return false;
+        if (!getType().equals(that.getType())) return false;
+        if (getContext() != that.getContext()) return false;
+        return getCreatedAt().equals(that.getCreatedAt());
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (int) (getId() ^ (getId() >>> 32));
+        result = 31 * result + getExamId().hashCode();
+        result = 31 * result + getName().hashCode();
+        result = 31 * result + getValue().hashCode();
+        result = 31 * result + getType().hashCode();
+        result = 31 * result + getContext().hashCode();
+        result = 31 * result + getCreatedAt().hashCode();
+        return result;
+    }
 }
