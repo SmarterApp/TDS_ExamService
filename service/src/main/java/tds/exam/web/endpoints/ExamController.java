@@ -78,9 +78,11 @@ public class ExamController {
         return ResponseEntity.ok(examConfiguration);
     }
     
-    @RequestMapping(value = "/{examId}/status")
-    ResponseEntity<NoContentResponseResource> updateStatus(@PathVariable final UUID examId, @RequestParam final String status,
-                                                           @RequestParam final String stage, @RequestParam(required = false) final String reason) {
+    @RequestMapping(value = "/{examId}/status", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<NoContentResponseResource> updateStatus(@PathVariable final UUID examId,
+                                                           @RequestParam final String status,
+                                                           @RequestParam(required = false) final String stage,
+                                                           @RequestParam(required = false) final String reason) {
     
         ExamStatusCode examStatus = (stage == null) ? new ExamStatusCode(status) : new ExamStatusCode(status, ExamStatusStage.fromType(stage));
         final Optional<ValidationError> maybeStatusTransitionFailure = examService.updateExamStatus(examId, examStatus, reason);
