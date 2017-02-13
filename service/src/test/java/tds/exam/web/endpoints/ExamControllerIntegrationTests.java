@@ -26,6 +26,9 @@ import tds.exam.services.ExamPageService;
 import tds.exam.services.ExamService;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -118,5 +121,46 @@ public class ExamControllerIntegrationTests {
             .andExpect(status().isNoContent());
 
         verify(mockExamService).pauseAllExamsInSession(sessionId);
+    }
+    
+    @Test
+    public void shouldUpdateExamStatus() throws Exception {
+        final UUID examId = UUID.randomUUID();
+        final String statusCode = ExamStatusCode.STATUS_APPROVED;
+        
+        when(mockExamService.updateExamStatus(eq(examId), any(), (String) isNull())).thenReturn(Optional.empty());
+    
+        http.perform(put(new URI(String.format("/exam/%s/status/", examId)))
+            .param("status", statusCode)
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNoContent());
+          
+        verify(mockExamService).updateExamStatus(eq(examId), any(), (String) isNull());
+    }
+    
+    @Test
+    public void shouldFailStatusUpdateWithError() throws Exception {
+        final UUID examId = UUID.randomUUID();
+        final String statusCode = ExamStatusCode.STATUS_APPROVED;
+        
+        when(mockExamService.updateExamStatus(eq(examId), any(), (String) isNull()))
+            .thenReturn(Optional.of(new ValidationError("Some", "Error")));
+        
+        http.perform(put(new URI(String.format("/exam/%s/status/", examId)))
+            .param("status", statusCode)
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isUnprocessableEntity());
+        
+        verify(mockExamService).updateExamStatus(eq(examId), any(), (String) isNull());
+    }
+    
+    @Test
+    public void shouldThrowWithNoStatusProvided() throws Exception {
+        final UUID examId = UUID.randomUUID();
+        
+        http.perform(put(new URI(String.format("/exam/%s/status/", examId)))
+          .contentType(MediaType.APPLICATION_JSON))
+          .andExpect(status().isInternalServerError());
+        
     }
 }
