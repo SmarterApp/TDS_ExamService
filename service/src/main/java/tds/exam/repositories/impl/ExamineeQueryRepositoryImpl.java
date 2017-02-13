@@ -30,17 +30,32 @@ public class ExamineeQueryRepositoryImpl implements ExamineeQueryRepository {
 
         final String SQL =
             "SELECT \n" +
-                "   id, \n" +
-                "   exam_id, \n" +
-                "   context, \n" +
-                "   attribute_name, \n" +
-                "   attribute_value, \n" +
-                "   created_at \n" +
+                "   attribute.id, \n" +
+                "   attribute.exam_id, \n" +
+                "   attribute.context, \n" +
+                "   attribute.attribute_name, \n" +
+                "   attribute.attribute_value, \n" +
+                "   attribute.created_at \n" +
                 "FROM \n" +
-                "   examinee_attribute \n" +
+                "   examinee_attribute attribute \n" +
+                "JOIN ( \n" +
+                "   SELECT \n" +
+                "       MAX(id) AS id \n" +
+                "   FROM \n" +
+                "       examinee_attribute \n" +
+                "   WHERE \n" +
+                "       exam_id = :examId \n" +
+                "       AND context = :context \n" +
+                "   GROUP BY \n" +
+                "       exam_id, \n" +
+                "       context, \n" +
+                "       attribute_name \n" +
+                ") most_recent_record \n" +
+                "   ON \n" +
+                "       most_recent_record.id = attribute.id \n" +
                 "WHERE \n" +
-                "   exam_id = :examId \n" +
-                "   AND context = :context";
+                "   attribute.exam_id = :examId	\n" +
+                "   AND attribute.context = :context";
 
         return jdbcTemplate.query(SQL, parameters, (rs, r) -> new ExamineeAttribute.Builder()
             .withId(rs.getLong("id"))
@@ -59,18 +74,34 @@ public class ExamineeQueryRepositoryImpl implements ExamineeQueryRepository {
 
         final String SQL =
             "SELECT \n" +
-                "   id, \n" +
-                "   exam_id, \n" +
-                "   context, \n" +
-                "   attribute_name, \n" +
-                "   attribute_value, \n" +
-                "   attribute_relationship, \n" +
-                "   created_at \n" +
+                "   relationship.id, \n" +
+                "   relationship.exam_id, \n" +
+                "   relationship.context, \n" +
+                "   relationship.attribute_name, \n" +
+                "   relationship.attribute_value, \n" +
+                "   relationship.attribute_relationship, \n" +
+                "   relationship.created_at \n" +
                 "FROM \n" +
-                "   examinee_relationship \n" +
+                "   examinee_relationship relationship \n" +
+                "JOIN ( \n" +
+                "   SELECT \n" +
+                "       MAX(id) AS id \n" +
+                "   FROM \n" +
+                "       examinee_relationship \n" +
+                "   WHERE \n" +
+                "       exam_id = :examId \n" +
+                "       AND context = :context \n" +
+                "   GROUP BY \n" +
+                "       exam_id, \n" +
+                "       context, \n" +
+                "       attribute_name, \n" +
+                "       attribute_relationship \n" +
+                ") most_recent_record \n" +
+                "   ON \n" +
+                "       most_recent_record.id = relationship.id \n" +
                 "WHERE \n" +
-                "   exam_id = :examId \n" +
-                "   AND context = :context";
+                "   relationship.exam_id = :examId \n" +
+                "   AND relationship.context = :context";
 
         return jdbcTemplate.query(SQL, parameters, (rs, r) -> new ExamineeRelationship.Builder()
             .withId(rs.getLong("id"))

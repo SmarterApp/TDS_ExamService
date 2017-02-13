@@ -40,7 +40,7 @@ public class ExamineeServiceImpl implements ExamineeService {
             .orElseThrow(() -> new NotFoundException(String.format("Could not find exam for id %s", examId)));
 
         Student student = studentService.getStudentById(exam.getStudentId())
-            .orElseThrow(() -> (new NotFoundException(String.format("Could not find student for exam id %s and student id %d", examId, exam.getStudentId()))));
+            .orElseThrow(() -> new NotFoundException(String.format("Could not find student for exam id %s and student id %d", examId, exam.getStudentId())));
 
         ExamineeAttribute[] examineeAttributes = student.getAttributes().stream()
             .map(attribute -> new ExamineeAttribute.Builder()

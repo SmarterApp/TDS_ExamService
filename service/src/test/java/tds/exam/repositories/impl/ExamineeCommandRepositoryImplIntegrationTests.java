@@ -42,7 +42,6 @@ public class ExamineeCommandRepositoryImplIntegrationTests {
     public void setUp() {
         examineeCommandRepository = new ExamineeCommandRepositoryImpl(jdbcTemplate);
         examineeQueryRepository = new ExamineeQueryRepositoryImpl(jdbcTemplate);
-
         examCommandRepository = new ExamCommandRepositoryImpl(jdbcTemplate);
     }
 
