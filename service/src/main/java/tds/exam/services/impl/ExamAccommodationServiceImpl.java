@@ -158,7 +158,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
         
         if (!maybeSession.isPresent()) {
             return Optional.of(new ValidationError(ValidationErrorCode.EXAM_NOT_ENROLLED_IN_SESSION, "The test opportunity is not enrolled in this session"));
-        } else if (maybeSession.isPresent() && !maybeSession.get().isProctorless()) {
+        } else if (maybeSession.isPresent() && maybeSession.get().isProctorless()) {
             return Optional.of(new ValidationError(ValidationErrorCode.STUDENT_SELF_APPROVE_UNPROCTORED_SESSION, "Student can only self-approve unproctored sessions"));
         }
         
@@ -166,8 +166,8 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
         List<ExamAccommodation> currentAccommodations = examAccommodationQueryRepository.findApprovedAccommodations(examId);
     
         // For each assessment and segments separately, initialize their respective accommodations
-        request.getAccommodationCodes().forEach((segmentPosition, guestAccommodationCodes) -> {
-            initializePreviousAccommodations(exam, segmentPosition, false, currentAccommodations, guestAccommodationCodes, true);
+        request.getAccommodationCodes().forEach((segmentPosition, accommodationCodes) -> {
+            initializePreviousAccommodations(exam, segmentPosition, false, currentAccommodations, accommodationCodes, request.isGuest());
         });
         
         return Optional.empty();
