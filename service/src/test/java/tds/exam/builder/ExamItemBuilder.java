@@ -18,7 +18,6 @@ public class ExamItemBuilder {
     private long assessmentItemKey = 1234L;
     private String itemType = "MS";
     private int position = 1;
-    private boolean selected;
     private boolean required;
     private boolean markedForReview;
     private boolean fieldTest;
