@@ -9,7 +9,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -26,10 +25,10 @@ import tds.common.data.legacy.LegacyComparer;
 import tds.common.web.exceptions.NotFoundException;
 import tds.config.ClientSystemFlag;
 import tds.config.TimeLimitConfiguration;
-import tds.exam.ExamInfo;
 import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
 import tds.exam.ExamConfiguration;
+import tds.exam.ExamInfo;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
 import tds.exam.ExamineeContext;
@@ -518,7 +517,9 @@ class ExamServiceImpl implements ExamService {
         examCommandRepository.insert(exam);
 
         // OpenTestServiceImpl lines 409 - 410
-        examineeService.insertAttributesAndRelationships(exam, ExamineeContext.INITIAL);
+        if(!openExamRequest.isGuestStudent()) {
+            examineeService.insertAttributesAndRelationships(exam, ExamineeContext.INITIAL);
+        }
 
         //Lines 412 - 421 OpenTestServiceImpl is not implemented.  After talking with data warehouse and Smarter Balanced
         //The initial student attributes are not used and smarter balance suggested removing them

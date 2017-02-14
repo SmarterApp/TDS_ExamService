@@ -32,10 +32,10 @@ import tds.common.ValidationError;
 import tds.common.web.exceptions.NotFoundException;
 import tds.config.ClientSystemFlag;
 import tds.config.TimeLimitConfiguration;
-import tds.exam.ExamInfo;
 import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
 import tds.exam.ExamConfiguration;
+import tds.exam.ExamInfo;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
 import tds.exam.ExamineeContext;
@@ -68,7 +68,6 @@ import tds.exam.services.TimeLimitConfigurationService;
 import tds.session.ExternalSessionConfiguration;
 import tds.session.Session;
 import tds.student.RtsStudentPackageAttribute;
-import tds.student.RtsStudentPackageRelationship;
 import tds.student.Student;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -76,6 +75,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 import static tds.config.ClientSystemFlag.ALLOW_ANONYMOUS_STUDENT_FLAG_TYPE;
 import static tds.config.ClientSystemFlag.RESTORE_ACCOMMODATIONS_TYPE;
@@ -309,7 +309,7 @@ public class ExamServiceImplTest {
         Response<Exam> examResponse = examService.openExam(openExamRequest);
         assertThat(examResponse.hasError()).isFalse();
         verify(mockExamCommandRepository).insert(isA(Exam.class));
-        verify(mockExamineeService).insertAttributesAndRelationships(isA(Exam.class), isA(ExamineeContext.class));
+        verifyZeroInteractions(mockExamineeService);
 
         Exam exam = examResponse.getData().get();
 
@@ -375,7 +375,7 @@ public class ExamServiceImplTest {
 
         Response<Exam> examResponse = examService.openExam(openExamRequest);
         verify(mockExamCommandRepository).insert(isA(Exam.class));
-        verify(mockExamineeService).insertAttributesAndRelationships(isA(Exam.class), isA(ExamineeContext.class));
+        verifyZeroInteractions(mockExamineeService);
         assertThat(examResponse.hasError()).isFalse();
 
         Exam exam = examResponse.getData().get();
