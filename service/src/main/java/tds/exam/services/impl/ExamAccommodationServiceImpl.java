@@ -144,21 +144,26 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
         if (!maybeExam.isPresent()) {
             return Optional.of(new ValidationError(ValidationErrorCode.EXAM_DOES_NOT_EXIST, "The test opportunity does not exist"));
         }
-        
+
+
         Exam exam = maybeExam.get();
-        /* line 11441 */
-        Optional<ValidationError> maybeError = examApprovalService.verifyAccess(examInfo, exam);
-        
-        if (maybeError.isPresent()) {
-            return maybeError;
-        }
-    
         /* lines 11465-11473 */
         Optional<Session> maybeSession = sessionService.findSessionById(exam.getSessionId());
-        
+
+        if (maybeSession.isPresent()) {
+            /* line 11441 */
+            if (maybeSession.get().isProctorless()) {
+                Optional<ValidationError> maybeError = examApprovalService.verifyAccess(examInfo, exam);
+
+                if (maybeError.isPresent()) {
+                    return maybeError;
+                }
+            }
+        }
+
         if (!maybeSession.isPresent()) {
             return Optional.of(new ValidationError(ValidationErrorCode.EXAM_NOT_ENROLLED_IN_SESSION, "The test opportunity is not enrolled in this session"));
-        } else if (maybeSession.isPresent() && maybeSession.get().isProctorless()) {
+        } else if (maybeSession.isPresent() && !maybeSession.get().isProctorless() && request.isGuest()) {
             return Optional.of(new ValidationError(ValidationErrorCode.STUDENT_SELF_APPROVE_UNPROCTORED_SESSION, "Student can only self-approve unproctored sessions"));
         }
         
