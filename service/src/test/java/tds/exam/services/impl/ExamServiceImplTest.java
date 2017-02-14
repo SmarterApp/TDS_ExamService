@@ -59,6 +59,7 @@ import tds.exam.services.ExamItemService;
 import tds.exam.services.ExamPageService;
 import tds.exam.services.ExamSegmentService;
 import tds.exam.services.ExamService;
+import tds.exam.services.ExamineeService;
 import tds.exam.services.SessionService;
 import tds.exam.services.StudentService;
 import tds.exam.services.TimeLimitConfigurationService;
@@ -130,6 +131,9 @@ public class ExamServiceImplTest {
     @Mock
     private ExamApprovalService mockExamApprovalService;
 
+    @Mock
+    private ExamineeService examineeService;
+
     @Captor
     private ArgumentCaptor<Exam> examArgumentCaptor;
 
@@ -151,7 +155,8 @@ public class ExamServiceImplTest {
             mockExamItemService,
             mockExamStatusQueryRepository,
             mockExamAccommodationService,
-            mockExamApprovalService);
+            mockExamApprovalService,
+            examineeService);
 
         // Calls to get formatted message are throughout the exam service
         // Since we aren't testing that it returns anything specific in these tests I each option here for simplicity
