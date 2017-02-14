@@ -36,16 +36,13 @@ public class ExamineeServiceImplTest {
     private ExamineeCommandRepository examineeCommandRepository;
 
     @Mock
-    private ExamService examService;
-
-    @Mock
     private StudentService studentService;
 
     private ExamineeService examineeService;
 
     @Before
     public void setUp() {
-        examineeService = new ExamineeServiceImpl(examineeCommandRepository, examService, studentService);
+        examineeService = new ExamineeServiceImpl(examineeCommandRepository, studentService);
     }
 
     @Test
@@ -73,45 +70,23 @@ public class ExamineeServiceImplTest {
             .withRelationships(Arrays.asList(mockRtsStudentPackageRelationships))
             .build();
 
-        when(examService.findExam(mockExam.getId()))
-            .thenReturn(Optional.of(mockExam));
         when(studentService.getStudentById(mockExam.getStudentId()))
             .thenReturn(Optional.of(mockStudent));
 
-        examineeService.insertAttributesAndRelationships(mockExam.getId(), ExamineeContext.INITIAL);
-        verify(examService).findExam(mockExam.getId());
+        examineeService.insertAttributesAndRelationships(mockExam, ExamineeContext.INITIAL);
         verify(studentService).getStudentById(mockStudent.getId());
         verify(examineeCommandRepository).insertAttributes((ExamineeAttribute[]) anyVararg());
         verify(examineeCommandRepository).insertRelationships((ExamineeRelationship[]) anyVararg());
     }
 
     @Test(expected = NotFoundException.class)
-    public void shouldThrowNotFoundExceptionWhenExamCannotBeFound() {
-        Student mockStudent = new Student.Builder(1L, "UNIT_TEST_CLIENT")
-            .build();
-
-        when(examService.findExam(any(UUID.class)))
-            .thenReturn(Optional.empty());
-        when(studentService.getStudentById(any(Long.class)))
-            .thenReturn(Optional.of(mockStudent));
-
-        examineeService.insertAttributesAndRelationships(UUID.randomUUID(), ExamineeContext.INITIAL);
-        verify(examService).findExam(any(UUID.class));
-        verifyZeroInteractions(studentService);
-        verifyZeroInteractions(examineeCommandRepository);
-    }
-
-    @Test(expected = NotFoundException.class)
     public void shouldThrowNotFoundExceptionWhenExamCanBeFoundButStudentCannot() {
         Exam mockExam = new ExamBuilder().build();
 
-        when(examService.findExam(any(UUID.class)))
-            .thenReturn(Optional.of(mockExam));
         when(studentService.getStudentById(any(Long.class)))
             .thenReturn(Optional.empty());
 
-        examineeService.insertAttributesAndRelationships(UUID.randomUUID(), ExamineeContext.INITIAL);
-        verify(examService).findExam(any(UUID.class));
+        examineeService.insertAttributesAndRelationships(mockExam, ExamineeContext.INITIAL);
         verify(studentService).getStudentById(any(Long.class));
         verifyZeroInteractions(examineeCommandRepository);
     }

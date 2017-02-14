@@ -32,6 +32,7 @@ import tds.exam.ExamAccommodation;
 import tds.exam.ExamConfiguration;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
+import tds.exam.ExamineeContext;
 import tds.exam.OpenExamRequest;
 import tds.exam.error.ValidationErrorCode;
 import tds.exam.models.Ability;
@@ -47,6 +48,7 @@ import tds.exam.services.ExamItemService;
 import tds.exam.services.ExamPageService;
 import tds.exam.services.ExamSegmentService;
 import tds.exam.services.ExamService;
+import tds.exam.services.ExamineeService;
 import tds.exam.services.SessionService;
 import tds.exam.services.StudentService;
 import tds.exam.services.TimeLimitConfigurationService;
@@ -86,6 +88,7 @@ class ExamServiceImpl implements ExamService {
     private final ExamStatusQueryRepository examStatusQueryRepository;
     private final ExamAccommodationService examAccommodationService;
     private final ExamApprovalService examApprovalService;
+    private final ExamineeService examineeService;
 
     private final Set<String> statusesThatCanTransitionToPaused;
 
@@ -103,7 +106,8 @@ class ExamServiceImpl implements ExamService {
                            ExamItemService examItemService,
                            ExamStatusQueryRepository examStatusQueryRepository,
                            ExamAccommodationService examAccommodationService,
-                           ExamApprovalService examApprovalService) {
+                           ExamApprovalService examApprovalService,
+                           ExamineeService examineeService) {
         this.examQueryRepository = examQueryRepository;
         this.historyQueryRepository = historyQueryRepository;
         this.sessionService = sessionService;
@@ -118,6 +122,7 @@ class ExamServiceImpl implements ExamService {
         this.examStatusQueryRepository = examStatusQueryRepository;
         this.examAccommodationService = examAccommodationService;
         this.examApprovalService = examApprovalService;
+        this.examineeService = examineeService;
 
         // From CommondDLL._IsValidStatusTransition_FN(): a collection of all the statuses that can transition to
         // "paused".  That is, each of these status values has a nested switch statement that contains the "paused"
@@ -511,6 +516,9 @@ class ExamServiceImpl implements ExamService {
             .build();
 
         examCommandRepository.insert(exam);
+
+        // OpenTestServiceImpl lines 409 - 410
+        examineeService.insertAttributesAndRelationships(exam, ExamineeContext.INITIAL);
 
         //Lines 412 - 421 OpenTestServiceImpl is not implemented.  After talking with data warehouse and Smarter Balanced
         //The initial student attributes are not used and smarter balance suggested removing them
