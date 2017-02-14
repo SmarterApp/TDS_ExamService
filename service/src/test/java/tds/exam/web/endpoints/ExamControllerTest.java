@@ -39,8 +39,6 @@ import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static tds.exam.web.endpoints.ExamController.APPROVED_STATUS;
-import static tds.exam.web.endpoints.ExamController.DENIED_STATUS;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ExamControllerTest {
@@ -182,26 +180,6 @@ public class ExamControllerTest {
         verify(mockExamService).pauseAllExamsInSession(sessionId);
     }
 
-    @Test
-    public void shouldApproveExam() throws URISyntaxException {
-        UUID examId = UUID.randomUUID();
-        when(mockExamService.updateExamStatus(examId, APPROVED_STATUS)).thenReturn(Optional.empty());
-        ResponseEntity<NoContentResponseResource> response = controller.approveExam(examId);
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
-        assertThat(response.getHeaders().getLocation()).isEqualTo(new URI("http://localhost/exam/" + examId));
-    }
-
-    @Test
-    public void shouldDenyExam() throws URISyntaxException {
-        UUID examId = UUID.randomUUID();
-        String reasonText = "deny reason text";
-        when(mockExamService.updateExamStatus(examId, DENIED_STATUS, reasonText)).thenReturn(Optional.empty());
-        ResponseEntity<NoContentResponseResource> response = controller.denyExam(examId, reasonText);
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
-        assertThat(response.getHeaders().getLocation()).isEqualTo(new URI("http://localhost/exam/" + examId));
-    
     @Test(expected = IllegalArgumentException.class)
     public void shouldThrowForStatusWithStageNotFound() {
         final UUID examId = UUID.randomUUID();
@@ -239,8 +217,9 @@ public class ExamControllerTest {
         final String statusCode = ExamStatusCode.STATUS_APPROVED;
         final String stage = ExamStatusStage.OPEN.getType();
         final String reason = "Puppies";
-        
+
         when(mockExamService.updateExamStatus(eq(examId), any(), eq(reason))).thenReturn(Optional.of(new ValidationError("Some", "Error")));
         ResponseEntity<NoContentResponseResource> response = controller.updateStatus(examId, statusCode, stage, reason);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+    }
 }

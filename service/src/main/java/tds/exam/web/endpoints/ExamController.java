@@ -1,5 +1,6 @@
 package tds.exam.web.endpoints;
 
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Link;
 import org.springframework.http.HttpHeaders;
@@ -30,17 +31,12 @@ import tds.exam.services.ExamService;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
-import static tds.exam.ExamStatusCode.STATUS_APPROVED;
-import static tds.exam.ExamStatusCode.STATUS_DENIED;
-import static tds.exam.ExamStatusStage.OPEN;
+import static tds.exam.ExamStatusStage.INACTIVE;
 
 @RestController
 @RequestMapping("/exam")
 public class ExamController {
     private final ExamService examService;
-
-    public static final ExamStatusCode APPROVED_STATUS = new ExamStatusCode(STATUS_APPROVED, OPEN);
-    public static final ExamStatusCode DENIED_STATUS = new ExamStatusCode(STATUS_DENIED, OPEN);
 
     @Autowired
     public ExamController(ExamService examService) {
@@ -108,7 +104,7 @@ public class ExamController {
     @RequestMapping(value = "/{examId}/pause", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<NoContentResponseResource> pauseExam(@PathVariable final UUID examId) {
         final Optional<ValidationError> maybeStatusTransitionFailure = examService.updateExamStatus(examId,
-            new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE));
+            new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, INACTIVE));
 
         if (maybeStatusTransitionFailure.isPresent()) {
             NoContentResponseResource response = new NoContentResponseResource(maybeStatusTransitionFailure.get());
@@ -126,32 +122,5 @@ public class ExamController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void pauseExamsInSession(@PathVariable final UUID sessionId) {
         examService.pauseAllExamsInSession(sessionId);
-    }
-
-    @RequestMapping(value = "/approve/{examId}", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<NoContentResponseResource> approveExam(@PathVariable final UUID examId) {
-        return updateExamStatus(examId, APPROVED_STATUS, Optional.empty());
-    }
-
-    @RequestMapping(value = "/deny/{examId}", method = RequestMethod.PUT, consumes = MediaType.TEXT_PLAIN_VALUE,  produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<NoContentResponseResource> denyExam(@PathVariable final UUID examId, @RequestBody final String reason) {
-        return updateExamStatus(examId, DENIED_STATUS, Optional.of(reason));
-    }
-
-    private ResponseEntity<NoContentResponseResource> updateExamStatus(UUID examId, ExamStatusCode examStatusCode, Optional<String> reason) {
-        final Optional<ValidationError> maybeStatusTransitionFailure = reason.isPresent() ?
-            examService.updateExamStatus(examId, examStatusCode, reason.get()) :
-            examService.updateExamStatus(examId, examStatusCode);
-
-        if (maybeStatusTransitionFailure.isPresent()) {
-            NoContentResponseResource response = new NoContentResponseResource(maybeStatusTransitionFailure.get());
-            return new ResponseEntity<>(response, HttpStatus.UNPROCESSABLE_ENTITY);
-        }
-
-        Link link = linkTo(methodOn(ExamController.class).getExamById(examId)).withSelfRel();
-        final HttpHeaders headers = new HttpHeaders();
-        headers.add("Location", link.getHref());
-
-        return new ResponseEntity<>(headers, HttpStatus.NO_CONTENT);
     }
 }
