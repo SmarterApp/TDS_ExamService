@@ -179,7 +179,7 @@ public class ExamControllerTest {
 
         verify(mockExamService).pauseAllExamsInSession(sessionId);
     }
-    
+
     @Test(expected = IllegalArgumentException.class)
     public void shouldThrowForStatusWithStageNotFound() {
         final UUID examId = UUID.randomUUID();
@@ -217,7 +217,7 @@ public class ExamControllerTest {
         final String statusCode = ExamStatusCode.STATUS_APPROVED;
         final String stage = ExamStatusStage.OPEN.getType();
         final String reason = "Puppies";
-        
+
         when(mockExamService.updateExamStatus(eq(examId), any(), eq(reason))).thenReturn(Optional.of(new ValidationError("Some", "Error")));
         ResponseEntity<NoContentResponseResource> response = controller.updateStatus(examId, statusCode, stage, reason);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);

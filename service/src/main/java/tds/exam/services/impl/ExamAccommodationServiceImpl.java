@@ -146,8 +146,12 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
         }
         
         Exam exam = maybeExam.get();
-        /* line 11441 */
-        Optional<ValidationError> maybeError = examApprovalService.verifyAccess(examInfo, exam);
+        Optional<ValidationError> maybeError = Optional.empty();
+
+        if (request.isGuest()) {
+            /* line 11441 */
+            maybeError = examApprovalService.verifyAccess(examInfo, exam);
+        }
         
         if (maybeError.isPresent()) {
             return maybeError;
@@ -158,7 +162,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
         
         if (!maybeSession.isPresent()) {
             return Optional.of(new ValidationError(ValidationErrorCode.EXAM_NOT_ENROLLED_IN_SESSION, "The test opportunity is not enrolled in this session"));
-        } else if (maybeSession.isPresent() && !maybeSession.get().isProctorless()) {
+        } else if (maybeSession.isPresent() && !maybeSession.get().isProctorless() && request.isGuest()) {
             return Optional.of(new ValidationError(ValidationErrorCode.STUDENT_SELF_APPROVE_UNPROCTORED_SESSION, "Student can only self-approve unproctored sessions"));
         }
         

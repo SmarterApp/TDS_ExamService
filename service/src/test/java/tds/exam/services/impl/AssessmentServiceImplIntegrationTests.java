@@ -5,6 +5,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.web.client.RestTemplate;
 
@@ -28,6 +29,7 @@ import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @RunWith(SpringJUnit4ClassRunner.class)
+@ActiveProfiles(profiles = "cache-enabled")
 public class AssessmentServiceImplIntegrationTests {
     @MockBean
     private RestTemplate mockRestTemplate;
