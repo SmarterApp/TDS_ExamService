@@ -2,6 +2,7 @@ package tds.exam.services;
 
 import java.util.UUID;
 
+import tds.exam.Exam;
 import tds.exam.ExamineeContext;
 
 /**
@@ -17,5 +18,5 @@ public interface ExamineeService {
      * @param context The {@link tds.exam.ExamineeContext} that describes the state of the examniee's information when
      *                these attributes and relationships were collected
      */
-    void insertAttributesAndRelationships(UUID examId, ExamineeContext context);
+    void insertAttributesAndRelationships(Exam exam, ExamineeContext context);
 }

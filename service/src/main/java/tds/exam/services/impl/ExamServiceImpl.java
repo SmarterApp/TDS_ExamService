@@ -518,7 +518,7 @@ class ExamServiceImpl implements ExamService {
         examCommandRepository.insert(exam);
 
         // OpenTestServiceImpl lines 409 - 410
-        examineeService.insertAttributesAndRelationships(exam.getId(), ExamineeContext.INITIAL);
+        examineeService.insertAttributesAndRelationships(exam, ExamineeContext.INITIAL);
 
         //Lines 412 - 421 OpenTestServiceImpl is not implemented.  After talking with data warehouse and Smarter Balanced
         //The initial student attributes are not used and smarter balance suggested removing them

@@ -38,6 +38,7 @@ import tds.exam.ExamAccommodation;
 import tds.exam.ExamConfiguration;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
+import tds.exam.ExamineeContext;
 import tds.exam.OpenExamRequest;
 import tds.exam.builder.AssessmentBuilder;
 import tds.exam.builder.ExamAccommodationBuilder;
@@ -45,6 +46,7 @@ import tds.exam.builder.ExamBuilder;
 import tds.exam.builder.ExternalSessionConfigurationBuilder;
 import tds.exam.builder.OpenExamRequestBuilder;
 import tds.exam.builder.SessionBuilder;
+import tds.exam.builder.StudentBuilder;
 import tds.exam.error.ValidationErrorCode;
 import tds.exam.models.Ability;
 import tds.exam.repositories.ExamCommandRepository;
@@ -66,6 +68,7 @@ import tds.exam.services.TimeLimitConfigurationService;
 import tds.session.ExternalSessionConfiguration;
 import tds.session.Session;
 import tds.student.RtsStudentPackageAttribute;
+import tds.student.RtsStudentPackageRelationship;
 import tds.student.Student;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -132,7 +135,7 @@ public class ExamServiceImplTest {
     private ExamApprovalService mockExamApprovalService;
 
     @Mock
-    private ExamineeService examineeService;
+    private ExamineeService mockExamineeService;
 
     @Captor
     private ArgumentCaptor<Exam> examArgumentCaptor;
@@ -156,7 +159,7 @@ public class ExamServiceImplTest {
             mockExamStatusQueryRepository,
             mockExamAccommodationService,
             mockExamApprovalService,
-            examineeService);
+            mockExamineeService);
 
         // Calls to get formatted message are throughout the exam service
         // Since we aren't testing that it returns anything specific in these tests I each option here for simplicity
@@ -235,7 +238,9 @@ public class ExamServiceImplTest {
             .withId(UUID.randomUUID())
             .build();
 
-        Student student = new Student.Builder(1, "testId").build();
+        Student student = new StudentBuilder()
+            .withClientName("testId")
+            .build();
 
         Exam previousExam = new Exam.Builder()
             .withId(UUID.randomUUID())
@@ -304,6 +309,7 @@ public class ExamServiceImplTest {
         Response<Exam> examResponse = examService.openExam(openExamRequest);
         assertThat(examResponse.hasError()).isFalse();
         verify(mockExamCommandRepository).insert(isA(Exam.class));
+        verify(mockExamineeService).insertAttributesAndRelationships(isA(Exam.class), isA(ExamineeContext.class));
 
         Exam exam = examResponse.getData().get();
 
@@ -369,6 +375,7 @@ public class ExamServiceImplTest {
 
         Response<Exam> examResponse = examService.openExam(openExamRequest);
         verify(mockExamCommandRepository).insert(isA(Exam.class));
+        verify(mockExamineeService).insertAttributesAndRelationships(isA(Exam.class), isA(ExamineeContext.class));
         assertThat(examResponse.hasError()).isFalse();
 
         Exam exam = examResponse.getData().get();
@@ -385,10 +392,7 @@ public class ExamServiceImplTest {
             .withProctorId(99L)
             .build();
 
-        Student student = new Student.Builder(1, "clientName")
-            .withStateCode("CA")
-            .withLoginSSID("loginSSID")
-            .build();
+        Student student = new StudentBuilder().build();
 
         Assessment assessment = new AssessmentBuilder().build();
         ExternalSessionConfiguration extSessionConfig = new ExternalSessionConfigurationBuilder().build();
@@ -419,6 +423,7 @@ public class ExamServiceImplTest {
         Response<Exam> examResponse = examService.openExam(openExamRequest);
         verify(mockExamCommandRepository).insert(isA(Exam.class));
         verify(mockExamAccommodationService).initializeExamAccommodations(isA(Exam.class));
+        verify(mockExamineeService).insertAttributesAndRelationships(isA(Exam.class), isA(ExamineeContext.class));
 
         assertThat(examResponse.hasError()).isFalse();
 
@@ -437,10 +442,8 @@ public class ExamServiceImplTest {
         Session currentSession = new SessionBuilder()
             .build();
 
-        Student student = new Student.Builder(1, "clientName")
-            .withStateCode("CA")
-            .withLoginSSID("loginSSID")
-            .build();
+        Student student = new StudentBuilder().build();
+
         Assessment assessment = new AssessmentBuilder().build();
         ExternalSessionConfiguration extSessionConfig = new ExternalSessionConfigurationBuilder().build();
         AssessmentWindow window = new AssessmentWindow.Builder()
@@ -475,6 +478,7 @@ public class ExamServiceImplTest {
         Response<Exam> examResponse = examService.openExam(openExamRequest);
         verify(mockExamCommandRepository).insert(isA(Exam.class));
         verify(mockExamAccommodationService).initializeExamAccommodations(isA(Exam.class));
+        verify(mockExamineeService).insertAttributesAndRelationships(isA(Exam.class), isA(ExamineeContext.class));
 
         assertThat(examResponse.hasError()).isFalse();
 
@@ -496,10 +500,7 @@ public class ExamServiceImplTest {
             .withId(UUID.randomUUID())
             .build();
 
-        Student student = new Student.Builder(1, "clientName")
-            .withStateCode("CA")
-            .withLoginSSID("loginSSID")
-            .build();
+        Student student = new StudentBuilder().build();
 
         Instant approvedStatusDate = org.joda.time.Instant.now().minus(5000);
         Exam previousExam = new Exam.Builder()
@@ -561,10 +562,7 @@ public class ExamServiceImplTest {
             .withStatus("closed")
             .build();
 
-        Student student = new Student.Builder(1, "clientName")
-            .withStateCode("CA")
-            .withLoginSSID("loginSSID")
-            .build();
+        Student student = new StudentBuilder().build();
 
         Instant approvedStatusDate = org.joda.time.Instant.now().minus(5000);
         Exam previousExam = new Exam.Builder()
@@ -613,10 +611,7 @@ public class ExamServiceImplTest {
             .withId(request.getSessionId())
             .build();
 
-        Student student = new Student.Builder(1, "clientName")
-            .withStateCode("CA")
-            .withLoginSSID("loginSSID")
-            .build();
+        Student student = new StudentBuilder().build();
 
         Instant approvedStatusDate = org.joda.time.Instant.now().minus(5000);
         Exam previousExam = new Exam.Builder()
@@ -675,10 +670,7 @@ public class ExamServiceImplTest {
             .withDateEnd(Instant.now().minus(Days.days(1).toStandardDuration()))
             .build();
 
-        Student student = new Student.Builder(1, "clientName")
-            .withStateCode("CA")
-            .withLoginSSID("loginSSID")
-            .build();
+        Student student = new StudentBuilder().build();
 
         Instant approvedStatusDate = org.joda.time.Instant.now().minus(5000);
         Exam previousExam = new Exam.Builder()
