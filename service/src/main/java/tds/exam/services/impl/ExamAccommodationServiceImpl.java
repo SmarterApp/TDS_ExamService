@@ -144,23 +144,22 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
         if (!maybeExam.isPresent()) {
             return Optional.of(new ValidationError(ValidationErrorCode.EXAM_DOES_NOT_EXIST, "The test opportunity does not exist"));
         }
-
-
+        
         Exam exam = maybeExam.get();
+        Optional<ValidationError> maybeError = Optional.empty();
+
+        if (request.isGuest()) {
+            /* line 11441 */
+            maybeError = examApprovalService.verifyAccess(examInfo, exam);
+        }
+        
+        if (maybeError.isPresent()) {
+            return maybeError;
+        }
+    
         /* lines 11465-11473 */
         Optional<Session> maybeSession = sessionService.findSessionById(exam.getSessionId());
-
-        if (maybeSession.isPresent()) {
-            /* line 11441 */
-            if (maybeSession.get().isProctorless()) {
-                Optional<ValidationError> maybeError = examApprovalService.verifyAccess(examInfo, exam);
-
-                if (maybeError.isPresent()) {
-                    return maybeError;
-                }
-            }
-        }
-
+        
         if (!maybeSession.isPresent()) {
             return Optional.of(new ValidationError(ValidationErrorCode.EXAM_NOT_ENROLLED_IN_SESSION, "The test opportunity is not enrolled in this session"));
         } else if (maybeSession.isPresent() && !maybeSession.get().isProctorless() && request.isGuest()) {
@@ -171,8 +170,8 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
         List<ExamAccommodation> currentAccommodations = examAccommodationQueryRepository.findApprovedAccommodations(examId);
     
         // For each assessment and segments separately, initialize their respective accommodations
-        request.getAccommodationCodes().forEach((segmentPosition, accommodationCodes) -> {
-            initializePreviousAccommodations(exam, segmentPosition, false, currentAccommodations, accommodationCodes, request.isGuest());
+        request.getAccommodationCodes().forEach((segmentPosition, guestAccommodationCodes) -> {
+            initializePreviousAccommodations(exam, segmentPosition, false, currentAccommodations, guestAccommodationCodes, true);
         });
         
         return Optional.empty();
