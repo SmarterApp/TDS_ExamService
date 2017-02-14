@@ -1,5 +1,6 @@
 package tds.exam.web.endpoints;
 
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Link;
 import org.springframework.http.HttpHeaders;
@@ -30,6 +31,7 @@ import tds.exam.services.ExamService;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
+import static tds.exam.ExamStatusStage.INACTIVE;
 
 @RestController
 @RequestMapping("/exam")
@@ -102,7 +104,7 @@ public class ExamController {
     @RequestMapping(value = "/{examId}/pause", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<NoContentResponseResource> pauseExam(@PathVariable final UUID examId) {
         final Optional<ValidationError> maybeStatusTransitionFailure = examService.updateExamStatus(examId,
-            new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE));
+            new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, INACTIVE));
 
         if (maybeStatusTransitionFailure.isPresent()) {
             NoContentResponseResource response = new NoContentResponseResource(maybeStatusTransitionFailure.get());
