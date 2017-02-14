@@ -7,11 +7,11 @@
 #-----------------------------------------------------------------------------------------------------------------------
 
 java \
-    -Dspring.ds_queries.jdbcUrl="jdbc:mysql://exam_mysql/${EXAM_DB_NAME}" \
+    -Dspring.ds_queries.jdbcUrl="jdbc:mysql://${EXAM_DB_HOST}/${EXAM_DB_NAME}" \
     -Dspring.ds_queries.username="${EXAM_DB_USER}" \
     -Dspring.ds_queries.password="${EXAM_DB_PASSWORD}" \
     -Dspring.ds_queries.driver-class-name=com.mysql.jdbc.Driver \
-    -Dspring.ds_commands.jdbcUrl="jdbc:mysql://exam_mysql/${EXAM_DB_NAME}" \
+    -Dspring.ds_commands.jdbcUrl="jdbc:mysql://${EXAM_DB_HOST}/${EXAM_DB_NAME}" \
     -Dspring.ds_commands.username="${EXAM_DB_USER}" \
     -Dspring.ds_commands.password="${EXAM_DB_PASSWORD}" \
     -Dspring.ds_commands.driver-class-name=com.mysql.jdbc.Driver \
@@ -23,7 +23,7 @@ java \
     -Dexam-service.assessment-url=http://assessment:8080/ \
     -Dexam-service.config-url=http://config:8080/ \
     -Dflyway.enabled=${EXAM_FLYWAY_ENABLED} \
-    -Dflyway.url="jdbc:mysql://exam_mysql/${EXAM_DB_NAME}" \
+    -Dflyway.url="jdbc:mysql://${EXAM_DB_HOST}/${EXAM_DB_NAME}" \
     -Dflyway.user="${EXAM_DB_USER}" \
     -Dflyway.password="${EXAM_DB_PASSWORD}" \
     -jar /tds-exam-service.jar \
