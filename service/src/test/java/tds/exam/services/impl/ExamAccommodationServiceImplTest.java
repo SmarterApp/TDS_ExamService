@@ -344,7 +344,7 @@ public class ExamAccommodationServiceImplTest {
     @Test
     public void shouldReturnValidationErrorForFailedVerifyAccess() {
         Exam exam = new ExamBuilder().build();
-        ApproveAccommodationsRequest approveAccommodationsRequest = new ApproveAccommodationsRequest(exam.getSessionId(), exam.getBrowserId(), new HashMap<>());
+        ApproveAccommodationsRequest approveAccommodationsRequest = new ApproveAccommodationsRequest(exam.getSessionId(), exam.getBrowserId(), true, new HashMap<>());
         ExamInfo examInfo = new ExamInfo(exam.getId(), exam.getSessionId(), exam.getBrowserId());
         
         when(mockExamQueryRepository.getExamById(exam.getId())).thenReturn(Optional.of(exam));
@@ -358,7 +358,7 @@ public class ExamAccommodationServiceImplTest {
     @Test
     public void shouldReturnValidationErrorForNoSessionFound() {
         Exam exam = new ExamBuilder().build();
-        ApproveAccommodationsRequest approveAccommodationsRequest = new ApproveAccommodationsRequest(exam.getSessionId(), exam.getBrowserId(), new HashMap<>());
+        ApproveAccommodationsRequest approveAccommodationsRequest = new ApproveAccommodationsRequest(exam.getSessionId(), exam.getBrowserId(), true, new HashMap<>());
         ExamInfo examInfo = new ExamInfo(exam.getId(), exam.getSessionId(), exam.getBrowserId());
         
         when(mockExamQueryRepository.getExamById(exam.getId())).thenReturn(Optional.of(exam));
@@ -375,7 +375,7 @@ public class ExamAccommodationServiceImplTest {
     public void shouldReturnValidationErrorForProctoredSessionFound() {
         Session session = new SessionBuilder().withProctorId(1L).build();
         Exam exam = new ExamBuilder().withSessionId(session.getId()).build();
-        ApproveAccommodationsRequest approveAccommodationsRequest = new ApproveAccommodationsRequest(exam.getSessionId(), exam.getBrowserId(), new HashMap<>());
+        ApproveAccommodationsRequest approveAccommodationsRequest = new ApproveAccommodationsRequest(exam.getSessionId(), exam.getBrowserId(), true, new HashMap<>());
         ExamInfo examInfo = new ExamInfo(exam.getId(), exam.getSessionId(), exam.getBrowserId());
         
         when(mockExamQueryRepository.getExamById(exam.getId())).thenReturn(Optional.of(exam));
@@ -403,7 +403,7 @@ public class ExamAccommodationServiceImplTest {
         segmentPosToAccCodes.put(1, segment1Accoms);
         segmentPosToAccCodes.put(2, segment2Accoms);
     
-        ApproveAccommodationsRequest approveAccommodationsRequest = new ApproveAccommodationsRequest(exam.getSessionId(), exam.getBrowserId(), segmentPosToAccCodes);
+        ApproveAccommodationsRequest approveAccommodationsRequest = new ApproveAccommodationsRequest(exam.getSessionId(), exam.getBrowserId(), true, segmentPosToAccCodes);
         ExamInfo examInfo = new ExamInfo(exam.getId(), exam.getSessionId(), exam.getBrowserId());
         
         when(mockExamQueryRepository.getExamById(exam.getId())).thenReturn(Optional.of(exam));

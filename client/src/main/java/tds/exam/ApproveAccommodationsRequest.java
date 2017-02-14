@@ -12,16 +12,25 @@ public class ApproveAccommodationsRequest {
     private UUID browserId;
     // Segment position -> Accommodation codes
     private Map<Integer, Set<String>> accommodationCodes;
-    
+    private boolean isGuest;
+
     /*
         Private constructor for frameworks
      */
     private ApproveAccommodationsRequest() {}
-    
+
     public ApproveAccommodationsRequest(UUID sessionId, UUID browserId, Map<Integer, Set<String>> accommodationCodes) {
+        this.sessionId = sessionId;
+        this.browserId = browserId;
+        this.accommodationCodes = accommodationCodes;
+        this.isGuest = false;
+    }
+
+    public ApproveAccommodationsRequest(UUID sessionId, UUID browserId, boolean isGuest, Map<Integer, Set<String>> accommodationCodes) {
       this.sessionId = sessionId;
       this.browserId = browserId;
       this.accommodationCodes = accommodationCodes;
+      this.isGuest = isGuest;
     }
   
     /**
@@ -44,7 +53,11 @@ public class ApproveAccommodationsRequest {
     public Map<Integer, Set<String>> getAccommodationCodes() {
       return accommodationCodes;
     }
-  
+
+    public boolean isGuest() {
+        return isGuest;
+    }
+
     @Override
     public boolean equals(Object o) {
       if (this == o) return true;
