@@ -32,8 +32,3 @@ exam-service:
   student-url: http://localhost:32840
   assessment-url: http://localhost:32841
   config-url: http://localhost:32843
-
-mysql:
-  url: jdbc:mysql://localhost:3306/exam
-  user: username
-  password: password
