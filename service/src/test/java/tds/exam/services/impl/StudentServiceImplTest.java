@@ -48,10 +48,10 @@ public class StudentServiceImplTest {
             .withLoginSSID("loginSSID")
             .build();
 
-        URI uri = new URI("http://localhost:8080/students/1");
+        URI uri = new URI("http://localhost:8080/SBAC/students/1");
 
         when(restTemplate.getForObject(uri, Student.class)).thenReturn(student);
-        Optional<Student> maybeStudent = studentService.getStudentById(1);
+        Optional<Student> maybeStudent = studentService.getStudentById("SBAC", 1);
         verify(restTemplate).getForObject(uri, Student.class);
 
         assertThat(maybeStudent.get()).isEqualTo(student);
@@ -59,19 +59,19 @@ public class StudentServiceImplTest {
 
     @Test
     public void shouldReturnEmptyWhenStudentNotFound() throws URISyntaxException {
-        URI uri = new URI("http://localhost:8080/students/1");
+        URI uri = new URI("http://localhost:8080/SBAC/students/1");
         when(restTemplate.getForObject(uri, Student.class)).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
-        Optional<Student> maybeStudent = studentService.getStudentById(1);
+        Optional<Student> maybeStudent = studentService.getStudentById("SBAC", 1);
         verify(restTemplate).getForObject(uri, Student.class);
 
         assertThat(maybeStudent).isNotPresent();
     }
 
-    @Test (expected = RestClientException.class)
+    @Test(expected = RestClientException.class)
     public void shouldThrowIfStatusNotNotFoundWhenFindingStudentById() throws URISyntaxException {
-        URI uri = new URI("http://localhost:8080/students/1");
+        URI uri = new URI("http://localhost:8080/SBAC/students/1");
         when(restTemplate.getForObject(uri, Student.class)).thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
-        studentService.getStudentById(1);
+        studentService.getStudentById("SBAC", 1);
     }
 
     @Test
@@ -83,7 +83,8 @@ public class StudentServiceImplTest {
 
         URI url = new URI("http://localhost:8080/students/1/rts/SBAC_PT/attributes=test1,test2");
 
-        when(restTemplate.exchange(url, GET, null, new ParameterizedTypeReference<List<RtsStudentPackageAttribute>>() {}))
+        when(restTemplate.exchange(url, GET, null, new ParameterizedTypeReference<List<RtsStudentPackageAttribute>>() {
+        }))
             .thenReturn(entity);
 
         List<RtsStudentPackageAttribute> foundAttributes = studentService.findStudentPackageAttributes(1, "SBAC_PT", "test1", "test2");

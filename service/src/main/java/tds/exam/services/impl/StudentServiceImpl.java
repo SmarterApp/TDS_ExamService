@@ -11,6 +11,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,14 +36,16 @@ class StudentServiceImpl implements StudentService {
 
     @Override
     @Cacheable(CacheType.MEDIUM_TERM)
-    public Optional<Student> getStudentById(long studentId) {
-        UriComponentsBuilder builder =
+    public Optional<Student> getStudentById(final String clientName, final long studentId) {
+        URI uri =
             UriComponentsBuilder
-                .fromHttpUrl(String.format("%s/%s/%s", examServiceProperties.getStudentUrl(), STUDENT_APP_CONTEXT, studentId));
+                .fromHttpUrl(String.format("%s/%s/%s/%s", examServiceProperties.getStudentUrl(), clientName, STUDENT_APP_CONTEXT, studentId))
+                .build()
+                .toUri();
 
         Optional<Student> maybeStudent = Optional.empty();
         try {
-            final Student student = restTemplate.getForObject(builder.build().toUri(), Student.class);
+            final Student student = restTemplate.getForObject(uri, Student.class);
             maybeStudent = Optional.of(student);
         } catch (HttpClientErrorException hce) {
             if (hce.getStatusCode() != HttpStatus.NOT_FOUND) {
@@ -68,7 +71,7 @@ class StudentServiceImpl implements StudentService {
 
         ResponseEntity<List<RtsStudentPackageAttribute>> responseEntity = restTemplate.exchange(builder.build().toUri(),
             HttpMethod.GET, null, new ParameterizedTypeReference<List<RtsStudentPackageAttribute>>() {
-        });
+            });
 
         return responseEntity.getBody();
     }
