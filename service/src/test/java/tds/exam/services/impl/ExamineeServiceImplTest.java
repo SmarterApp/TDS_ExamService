@@ -33,13 +33,13 @@ public class ExamineeServiceImplTest {
     private ExamineeCommandRepository examineeCommandRepository;
 
     @Mock
-    private StudentService studentService;
+    private StudentService mockStudentService;
 
     private ExamineeService examineeService;
 
     @Before
     public void setUp() {
-        examineeService = new ExamineeServiceImpl(examineeCommandRepository, studentService);
+        examineeService = new ExamineeServiceImpl(examineeCommandRepository, mockStudentService);
     }
 
     @Test
@@ -69,11 +69,11 @@ public class ExamineeServiceImplTest {
             .withRelationships(Arrays.asList(mockRtsStudentPackageRelationships))
             .build();
 
-        when(studentService.getStudentById("SBAC_PT", mockExam.getStudentId()))
+        when(mockStudentService.getStudentById("SBAC_PT", mockExam.getStudentId()))
             .thenReturn(Optional.of(mockStudent));
 
         examineeService.insertAttributesAndRelationships(mockExam, ExamineeContext.INITIAL);
-        verify(studentService).getStudentById("SBAC_PT", mockStudent.getId());
+        verify(mockStudentService).getStudentById("SBAC_PT", mockStudent.getId());
         verify(examineeCommandRepository).insertAttributes((ExamineeAttribute[]) anyVararg());
         verify(examineeCommandRepository).insertRelationships((ExamineeRelationship[]) anyVararg());
     }
@@ -85,11 +85,22 @@ public class ExamineeServiceImplTest {
             .withClientName("SBAC_PT")
             .build();
 
-        when(studentService.getStudentById("SBAC_PT", mockExam.getStudentId()))
+        when(mockStudentService.getStudentById("SBAC_PT", mockExam.getStudentId()))
             .thenReturn(Optional.empty());
 
         examineeService.insertAttributesAndRelationships(mockExam, ExamineeContext.INITIAL);
-        verify(studentService).getStudentById("SBAC_PT", mockExam.getStudentId());
+        verify(mockStudentService).getStudentById("SBAC_PT", mockExam.getStudentId());
         verifyZeroInteractions(examineeCommandRepository);
+    }
+
+    @Test
+    public void shouldReturnIfGuestStudent() {
+        Exam mockExam = new ExamBuilder()
+            .withStudentId(-10)
+            .withClientName("SBAC_PT")
+            .build();
+
+        examineeService.insertAttributesAndRelationships(mockExam, ExamineeContext.INITIAL);
+        verifyZeroInteractions(mockStudentService, examineeCommandRepository);
     }
 }

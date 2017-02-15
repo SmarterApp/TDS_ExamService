@@ -30,6 +30,12 @@ public class ExamineeServiceImpl implements ExamineeService {
     @Override
     @Transactional
     public void insertAttributesAndRelationships(Exam exam, ExamineeContext context) {
+        //A negative student id means it is a guest and attributes and relationships are not inserted because
+        //test results are not sent to the scoring system
+        if(exam.getStudentId() < 0) {
+            return;
+        }
+
         Student student = studentService.getStudentById(exam.getClientName(), exam.getStudentId())
             .orElseThrow(() -> new NotFoundException(String.format("Could not find student for exam id %s and student id %d", exam.getId(), exam.getStudentId())));
 
