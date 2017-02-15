@@ -8,7 +8,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.UUID;
 
 import tds.common.web.exceptions.NotFoundException;
 import tds.exam.Exam;
@@ -17,14 +16,12 @@ import tds.exam.ExamineeContext;
 import tds.exam.ExamineeRelationship;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.repositories.ExamineeCommandRepository;
-import tds.exam.services.ExamService;
 import tds.exam.services.ExamineeService;
 import tds.exam.services.StudentService;
 import tds.student.RtsStudentPackageAttribute;
 import tds.student.RtsStudentPackageRelationship;
 import tds.student.Student;
 
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyVararg;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -36,18 +33,20 @@ public class ExamineeServiceImplTest {
     private ExamineeCommandRepository examineeCommandRepository;
 
     @Mock
-    private StudentService studentService;
+    private StudentService mockStudentService;
 
     private ExamineeService examineeService;
 
     @Before
     public void setUp() {
-        examineeService = new ExamineeServiceImpl(examineeCommandRepository, studentService);
+        examineeService = new ExamineeServiceImpl(examineeCommandRepository, mockStudentService);
     }
 
     @Test
     public void shouldInsertAttributesAndRelationships() {
-        Exam mockExam = new ExamBuilder().build();
+        Exam mockExam = new ExamBuilder()
+            .withClientName("SBAC_PT")
+            .build();
 
         RtsStudentPackageAttribute[] mockRtsStudentPackageAttributes = new RtsStudentPackageAttribute[]{
             new RtsStudentPackageAttribute("UnitTestAttribute", "UnitTestAttributeValue"),
@@ -70,24 +69,38 @@ public class ExamineeServiceImplTest {
             .withRelationships(Arrays.asList(mockRtsStudentPackageRelationships))
             .build();
 
-        when(studentService.getStudentById(mockExam.getStudentId()))
+        when(mockStudentService.getStudentById("SBAC_PT", mockExam.getStudentId()))
             .thenReturn(Optional.of(mockStudent));
 
         examineeService.insertAttributesAndRelationships(mockExam, ExamineeContext.INITIAL);
-        verify(studentService).getStudentById(mockStudent.getId());
+        verify(mockStudentService).getStudentById("SBAC_PT", mockStudent.getId());
         verify(examineeCommandRepository).insertAttributes((ExamineeAttribute[]) anyVararg());
         verify(examineeCommandRepository).insertRelationships((ExamineeRelationship[]) anyVararg());
     }
 
     @Test(expected = NotFoundException.class)
     public void shouldThrowNotFoundExceptionWhenExamCanBeFoundButStudentCannot() {
-        Exam mockExam = new ExamBuilder().build();
+        Exam mockExam = new ExamBuilder()
+            .withStudentId(123)
+            .withClientName("SBAC_PT")
+            .build();
 
-        when(studentService.getStudentById(any(Long.class)))
+        when(mockStudentService.getStudentById("SBAC_PT", mockExam.getStudentId()))
             .thenReturn(Optional.empty());
 
         examineeService.insertAttributesAndRelationships(mockExam, ExamineeContext.INITIAL);
-        verify(studentService).getStudentById(any(Long.class));
+        verify(mockStudentService).getStudentById("SBAC_PT", mockExam.getStudentId());
         verifyZeroInteractions(examineeCommandRepository);
+    }
+
+    @Test
+    public void shouldReturnIfGuestStudent() {
+        Exam mockExam = new ExamBuilder()
+            .withStudentId(-10)
+            .withClientName("SBAC_PT")
+            .build();
+
+        examineeService.insertAttributesAndRelationships(mockExam, ExamineeContext.INITIAL);
+        verifyZeroInteractions(mockStudentService, examineeCommandRepository);
     }
 }

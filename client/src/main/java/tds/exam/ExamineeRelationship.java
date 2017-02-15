@@ -4,6 +4,8 @@ import org.joda.time.Instant;
 
 import java.util.UUID;
 
+import static tds.common.util.Preconditions.checkNotNull;
+
 /**
  * Represents a relationship from the student package
  */
@@ -56,12 +58,12 @@ public class ExamineeRelationship {
         }
 
         public Builder withName(String name) {
-            this.name = name;
+            this.name = checkNotNull(name);
             return this;
         }
 
         public Builder withValue(String value) {
-            this.value = value;
+            this.value = checkNotNull(value);
             return this;
         }
 

@@ -32,10 +32,10 @@ import tds.common.ValidationError;
 import tds.common.web.exceptions.NotFoundException;
 import tds.config.ClientSystemFlag;
 import tds.config.TimeLimitConfiguration;
-import tds.exam.ExamInfo;
 import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
 import tds.exam.ExamConfiguration;
+import tds.exam.ExamInfo;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
 import tds.exam.ExamineeContext;
@@ -68,7 +68,6 @@ import tds.exam.services.TimeLimitConfigurationService;
 import tds.session.ExternalSessionConfiguration;
 import tds.session.Session;
 import tds.student.RtsStudentPackageAttribute;
-import tds.student.RtsStudentPackageRelationship;
 import tds.student.Student;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -76,6 +75,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 import static tds.config.ClientSystemFlag.ALLOW_ANONYMOUS_STUDENT_FLAG_TYPE;
 import static tds.config.ClientSystemFlag.RESTORE_ACCOMMODATIONS_TYPE;
@@ -187,7 +187,6 @@ public class ExamServiceImplTest {
 
         when(mockSessionService.findExternalSessionConfigurationByClientName("SBAC_PT")).thenReturn(Optional.of(extSessionConfig));
         when(mockSessionService.findSessionById(openExamRequest.getSessionId())).thenReturn(Optional.empty());
-        when(mockStudentService.getStudentById(openExamRequest.getStudentId())).thenReturn(Optional.of(new Student.Builder(1, "testId").build()));
 
         examService.openExam(openExamRequest);
     }
@@ -196,10 +195,11 @@ public class ExamServiceImplTest {
     public void shouldReturnErrorWhenStudentCannotBeFound() {
         OpenExamRequest openExamRequest = new OpenExamRequestBuilder().build();
         ExternalSessionConfiguration extSessionConfig = new ExternalSessionConfiguration("SBAC_PT", SIMULATION_ENVIRONMENT, 0, 0, 0, 0);
+        Session currentSession = new SessionBuilder().build();
 
         when(mockSessionService.findExternalSessionConfigurationByClientName("SBAC_PT")).thenReturn(Optional.of(extSessionConfig));
-        when(mockSessionService.findSessionById(openExamRequest.getSessionId())).thenReturn(Optional.of(new SessionBuilder().build()));
-        when(mockStudentService.getStudentById(openExamRequest.getStudentId())).thenReturn(Optional.empty());
+        when(mockSessionService.findSessionById(openExamRequest.getSessionId())).thenReturn(Optional.of(currentSession));
+        when(mockStudentService.getStudentById(currentSession.getClientName(), openExamRequest.getStudentId())).thenReturn(Optional.empty());
 
         examService.openExam(openExamRequest);
     }
@@ -252,7 +252,7 @@ public class ExamServiceImplTest {
         ExternalSessionConfiguration externalSessionConfiguration = new ExternalSessionConfiguration("SBAC_PT", "Development", 0, 0, 0, 0);
 
         when(mockSessionService.findSessionById(openExamRequest.getSessionId())).thenReturn(Optional.of(currentSession));
-        when(mockStudentService.getStudentById(openExamRequest.getStudentId())).thenReturn(Optional.of(student));
+        when(mockStudentService.getStudentById(currentSession.getClientName(), openExamRequest.getStudentId())).thenReturn(Optional.of(student));
         when(mockAssessmentService.findAssessment("SBAC_PT", openExamRequest.getAssessmentKey())).thenReturn(Optional.of(assessment));
         when(mockExamQueryRepository.getLastAvailableExam(openExamRequest.getStudentId(), assessment.getAssessmentId(), "SBAC_PT")).thenReturn(Optional.of(previousExam));
         when(mockSessionService.findSessionById(previousSession.getId())).thenReturn(Optional.of(previousSession));
@@ -297,8 +297,7 @@ public class ExamServiceImplTest {
         when(mockSessionService.findExternalSessionConfigurationByClientName("SBAC_PT")).thenReturn(Optional.of(extSessionConfig));
         when(mockConfigService.findClientSystemFlag("SBAC_PT", ALLOW_ANONYMOUS_STUDENT_FLAG_TYPE)).thenReturn(Optional.of(clientSystemFlag));
         when(mockSessionService.findSessionById(openExamRequest.getSessionId())).thenReturn(Optional.of(currentSession));
-        when(mockStudentService.getStudentById(openExamRequest.getStudentId())).thenReturn(Optional.empty());
-        when(mockAssessmentService.findAssessment("SBAC_PT", openExamRequest.getAssessmentKey())).thenReturn(Optional.of(assessment));
+                when(mockAssessmentService.findAssessment("SBAC_PT", openExamRequest.getAssessmentKey())).thenReturn(Optional.of(assessment));
         when(mockExamQueryRepository.getLastAvailableExam(openExamRequest.getStudentId(), assessment.getAssessmentId(), "SBAC_PT")).thenReturn(Optional.empty());
         when(mockSessionService.findExternalSessionConfigurationByClientName("SBAC_PT")).thenReturn(Optional.of(extSessionConfig));
         when(mockAssessmentService.findAssessmentWindows("SBAC_PT", assessment.getAssessmentId(), openExamRequest.getStudentId(), extSessionConfig))
@@ -309,7 +308,8 @@ public class ExamServiceImplTest {
         Response<Exam> examResponse = examService.openExam(openExamRequest);
         assertThat(examResponse.hasError()).isFalse();
         verify(mockExamCommandRepository).insert(isA(Exam.class));
-        verify(mockExamineeService).insertAttributesAndRelationships(isA(Exam.class), isA(ExamineeContext.class));
+        verifyZeroInteractions(mockExamineeService);
+        verifyZeroInteractions(mockStudentService);
 
         Exam exam = examResponse.getData().get();
 
@@ -363,7 +363,6 @@ public class ExamServiceImplTest {
         when(mockSessionService.findExternalSessionConfigurationByClientName("SBAC_PT")).thenReturn(Optional.of(extSessionConfig));
         when(mockConfigService.findClientSystemFlag("SBAC_PT", ALLOW_ANONYMOUS_STUDENT_FLAG_TYPE)).thenReturn(Optional.of(clientSystemFlag));
         when(mockSessionService.findSessionById(openExamRequest.getSessionId())).thenReturn(Optional.of(currentSession));
-        when(mockStudentService.getStudentById(openExamRequest.getStudentId())).thenReturn(Optional.empty());
         when(mockAssessmentService.findAssessment("SBAC_PT", openExamRequest.getAssessmentKey())).thenReturn(Optional.of(assessment));
         when(mockExamQueryRepository.getLastAvailableExam(openExamRequest.getStudentId(), assessment.getAssessmentId(), "SBAC_PT")).thenReturn(Optional.empty());
         when(mockAssessmentService.findAssessmentWindows("SBAC_PT", assessment.getAssessmentId(), openExamRequest.getStudentId(), extSessionConfig))
@@ -375,7 +374,7 @@ public class ExamServiceImplTest {
 
         Response<Exam> examResponse = examService.openExam(openExamRequest);
         verify(mockExamCommandRepository).insert(isA(Exam.class));
-        verify(mockExamineeService).insertAttributesAndRelationships(isA(Exam.class), isA(ExamineeContext.class));
+        verifyZeroInteractions(mockExamineeService);
         assertThat(examResponse.hasError()).isFalse();
 
         Exam exam = examResponse.getData().get();
@@ -409,7 +408,7 @@ public class ExamServiceImplTest {
         TimeLimitConfiguration configuration = new TimeLimitConfiguration.Builder().withExamDelayDays(0).build();
 
         when(mockSessionService.findSessionById(openExamRequest.getSessionId())).thenReturn(Optional.of(currentSession));
-        when(mockStudentService.getStudentById(openExamRequest.getStudentId())).thenReturn(Optional.of(student));
+        when(mockStudentService.getStudentById(currentSession.getClientName(), openExamRequest.getStudentId())).thenReturn(Optional.of(student));
         when(mockAssessmentService.findAssessment("SBAC_PT", openExamRequest.getAssessmentKey())).thenReturn(Optional.of(assessment));
         when(mockExamQueryRepository.getLastAvailableExam(openExamRequest.getStudentId(), assessment.getAssessmentId(), "SBAC_PT")).thenReturn(Optional.empty());
         when(mockSessionService.findExternalSessionConfigurationByClientName("SBAC_PT")).thenReturn(Optional.of(extSessionConfig));
@@ -423,7 +422,7 @@ public class ExamServiceImplTest {
         Response<Exam> examResponse = examService.openExam(openExamRequest);
         verify(mockExamCommandRepository).insert(isA(Exam.class));
         verify(mockExamAccommodationService).initializeExamAccommodations(isA(Exam.class));
-        verify(mockExamineeService).insertAttributesAndRelationships(isA(Exam.class), isA(ExamineeContext.class));
+        verify(mockExamineeService).insertAttributesAndRelationships(isA(Exam.class), isA(Student.class), isA(ExamineeContext.class));
 
         assertThat(examResponse.hasError()).isFalse();
 
@@ -463,7 +462,7 @@ public class ExamServiceImplTest {
             .build();
 
         when(mockSessionService.findSessionById(openExamRequest.getSessionId())).thenReturn(Optional.of(currentSession));
-        when(mockStudentService.getStudentById(openExamRequest.getStudentId())).thenReturn(Optional.of(student));
+        when(mockStudentService.getStudentById(currentSession.getClientName(), openExamRequest.getStudentId())).thenReturn(Optional.of(student));
         when(mockAssessmentService.findAssessment("SBAC_PT", openExamRequest.getAssessmentKey())).thenReturn(Optional.of(assessment));
         when(mockExamQueryRepository.getLastAvailableExam(openExamRequest.getStudentId(), assessment.getAssessmentId(), "SBAC_PT")).thenReturn(Optional.empty());
         when(mockSessionService.findExternalSessionConfigurationByClientName("SBAC_PT")).thenReturn(Optional.of(extSessionConfig));
@@ -478,7 +477,7 @@ public class ExamServiceImplTest {
         Response<Exam> examResponse = examService.openExam(openExamRequest);
         verify(mockExamCommandRepository).insert(isA(Exam.class));
         verify(mockExamAccommodationService).initializeExamAccommodations(isA(Exam.class));
-        verify(mockExamineeService).insertAttributesAndRelationships(isA(Exam.class), isA(ExamineeContext.class));
+        verify(mockExamineeService).insertAttributesAndRelationships(isA(Exam.class), isA(Student.class), isA(ExamineeContext.class));
 
         assertThat(examResponse.hasError()).isFalse();
 
@@ -519,7 +518,7 @@ public class ExamServiceImplTest {
             .build();
 
         when(mockSessionService.findSessionById(request.getSessionId())).thenReturn(Optional.of(currentSession));
-        when(mockStudentService.getStudentById(1)).thenReturn(Optional.of(student));
+        when(mockStudentService.getStudentById(currentSession.getClientName(), request.getStudentId())).thenReturn(Optional.of(student));
         when(mockAssessmentService.findAssessment("SBAC_PT", request.getAssessmentKey())).thenReturn(Optional.of(assessment));
         when(mockExamQueryRepository.getLastAvailableExam(request.getStudentId(), assessment.getAssessmentId(), "SBAC_PT")).thenReturn(Optional.of(previousExam));
         when(mockSessionService.findSessionById(previousSession.getId())).thenReturn(Optional.of(previousSession));
@@ -581,7 +580,7 @@ public class ExamServiceImplTest {
 
         when(mockSessionService.findExternalSessionConfigurationByClientName("SBAC_PT")).thenReturn(Optional.of(extSessionConfig));
         when(mockSessionService.findSessionById(request.getSessionId())).thenReturn(Optional.of(currentSession));
-        when(mockStudentService.getStudentById(request.getStudentId())).thenReturn(Optional.of(student));
+        when(mockStudentService.getStudentById(currentSession.getClientName(), request.getStudentId())).thenReturn(Optional.of(student));
         when(mockAssessmentService.findAssessment("SBAC_PT", request.getAssessmentKey())).thenReturn(Optional.of(assessment));
         when(mockExamQueryRepository.getLastAvailableExam(request.getStudentId(), assessment.getAssessmentId(), "SBAC_PT")).thenReturn(Optional.of(previousExam));
         when(mockSessionService.findSessionById(previousSession.getId())).thenReturn(Optional.of(previousSession));
@@ -633,7 +632,7 @@ public class ExamServiceImplTest {
 
         when(mockSessionService.findExternalSessionConfigurationByClientName("SBAC_PT")).thenReturn(Optional.of(externalSessionConfiguration));
         when(mockSessionService.findSessionById(request.getSessionId())).thenReturn(Optional.of(currentSession));
-        when(mockStudentService.getStudentById(request.getStudentId())).thenReturn(Optional.of(student));
+        when(mockStudentService.getStudentById(currentSession.getClientName(), request.getStudentId())).thenReturn(Optional.of(student));
         when(mockAssessmentService.findAssessment("SBAC_PT", request.getAssessmentKey())).thenReturn(Optional.of(assessment));
         when(mockExamQueryRepository.getLastAvailableExam(request.getStudentId(), assessment.getAssessmentId(), "SBAC_PT")).thenReturn(Optional.of(previousExam));
         when(mockSessionService.findSessionById(previousSession.getId())).thenReturn(Optional.of(previousSession));
@@ -689,7 +688,7 @@ public class ExamServiceImplTest {
             .build();
 
         when(mockSessionService.findSessionById(request.getSessionId())).thenReturn(Optional.of(currentSession));
-        when(mockStudentService.getStudentById(request.getStudentId())).thenReturn(Optional.of(student));
+        when(mockStudentService.getStudentById(currentSession.getClientName(), request.getStudentId())).thenReturn(Optional.of(student));
         when(mockAssessmentService.findAssessment("SBAC_PT", request.getAssessmentKey())).thenReturn(Optional.of(assessment));
         when(mockExamQueryRepository.getLastAvailableExam(request.getStudentId(), assessment.getAssessmentId(), "SBAC_PT")).thenReturn(Optional.of(previousExam));
         when(mockSessionService.findSessionById(previousSession.getId())).thenReturn(Optional.of(previousSession));

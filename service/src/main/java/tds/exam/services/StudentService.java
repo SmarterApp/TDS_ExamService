@@ -11,12 +11,13 @@ import tds.student.Student;
  */
 public interface StudentService {
     /**
-     * Retrieves the student by the student id
+     * Retrieves the student by the student id and client
      *
+     * @param clientName client name for the student
      * @param studentId id for the student
      * @return populated optional with student otherwise empty
      */
-    Optional<Student> getStudentById(long studentId);
+    Optional<Student> getStudentById(final String clientName, final long studentId);
 
     /**
      * Finds the student package attributes from the student endpoint

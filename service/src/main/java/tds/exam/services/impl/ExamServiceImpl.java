@@ -9,7 +9,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -26,10 +25,10 @@ import tds.common.data.legacy.LegacyComparer;
 import tds.common.web.exceptions.NotFoundException;
 import tds.config.ClientSystemFlag;
 import tds.config.TimeLimitConfiguration;
-import tds.exam.ExamInfo;
 import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
 import tds.exam.ExamConfiguration;
+import tds.exam.ExamInfo;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
 import tds.exam.ExamineeContext;
@@ -56,6 +55,7 @@ import tds.exam.utils.StatusTransitionValidator;
 import tds.session.ExternalSessionConfiguration;
 import tds.session.Session;
 import tds.student.RtsStudentPackageAttribute;
+import tds.student.Student;
 
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.Comparator.comparing;
@@ -167,8 +167,9 @@ class ExamServiceImpl implements ExamService {
             return new Response<>(new ValidationError(ValidationErrorCode.SESSION_NOT_OPEN, String.format("Session %s is not open", currentSession.getId())));
         }
 
+        Student student = null;
         if (!openExamRequest.isGuestStudent()) {
-            studentService.getStudentById(openExamRequest.getStudentId()).orElseThrow((Supplier<RuntimeException>) ()
+            student = studentService.getStudentById(currentSession.getClientName(), openExamRequest.getStudentId()).orElseThrow((Supplier<RuntimeException>) ()
                 -> new IllegalArgumentException(String.format("Could not find student for id %s", openExamRequest.getStudentId()))
             );
         } else {
@@ -210,7 +211,7 @@ class ExamServiceImpl implements ExamService {
             return new Response<>(maybeOpenNewExamValidationError.get());
         }
 
-        return createExam(currentSession.getClientName(), openExamRequest, currentSession, assessment, externalSessionConfiguration, previousExam);
+        return createExam(currentSession.getClientName(), openExamRequest, currentSession, assessment, externalSessionConfiguration, previousExam, student);
     }
 
     @Override
@@ -440,7 +441,7 @@ class ExamServiceImpl implements ExamService {
             .build();
     }
 
-    private Response<Exam> createExam(String clientName, OpenExamRequest openExamRequest, Session session, Assessment assessment, ExternalSessionConfiguration externalSessionConfiguration, Exam previousExam) {
+    private Response<Exam> createExam(String clientName, OpenExamRequest openExamRequest, Session session, Assessment assessment, ExternalSessionConfiguration externalSessionConfiguration, Exam previousExam, Student student) {
         Exam.Builder examBuilder = new Exam.Builder();
 
         //From OpenTestServiceImpl lines 160 -163
@@ -518,7 +519,9 @@ class ExamServiceImpl implements ExamService {
         examCommandRepository.insert(exam);
 
         // OpenTestServiceImpl lines 409 - 410
-        examineeService.insertAttributesAndRelationships(exam, ExamineeContext.INITIAL);
+        if(!openExamRequest.isGuestStudent()) {
+            examineeService.insertAttributesAndRelationships(exam, student, ExamineeContext.INITIAL);
+        }
 
         //Lines 412 - 421 OpenTestServiceImpl is not implemented.  After talking with data warehouse and Smarter Balanced
         //The initial student attributes are not used and smarter balance suggested removing them
