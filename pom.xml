@@ -38,5 +38,6 @@
         <docker.image.prefix>fwsbac</docker.image.prefix>
         <mysql.version>5.1.39</mysql.version>
         <joda-time.version>2.9.5</joda-time.version>
+        <spring.cloud.config.version>1.2.2.RELEASE</spring.cloud.config.version>
     </properties>
 </project>

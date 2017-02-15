@@ -1,0 +1,39 @@
+spring:
+  profiles: local-development
+  ds_queries:
+    jdbcUrl: ${mysql.url}
+    username: ${mysql.user}
+    password: ${mysql.password}
+    driver-class-name: 'com.mysql.jdbc.Driver'
+  ds_commands:
+    jdbcUrl: ${mysql.url}
+    username: ${mysql.user}
+    password: ${mysql.password}
+    driver-class-name: 'com.mysql.jdbc.Driver'
+
+server:
+  port: 8081
+  undertow:
+    buffer-size: 16384
+    buffers-per-region: 20
+    io-threads: 64
+    worker-threads: 512
+    direct-buffers: true
+
+flyway:
+  enabled: true
+  url: ${mysql.url}
+  user: ${mysql.user}
+  password: ${mysql.password}
+
+#Ports defined in TDS_Build:docker-compose.yml
+exam-service:
+  session-url: http://localhost:32842
+  student-url: http://localhost:32840
+  assessment-url: http://localhost:32841
+  config-url: http://localhost:32843
+
+mysql:
+  url: jdbc:mysql://localhost:3306/exam
+  user: username
+  password: password
