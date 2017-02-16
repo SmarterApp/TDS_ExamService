@@ -9,10 +9,12 @@ public class ExamApproval {
     private UUID examId;
     private ExamApprovalStatus examApprovalStatus;
     private String statusChangeReason;
+    private String examStatusCode;
 
     public ExamApproval(UUID examId, ExamStatusCode examStatusCode, String statusChangeReason) {
         this.examId = examId;
         this.statusChangeReason = statusChangeReason;
+        this.examStatusCode = examStatusCode.getCode();
         this.examApprovalStatus = ExamApprovalStatus.fromExamStatus(examStatusCode.getCode());
     }
 
@@ -27,6 +29,13 @@ public class ExamApproval {
      */
     public UUID getExamId() {
         return examId;
+    }
+    
+    /**
+     * @return The status code of the exam
+     */
+    public String getExamStatusCode() {
+        return examStatusCode;
     }
 
     /**
