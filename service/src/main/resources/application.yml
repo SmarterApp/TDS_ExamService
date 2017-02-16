@@ -1,14 +1,14 @@
 spring:
   profiles: local-development
   ds_queries:
-    jdbcUrl: ${mysql.url}
-    username: ${mysql.user}
-    password: ${mysql.password}
+    jdbcUrl: ${sbac.jdbc.host}/exam
+    username: ${sbac.jdbc.user}
+    password: ${sbac.jdbc.password}
     driver-class-name: 'com.mysql.jdbc.Driver'
   ds_commands:
-    jdbcUrl: ${mysql.url}
-    username: ${mysql.user}
-    password: ${mysql.password}
+    jdbcUrl: ${sbac.jdbc.host}/exam
+    username: ${sbac.jdbc.user}
+    password: ${sbac.jdbc.password}
     driver-class-name: 'com.mysql.jdbc.Driver'
 
 server:
@@ -22,9 +22,9 @@ server:
 
 flyway:
   enabled: true
-  url: ${mysql.url}
-  user: ${mysql.user}
-  password: ${mysql.password}
+  url: ${sbac.jdbc.host}/exam
+  user: ${sbac.jdbc.user}
+  password: ${sbac.jdbc.password}
 
 #Ports defined in TDS_Build:docker-compose.yml
 exam-service:
