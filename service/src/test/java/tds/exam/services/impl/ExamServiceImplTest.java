@@ -485,6 +485,62 @@ public class ExamServiceImplTest {
         assertThat(exam.getStatus().getCode()).isEqualTo(STATUS_PENDING);
         assertThat(exam.isCustomAccommodations()).isTrue();
     }
+    
+    @Test
+    public void shouldOpenExamWithLanguageAccommodation() {
+        OpenExamRequest openExamRequest = new OpenExamRequestBuilder()
+          .withStudentId(1)
+          .build();
+        
+        Session currentSession = new SessionBuilder()
+          .build();
+        
+        Student student = new StudentBuilder().build();
+        
+        Assessment assessment = new AssessmentBuilder().build();
+        ExternalSessionConfiguration extSessionConfig = new ExternalSessionConfigurationBuilder().build();
+        AssessmentWindow window = new AssessmentWindow.Builder()
+          .withAssessmentKey(openExamRequest.getAssessmentKey())
+          .withWindowId("window1")
+          .withStartTime(Instant.now())
+          .withAssessmentKey(openExamRequest.getAssessmentKey())
+          .build();
+        
+        RtsStudentPackageAttribute externalIdAttribute = new RtsStudentPackageAttribute(EXTERNAL_ID, "External Id");
+        RtsStudentPackageAttribute entityNameAttribute = new RtsStudentPackageAttribute(ENTITY_NAME, "Entity Id");
+        
+        TimeLimitConfiguration configuration = new TimeLimitConfiguration.Builder().withExamDelayDays(0).build();
+        
+        ExamAccommodation languageExamAccommodation = new ExamAccommodationBuilder()
+          .withType(Accommodation.ACCOMMODATION_TYPE_LANGUAGE)
+          .withCode("ENU")
+          .build();
+        
+        when(mockSessionService.findSessionById(openExamRequest.getSessionId())).thenReturn(Optional.of(currentSession));
+        when(mockStudentService.getStudentById(currentSession.getClientName(), openExamRequest.getStudentId())).thenReturn(Optional.of(student));
+        when(mockAssessmentService.findAssessment("SBAC_PT", openExamRequest.getAssessmentKey())).thenReturn(Optional.of(assessment));
+        when(mockExamQueryRepository.getLastAvailableExam(openExamRequest.getStudentId(), assessment.getAssessmentId(), "SBAC_PT")).thenReturn(Optional.empty());
+        when(mockSessionService.findExternalSessionConfigurationByClientName("SBAC_PT")).thenReturn(Optional.of(extSessionConfig));
+        when(mockStudentService.findStudentPackageAttributes(openExamRequest.getStudentId(), "SBAC_PT", EXTERNAL_ID, ENTITY_NAME, ACCOMMODATIONS))
+          .thenReturn(Arrays.asList(externalIdAttribute, entityNameAttribute));
+        when(mockAssessmentService.findAssessmentWindows(currentSession.getClientName(), assessment.getAssessmentId(), openExamRequest.getStudentId(), extSessionConfig))
+          .thenReturn(Collections.singletonList(window));
+        when(mockTimeLimitConfigurationService.findTimeLimitConfiguration("SBAC_PT", openExamRequest.getAssessmentKey())).thenReturn(Optional.of(configuration));
+        when(mockExamStatusQueryRepository.findExamStatusCode(STATUS_PENDING)).thenReturn(new ExamStatusCode(STATUS_PENDING, OPEN));
+        when(mockExamAccommodationService.initializeExamAccommodations(isA(Exam.class))).thenReturn(Collections.singletonList(languageExamAccommodation));
+        
+        Response<Exam> examResponse = examService.openExam(openExamRequest);
+        verify(mockExamCommandRepository).insert(isA(Exam.class));
+        verify(mockExamAccommodationService).initializeExamAccommodations(isA(Exam.class));
+        verify(mockExamineeService).insertAttributesAndRelationships(isA(Exam.class), isA(Student.class), isA(ExamineeContext.class));
+        verify(mockExamCommandRepository).insert(isA(Exam.class));
+        
+        assertThat(examResponse.hasError()).isFalse();
+        
+        Exam exam = examResponse.getData().get();
+        assertThat(exam.getStatus().getCode()).isEqualTo(STATUS_PENDING);
+        assertThat(exam.getLanguageCode()).isEqualTo("ENU");
+    }
 
     @Test
     public void shouldAllowPreviousExamToOpenIfDayHasPassed() {

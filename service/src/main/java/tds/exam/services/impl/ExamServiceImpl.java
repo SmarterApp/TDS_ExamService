@@ -17,6 +17,7 @@ import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import tds.accommodation.Accommodation;
 import tds.assessment.Assessment;
 import tds.assessment.AssessmentWindow;
 import tds.common.Response;
@@ -526,7 +527,7 @@ class ExamServiceImpl implements ExamService {
         //Lines 412 - 421 OpenTestServiceImpl is not implemented.  After talking with data warehouse and Smarter Balanced
         //The initial student attributes are not used and smarter balance suggested removing them
         List<ExamAccommodation> examAccommodations = examAccommodationService.initializeExamAccommodations(exam);
-
+        exam = updateExamWithLanguageCode(exam, examAccommodations);
         exam = updateExamWithCustomAccommodations(exam, examAccommodations);
 
         //Lines OpenTestServiceImpl lines 428-447 not implemented.  Instead exam status is set during insert instead of inserting
@@ -534,7 +535,7 @@ class ExamServiceImpl implements ExamService {
 
         return new Response<>(exam);
     }
-
+    
     /**
      * Gets the most recent {@link tds.exam.models.Ability} based on the dateScored value for the same assessment.
      *
@@ -745,6 +746,24 @@ class ExamServiceImpl implements ExamService {
             return updatedExam;
         }
 
+        return exam;
+    }
+    
+    private Exam updateExamWithLanguageCode(final Exam exam, final List<ExamAccommodation> examAccommodations) {
+        Optional<ExamAccommodation> maybeExamAccommodation = examAccommodations.stream()
+          .filter(accommodation -> accommodation.getType().equals(Accommodation.ACCOMMODATION_TYPE_LANGUAGE))
+          .findFirst();
+        
+        if (maybeExamAccommodation.isPresent()) {
+            Exam updatedExam = new Exam.Builder()
+              .fromExam(exam)
+              .withLanguageCode(maybeExamAccommodation.get().getCode())
+              .build();
+            
+            examCommandRepository.update(updatedExam);
+            return updatedExam;
+        }
+        
         return exam;
     }
 }
