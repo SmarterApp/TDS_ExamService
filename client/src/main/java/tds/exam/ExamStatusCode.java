@@ -4,6 +4,7 @@ import javax.validation.constraints.NotNull;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class ExamStatusCode {
     public static final String STATUS_PAUSED = "paused";
@@ -31,7 +32,7 @@ public class ExamStatusCode {
     // Mapping status codes to stages
     private static final Map<String, ExamStatusStage> statusToStage;
     static {
-        Map<String, ExamStatusStage> stageMap = new HashMap<>();
+        Map<String, ExamStatusStage> stageMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
         stageMap.put(STATUS_PAUSED, ExamStatusStage.INACTIVE);
         stageMap.put(STATUS_PENDING, ExamStatusStage.IN_USE);
         stageMap.put(STATUS_APPROVED, ExamStatusStage.IN_USE);
