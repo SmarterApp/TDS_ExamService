@@ -26,8 +26,10 @@ import java.util.UUID;
 import tds.exam.Exam;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
+import tds.exam.builder.ExamAccommodationBuilder;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.models.Ability;
+import tds.exam.repositories.ExamAccommodationCommandRepository;
 import tds.exam.repositories.ExamCommandRepository;
 import tds.exam.repositories.ExamQueryRepository;
 
@@ -39,6 +41,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ExamQueryRepositoryImplIntegrationTests {
     private ExamQueryRepository examQueryRepository;
     private ExamCommandRepository examCommandRepository;
+    private ExamAccommodationCommandRepository examAccommodationCommandRepository;
 
     @Autowired
     @Qualifier("commandJdbcTemplate")
@@ -54,6 +57,7 @@ public class ExamQueryRepositoryImplIntegrationTests {
     public void setUp() {
         examQueryRepository = new ExamQueryRepositoryImpl(jdbcTemplate);
         examCommandRepository = new ExamCommandRepositoryImpl(jdbcTemplate);
+        examAccommodationCommandRepository = new ExamAccommodationCommandRepositoryImpl(jdbcTemplate);
         List<Exam> exams = new ArrayList<>();
         // Build a basic exam record
         exams.add(new ExamBuilder().build());
@@ -75,8 +79,18 @@ public class ExamQueryRepositoryImplIntegrationTests {
             .withScoredAt(Instant.now().minus(Minutes.minutes(5).toStandardDuration()))
             .build());
 
-        exams.forEach(exam -> examCommandRepository.insert(exam));
-
+        exams.forEach(exam -> {
+            examCommandRepository.insert(exam);
+            examAccommodationCommandRepository.insert(Arrays.asList(
+              new ExamAccommodationBuilder()
+                .withType("Language")
+                .withCode("ENU")
+                .withExamId(exam.getId())
+                .withSegmentPosition(0)
+                .build()
+            ));
+        });
+        
         insertExamScoresData();
 
         // Build exams that belong to the same session
@@ -103,7 +117,17 @@ public class ExamQueryRepositoryImplIntegrationTests {
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_FAILED, ExamStatusStage.INACTIVE), Instant.now())
             .build());
 
-        examsInSession.forEach(exam -> examCommandRepository.insert(exam));
+        examsInSession.forEach(exam -> {
+            examCommandRepository.insert(exam);
+            examAccommodationCommandRepository.insert(Arrays.asList(
+              new ExamAccommodationBuilder()
+                .withType("Language")
+                .withCode("ENU")
+                .withExamId(exam.getId())
+                .withSegmentPosition(0)
+                .build()
+            ));
+        });
 
         statusesThatCanTransitionToPaused = new HashSet<>(Arrays.asList(ExamStatusCode.STATUS_PAUSED,
             ExamStatusCode.STATUS_PENDING,

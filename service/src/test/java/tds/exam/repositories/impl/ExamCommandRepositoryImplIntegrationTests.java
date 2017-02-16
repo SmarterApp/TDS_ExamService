@@ -12,13 +12,16 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 import tds.exam.Exam;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
+import tds.exam.builder.ExamAccommodationBuilder;
 import tds.exam.builder.ExamBuilder;
+import tds.exam.repositories.ExamAccommodationCommandRepository;
 import tds.exam.repositories.ExamCommandRepository;
 import tds.exam.repositories.ExamQueryRepository;
 
@@ -34,11 +37,14 @@ public class ExamCommandRepositoryImplIntegrationTests {
 
     private ExamCommandRepository examCommandRepository;
     private ExamQueryRepository examQueryRepository;
+    private ExamAccommodationCommandRepository examAccommodationCommandRepository;
+    
 
     @Before
     public void setUp() {
         examCommandRepository = new ExamCommandRepositoryImpl(jdbcTemplate);
         examQueryRepository = new ExamQueryRepositoryImpl(jdbcTemplate);
+        examAccommodationCommandRepository = new ExamAccommodationCommandRepositoryImpl(jdbcTemplate);
     }
 
     @Test
@@ -51,6 +57,14 @@ public class ExamCommandRepositoryImplIntegrationTests {
         assertThat(examQueryRepository.getExamById(exam.getId())).isNotPresent();
 
         examCommandRepository.insert(exam);
+        examAccommodationCommandRepository.insert(Arrays.asList(
+          new ExamAccommodationBuilder()
+            .withType("Language")
+            .withCode("ENU")
+            .withExamId(exam.getId())
+            .withSegmentPosition(0)
+            .build()
+        ));
 
         Optional<Exam> maybeExam = examQueryRepository.getExamById(exam.getId());
         assertThat(maybeExam).isPresent();
@@ -89,7 +103,14 @@ public class ExamCommandRepositoryImplIntegrationTests {
         assertThat(examQueryRepository.getExamById(mockExam.getId())).isNotPresent();
 
         examCommandRepository.insert(mockExam);
-
+        examAccommodationCommandRepository.insert(Arrays.asList(
+          new ExamAccommodationBuilder()
+            .withType("Language")
+            .withCode("ENU")
+            .withExamId(mockExam.getId())
+            .withSegmentPosition(0)
+            .build()
+        ));
         Optional<Exam> maybeExam = examQueryRepository.getExamById(mockExam.getId());
         assertThat(maybeExam).isPresent();
 
@@ -121,7 +142,18 @@ public class ExamCommandRepositoryImplIntegrationTests {
         exams.add(mockFirstExam);
         exams.add(mockSecondExam);
 
-        exams.forEach(e -> examCommandRepository.insert(e));
+        exams.forEach(e -> {
+            examCommandRepository.insert(e);
+            examAccommodationCommandRepository.insert(Arrays.asList(
+              new ExamAccommodationBuilder()
+                .withType("Language")
+                .withCode("ENU")
+                .withExamId(e.getId())
+                .withSegmentPosition(0)
+                .build()
+            ));
+        });
+        
 
         List<Exam> examsWithChanges = new ArrayList<>();
         examsWithChanges.add(new Exam.Builder().fromExam(mockFirstExam)

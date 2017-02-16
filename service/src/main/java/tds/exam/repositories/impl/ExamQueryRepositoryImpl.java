@@ -53,12 +53,12 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
         "e.assessment_window_id, \n" +
         "e.assessment_algorithm, \n" +
         "e.segmented, \n" +
+        "lang.code AS language_code, \n" +
         "ee.attempts, \n" +
         "ee.status, \n" +
         "ee.status_changed_at, \n" +
         "ee.max_items, \n" +
         "ee.expires_at, \n" +
-        "ee.language_code, \n" +
         "ee.status_change_reason, \n" +
         "ee.deleted_at, \n" +
         "ee.changed_at, \n" +
@@ -101,7 +101,12 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "  ON last_event.exam_id = ee.exam_id AND \n" +
                 "     last_event.id = ee.id\n" +
                 "JOIN exam.exam_status_codes esc \n" +
-                "  ON esc.status = ee.status";
+                "  ON esc.status = ee.status \n" +
+                "JOIN exam.exam_accommodation lang \n" +
+                "  ON lang.exam_id= e.id \n" +
+                "WHERE \n" +
+                "   lang.type = 'Language' AND \n" +
+                "   lang.segment_position = 0";
 
         Optional<Exam> examOptional;
         try {
@@ -141,10 +146,14 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "     last_event.id = ee.id \n" +
                 "JOIN exam.exam_status_codes esc \n" +
                 "  ON esc.status = ee.status \n" +
+                "JOIN exam.exam_accommodation lang \n" +
+                "  ON lang.exam_id= e.id \n" +
                 "WHERE \n" +
                 "   e.student_id = :studentId \n" +
                 "   AND e.assessment_id = :assessmentId \n" +
                 "   AND e.client_name = :clientName \n" +
+                "   AND lang.type = 'Language' \n" +
+                "   AND lang.segment_position = 0 \n" +
                 "ORDER BY \n" +
                 "   e.created_at DESC";
 
@@ -245,8 +254,12 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "     last_event.id = ee.id\n" +
                 "JOIN exam.exam_status_codes esc \n" +
                 "  ON esc.status = ee.status \n" +
+                "JOIN exam.exam_accommodation lang \n" +
+                "  ON lang.exam_id= e.id \n" +
                 "WHERE ee.session_id = :sessionId \n" +
-                "AND ee.status IN (:statusSet)";
+                "   AND ee.status IN (:statusSet) \n " +
+                "   AND lang.type = 'Language' \n" +
+                "   AND lang.segment_position = 0";
 
         return jdbcTemplate.query(SQL, parameters, new ExamRowMapper());
     }
@@ -324,9 +337,13 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "  ON last_event.id = ee.id \n" +
                 "JOIN exam.exam_status_codes esc \n" +
                 "  ON esc.status = ee.status \n" +
+                "JOIN exam.exam_accommodation lang \n" +
+                "  ON lang.exam_id= e.id \n" +
                 "WHERE \n" +
                 "  ee.session_id = :sessionId AND \n" +
-                "  ee.status IN (:statusSet)";
+                "  ee.status IN (:statusSet) AND \n" +
+                "  lang.type = 'Language' AND \n" +
+                "  lang.segment_position = 0";
 
         return jdbcTemplate.query(SQL, parameters, new ExamRowMapper());
     }
