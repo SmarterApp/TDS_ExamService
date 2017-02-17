@@ -23,7 +23,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import tds.accommodation.Accommodation;
 import tds.exam.Exam;
+import tds.exam.ExamAccommodation;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
 import tds.exam.builder.ExamAccommodationBuilder;
@@ -192,6 +194,39 @@ public class ExamQueryRepositoryImplIntegrationTests {
         Optional<Instant> maybeLastTimePaused = examQueryRepository.findLastStudentActivity(exam.getId());
         assertThat(maybeLastTimePaused).isPresent();
         assertThat(maybeLastTimePaused.get()).isEqualTo(pausedAt);
+    }
+    
+    @Test
+    public void shouldFindExamWithLatestLanguage() throws InterruptedException {
+        Exam exam = new ExamBuilder().build();
+        examCommandRepository.insert(exam);
+    
+        ExamAccommodation enuAccommodation =
+            new ExamAccommodationBuilder()
+                .withType(Accommodation.ACCOMMODATION_TYPE_LANGUAGE)
+                .withCode("ENU")
+                .withExamId(exam.getId())
+                .build();
+    
+        ExamAccommodation esnAccommodation =
+            new ExamAccommodationBuilder()
+                .withType(Accommodation.ACCOMMODATION_TYPE_LANGUAGE)
+                .withCode("ESN")
+                .withExamId(exam.getId())
+                .build();
+        
+        examAccommodationCommandRepository.insert(Arrays.asList(enuAccommodation));
+        
+        Optional<Exam> maybeExam = examQueryRepository.getExamById(exam.getId());
+        assertThat(maybeExam).isPresent();
+        assertThat(maybeExam.get().getLanguageCode()).isEqualTo("ENU");
+    
+        Thread.sleep(5000);
+        examAccommodationCommandRepository.insert(Arrays.asList(esnAccommodation));
+    
+        Optional<Exam> maybeUpdatedExam = examQueryRepository.getExamById(exam.getId());
+        assertThat(maybeUpdatedExam).isPresent();
+        assertThat(maybeUpdatedExam.get().getLanguageCode()).isEqualTo("ESN");
     }
 
     @Test
