@@ -206,13 +206,13 @@ CREATE OR REPLACE VIEW qa_session_testeeaccommodations AS
 -- ----------------------------------------------------------------------------
 CREATE OR REPLACE VIEW qa_session_testeeresponse AS
 	SELECT
-		page.exam_id AS _fk_testopportunity,
-		item.assessment_item_key AS _efk_itsitem,
-		item.assessment_item_bank_key AS _efk_itsbank,
-		exam.session_id AS _fk_session,
-		exam.attempts AS opportunityrestart,
-		page.page_position AS page,
-		item.position AS position,
+	  page.exam_id AS _fk_testopportunity,
+	  item.assessment_item_key AS _efk_itsitem,
+	  item.assessment_item_bank_key AS _efk_itsbank,
+	  exam.session_id AS _fk_session,
+	  exam.attempts AS opportunityrestart,
+	  page.page_position AS page,
+	  item.position AS position,
 		'not migrated' AS answer,
 		'not migrated' AS scorepoint,
 		'not migrated' AS format,
@@ -260,11 +260,11 @@ CREATE OR REPLACE VIEW qa_session_testeeresponse AS
 	   exam_page AS page
 	JOIN
 		qa_exam_most_recent_event_per_exam_page AS last_page_event
-	   ON page.id = last_page_event.exam_page_id
+	  ON page.id = last_page_event.exam_page_id
 	JOIN
-	   exam_segment AS segment
-	   ON segment.exam_id = page.exam_id
-	   AND segment.segment_key = page.exam_segment_key
+	  exam_segment AS segment
+	  ON segment.exam_id = page.exam_id
+	  AND segment.segment_key = page.exam_segment_key
 	JOIN
 		qa_exam_most_recent_event_per_exam AS last_exam_event
 		ON last_exam_event.exam_id = page.exam_id
@@ -272,16 +272,16 @@ CREATE OR REPLACE VIEW qa_session_testeeresponse AS
 		ON last_exam_event.exam_id = exam.exam_id
 		AND last_exam_event.id = exam.id
 	JOIN
-	   exam_item AS item
-	   ON page.id = item.exam_page_id
+	  exam_item AS item
+	  ON page.id = item.exam_page_id
 	LEFT JOIN
-	   qa_exam_most_recent_response_per_exam_item AS most_recent_response
-	   ON item.id = most_recent_response.exam_item_id
+	  qa_exam_most_recent_response_per_exam_item AS most_recent_response
+	  ON item.id = most_recent_response.exam_item_id
 	LEFT JOIN
-	   exam_item_response response
-	   ON most_recent_response.id = response.id
+	  exam_item_response response
+	  ON most_recent_response.id = response.id
 	ORDER BY
-	   item.position;
+	  item.position;
 -- ----------------------------------------------------------------------------
 -- Map examinee_segment to session.testopportunitysegment
 -- ----------------------------------------------------------------------------
