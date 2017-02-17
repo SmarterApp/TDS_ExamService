@@ -21,7 +21,7 @@ CREATE OR REPLACE VIEW qa_exam_most_recent_event_per_exam AS
     exam_id,
     MAX(id) AS id
   FROM
-    exam.exam_event
+    exam_event
   GROUP BY
     exam_id;
 
@@ -209,8 +209,8 @@ CREATE OR REPLACE VIEW qa_session_testeeresponse AS
 		page.exam_id AS _fk_testopportunity,
 		item.assessment_item_key AS _efk_itsitem,
 		item.assessment_item_bank_key AS _efk_itsbank,
-		last_exam_event.session_id AS _fk_session,
-		last_exam_event.attempts AS opportunityrestart,
+		exam.session_id AS _fk_session,
+		exam.attempts AS opportunityrestart,
 		page.page_position AS page,
 		item.position AS position,
 		'not migrated' AS answer,
@@ -219,7 +219,7 @@ CREATE OR REPLACE VIEW qa_session_testeeresponse AS
 		'not migrated' AS isfieldtest,
 		'not migrated' AS dategenerated,
 		'not migrated' AS datesubmitted,
-		'not migrated' AS datefirstresponse, -- MIN created_at for response?
+		'not migrated' AS datefirstresponse,
 		response.response AS response,
 		'not migrated' AS mark,
 		response.score AS score,
@@ -234,7 +234,7 @@ CREATE OR REPLACE VIEW qa_session_testeeresponse AS
 		item.is_required AS isrequired,
 		'not migrated' AS responsesequence,
 		LENGTH(response.response) AS responselength,
-		last_exam_event.browser_id AS _fk_browser,
+		exam.browser_id AS _fk_browser,
 		response.is_valid AS isvalid,
 		'not migrated' AS scorelatency,
 		page.are_group_items_required AS groupitemsrequired,
@@ -257,29 +257,31 @@ CREATE OR REPLACE VIEW qa_session_testeeresponse AS
 		response.scoring_dimensions AS scoredimensions,
 		'not migrated' AS responsedurationinsecs
 	FROM
-	  exam_page AS page
+	   exam_page AS page
 	JOIN
-	  qa_exam_most_recent_event_per_exam_page AS last_page_event
-	  ON page.id = last_page_event.exam_page_id
+		qa_exam_most_recent_event_per_exam_page AS last_page_event
+	   ON page.id = last_page_event.exam_page_id
 	JOIN
-	  exam_segment AS segment
-	  ON segment.exam_id = page.exam_id
-	  AND segment.segment_key = page.exam_segment_key
+	   exam_segment AS segment
+	   ON segment.exam_id = page.exam_id
+	   AND segment.segment_key = page.exam_segment_key
 	JOIN
-	  qa_exam_most_recent_event_per_exam AS last_exam_event
-	  ON last_exam_event.exam_id = page.exam_id
+		qa_exam_most_recent_event_per_exam AS last_exam_event
+		ON last_exam_event.exam_id = page.exam_id
+	JOIN exam.exam_event exam
+		ON last_exam_event.exam_id = exam.exam_id
+		AND last_exam_event.id = exam.id
 	JOIN
-	  exam_item AS item
-	  ON page.id = item.exam_page_id
+	   exam_item AS item
+	   ON page.id = item.exam_page_id
 	LEFT JOIN
-	  qa_exam_most_recent_response_per_exam_item AS most_recent_response
-	  ON item.id = most_recent_response.exam_item_id
+	   qa_exam_most_recent_response_per_exam_item AS most_recent_response
+	   ON item.id = most_recent_response.exam_item_id
 	LEFT JOIN
-	  exam_item_response response
-	  ON most_recent_response.id = response.id
+	   exam_item_response response
+	   ON most_recent_response.id = response.id
 	ORDER BY
-	  item.position;
-
+	   item.position;
 -- ----------------------------------------------------------------------------
 -- Map examinee_segment to session.testopportunitysegment
 -- ----------------------------------------------------------------------------
