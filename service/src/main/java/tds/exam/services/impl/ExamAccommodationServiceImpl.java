@@ -16,13 +16,14 @@ import java.util.stream.Collectors;
 import tds.accommodation.Accommodation;
 import tds.assessment.Assessment;
 import tds.common.ValidationError;
-import tds.exam.ExamInfo;
 import tds.exam.ApproveAccommodationsRequest;
 import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
+import tds.exam.ExamInfo;
 import tds.exam.error.ValidationErrorCode;
 import tds.exam.repositories.ExamAccommodationCommandRepository;
 import tds.exam.repositories.ExamAccommodationQueryRepository;
+import tds.exam.repositories.ExamCommandRepository;
 import tds.exam.repositories.ExamQueryRepository;
 import tds.exam.services.AssessmentService;
 import tds.exam.services.ExamAccommodationService;
@@ -45,6 +46,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
     private final SessionService sessionService;
     private final AssessmentService assessmentService;
     private final ExamQueryRepository examQueryRepository;
+    private final ExamCommandRepository examCommandRepository;
     
     @Autowired
     public ExamAccommodationServiceImpl(ExamAccommodationQueryRepository examAccommodationQueryRepository,
@@ -52,13 +54,15 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                                         AssessmentService assessmentService,
                                         SessionService sessionService,
                                         ExamApprovalService examApprovalService,
-                                        ExamQueryRepository examQueryRepository) {
+                                        ExamQueryRepository examQueryRepository,
+                                        ExamCommandRepository examCommandRepository) {
         this.examAccommodationQueryRepository = examAccommodationQueryRepository;
         this.examAccommodationCommandRepository = examAccommodationCommandRepository;
         this.assessmentService = assessmentService;
         this.sessionService = sessionService;
         this.examApprovalService = examApprovalService;
         this.examQueryRepository = examQueryRepository;
+        this.examCommandRepository = examCommandRepository;
     }
 
     @Override
@@ -292,7 +296,8 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                 break;
             }
         }
-
+    
+        updateExamWithLanguageCode(exam, accommodationsToAdd);
         List<ExamAccommodation> examAccommodationsToInsert = new ArrayList<>();
         List<ExamAccommodation> examAccommodationsToUpdate = new ArrayList<>();
 
@@ -340,5 +345,27 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
             || !(instant != null && instant2 == null)
             && instant != null
             && instant.equals(instant2);
+    }
+    
+    private Exam updateExamWithLanguageCode(final Exam exam, final Set<ExamAccommodation> examAccommodations) {
+        Optional<ExamAccommodation> maybeExamAccommodation = examAccommodations.stream()
+          .filter(accommodation -> accommodation.getType().equals(Accommodation.ACCOMMODATION_TYPE_LANGUAGE))
+          .findFirst();
+        
+        if (maybeExamAccommodation.isPresent()) {
+            String languageCode = maybeExamAccommodation.get().getCode();
+            // Don't update if the approved language accommodation is the default
+            if (!exam.getLanguageCode().equals(languageCode)) {
+                Exam updatedExam = new Exam.Builder()
+                  .fromExam(exam)
+                  .withLanguageCode(languageCode)
+                  .build();
+    
+                examCommandRepository.update(updatedExam);
+                return updatedExam;
+            }
+        }
+        
+        return exam;
     }
 }

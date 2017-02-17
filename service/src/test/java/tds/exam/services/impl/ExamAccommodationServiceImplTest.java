@@ -23,10 +23,10 @@ import java.util.UUID;
 import tds.accommodation.Accommodation;
 import tds.assessment.Assessment;
 import tds.common.ValidationError;
-import tds.exam.ExamInfo;
 import tds.exam.ApproveAccommodationsRequest;
 import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
+import tds.exam.ExamInfo;
 import tds.exam.builder.AccommodationBuilder;
 import tds.exam.builder.AssessmentBuilder;
 import tds.exam.builder.ExamAccommodationBuilder;
@@ -34,6 +34,7 @@ import tds.exam.builder.ExamBuilder;
 import tds.exam.builder.SessionBuilder;
 import tds.exam.repositories.ExamAccommodationCommandRepository;
 import tds.exam.repositories.ExamAccommodationQueryRepository;
+import tds.exam.repositories.ExamCommandRepository;
 import tds.exam.repositories.ExamQueryRepository;
 import tds.exam.services.AssessmentService;
 import tds.exam.services.ExamApprovalService;
@@ -67,14 +68,20 @@ public class ExamAccommodationServiceImplTest {
     
     @Mock
     private ExamQueryRepository mockExamQueryRepository;
+    
+    @Mock
+    private ExamCommandRepository mockExamCommandRepository;
 
     @Captor
     private ArgumentCaptor<List<ExamAccommodation>> examAccommodationInsertCaptor;
+    
+    @Captor
+    private ArgumentCaptor<Exam> examUpdateCaptor;
 
     @Before
     public void setUp() {
         examAccommodationService = new ExamAccommodationServiceImpl(mockExamAccommodationQueryRepository,
-            mockExamAccommodationCommandRepository, mockAssessmentService, mockSessionService,  mockExamApprovalService, mockExamQueryRepository);
+            mockExamAccommodationCommandRepository, mockAssessmentService, mockSessionService,  mockExamApprovalService, mockExamQueryRepository, mockExamCommandRepository);
     }
 
     @Test
@@ -386,6 +393,74 @@ public class ExamAccommodationServiceImplTest {
         verify(mockExamQueryRepository).getExamById(exam.getId());
         verify(mockExamApprovalService).verifyAccess(examInfo, exam);
         verify(mockSessionService).findSessionById(exam.getSessionId());
+    }
+    
+    @Test
+    public void shouldInsertApprovedAccommodationsWithDifferentLanguages() {
+        Session session = new SessionBuilder()
+          .withProctorId(null)
+          .build();
+        Exam exam = new ExamBuilder().withSessionId(session.getId()).build();
+        Set<String> assessmentAccoms = new HashSet<>(Arrays.asList("AssessmentAcc1", "ESN"));
+        Set<String> segment1Accoms = new HashSet<>(Arrays.asList("Segment1Acc"));
+        
+        HashMap<Integer, Set<String>> segmentPosToAccCodes = new HashMap<>();
+        segmentPosToAccCodes.put(0, assessmentAccoms);
+        segmentPosToAccCodes.put(1, segment1Accoms);
+        
+        ApproveAccommodationsRequest approveAccommodationsRequest = new ApproveAccommodationsRequest(exam.getSessionId(), exam.getBrowserId(), true, segmentPosToAccCodes);
+        ExamInfo examInfo = new ExamInfo(exam.getId(), exam.getSessionId(), exam.getBrowserId());
+        
+        when(mockExamQueryRepository.getExamById(exam.getId())).thenReturn(Optional.of(exam));
+        when(mockExamApprovalService.verifyAccess(examInfo, exam)).thenReturn(Optional.empty());
+        when(mockSessionService.findSessionById(exam.getSessionId())).thenReturn(Optional.of(session));
+        when(mockExamAccommodationQueryRepository.findApprovedAccommodations(exam.getId())).thenReturn(new ArrayList<>());
+        
+        // initializePreviousAccommodations for assessment acc codes
+        when(mockAssessmentService.findAssessmentAccommodationsByAssessmentKey(exam.getClientName(), exam.getAssessmentKey()))
+          .thenReturn(Arrays.asList(
+            new AccommodationBuilder()
+              .withType("AssessmentAccType1")
+              .withCode("AssessmentAcc1")
+              .withSegmentPosition(0)
+              .withSegmentKey("assessmentKey")
+              .build(),
+            new AccommodationBuilder()
+              .withType("Language")
+              .withCode("ESN")
+              .withSegmentPosition(0)
+              .withSegmentKey("assessmentKey")
+              .build(),
+            new AccommodationBuilder()
+              .withType("Another type")
+              .withCode("Segment1Acc")
+              .withSegmentPosition(1)
+              .withSegmentKey("seg1Key")
+              .build()
+          ));
+        
+        Optional<ValidationError> maybeError = examAccommodationService.approveAccommodations(exam.getId(), approveAccommodationsRequest);
+        
+        assertThat(maybeError).isNotPresent();
+        
+        verify(mockExamQueryRepository).getExamById(exam.getId());
+        verify(mockExamApprovalService).verifyAccess(examInfo, exam);
+        verify(mockExamAccommodationQueryRepository).findApprovedAccommodations(exam.getId());
+        verify(mockAssessmentService, times(2)).findAssessmentAccommodationsByAssessmentKey(exam.getClientName(), exam.getAssessmentKey());
+        verify(mockSessionService).findSessionById(session.getId());
+        verify(mockExamAccommodationCommandRepository, times(2)).insert(examAccommodationInsertCaptor.capture());
+        verify(mockExamCommandRepository).update(examUpdateCaptor.capture());
+        
+        List<List<ExamAccommodation>> insertedExamAccoms = examAccommodationInsertCaptor.getAllValues();
+        assertThat(insertedExamAccoms).hasSize(2);
+        List<ExamAccommodation> insertedAssessmentAccoms = insertedExamAccoms.get(1);
+        List<ExamAccommodation> insertedSeg1Accoms = insertedExamAccoms.get(1);
+    
+        Exam updatedExam = examUpdateCaptor.getValue();
+        
+        assertThat(insertedAssessmentAccoms).hasSize(1);
+        assertThat(insertedSeg1Accoms).hasSize(1);
+        assertThat(updatedExam.getLanguageCode()).isEqualTo("ESN");
     }
     
     @Test
