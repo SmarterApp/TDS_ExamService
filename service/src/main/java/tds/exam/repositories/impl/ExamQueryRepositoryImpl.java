@@ -53,12 +53,12 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
         "e.assessment_window_id, \n" +
         "e.assessment_algorithm, \n" +
         "e.segmented, \n" +
+        "lang.code AS language_code, \n" +
         "ee.attempts, \n" +
         "ee.status, \n" +
         "ee.status_changed_at, \n" +
         "ee.max_items, \n" +
         "ee.expires_at, \n" +
-        "ee.language_code, \n" +
         "ee.status_change_reason, \n" +
         "ee.deleted_at, \n" +
         "ee.changed_at, \n" +
@@ -101,7 +101,22 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "  ON last_event.exam_id = ee.exam_id AND \n" +
                 "     last_event.id = ee.id\n" +
                 "JOIN exam.exam_status_codes esc \n" +
-                "  ON esc.status = ee.status";
+                "  ON esc.status = ee.status \n" +
+                "LEFT JOIN exam.exam_accommodation lang \n" +
+                "  ON lang.exam_id = e.id \n" +
+                "  AND lang.created_at = \n" +
+                "  ( \n" +
+                "       SELECT \n" +
+                "           MAX(eacc.created_at) \n" +
+                "       FROM \n" +
+                "          exam.exam_accommodation eacc \n" +
+                "          WHERE \n" +
+                "          eacc.exam_id = e.id \n" +
+                "          AND eacc.type = 'Language'\n" +
+                "  ) \n" +
+                "WHERE \n" +
+                "   lang.type = 'Language'";
+        
 
         Optional<Exam> examOptional;
         try {
@@ -141,13 +156,27 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "     last_event.id = ee.id \n" +
                 "JOIN exam.exam_status_codes esc \n" +
                 "  ON esc.status = ee.status \n" +
+                "LEFT JOIN exam.exam_accommodation lang \n" +
+                "  ON lang.exam_id = e.id \n" +
+                "  AND lang.created_at = \n" +
+                "  ( \n" +
+                "       SELECT \n" +
+                "           MAX(eacc.created_at) \n" +
+                "       FROM \n" +
+                "          exam.exam_accommodation eacc \n" +
+                "          WHERE \n" +
+                "          eacc.exam_id = e.id \n" +
+                "          AND eacc.type = 'Language'\n" +
+                "  ) \n" +
                 "WHERE \n" +
                 "   e.student_id = :studentId \n" +
                 "   AND e.assessment_id = :assessmentId \n" +
                 "   AND e.client_name = :clientName \n" +
+                "   AND lang.type = 'Language'" +
                 "ORDER BY \n" +
                 "   e.created_at DESC";
-
+    
+    
         Optional<Exam> examOptional;
         try {
             examOptional = Optional.of(jdbcTemplate.queryForObject(query, parameters, new ExamRowMapper()));
@@ -245,9 +274,22 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "     last_event.id = ee.id\n" +
                 "JOIN exam.exam_status_codes esc \n" +
                 "  ON esc.status = ee.status \n" +
+                "LEFT JOIN exam.exam_accommodation lang \n" +
+                "  ON lang.exam_id = e.id \n" +
+                "  AND lang.created_at = \n" +
+                "  ( \n" +
+                "       SELECT \n" +
+                "           MAX(eacc.created_at) \n" +
+                "       FROM \n" +
+                "          exam.exam_accommodation eacc \n" +
+                "          WHERE \n" +
+                "          eacc.exam_id = e.id \n" +
+                "          AND eacc.type = 'Language'\n" +
+                "  ) \n" +
                 "WHERE ee.session_id = :sessionId \n" +
-                "AND ee.status IN (:statusSet)";
-
+                "   AND ee.status IN (:statusSet) \n " +
+                "   AND lang.type = 'Language'";
+    
         return jdbcTemplate.query(SQL, parameters, new ExamRowMapper());
     }
 
@@ -286,14 +328,14 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "ON \n" +
                 "  exam.id = exam_scores.exam_id \n" +
                 "WHERE\n" +
-                "  exam.client_name = :clientName AND\n" +
-                "  exam.student_id = :studentId AND\n" +
-                "  exam.subject = :subject AND\n" +
-                "  ee.deleted_at IS NULL AND\n" +
-                "  ee.scored_at IS NOT NULL AND\n" +
-                "  exam.id <> :examId AND\n" +
-                "  exam_scores.use_for_ability = 1 AND\n" +
-                "  exam_scores.value IS NOT NULL \n" +
+                "  exam.client_name = :clientName \n" +
+                "  AND exam.student_id = :studentId \n" +
+                "  AND exam.subject = :subject \n" +
+                "  AND ee.deleted_at IS NULL \n" +
+                "  AND ee.scored_at IS NOT NULL \n" +
+                "  AND exam.id <> :examId \n" +
+                "  AND exam_scores.use_for_ability = 1 \n" +
+                "  AND exam_scores.value IS NOT NULL \n" +
                 "ORDER BY ee.scored_at DESC";
 
         return jdbcTemplate.query(SQL, parameters, new AbilityRowMapper());
@@ -324,10 +366,24 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "  ON last_event.id = ee.id \n" +
                 "JOIN exam.exam_status_codes esc \n" +
                 "  ON esc.status = ee.status \n" +
+                "LEFT JOIN exam.exam_accommodation lang \n" +
+                "  ON lang.exam_id = e.id \n" +
+                "  AND lang.created_at = \n" +
+                "  ( \n" +
+                "       SELECT \n" +
+                "           MAX(eacc.created_at) \n" +
+                "       FROM \n" +
+                "          exam.exam_accommodation eacc \n" +
+                "          WHERE \n" +
+                "          eacc.exam_id = e.id \n" +
+                "          AND eacc.type = 'Language'\n" +
+                "  ) \n" +
                 "WHERE \n" +
-                "  ee.session_id = :sessionId AND \n" +
-                "  ee.status IN (:statusSet)";
-
+                "  ee.session_id = :sessionId \n" +
+                "  AND ee.status IN (:statusSet) \n" +
+                "  AND lang.type = 'Language' \n";
+    
+    
         return jdbcTemplate.query(SQL, parameters, new ExamRowMapper());
     }
 
