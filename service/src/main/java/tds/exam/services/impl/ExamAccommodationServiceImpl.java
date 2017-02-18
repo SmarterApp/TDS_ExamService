@@ -137,7 +137,6 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
         return examAccommodations;
     }
 
-    @Transactional
     @Override
     public Optional<ValidationError> approveAccommodations(UUID examId, ApproveAccommodationsRequest request) {
         /* This method is a port of StudentDLL.T_ApproveAccommodations_SP, starting at line 11429 */

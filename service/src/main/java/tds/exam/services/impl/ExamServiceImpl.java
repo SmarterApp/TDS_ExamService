@@ -259,7 +259,6 @@ class ExamServiceImpl implements ExamService {
         return updateExamStatus(examId, newStatus, null);
     }
 
-    @Transactional
     @Override
     public Optional<ValidationError> updateExamStatus(UUID examId, ExamStatusCode newStatus, String statusChangeReason) {
         Exam exam = examQueryRepository.getExamById(examId)
@@ -280,8 +279,7 @@ class ExamServiceImpl implements ExamService {
 
         return Optional.empty();
     }
-
-    @Transactional
+    
     @Override
     public void pauseAllExamsInSession(UUID sessionId) {
         List<Exam> examsInSession = examQueryRepository.findAllExamsInSessionWithStatus(sessionId,

@@ -2,7 +2,6 @@ package tds.exam.services.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -55,7 +54,6 @@ public class ExamSegmentServiceImpl implements ExamSegmentService {
                that need to be selected from the segment pool
          3. Inserts a record into exam_segments for each segment initialized
      */
-    @Transactional
     @Override
     public int initializeExamSegments(final Exam exam, final Assessment assessment) {
         /* StudentDLL [4538 - 4545] Checks if there are already exam_segments that exist for this examId. This method is the only
