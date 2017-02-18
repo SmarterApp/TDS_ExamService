@@ -2,14 +2,15 @@ package tds.exam.services.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
 
 import tds.common.Response;
 import tds.common.web.exceptions.NotFoundException;
-import tds.exam.ExamInfo;
 import tds.exam.ExamApproval;
+import tds.exam.ExamInfo;
 import tds.exam.ExamPage;
 import tds.exam.repositories.ExamPageCommandRepository;
 import tds.exam.repositories.ExamPageQueryRepository;
@@ -31,11 +32,13 @@ public class ExamPageServiceImpl implements ExamPageService {
         this.examApprovalService = examApprovalService;
     }
 
+    @Transactional
     @Override
     public void insertPages(final ExamPage... examPages) {
         examPageCommandRepository.insert(examPages);
     }
 
+    @Transactional
     @Override
     public void deletePages(final UUID examId) {
         examPageCommandRepository.deleteAll(examId);

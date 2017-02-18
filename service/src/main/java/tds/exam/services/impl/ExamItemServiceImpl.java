@@ -2,6 +2,7 @@ package tds.exam.services.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -10,8 +11,8 @@ import java.util.stream.Stream;
 import tds.common.Response;
 import tds.common.ValidationError;
 import tds.common.web.exceptions.NotFoundException;
-import tds.exam.ExamInfo;
 import tds.exam.Exam;
+import tds.exam.ExamInfo;
 import tds.exam.ExamItemResponse;
 import tds.exam.ExamItemResponseScore;
 import tds.exam.ExamPage;
@@ -53,6 +54,7 @@ public class ExamItemServiceImpl implements ExamItemService {
         this.examItemResponseScoringService = examItemResponseScoringService;
     }
 
+    @Transactional
     @Override
     public Response<ExamPage> insertResponses(final ExamInfo request, final int mostRecentPagePosition, final ExamItemResponse... responses) {
         Exam exam = examQueryRepository.getExamById(request.getExamId())

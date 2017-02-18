@@ -2,6 +2,7 @@ package tds.exam.services.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -12,6 +13,7 @@ import java.util.stream.Collectors;
 
 import tds.assessment.Assessment;
 import tds.assessment.Form;
+import tds.assessment.Item;
 import tds.assessment.Segment;
 import tds.common.Algorithm;
 import tds.exam.Exam;
@@ -53,6 +55,7 @@ public class ExamSegmentServiceImpl implements ExamSegmentService {
                that need to be selected from the segment pool
          3. Inserts a record into exam_segments for each segment initialized
      */
+    @Transactional
     @Override
     public int initializeExamSegments(final Exam exam, final Assessment assessment) {
         /* StudentDLL [4538 - 4545] Checks if there are already exam_segments that exist for this examId. This method is the only
@@ -60,7 +63,6 @@ public class ExamSegmentServiceImpl implements ExamSegmentService {
         List<ExamSegment> examSegments = new ArrayList<>(); // The exam segments being initialized
         String formCohort = null;
         int totalItems = 0;
-        //TODO: Check if this is a SIMULATION [4571]
         /* [4589] Skip language retrieval - now part of Exam */
         /* [4623-4636] and [4642-4648] can be skipped as we already have all the segments and assessment data we need */
         /* Segment loop starts at [4651] */
@@ -103,7 +105,7 @@ public class ExamSegmentServiceImpl implements ExamSegmentService {
                 segmentPoolInfo = segmentPoolService.computeSegmentPool(exam.getId(),
                     segment, assessment.getItemConstraints(), exam.getLanguageCode());
                 itemPoolIds = segmentPoolInfo.getItemPool().stream()
-                    .map(item -> item.getId())
+                    .map(Item::getId)
                     .collect(Collectors.toSet());
                 poolCount = segmentPoolInfo.getPoolCount(); // poolCount does not always == itemPool.size
 

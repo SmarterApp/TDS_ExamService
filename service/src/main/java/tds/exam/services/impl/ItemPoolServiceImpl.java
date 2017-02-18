@@ -90,13 +90,11 @@ public class ItemPoolServiceImpl implements ItemPoolService {
                 .map(accommodation -> itemProperty.getItemId()))
             .collect(Collectors.toSet());
 
-        Set<Item> itemPool = items.stream()
+        return items.stream()
             .filter(item ->
                 (isFieldTest == null || item.isFieldTest() == isFieldTest) &&
                     itemPoolIds.contains(item.getId()) &&
                     !excludedItemIds.contains(item.getId()))
             .collect(Collectors.toSet());
-
-        return itemPool;
     }
 }
