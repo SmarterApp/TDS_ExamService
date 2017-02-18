@@ -2,7 +2,7 @@ package tds.exam.services;
 
 import tds.assessment.Assessment;
 import tds.exam.Exam;
-import tds.exam.models.ExamSegment;
+import tds.exam.ExamSegment;
 
 /**
  * Service that handles interactions with exam segments.

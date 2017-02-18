@@ -24,9 +24,9 @@ import java.util.Set;
 import java.util.UUID;
 
 import tds.accommodation.Accommodation;
-import tds.assessment.Algorithm;
 import tds.assessment.Assessment;
 import tds.assessment.AssessmentWindow;
+import tds.common.Algorithm;
 import tds.common.Response;
 import tds.common.ValidationError;
 import tds.common.web.exceptions.NotFoundException;

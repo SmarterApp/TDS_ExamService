@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import tds.assessment.Algorithm;
+import tds.common.Algorithm;
 import tds.assessment.Item;
 import tds.assessment.ItemConstraint;
 import tds.assessment.ItemProperty;

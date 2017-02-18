@@ -7,9 +7,9 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.Optional;
 
-import tds.assessment.Algorithm;
 import tds.assessment.Form;
 import tds.assessment.Segment;
+import tds.common.Algorithm;
 import tds.exam.services.FormSelector;
 
 import static org.assertj.core.api.Assertions.assertThat;

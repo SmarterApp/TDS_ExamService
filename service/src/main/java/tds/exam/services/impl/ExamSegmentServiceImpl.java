@@ -10,12 +10,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import tds.assessment.Algorithm;
 import tds.assessment.Assessment;
 import tds.assessment.Form;
 import tds.assessment.Segment;
+import tds.common.Algorithm;
 import tds.exam.Exam;
-import tds.exam.models.ExamSegment;
+import tds.exam.ExamSegment;
 import tds.exam.models.SegmentPoolInfo;
 import tds.exam.repositories.ExamSegmentCommandRepository;
 import tds.exam.services.ExamSegmentService;

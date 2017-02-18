@@ -18,10 +18,10 @@ import java.util.List;
 import java.util.Optional;
 
 import tds.accommodation.Accommodation;
-import tds.assessment.Algorithm;
 import tds.assessment.Assessment;
 import tds.assessment.AssessmentWindow;
 import tds.assessment.Segment;
+import tds.common.Algorithm;
 import tds.exam.builder.ExternalSessionConfigurationBuilder;
 import tds.exam.configuration.ExamServiceProperties;
 import tds.exam.services.AssessmentService;

@@ -1,17 +1,18 @@
 package tds.exam.builder;
 
-import java.time.Instant;
+import org.joda.time.Instant;
+
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import tds.assessment.Algorithm;
-import tds.exam.models.ExamSegment;
+import tds.common.Algorithm;
+import tds.exam.ExamSegment;
 
 /**
- * Build an {@link tds.exam.models.ExamSegment} populated with test data.
+ * Build an {@link tds.exam.ExamSegment} populated with test data.
  */
 public class ExamSegmentBuilder {
     private UUID examId = UUID.randomUUID();
@@ -30,7 +31,7 @@ public class ExamSegmentBuilder {
     private Instant exitedAt;
     private Set<String> itemPool = new HashSet<>(Arrays.asList("187-1234", "187-5678"));
     private int poolCount = 2;
-    private Instant createdAt = Instant.now().minus(10L, ChronoUnit.MINUTES);
+    private Instant createdAt = Instant.now().minus(10000L);
 
     public ExamSegment build() {
         return new ExamSegment.Builder()
