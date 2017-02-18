@@ -102,7 +102,7 @@ public class FieldTestServiceImpl implements FieldTestService {
         /* [3212- 3224] Skip Cohort code - the loader script hardcodes "ratio" and "cohortIndex" as 1, targetcount = ftMaxItems */
         // Used to keep track of all the group ids that have already been assigned.
         Set<String> assignedGroupIds = previouslyAssignedFieldTestItemGroups.stream()
-            .map(fieldTestItemGroup -> fieldTestItemGroup.getGroupId())
+            .map(FieldTestItemGroup::getGroupId)
             .collect(Collectors.toSet());
         List<FieldTestItemGroup> selectedFieldTestItemGroups = fieldTestItemGroupSelector.selectLeastUsedItemGroups(exam, assignedGroupIds, assessment,
             currentSegment, minItems);
@@ -199,10 +199,9 @@ public class FieldTestServiceImpl implements FieldTestService {
         This helper method is a null-tolerant Instant/date comparison for the test window
      */
     private boolean isWithinFieldTestWindow(Instant startTime, Instant endTime) {
-        if (startTime != null && !startTime.isBeforeNow()) {
-            return false;
-        }
+        return !(startTime != null
+            && !startTime.isBeforeNow())
+            && (endTime == null || endTime.isAfterNow());
 
-        return endTime == null ? true : endTime.isAfterNow();
     }
 }

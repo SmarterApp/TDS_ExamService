@@ -78,8 +78,8 @@ public class SegmentPoolServiceImpl implements SegmentPoolService {
             }
         }
 
-        /* [2887,2914]: sessionKey is null only when we are not in simulation mode. See line 4622.
-            TODO: Skip the conditional branch of code [2914-2938] until simulation mode is implemented  */
+        /* [2887,2914]: sessionKey is null only when we are not in simulation mode. See line 4622.  We are
+        not reimplementing the simulation mode in this flow*/
 
         int lengthDelta = segment.getMaxItems() - shortfall;
         int newLength;

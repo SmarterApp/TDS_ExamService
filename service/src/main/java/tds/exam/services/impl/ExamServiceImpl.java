@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.Minutes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -141,6 +142,7 @@ class ExamServiceImpl implements ExamService {
         return examQueryRepository.getExamById(id);
     }
 
+    @Transactional
     @Override
     public Response<Exam> openExam(OpenExamRequest openExamRequest) {
         //Different parts of the session are queried throughout the legacy code.  Instead we fetch the entire session object in one call and pass
@@ -251,11 +253,13 @@ class ExamServiceImpl implements ExamService {
         return ability;
     }
 
+    @Transactional
     @Override
     public Optional<ValidationError> updateExamStatus(UUID examId, ExamStatusCode newStatus) {
         return updateExamStatus(examId, newStatus, null);
     }
 
+    @Transactional
     @Override
     public Optional<ValidationError> updateExamStatus(UUID examId, ExamStatusCode newStatus, String statusChangeReason) {
         Exam exam = examQueryRepository.getExamById(examId)
@@ -277,6 +281,7 @@ class ExamServiceImpl implements ExamService {
         return Optional.empty();
     }
 
+    @Transactional
     @Override
     public void pauseAllExamsInSession(UUID sessionId) {
         List<Exam> examsInSession = examQueryRepository.findAllExamsInSessionWithStatus(sessionId,
@@ -297,6 +302,7 @@ class ExamServiceImpl implements ExamService {
         examCommandRepository.update(pausedExams.toArray(new Exam[pausedExams.size()]));
     }
 
+    @Transactional
     @Override
     public Response<ExamConfiguration> startExam(final UUID examId) {
         ExamConfiguration examConfig;
@@ -719,7 +725,6 @@ class ExamServiceImpl implements ExamService {
     }
 
     private boolean allowsGuestStudent(String clientName, ExternalSessionConfiguration externalSessionConfiguration) {
-        //TODO: Should have long term cache?
         if (externalSessionConfiguration.isInSimulationEnvironment()) {
             return true;
         }

@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.Instant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -16,10 +17,10 @@ import java.util.stream.Collectors;
 import tds.accommodation.Accommodation;
 import tds.assessment.Assessment;
 import tds.common.ValidationError;
-import tds.exam.ExamInfo;
 import tds.exam.ApproveAccommodationsRequest;
 import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
+import tds.exam.ExamInfo;
 import tds.exam.error.ValidationErrorCode;
 import tds.exam.repositories.ExamAccommodationCommandRepository;
 import tds.exam.repositories.ExamAccommodationQueryRepository;
@@ -71,6 +72,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
         return examAccommodationQueryRepository.findAccommodations(examId);
     }
 
+    @Transactional
     @Override
     public List<ExamAccommodation> initializeExamAccommodations(Exam exam) {
         Instant now = Instant.now();
@@ -114,6 +116,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
         return examAccommodationQueryRepository.findApprovedAccommodations(examId);
     }
 
+    @Transactional
     @Override
     public List<ExamAccommodation> initializeAccommodationsOnPreviousExam(Exam exam, Assessment assessment, int segmentPosition, boolean restoreRts, String guestAccommodations) {
         /*
@@ -133,7 +136,8 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
 
         return examAccommodations;
     }
-    
+
+    @Transactional
     @Override
     public Optional<ValidationError> approveAccommodations(UUID examId, ApproveAccommodationsRequest request) {
         /* This method is a port of StudentDLL.T_ApproveAccommodations_SP, starting at line 11429 */
