@@ -1,11 +1,11 @@
-package tds.exam.models;
+package tds.exam;
 
-import java.time.Instant;
+import org.joda.time.Instant;
+
 import java.util.Set;
 import java.util.UUID;
 
-import tds.assessment.Algorithm;
-import tds.exam.Exam;
+import tds.common.Algorithm;
 
 /**
  * Represents the segment of an exam.
@@ -160,7 +160,7 @@ public class ExamSegment {
     }
 
     /**
-     * @return The position of the segment in the {@link tds.assessment.Assessment}
+     * @return The position of the segment in the assessment
      */
     public int getSegmentPosition() {
         return segmentPosition;

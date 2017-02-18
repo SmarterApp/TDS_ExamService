@@ -18,9 +18,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-import tds.assessment.Algorithm;
+import tds.common.Algorithm;
 import tds.common.data.mapping.ResultSetMapperUtility;
-import tds.exam.models.ExamSegment;
+import tds.exam.ExamSegment;
 import tds.exam.repositories.ExamSegmentQueryRepository;
 
 /**
@@ -163,10 +163,10 @@ public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepositor
                 .withRestorePermeableCondition(rs.getString("restore_permeable_condition"))
                 .withFormCohort(rs.getString("form_cohort"))
                 .withIsSatisfied(rs.getBoolean("satisfied"))
-                .withExitedAt(ResultSetMapperUtility.mapTimestampToInstant(rs, "exited_at"))
+                .withExitedAt(ResultSetMapperUtility.mapTimestampToJodaInstant(rs, "exited_at"))
                 .withItemPool(createItemsFromString(rs.getString("item_pool")))
                 .withPoolCount(rs.getInt("pool_count"))
-                .withCreatedAt(ResultSetMapperUtility.mapTimestampToInstant(rs, "created_at"))
+                .withCreatedAt(ResultSetMapperUtility.mapTimestampToJodaInstant(rs, "created_at"))
                 .build();
         }
     }

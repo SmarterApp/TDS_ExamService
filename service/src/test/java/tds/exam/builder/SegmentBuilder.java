@@ -3,10 +3,10 @@ package tds.exam.builder;
 import java.util.ArrayList;
 import java.util.List;
 
-import tds.assessment.Algorithm;
 import tds.assessment.Form;
 import tds.assessment.Item;
 import tds.assessment.Segment;
+import tds.common.Algorithm;
 
 public class SegmentBuilder {
     public static final String DEFAULT_SEGMENT_KEY = "(SBAC_PT)IRP-Perf-ELA-3-Summer-2015-2016";

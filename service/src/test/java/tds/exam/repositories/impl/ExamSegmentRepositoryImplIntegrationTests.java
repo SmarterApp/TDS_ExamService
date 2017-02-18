@@ -1,5 +1,6 @@
 package tds.exam.repositories.impl;
 
+import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,7 +12,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -19,10 +19,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-import tds.assessment.Algorithm;
+import tds.common.Algorithm;
 import tds.exam.Exam;
 import tds.exam.builder.ExamBuilder;
-import tds.exam.models.ExamSegment;
+import tds.exam.ExamSegment;
 import tds.exam.repositories.ExamCommandRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -67,7 +67,7 @@ public class ExamSegmentRepositoryImplIntegrationTests {
         final String segmentKey2 = "Segment-key-2";
         final int segmentPos2 = 2;
         final Algorithm algorithm = Algorithm.FIXED_FORM;
-        final Instant exitedAt = Instant.now(Clock.systemUTC());
+        final Instant exitedAt = Instant.now();
         final UUID examId = exam.getId();
         final int examItemCount = 3;
         final int ftItemCount = 0;
@@ -149,7 +149,7 @@ public class ExamSegmentRepositoryImplIntegrationTests {
         final String segmentKey = "Segment-key-1";
         final int segmentPos = 1;
         final Algorithm algorithm = Algorithm.FIXED_FORM;
-        final Instant exitedAt = Instant.now(Clock.systemUTC());
+        final Instant exitedAt = Instant.now();
         final UUID examId = exam.getId();
         final int examItemCount = 3;
         final int ftItemCount = 0;
@@ -237,7 +237,7 @@ public class ExamSegmentRepositoryImplIntegrationTests {
         final int segmentPos2 = 2;
         final Algorithm algorithm1 = Algorithm.ADAPTIVE_2;
         final Algorithm algorithm2 = Algorithm.FIXED_FORM;
-        final Instant exitedAt = Instant.now(Clock.systemUTC());
+        final Instant exitedAt = Instant.now();
         final UUID examId = exam.getId();
         final UUID differentExamid = otherExam.getId();
         final int examItemCount = 3;

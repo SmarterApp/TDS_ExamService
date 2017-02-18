@@ -2,7 +2,7 @@ package tds.exam.repositories;
 
 import java.util.List;
 
-import tds.exam.models.ExamSegment;
+import tds.exam.ExamSegment;
 
 /**
  * Repository for writing to the exam_segment and exam_segment_event tables.

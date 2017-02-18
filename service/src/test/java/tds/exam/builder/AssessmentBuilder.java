@@ -6,10 +6,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import tds.assessment.Algorithm;
 import tds.assessment.Assessment;
 import tds.assessment.ItemConstraint;
 import tds.assessment.Segment;
+import tds.common.Algorithm;
 
 public class AssessmentBuilder {
     public static final String DEFAULT_ASSESSMENT_KEY = "(SBAC_PT)IRP-Perf-ELA-3-Summer-2015-2016";

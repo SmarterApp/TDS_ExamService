@@ -8,18 +8,19 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.web.client.RestTemplate;
-import tds.assessment.Algorithm;
-import tds.assessment.Assessment;
-import tds.assessment.Segment;
-import tds.exam.configuration.ExamServiceProperties;
-import tds.exam.health.ServicesHealthIndicator;
-import tds.exam.services.AssessmentService;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import tds.assessment.Assessment;
+import tds.assessment.Segment;
+import tds.common.Algorithm;
+import tds.exam.configuration.ExamServiceProperties;
+import tds.exam.health.ServicesHealthIndicator;
+import tds.exam.services.AssessmentService;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.times;

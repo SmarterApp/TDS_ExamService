@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import tds.common.data.mapping.ResultSetMapperUtility;
-import tds.exam.models.ExamSegment;
+import tds.exam.ExamSegment;
 import tds.exam.repositories.ExamSegmentCommandRepository;
 
 /**
@@ -49,7 +49,7 @@ public class ExamSegmentCommandRepositoryImpl implements ExamSegmentCommandRepos
                 .addValue("isSatisfied", segment.isSatisfied())
                 .addValue("isPermeable", segment.isPermeable())
                 .addValue("restorePermeableOn", segment.getRestorePermeableCondition())
-                .addValue("exitedAt", ResultSetMapperUtility.mapInstantToTimestamp(segment.getExitedAt()))
+                .addValue("exitedAt", ResultSetMapperUtility.mapJodaInstantToTimestamp(segment.getExitedAt()))
                 .addValue("itemPool", String.join(",", segment.getItemPool())))
             .collect(Collectors.toList());
 
@@ -100,7 +100,7 @@ public class ExamSegmentCommandRepositoryImpl implements ExamSegmentCommandRepos
                 .addValue("isSatisfied", segment.isSatisfied())
                 .addValue("isPermeable", segment.isPermeable())
                 .addValue("restorePermeableCondition", segment.getRestorePermeableCondition())
-                .addValue("exitedAt", ResultSetMapperUtility.mapInstantToTimestamp(segment.getExitedAt()))
+                .addValue("exitedAt", ResultSetMapperUtility.mapJodaInstantToTimestamp(segment.getExitedAt()))
                 .addValue("itemPool", String.join(",", segment.getItemPool()));
             parameterSources.add(parameters);
         });

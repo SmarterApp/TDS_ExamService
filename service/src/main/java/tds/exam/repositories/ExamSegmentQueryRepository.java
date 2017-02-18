@@ -1,6 +1,6 @@
 package tds.exam.repositories;
 
-import tds.exam.models.ExamSegment;
+import tds.exam.ExamSegment;
 
 import java.util.List;
 import java.util.Optional;

@@ -13,11 +13,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import tds.assessment.Algorithm;
 import tds.assessment.Assessment;
 import tds.assessment.Item;
 import tds.assessment.ItemProperty;
 import tds.assessment.Segment;
+import tds.common.Algorithm;
 import tds.exam.Exam;
 import tds.exam.builder.AssessmentBuilder;
 import tds.exam.builder.ExamBuilder;
