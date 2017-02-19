@@ -138,13 +138,13 @@ class ExamServiceImpl implements ExamService {
     }
 
     @Override
-    public Optional<Exam> findExam(UUID id) {
+    public Optional<Exam> findExam(final UUID id) {
         return examQueryRepository.getExamById(id);
     }
 
     @Transactional
     @Override
-    public Response<Exam> openExam(OpenExamRequest openExamRequest) {
+    public Response<Exam> openExam(final OpenExamRequest openExamRequest) {
         //Different parts of the session are queried throughout the legacy code.  Instead we fetch the entire session object in one call and pass
         //the reference to those parts that require it.
         Optional<Session> maybeSession = sessionService.findSessionById(openExamRequest.getSessionId());
@@ -217,7 +217,7 @@ class ExamServiceImpl implements ExamService {
     }
 
     @Override
-    public Optional<Double> getInitialAbility(Exam exam, Assessment assessment) {
+    public Optional<Double> getInitialAbility(final Exam exam, final Assessment assessment) {
         Optional<Double> ability = Optional.empty();
         float slope = assessment.getAbilitySlope();
         float intercept = assessment.getAbilityIntercept();
@@ -255,13 +255,13 @@ class ExamServiceImpl implements ExamService {
 
     @Transactional
     @Override
-    public Optional<ValidationError> updateExamStatus(UUID examId, ExamStatusCode newStatus) {
+    public Optional<ValidationError> updateExamStatus(final UUID examId, final ExamStatusCode newStatus) {
         return updateExamStatus(examId, newStatus, null);
     }
 
     @Transactional
     @Override
-    public Optional<ValidationError> updateExamStatus(UUID examId, ExamStatusCode newStatus, String statusChangeReason) {
+    public Optional<ValidationError> updateExamStatus(final UUID examId, final ExamStatusCode newStatus, final String statusChangeReason) {
         Exam exam = examQueryRepository.getExamById(examId)
             .orElseThrow(() -> new NotFoundException(String.format("Exam could not be found for id %s", examId)));
 
@@ -283,7 +283,7 @@ class ExamServiceImpl implements ExamService {
 
     @Transactional
     @Override
-    public void pauseAllExamsInSession(UUID sessionId) {
+    public void pauseAllExamsInSession(final UUID sessionId) {
         List<Exam> examsInSession = examQueryRepository.findAllExamsInSessionWithStatus(sessionId,
             statusesThatCanTransitionToPaused);
 
@@ -424,15 +424,15 @@ class ExamServiceImpl implements ExamService {
         return initializedExam;
     }
 
-    /*
-        This method mimics the legacy TestConfigHelper.getNew().
-        - scoreByTds has been removed as it is unused by the application.
-    */
-    private static ExamConfiguration initializeDefaultExamConfiguration(Exam exam, Assessment assessment, TimeLimitConfiguration timeLimitConfiguration) {
+    private static ExamConfiguration initializeDefaultExamConfiguration(final Exam exam, final Assessment assessment, final TimeLimitConfiguration timeLimitConfiguration) {
+        /*
+            This method mimics the legacy TestConfigHelper.getNew().
+            - scoreByTds has been removed as it is unused by the application.
+        */
         return getExamConfiguration(exam, assessment, timeLimitConfiguration, 1);
     }
 
-    private static ExamConfiguration getExamConfiguration(Exam exam, Assessment assessment, TimeLimitConfiguration timeLimitConfiguration, int startPosition) {
+    private static ExamConfiguration getExamConfiguration(final Exam exam, final Assessment assessment, final TimeLimitConfiguration timeLimitConfiguration, int startPosition) {
         return new ExamConfiguration.Builder()
             .withExam(exam)
             .withContentLoadTimeout(CONTENT_LOAD_TIMEOUT)
@@ -447,7 +447,12 @@ class ExamServiceImpl implements ExamService {
             .build();
     }
 
-    private Response<Exam> createExam(String clientName, OpenExamRequest openExamRequest, Session session, Assessment assessment, ExternalSessionConfiguration externalSessionConfiguration, Exam previousExam, Student student) {
+    private Response<Exam> createExam(final String clientName,
+                                      final OpenExamRequest openExamRequest,
+                                      final Session session, Assessment assessment,
+                                      final ExternalSessionConfiguration externalSessionConfiguration,
+                                      final Exam previousExam,
+                                      final Student student) {
         Exam.Builder examBuilder = new Exam.Builder();
 
         //From OpenTestServiceImpl lines 160 -163
@@ -548,7 +553,7 @@ class ExamServiceImpl implements ExamService {
      * @param assessmentId The test key
      * @return the {@link tds.exam.models.Ability} that lines up with the assessment id
      */
-    private Optional<Ability> getMostRecentTestAbilityForSameAssessment(List<Ability> abilityList, String assessmentId) {
+    private Optional<Ability> getMostRecentTestAbilityForSameAssessment(final List<Ability> abilityList, final String assessmentId) {
         for (Ability ability : abilityList) {
             if (assessmentId.equals(ability.getAssessmentId())) {
                 /* NOTE: The query that retrieves the list of abilities is sorted by the "date_scored" of the exam in
@@ -567,7 +572,7 @@ class ExamServiceImpl implements ExamService {
      * @param assessmentId The test key
      * @return the {@link tds.exam.models.Ability} that lines up with the assessment id
      */
-    private Optional<Ability> getMostRecentTestAbilityForDifferentAssessment(List<Ability> abilityList, String assessmentId) {
+    private Optional<Ability> getMostRecentTestAbilityForDifferentAssessment(final List<Ability> abilityList, final String assessmentId) {
         for (Ability ability : abilityList) {
             if (!assessmentId.equals(ability.getAssessmentId())) {
                 /* NOTE: The query that retrieves the list of abilities is sorted by the "date_scored" of the exam in
@@ -579,7 +584,10 @@ class ExamServiceImpl implements ExamService {
         return Optional.empty();
     }
 
-    private Response<Exam> openPreviousExam(String clientName, OpenExamRequest openExamRequest, Exam previousExam, Assessment assessment) {
+    private Response<Exam> openPreviousExam(final String clientName,
+                                            final OpenExamRequest openExamRequest,
+                                            final Exam previousExam,
+                                            final Assessment assessment) {
         /*
          Represents StudentDLL._OpenExistingOpportunity_SP in the legacy code.  The beginning of the method
          goes and fetches statuses and previous exams which we do not need to do here since that is done earlier
@@ -632,7 +640,8 @@ class ExamServiceImpl implements ExamService {
         return new Response<>(currentExam);
     }
 
-    private Optional<ValidationError> canOpenPreviousExam(Exam previousExam, Session currentSession) {
+    private Optional<ValidationError> canOpenPreviousExam(final Exam previousExam,
+                                                          final Session currentSession) {
         //Port of Student.DLL lines 5526-5530
         if (ExamStatusStage.CLOSED.equals(previousExam.getStatus().getStage())) {
             return Optional.empty();
@@ -674,7 +683,10 @@ class ExamServiceImpl implements ExamService {
         ));
     }
 
-    private Optional<ValidationError> canCreateNewExam(String clientName, OpenExamRequest openExamRequest, Exam previousExam, ExternalSessionConfiguration externalSessionConfiguration) {
+    private Optional<ValidationError> canCreateNewExam(final String clientName,
+                                                       final OpenExamRequest openExamRequest,
+                                                       final Exam previousExam,
+                                                       final ExternalSessionConfiguration externalSessionConfiguration) {
         //Lines 5610 - 5618 in StudentDLL was not implemented.  The reason is that the max opportunities is always
         //3 via the loader scripts.  So the the conditional in the StudentDLL code will always allow one to open a new
         //Exam if previous exam is null (0 ocnt in the legacy code)
@@ -724,7 +736,8 @@ class ExamServiceImpl implements ExamService {
         return Optional.empty();
     }
 
-    private boolean allowsGuestStudent(String clientName, ExternalSessionConfiguration externalSessionConfiguration) {
+    private boolean allowsGuestStudent(final String clientName,
+                                       final ExternalSessionConfiguration externalSessionConfiguration) {
         if (externalSessionConfiguration.isInSimulationEnvironment()) {
             return true;
         }
@@ -734,7 +747,8 @@ class ExamServiceImpl implements ExamService {
         return maybeAllowGuestAccessFlag.isPresent() && maybeAllowGuestAccessFlag.get().isEnabled();
     }
 
-    private Exam updateExamWithCustomAccommodations(final Exam exam, final List<ExamAccommodation> examAccommodations) {
+    private Exam updateExamWithCustomAccommodations(final Exam exam,
+                                                    final List<ExamAccommodation> examAccommodations) {
         //Pulled from CommonDLL lines 2669 - 2670.  If any of the exam accommodations are custom then we need to flag the exam
         Optional<ExamAccommodation> maybeExamAccommodation = examAccommodations.stream()
             .filter(ExamAccommodation::isCustom)
