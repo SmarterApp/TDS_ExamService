@@ -329,6 +329,39 @@ public class ExamServiceImplTest {
         assertThat(exam.getSubject()).isEqualTo(assessment.getSubject());
     }
 
+    @Test (expected = IllegalStateException.class)
+    public void shouldThrowIfTimeConfigurationCannotBeFound() {
+        OpenExamRequest openExamRequest = new OpenExamRequestBuilder()
+            .withStudentId(-1)
+            .build();
+        Session currentSession = new SessionBuilder()
+            .build();
+
+        Assessment assessment = new AssessmentBuilder().build();
+        ExternalSessionConfiguration extSessionConfig = new ExternalSessionConfigurationBuilder()
+            .withEnvironment(DEVELOPMENT_ENVIRONMENT)
+            .build();
+        AssessmentWindow window = new AssessmentWindow.Builder()
+            .withAssessmentKey(openExamRequest.getAssessmentKey())
+            .withWindowId("window1")
+            .withStartTime(Instant.now())
+            .withAssessmentKey(openExamRequest.getAssessmentKey())
+            .build();
+        ClientSystemFlag clientSystemFlag = new ClientSystemFlag.Builder().withEnabled(true).build();
+
+        when(mockSessionService.findExternalSessionConfigurationByClientName("SBAC_PT")).thenReturn(Optional.of(extSessionConfig));
+        when(mockConfigService.findClientSystemFlag("SBAC_PT", ALLOW_ANONYMOUS_STUDENT_FLAG_TYPE)).thenReturn(Optional.of(clientSystemFlag));
+        when(mockSessionService.findSessionById(openExamRequest.getSessionId())).thenReturn(Optional.of(currentSession));
+        when(mockAssessmentService.findAssessment("SBAC_PT", openExamRequest.getAssessmentKey())).thenReturn(Optional.of(assessment));
+        when(mockExamQueryRepository.getLastAvailableExam(openExamRequest.getStudentId(), assessment.getAssessmentId(), "SBAC_PT")).thenReturn(Optional.empty());
+        when(mockSessionService.findExternalSessionConfigurationByClientName("SBAC_PT")).thenReturn(Optional.of(extSessionConfig));
+        when(mockAssessmentService.findAssessmentWindows("SBAC_PT", assessment.getAssessmentId(), openExamRequest.getStudentId(), extSessionConfig))
+            .thenReturn(Collections.singletonList(window));
+        when(mockTimeLimitConfigurationService.findTimeLimitConfiguration("SBAC_PT", openExamRequest.getAssessmentKey())).thenReturn(Optional.empty());
+
+        examService.openExam(openExamRequest);
+    }
+
     @Test
     public void shouldOpenNewExamWithoutProctor() {
         OpenExamRequest openExamRequest = new OpenExamRequestBuilder()

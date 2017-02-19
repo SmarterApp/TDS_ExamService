@@ -692,10 +692,12 @@ class ExamServiceImpl implements ExamService {
         //Exam if previous exam is null (0 ocnt in the legacy code)
 
         //Get timelmits for delay days  Line 516-525 OpenTestServiceImpl
-        Integer numberOfDaysToDelay = null;
+        int numberOfDaysToDelay = 0;
         Optional<TimeLimitConfiguration> maybeTimeLimitConfiguration = timeLimitConfigurationService.findTimeLimitConfiguration(clientName, openExamRequest.getAssessmentKey());
         if (maybeTimeLimitConfiguration.isPresent()) {
             numberOfDaysToDelay = maybeTimeLimitConfiguration.get().getExamDelayDays();
+        } else {
+            throw new IllegalStateException(String.format("Time limit configuration could not be found for client %s or assessment %s", clientName, openExamRequest.getAssessmentKey()));
         }
 
         //Lines 5645 - 5673 in StudentDLL
