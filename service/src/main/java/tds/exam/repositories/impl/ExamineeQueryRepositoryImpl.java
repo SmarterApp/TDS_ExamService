@@ -19,7 +19,7 @@ import tds.exam.repositories.ExamineeQueryRepository;
 public class ExamineeQueryRepositoryImpl implements ExamineeQueryRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
-    public ExamineeQueryRepositoryImpl(@Qualifier("queryJdbcTemplate") NamedParameterJdbcTemplate jdbcTemplate) {
+    public ExamineeQueryRepositoryImpl(@Qualifier("queryJdbcTemplate") final NamedParameterJdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 

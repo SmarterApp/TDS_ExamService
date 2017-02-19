@@ -1,10 +1,10 @@
 package tds.exam.repositories;
 
-import tds.exam.ExamSegment;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import tds.exam.ExamSegment;
 
 /**
  * Repository for reading from the exam_segment and exam_segment_event tables.
@@ -17,7 +17,7 @@ public interface ExamSegmentQueryRepository {
      * @param examId    the exam to retrieve segments for
      * @return the list of {@link ExamSegment}s
      */
-    List<ExamSegment> findByExamId(UUID examId);
+    List<ExamSegment> findByExamId(final UUID examId);
 
     /**
      * Retrieves the {@link ExamSegment} for the given exam and segment position.
@@ -26,6 +26,6 @@ public interface ExamSegmentQueryRepository {
      * @param segmentPosition   the position of the segment in the exam
      * @return the {@link ExamSegment}
      */
-    Optional<ExamSegment> findByExamIdAndSegmentPosition(UUID examId, int segmentPosition);
+    Optional<ExamSegment> findByExamIdAndSegmentPosition(final UUID examId, final int segmentPosition);
 
 }

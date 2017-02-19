@@ -21,12 +21,12 @@ public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodation
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     @Autowired
-    public ExamAccommodationCommandRepositoryImpl(@Qualifier("commandJdbcTemplate") NamedParameterJdbcTemplate jdbcTemplate) {
+    public ExamAccommodationCommandRepositoryImpl(@Qualifier("commandJdbcTemplate") final NamedParameterJdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
-    public void insert(List<ExamAccommodation> accommodations) {
+    public void insert(final List<ExamAccommodation> accommodations) {
         String SQL = "INSERT INTO exam_accommodation(exam_id, id, segment_key, type, code, description, allow_change, value, segment_position) \n" +
             "VALUES(:examId, :id, :segmentKey, :type, :code, :description, :allowChange, :value, :segmentPosition)";
 
@@ -48,11 +48,11 @@ public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodation
     }
 
     @Override
-    public void update(ExamAccommodation... examAccommodation) {
+    public void update(final ExamAccommodation... examAccommodation) {
         updateEvent(examAccommodation);
     }
 
-    private void updateEvent(ExamAccommodation... examAccommodations) {
+    private void updateEvent(final ExamAccommodation... examAccommodations) {
         String SQL = "INSERT INTO exam_accommodation_event(" +
             "exam_accommodation_id, " +
             "denied_at, " +
@@ -86,12 +86,11 @@ public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodation
     }
 
     @Override
-    public void delete(List<ExamAccommodation> accommodations) {
+    public void delete(final List<ExamAccommodation> accommodations) {
         Instant deletedAt = Instant.now();
 
         List<ExamAccommodation> accommodationsToDelete = accommodations.stream()
-            .map(accommodation -> new ExamAccommodation
-                .Builder(accommodation.getId())
+            .map(accommodation -> ExamAccommodation.Builder
                 .fromExamAccommodation(accommodation)
                 .withDeletedAt(deletedAt)
                 .build())

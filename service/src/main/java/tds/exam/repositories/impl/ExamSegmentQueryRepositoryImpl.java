@@ -28,10 +28,11 @@ import tds.exam.repositories.ExamSegmentQueryRepository;
  */
 @Repository
 public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepository {
+    private static final RowMapper<ExamSegment> examSegmentRowMapper = new ExamSegmentRowMapper();
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     @Autowired
-    public ExamSegmentQueryRepositoryImpl(@Qualifier("queryJdbcTemplate") NamedParameterJdbcTemplate queryJdbcTemplate) {
+    public ExamSegmentQueryRepositoryImpl(@Qualifier("queryJdbcTemplate") final NamedParameterJdbcTemplate queryJdbcTemplate) {
         this.jdbcTemplate = queryJdbcTemplate;
     }
 
@@ -39,7 +40,7 @@ public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepositor
      * @inheritDoc
      */
     @Override
-    public List<ExamSegment> findByExamId(UUID examId) {
+    public List<ExamSegment> findByExamId(final UUID examId) {
         final Map<String, Object> parameters = new HashMap<>();
         parameters.put("examId", examId.toString());
 
@@ -86,7 +87,7 @@ public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepositor
                 "ORDER BY \n" +
                 "   segment_position \n";
 
-        return jdbcTemplate.query(SQL, parameters, new ExamSegmentRowMapper());
+        return jdbcTemplate.query(SQL, parameters, examSegmentRowMapper);
     }
 
     /**
@@ -100,7 +101,7 @@ public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepositor
 
         final String SQL =
             "SELECT \n" +
-                "   s.exam_id as exam_id, \n" +
+                "   s.exam_id AS exam_id, \n" +
                 "   s.segment_key, \n" +
                 "   s.segment_id, \n" +
                 "   s.segment_position, \n" +
@@ -133,7 +134,7 @@ public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepositor
         Optional<ExamSegment> maybeExamSegment;
 
         try {
-            maybeExamSegment = Optional.of(jdbcTemplate.queryForObject(SQL, parameters, new ExamSegmentRowMapper()));
+            maybeExamSegment = Optional.of(jdbcTemplate.queryForObject(SQL, parameters, examSegmentRowMapper));
         } catch (EmptyResultDataAccessException e) {
             maybeExamSegment = Optional.empty();
         }
@@ -141,12 +142,12 @@ public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepositor
         return maybeExamSegment;
     }
 
-    private Set<String> createItemsFromString(String itemListStr) {
+    private static Set<String> createItemsFromString(String itemListStr) {
         // Check if the value is an empty string - otherwise, return a set of
         return itemListStr.equals("") ? new HashSet<>() : new HashSet<>(Arrays.asList(itemListStr.split(",")));
     }
 
-    private class ExamSegmentRowMapper implements RowMapper<ExamSegment> {
+    private static class ExamSegmentRowMapper implements RowMapper<ExamSegment> {
         @Override
         public ExamSegment mapRow(ResultSet rs, int rowNum) throws SQLException {
             return new ExamSegment.Builder()

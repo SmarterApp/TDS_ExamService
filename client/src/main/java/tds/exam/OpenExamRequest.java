@@ -1,6 +1,5 @@
 package tds.exam;
 
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.util.UUID;
 
@@ -21,13 +20,9 @@ public class OpenExamRequest {
     @NotNull
     private UUID sessionId;
 
-    //TODO - Delete because now we have to fetch this
-    @NotNull
-    @Min(0)
-    private int numberOfDaysToDelay;
-
     private String guestAccommodations;
 
+    @NotNull
     private UUID browserId;
 
     private OpenExamRequest(Builder builder) {
@@ -35,7 +30,6 @@ public class OpenExamRequest {
         this.assessmentKey = builder.assessmentKey;
         this.maxAttempts = builder.maxAttempts;
         this.sessionId = builder.sessionId;
-        this.numberOfDaysToDelay = builder.numberOfDaysToDelay;
         this.guestAccommodations = builder.guestAccommodations;
         this.browserId = builder.browserId;
     }
@@ -85,13 +79,6 @@ public class OpenExamRequest {
     }
 
     /**
-     * @return the number of days to delay retaking an exam
-     */
-    public int getNumberOfDaysToDelay() {
-        return numberOfDaysToDelay;
-    }
-
-    /**
      * @return {@code true} if the student is a guest
      */
     public boolean isGuestStudent() {
@@ -107,7 +94,6 @@ public class OpenExamRequest {
         private String assessmentKey;
         private int maxAttempts;
         private UUID sessionId;
-        private int numberOfDaysToDelay;
         private String guestAccommodations;
         private UUID browserId;
 
@@ -128,11 +114,6 @@ public class OpenExamRequest {
 
         public Builder withSessionId(UUID sessionId) {
             this.sessionId = sessionId;
-            return this;
-        }
-
-        public Builder withNumberOfDaysToDelay(int numberOfDaysToDelay) {
-            this.numberOfDaysToDelay = numberOfDaysToDelay;
             return this;
         }
 
@@ -158,7 +139,6 @@ public class OpenExamRequest {
             ", assessmentKey='" + assessmentKey + '\'' +
             ", maxAttempts=" + maxAttempts +
             ", sessionId=" + sessionId +
-            ", numberOfDaysToDelay=" + numberOfDaysToDelay +
             ", guestAccommodations='" + guestAccommodations + '\'' +
             ", browserId=" + browserId +
             '}';

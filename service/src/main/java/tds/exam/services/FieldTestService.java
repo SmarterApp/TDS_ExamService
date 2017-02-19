@@ -16,7 +16,7 @@ public interface FieldTestService {
      * @param segmentKey the key of the {@link tds.assessment.Segment} for which to check eligibility for
      * @return true if the the exam segment is eligible for a field test, false otherwise
      */
-    boolean isFieldTestEligible(Exam exam, Assessment assessment, String segmentKey);
+    boolean isFieldTestEligible(final Exam exam, final Assessment assessment, final String segmentKey);
 
     /**
      * This method selects {@link tds.exam.models.FieldTestItemGroup}s for the exam based on the {@link tds.assessment.Assessment}s
@@ -27,5 +27,5 @@ public interface FieldTestService {
      * @param segmentKey the key of the {@link tds.assessment.Segment} to select {@link tds.exam.models.FieldTestItemGroup}s
      * @return The total number of field test items for this {@link tds.assessment.Segment}
      */
-    int selectItemGroups(Exam exam, Assessment assessment, String segmentKey);
+    int selectItemGroups(final Exam exam, final Assessment assessment, final String segmentKey);
 }

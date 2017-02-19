@@ -9,7 +9,6 @@ public class OpenExamRequestBuilder {
     private String assessmentKey = "(SBAC_PT)IRP-Perf-ELA-3-Summer-2015-2016";
     private int maxAttempts = 0;
     private UUID sessionId = UUID.randomUUID();
-    private int numberOfDaysToDelay = 0;
     private String guestAccommodations;
     private UUID browserId = UUID.randomUUID();
 
@@ -33,11 +32,6 @@ public class OpenExamRequestBuilder {
         return this;
     }
 
-    public OpenExamRequestBuilder withNumberOfDaysToDelay(int numberOfDaysToDelay) {
-        this.numberOfDaysToDelay = numberOfDaysToDelay;
-        return this;
-    }
-
     public OpenExamRequestBuilder withGuestAccommodations(String guestAccommodations) {
         this.guestAccommodations = guestAccommodations;
         return this;
@@ -54,7 +48,6 @@ public class OpenExamRequestBuilder {
             .withAssessmentKey(assessmentKey)
             .withMaxAttempts(maxAttempts)
             .withSessionId(sessionId)
-            .withNumberOfDaysToDelay(numberOfDaysToDelay)
             .withGuestAccommodations(guestAccommodations)
             .withBrowserId(browserId)
             .build();

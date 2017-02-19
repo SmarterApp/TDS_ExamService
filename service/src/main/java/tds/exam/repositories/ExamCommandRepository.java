@@ -11,12 +11,12 @@ public interface ExamCommandRepository {
      *
      * @param exam a non null {@link tds.exam.Exam}
      */
-    void insert(Exam exam);
+    void insert(final Exam exam);
 
     /**
      * Update a collection of {@link tds.exam.Exam}s
      *
      * @param exams The collection of exams to update
      */
-    void update(Exam... exams);
+    void update(final Exam... exams);
 }

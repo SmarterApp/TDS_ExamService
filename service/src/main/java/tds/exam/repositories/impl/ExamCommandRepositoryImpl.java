@@ -21,12 +21,12 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     @Autowired
-    ExamCommandRepositoryImpl(@Qualifier("commandJdbcTemplate") NamedParameterJdbcTemplate jdbcTemplate) {
+    ExamCommandRepositoryImpl(@Qualifier("commandJdbcTemplate") final NamedParameterJdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
-    public void insert(Exam exam) {
+    public void insert(final Exam exam) {
         SqlParameterSource examParameters = new MapSqlParameterSource("id", exam.getId().toString())
             .addValue("clientName", exam.getClientName())
             .addValue("environment", exam.getEnvironment())
@@ -84,7 +84,7 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
     }
 
     @Override
-    public void update(Exam... exams) {
+    public void update(final Exam... exams) {
         SqlParameterSource[] batchParameters = Stream.of(exams)
             .map(exam -> new MapSqlParameterSource("examId", exam.getId().toString())
                 .addValue("attempts", exam.getAttempts())

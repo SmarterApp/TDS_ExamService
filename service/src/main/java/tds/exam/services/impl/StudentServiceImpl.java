@@ -29,7 +29,7 @@ class StudentServiceImpl implements StudentService {
     private final ExamServiceProperties examServiceProperties;
 
     @Autowired
-    public StudentServiceImpl(RestTemplate restTemplate, ExamServiceProperties examServiceProperties) {
+    public StudentServiceImpl(final RestTemplate restTemplate, final ExamServiceProperties examServiceProperties) {
         this.restTemplate = restTemplate;
         this.examServiceProperties = examServiceProperties;
     }
@@ -58,7 +58,9 @@ class StudentServiceImpl implements StudentService {
 
     @Override
     @Cacheable(CacheType.MEDIUM_TERM)
-    public List<RtsStudentPackageAttribute> findStudentPackageAttributes(long studentId, String clientName, String... attributeNames) {
+    public List<RtsStudentPackageAttribute> findStudentPackageAttributes(final long studentId,
+                                                                         final String clientName,
+                                                                         final String... attributeNames) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
                 .fromHttpUrl(String.format("%s/%s/%s/rts/%s/attributes=%s",

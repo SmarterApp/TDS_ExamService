@@ -16,7 +16,7 @@ public interface ExamineeService {
      * @param context The {@link tds.exam.ExamineeContext} that describes the state of the examniee's information when
      *                these attributes and relationships were collected
      */
-    void insertAttributesAndRelationships(Exam exam, ExamineeContext context);
+    void insertAttributesAndRelationships(final Exam exam, final ExamineeContext context);
 
     /**
      * Insert the {@link tds.exam.ExamineeAttribute}s and {@link tds.exam.ExamineeRelationship}s for this
@@ -27,5 +27,5 @@ public interface ExamineeService {
      * @param context The {@link tds.exam.ExamineeContext} that describes the state of the examniee's information when
      *                these attributes and relationships were collected
      */
-    void insertAttributesAndRelationships(Exam exam, Student student, ExamineeContext context);
+    void insertAttributesAndRelationships(final Exam exam, final Student student, final ExamineeContext context);
 }

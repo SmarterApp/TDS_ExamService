@@ -22,12 +22,12 @@ public class FieldTestItemGroupCommandRepositoryImpl implements FieldTestItemGro
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     @Autowired
-    public FieldTestItemGroupCommandRepositoryImpl(@Qualifier("commandJdbcTemplate") NamedParameterJdbcTemplate jdbcTemplate) {
+    public FieldTestItemGroupCommandRepositoryImpl(@Qualifier("commandJdbcTemplate") final NamedParameterJdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
-    public void insert(List<FieldTestItemGroup> fieldTestItemGroups) {
+    public void insert(final List<FieldTestItemGroup> fieldTestItemGroups) {
         final String ftItemGroupSQL =
             "INSERT INTO field_test_item_group ( \n" +
                 "   exam_id, \n" +
@@ -74,7 +74,7 @@ public class FieldTestItemGroupCommandRepositoryImpl implements FieldTestItemGro
         });
     }
 
-    private void update(FieldTestItemGroup fieldTestItemGroup) {
+    private void update(final FieldTestItemGroup fieldTestItemGroup) {
         final SqlParameterSource params = new MapSqlParameterSource("id", fieldTestItemGroup.getId())
             .addValue("deletedAt", ResultSetMapperUtility.mapInstantToTimestamp(fieldTestItemGroup.getDeletedAt()))
             .addValue("positionAdministered", fieldTestItemGroup.getPositionAdministered())

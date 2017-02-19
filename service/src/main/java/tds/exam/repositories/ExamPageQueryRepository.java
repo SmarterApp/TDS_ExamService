@@ -16,7 +16,7 @@ public interface ExamPageQueryRepository {
      * @param examId the id of the {@link tds.exam.Exam} that the {@link tds.exam.ExamPage}s correspond to
      * @return A collection of active {@link tds.exam.ExamPage}s for the specified exam
      */
-    List<ExamPage> findAll(UUID examId);
+    List<ExamPage> findAll(final UUID examId);
 
     /**
      * Fetch a single {@link tds.exam.ExamPage}
@@ -25,7 +25,7 @@ public interface ExamPageQueryRepository {
      * @param position the position number
      * @return An {@link tds.exam.ExamPage} for the specified {@link tds.exam.Exam} id and page position
      */
-    Optional<ExamPage> find(UUID examId, int position);
+    Optional<ExamPage> find(final UUID examId, final int position);
 
     /**
      * Fetch an {@link tds.exam.ExamPage} with its collection of {@link tds.exam.ExamItem}s.
@@ -35,5 +35,5 @@ public interface ExamPageQueryRepository {
      * @return An {@link tds.exam.ExamPage} with its collection of {@link tds.exam.ExamItem}s for the specified exam
      * page.
      */
-    Optional<ExamPage> findPageWithItems(UUID examId, int position);
+    Optional<ExamPage> findPageWithItems(final UUID examId, final int position);
 }

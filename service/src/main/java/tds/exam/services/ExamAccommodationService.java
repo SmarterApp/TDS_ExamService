@@ -5,12 +5,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 import tds.assessment.Assessment;
-import tds.common.Response;
 import tds.common.ValidationError;
 import tds.exam.ApproveAccommodationsRequest;
 import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
-import tds.exam.ExamApproval;
 
 /**
  * Handles interaction with {@link tds.exam.ExamAccommodation}s associated to an {@link tds.exam.Exam}

@@ -37,6 +37,9 @@ import static tds.exam.ExamStatusCode.STATUS_SUSPENDED;
 
 @Repository
 public class ExamQueryRepositoryImpl implements ExamQueryRepository {
+    private static final RowMapper<Exam> examRowMapper = new ExamRowMapper();
+    private static final RowMapper<Ability> abilityRowMapper = new AbilityRowMapper();
+
     private final NamedParameterJdbcTemplate jdbcTemplate;
     private final String EXAM_QUERY_COLUMN_LIST = "e.id, \n" +
         "ee.session_id, \n" +
@@ -80,7 +83,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
     }
 
     @Override
-    public Optional<Exam> getExamById(UUID id) {
+    public Optional<Exam> getExamById(final UUID id) {
         final SqlParameterSource parameters = new MapSqlParameterSource("examId", id.toString());
 
         String querySQL =
@@ -116,11 +119,11 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "  ) \n" +
                 "WHERE \n" +
                 "   lang.type = 'Language'";
-        
+
 
         Optional<Exam> examOptional;
         try {
-            examOptional = Optional.of(jdbcTemplate.queryForObject(querySQL, parameters, new ExamRowMapper()));
+            examOptional = Optional.of(jdbcTemplate.queryForObject(querySQL, parameters, examRowMapper));
         } catch (EmptyResultDataAccessException e) {
             examOptional = Optional.empty();
         }
@@ -129,7 +132,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
     }
 
     @Override
-    public Optional<Exam> getLastAvailableExam(long studentId, String assessmentId, String clientName) {
+    public Optional<Exam> getLastAvailableExam(final long studentId, final String assessmentId, final String clientName) {
         Map<String, Object> queryParameters = new HashMap<>();
         queryParameters.put("studentId", studentId);
         queryParameters.put("assessmentId", assessmentId);
@@ -175,11 +178,11 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "   AND lang.type = 'Language'" +
                 "ORDER BY \n" +
                 "   e.created_at DESC";
-    
-    
+
+
         Optional<Exam> examOptional;
         try {
-            examOptional = Optional.of(jdbcTemplate.queryForObject(query, parameters, new ExamRowMapper()));
+            examOptional = Optional.of(jdbcTemplate.queryForObject(query, parameters, examRowMapper));
         } catch (EmptyResultDataAccessException e) {
             examOptional = Optional.empty();
         }
@@ -252,9 +255,9 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
     }
 
     @Override
-    public List<Exam> findAllExamsInSessionWithStatus(UUID sessionId, Set<String> statusSet) {
+    public List<Exam> findAllExamsInSessionWithStatus(final UUID sessionId, final Set<String> statuses) {
         final SqlParameterSource parameters = new MapSqlParameterSource("sessionId", sessionId.toString())
-            .addValue("statusSet", statusSet);
+            .addValue("statuses", statuses);
 
         final String SQL =
             "SELECT \n" +
@@ -287,14 +290,14 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "          AND eacc.type = 'Language'\n" +
                 "  ) \n" +
                 "WHERE ee.session_id = :sessionId \n" +
-                "   AND ee.status IN (:statusSet) \n " +
+                "   AND ee.status IN (:statuses) \n " +
                 "   AND lang.type = 'Language'";
-    
-        return jdbcTemplate.query(SQL, parameters, new ExamRowMapper());
+
+        return jdbcTemplate.query(SQL, parameters, examRowMapper);
     }
 
     @Override
-    public List<Ability> findAbilities(UUID exam, String clientName, String subject, Long studentId) {
+    public List<Ability> findAbilities(final UUID exam, final String clientName, final String subject, final Long studentId) {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("examId", exam.toString());
         parameters.put("clientName", clientName);
@@ -338,11 +341,11 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "  AND exam_scores.value IS NOT NULL \n" +
                 "ORDER BY ee.scored_at DESC";
 
-        return jdbcTemplate.query(SQL, parameters, new AbilityRowMapper());
+        return jdbcTemplate.query(SQL, parameters, abilityRowMapper);
     }
 
     @Override
-    public List<Exam> getExamsPendingApproval(UUID sessionId) {
+    public List<Exam> getExamsPendingApproval(final UUID sessionId) {
         // create list of statuses that require proctor approval
         final List<String> pendingStatuses = Arrays.asList(
             STATUS_PENDING, STATUS_SUSPENDED, STATUS_SEGMENT_ENTRY, STATUS_SEGMENT_EXIT);
@@ -382,12 +385,12 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "  ee.session_id = :sessionId \n" +
                 "  AND ee.status IN (:statusSet) \n" +
                 "  AND lang.type = 'Language' \n";
-    
-    
-        return jdbcTemplate.query(SQL, parameters, new ExamRowMapper());
+
+
+        return jdbcTemplate.query(SQL, parameters, examRowMapper);
     }
 
-    private class AbilityRowMapper implements RowMapper<Ability> {
+    private static class AbilityRowMapper implements RowMapper<Ability> {
         @Override
         public Ability mapRow(ResultSet rs, int rowNum) throws SQLException {
             return new Ability(
@@ -400,7 +403,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
         }
     }
 
-    private class ExamRowMapper implements RowMapper<Exam> {
+    private static class ExamRowMapper implements RowMapper<Exam> {
         @Override
         public Exam mapRow(ResultSet rs, int rowNum) throws SQLException {
             return new Exam.Builder()

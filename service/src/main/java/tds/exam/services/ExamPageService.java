@@ -23,7 +23,7 @@ public interface ExamPageService {
      *
      * @param examId the id of the {@link tds.exam.Exam}
      */
-    void deletePages(UUID examId);
+    void deletePages(final UUID examId);
 
     /**
      * Fetches a list of all {@link tds.exam.ExamPage}s for an exam.
@@ -31,7 +31,7 @@ public interface ExamPageService {
      * @param examId the id of the {@link tds.exam.Exam}
      * @return A collection of all {@link tds.exam.ExamPage}s for the specified exam Id
      */
-    List<ExamPage> findAllPages(UUID examId);
+    List<ExamPage> findAllPages(final UUID examId);
 
     /**
      * Fetch an {@link tds.exam.ExamPage} for the specified {@link tds.exam.Exam} id and page number.
@@ -41,5 +41,5 @@ public interface ExamPageService {
      * @return An {@link tds.exam.ExamPage} containing a collection of {@link tds.exam.ExamItem}s that
      * should be displayed
      */
-    Response<ExamPage> getPage(ExamInfo request, int pageNumber);
+    Response<ExamPage> getPage(final ExamInfo request, final int pageNumber);
 }

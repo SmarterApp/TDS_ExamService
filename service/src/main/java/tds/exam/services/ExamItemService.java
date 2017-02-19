@@ -20,7 +20,7 @@ public interface ExamItemService {
      * @param responses              The collection of the {@link tds.exam.ExamItemResponse}s to persist
      * @return The next {@link tds.exam.ExamPage} that has {@link tds.exam.ExamItem}s that require student responses
      */
-    Response<ExamPage> insertResponses(ExamInfo request, int mostRecentPagePosition, ExamItemResponse... responses);
+    Response<ExamPage> insertResponses(final ExamInfo request, final int mostRecentPagePosition, final ExamItemResponse... responses);
 
 
     /**
@@ -30,5 +30,5 @@ public interface ExamItemService {
      * @param examId the id of the {@link tds.exam.Exam}
      * @return the position of the last {@link tds.exam.ExamItem} responded to by a student
      */
-    int getExamPosition(UUID examId);
+    int getExamPosition(final UUID examId);
 }

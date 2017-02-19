@@ -1,6 +1,5 @@
 package tds.exam.services;
 
-import java.util.HashMap;
 import java.util.Optional;
 
 import tds.config.ClientSystemFlag;
@@ -27,7 +26,7 @@ public interface ConfigService {
      * @param replacements Key value pairs that are used to replace the data in the templated message
      * @return The message string with placeholders included
      */
-    String getFormattedMessage(String clientName, String context, String messageKey, Object... replacements);
+    String getFormattedMessage(final String clientName, final String context, final String messageKey, final Object... replacements);
 
     /**
      * Get the message string for this client that is translated for the language specified.
@@ -39,7 +38,7 @@ public interface ConfigService {
      * @param replacements Key value pairs that are used to replace the data in the templated message
      * @return The message string with placeholders included
      */
-    String getFormattedMessage(String clientName, String context, String messageKey, String languageCode, Object... replacements);
+    String getFormattedMessage(final String clientName, final String context, final String messageKey, final String languageCode, final Object... replacements);
 
     /**
      * Get the message string for this client that is translated for the language specified, filtering by grade and subject
@@ -53,5 +52,5 @@ public interface ConfigService {
      * @param replacements Key value pairs that are used to replace the data in the templated message
      * @return The message string with placeholders included
      */
-    String getFormattedMessage(String clientName, String context, String messageKey, String languageCode, String subject, String grade, Object... replacements);
+    String getFormattedMessage(final String clientName, final String context, final String messageKey, final String languageCode, final String subject, final String grade, final Object... replacements);
 }

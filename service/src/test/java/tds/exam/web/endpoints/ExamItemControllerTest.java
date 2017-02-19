@@ -23,8 +23,8 @@ import tds.exam.builder.ExamItemResponseBuilder;
 import tds.exam.builder.ExamPageBuilder;
 import tds.exam.services.ExamItemService;
 
-import static org.mockito.Matchers.any;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;

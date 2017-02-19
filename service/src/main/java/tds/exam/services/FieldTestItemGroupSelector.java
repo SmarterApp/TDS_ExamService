@@ -22,6 +22,5 @@ public interface FieldTestItemGroupSelector {
      * @param numItems         the number of items to select
      * @return the {@link java.util.List} of the selected {@link tds.exam.models.FieldTestItemGroup}s
      */
-    List<FieldTestItemGroup> selectLeastUsedItemGroups(Exam exam, Set<String> assignedGroupIds,
-                                                       Assessment assessment, Segment currentSegment, int numItems);
+    List<FieldTestItemGroup> selectLeastUsedItemGroups(final Exam exam, final Set<String> assignedGroupIds, final Assessment assessment, final Segment currentSegment, final int numItems);
 }

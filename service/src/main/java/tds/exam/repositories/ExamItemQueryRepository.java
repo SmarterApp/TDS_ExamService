@@ -13,5 +13,5 @@ public interface ExamItemQueryRepository {
      * @param examId the id of the {@link tds.exam.Exam} to find the position for
      * @return the item position of the last item responded to
      */
-    int getCurrentExamItemPosition(UUID examId);
+    int getCurrentExamItemPosition(final UUID examId);
 }

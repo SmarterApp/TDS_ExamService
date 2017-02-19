@@ -25,17 +25,19 @@ import tds.exam.services.ItemPoolService;
 public class EqualDistributionFieldTestItemGroupSelector implements FieldTestItemGroupSelector {
     private final ItemPoolService itemPoolService;
     // Keeps track of the field test item groups and their usages. The key is the segment key.
-    private static Map<String, List<FieldTestItemGroupCounter>> segmentToFieldTestItemGroupCounters;
+    private static Map<String, List<FieldTestItemGroupCounter>> segmentToFieldTestItemGroupCounters = new ConcurrentHashMap<>();
 
     @Autowired
-    public EqualDistributionFieldTestItemGroupSelector(ItemPoolService itemPoolService) {
+    public EqualDistributionFieldTestItemGroupSelector(final ItemPoolService itemPoolService) {
         this.itemPoolService = itemPoolService;
-        this.segmentToFieldTestItemGroupCounters = new ConcurrentHashMap<>();
     }
 
     @Override
-    public List<FieldTestItemGroup> selectLeastUsedItemGroups(final Exam exam, final Set<String> assignedGroupIds,
-                                                              final Assessment assessment, final Segment currentSegment, final int numItems) {
+    public List<FieldTestItemGroup> selectLeastUsedItemGroups(final Exam exam,
+                                                              final Set<String> assignedGroupIds,
+                                                              final Assessment assessment,
+                                                              final Segment currentSegment,
+                                                              final int numItems) {
         final String segmentKey = currentSegment.getKey();
         int ftItemCount = 0;
         // Fetch every eligible item based on item constraints, item properties, and user accommodations
@@ -65,14 +67,14 @@ public class EqualDistributionFieldTestItemGroupSelector implements FieldTestIte
         if (fieldTestItemGroupCounters == null) {
             // If there is no cached values for this segmentKey, simply add all the group keys this student is eligible for
             fieldTestItemGroupCounters = eligibleGroupKeysToItemGroups.keySet().stream()
-                .map(groupKey -> new FieldTestItemGroupCounter(groupKey))
+                .map(FieldTestItemGroupCounter::new)
                 .collect(Collectors.toList());
 
             segmentToFieldTestItemGroupCounters.put(segmentKey, Collections.synchronizedList(fieldTestItemGroupCounters));
         } else { // Otherwise, if there is existing counters for this segment key, lets cache any items that don't already exist by adding them to the top
             // Get the set of cached group keys for quick comparison
             Set<String> groupKeysInCache = fieldTestItemGroupCounters.stream()
-                .map(counters -> counters.getGroupKey())
+                .map(FieldTestItemGroupCounter::getGroupKey)
                 .collect(Collectors.toSet());
 
             // Iterate over each eligible group key for this exam and check if it is already cached. If not, add it to
@@ -105,7 +107,7 @@ public class EqualDistributionFieldTestItemGroupSelector implements FieldTestIte
 
                 selectedItemGroups.add(itemGroup);
                 // Update the occurrence counter and the field test item count
-                groupCounter.incrementOccurrance();
+                groupCounter.incrementOccurrence();
                 ftItemCount += eligibleItemGroups.size();
             }
         }
@@ -120,16 +122,16 @@ public class EqualDistributionFieldTestItemGroupSelector implements FieldTestIte
         private final String groupKey;
         AtomicInteger occurrences;
 
-        public FieldTestItemGroupCounter(String groupKey) {
+        private FieldTestItemGroupCounter(String groupKey) {
             this.groupKey = groupKey;
             occurrences = new AtomicInteger(0);
         }
 
-        public void incrementOccurrance() {
+        private void incrementOccurrence() {
             occurrences.incrementAndGet();
         }
 
-        public String getGroupKey() {
+        private String getGroupKey() {
             return this.groupKey;
         }
 

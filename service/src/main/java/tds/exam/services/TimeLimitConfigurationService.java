@@ -1,8 +1,8 @@
 package tds.exam.services;
 
-import tds.config.TimeLimitConfiguration;
-
 import java.util.Optional;
+
+import tds.config.TimeLimitConfiguration;
 
 /**
  * Handles interaction with time limit configuration data.
@@ -15,5 +15,5 @@ public interface TimeLimitConfigurationService {
      * @param assessmentId The id of the assessment that might have specific time limit settings.
      * @return An optional containing the {@link TimeLimitConfiguration} for the client name; otherwise empty.
      */
-    Optional<TimeLimitConfiguration> findTimeLimitConfiguration(String clientName, String assessmentId);
+    Optional<TimeLimitConfiguration> findTimeLimitConfiguration(final String clientName, final String assessmentId);
 }

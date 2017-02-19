@@ -16,5 +16,5 @@ public interface ExamSegmentService {
      * @param assessment The {@link tds.assessment.Assessment} containing the {@link tds.assessment.Segment}s to initialize
      * @return The number of total items for all exam segments initialized.
      */
-    int initializeExamSegments(Exam exam, Assessment assessment);
+    int initializeExamSegments(final Exam exam, final Assessment assessment);
 }

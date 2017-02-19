@@ -17,11 +17,10 @@ import tds.exam.repositories.HistoryQueryRepository;
  */
 @Repository
 public class HistoryQueryRepositoryImpl implements HistoryQueryRepository {
-
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     @Autowired
-    public HistoryQueryRepositoryImpl(@Qualifier("queryJdbcTemplate") NamedParameterJdbcTemplate queryJdbcTemplate) {
+    public HistoryQueryRepositoryImpl(@Qualifier("queryJdbcTemplate") final NamedParameterJdbcTemplate queryJdbcTemplate) {
         this.jdbcTemplate = queryJdbcTemplate;
     }
 
@@ -29,7 +28,7 @@ public class HistoryQueryRepositoryImpl implements HistoryQueryRepository {
      * @inheritDoc
      */
     @Override
-    public Optional<Double> findAbilityFromHistoryForSubjectAndStudent(String clientName, String subject, Long studentId) {
+    public Optional<Double> findAbilityFromHistoryForSubjectAndStudent(final String clientName, final String subject, final Long studentId) {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("clientName", clientName);
         parameters.put("subject", subject);

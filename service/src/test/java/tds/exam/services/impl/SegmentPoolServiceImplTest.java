@@ -10,12 +10,12 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import tds.common.Algorithm;
 import tds.assessment.Item;
 import tds.assessment.ItemConstraint;
 import tds.assessment.ItemProperty;
 import tds.assessment.Segment;
 import tds.assessment.Strand;
+import tds.common.Algorithm;
 import tds.exam.ExamAccommodation;
 import tds.exam.builder.ItemBuilder;
 import tds.exam.models.SegmentPoolInfo;

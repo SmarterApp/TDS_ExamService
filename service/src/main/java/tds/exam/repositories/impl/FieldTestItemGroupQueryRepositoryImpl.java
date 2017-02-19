@@ -2,11 +2,14 @@ package tds.exam.repositories.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
 
@@ -17,15 +20,16 @@ import tds.exam.repositories.FieldTestItemGroupQueryRepository;
 
 @Repository
 public class FieldTestItemGroupQueryRepositoryImpl implements FieldTestItemGroupQueryRepository {
+    private static final FieldTestItemGroupMapper fieldTestItemGroupMapper = new FieldTestItemGroupMapper();
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     @Autowired
-    public FieldTestItemGroupQueryRepositoryImpl(@Qualifier("queryJdbcTemplate") NamedParameterJdbcTemplate queryJdbcTemplate) {
+    public FieldTestItemGroupQueryRepositoryImpl(@Qualifier("queryJdbcTemplate") final NamedParameterJdbcTemplate queryJdbcTemplate) {
         this.jdbcTemplate = queryJdbcTemplate;
     }
 
     @Override
-    public List<FieldTestItemGroup> find(UUID examId, String segmentKey) {
+    public List<FieldTestItemGroup> find(final UUID examId, final String segmentKey) {
         final SqlParameterSource parameters = new MapSqlParameterSource("examId", examId.toString())
             .addValue("segmentKey", segmentKey);
 
@@ -66,8 +70,13 @@ public class FieldTestItemGroupQueryRepositoryImpl implements FieldTestItemGroup
                 "ORDER BY \n" +
                 "   F.position \n";
 
-        return jdbcTemplate.query(SQL, parameters, (rs, row) ->
-            new FieldTestItemGroup.Builder()
+        return jdbcTemplate.query(SQL, parameters, fieldTestItemGroupMapper);
+    }
+
+    private static class FieldTestItemGroupMapper implements RowMapper<FieldTestItemGroup> {
+        @Override
+        public FieldTestItemGroup mapRow(ResultSet rs, int i) throws SQLException {
+            return new FieldTestItemGroup.Builder()
                 .withExamId(UUID.fromString(rs.getString("exam_id")))
                 .withSessionId(UuidAdapter.getUUIDFromBytes(rs.getBytes("session_id")))
                 .withSegmentKey(rs.getString("segment_key"))
@@ -81,6 +90,7 @@ public class FieldTestItemGroupQueryRepositoryImpl implements FieldTestItemGroup
                 .withCreatedAt(ResultSetMapperUtility.mapTimestampToInstant(rs, "created_at"))
                 .withPositionAdministered((Integer) rs.getObject("position_administered"))
                 .withAdministeredAt(ResultSetMapperUtility.mapTimestampToInstant(rs, "administered_at"))
-                .build());
+                .build();
+        }
     }
 }

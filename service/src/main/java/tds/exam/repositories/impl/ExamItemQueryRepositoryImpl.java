@@ -16,12 +16,12 @@ public class ExamItemQueryRepositoryImpl implements ExamItemQueryRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     @Autowired
-    public ExamItemQueryRepositoryImpl(@Qualifier("queryJdbcTemplate") NamedParameterJdbcTemplate queryJdbcTemplate) {
+    public ExamItemQueryRepositoryImpl(@Qualifier("queryJdbcTemplate") final NamedParameterJdbcTemplate queryJdbcTemplate) {
         this.jdbcTemplate = queryJdbcTemplate;
     }
 
     @Override
-    public int getCurrentExamItemPosition(UUID examId) {
+    public int getCurrentExamItemPosition(final UUID examId) {
         final SqlParameterSource params = new MapSqlParameterSource("examId", examId.toString());
         final String SQL =
             "SELECT \n" +

@@ -27,14 +27,14 @@ class SessionServiceImpl implements SessionService {
     private final ExamServiceProperties examServiceProperties;
 
     @Autowired
-    public SessionServiceImpl(RestTemplate restTemplate, ExamServiceProperties examServiceProperties) {
+    public SessionServiceImpl(final RestTemplate restTemplate, final ExamServiceProperties examServiceProperties) {
         this.restTemplate = restTemplate;
         this.examServiceProperties = examServiceProperties;
     }
 
     @Override
     @Cacheable(CacheType.SHORT_TERM)
-    public Optional<Session> findSessionById(UUID sessionId) {
+    public Optional<Session> findSessionById(final UUID sessionId) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
                 .fromHttpUrl(String.format("%s/%s/%s",
@@ -57,7 +57,7 @@ class SessionServiceImpl implements SessionService {
 
     @Override
     @Cacheable(CacheType.LONG_TERM)
-    public Optional<ExternalSessionConfiguration> findExternalSessionConfigurationByClientName(String clientName) {
+    public Optional<ExternalSessionConfiguration> findExternalSessionConfigurationByClientName(final String clientName) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
                 .fromHttpUrl(String.format("%s/%s/external-config/%s",

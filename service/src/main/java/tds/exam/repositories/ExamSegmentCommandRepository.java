@@ -14,19 +14,19 @@ public interface ExamSegmentCommandRepository {
      *
      * @param segment the segment to insert
      */
-    void insert(List<ExamSegment> segment);
+    void insert(final List<ExamSegment> segment);
 
     /**
      * Inserts an exam segment event into the exam_segment_event table.
      *
      * @param segment the segment to update
      */
-    void update(ExamSegment segment);
+    void update(final ExamSegment segment);
 
     /**
      * Inserts a list of exam segment events into the exam_segment_event table.
      *
      * @param segment the segment to update
      */
-    void update(List<ExamSegment> segment);
+    void update(final List<ExamSegment> segment);
 }

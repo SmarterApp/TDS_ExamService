@@ -3,8 +3,6 @@ package tds.exam.utils;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -154,7 +152,7 @@ public class StatusTransitionValidator {
      * @param newStatus     The status the exam is being transitioned to
      * @return true if this a valid transition - false otherwise
      */
-    public static boolean isValidTransition(String currentStatus, String newStatus) {
+    public static boolean isValidTransition(final String currentStatus, final String newStatus) {
         return stateMap.get(currentStatus.toLowerCase()) != null
           && stateMap.get(currentStatus.toLowerCase()).contains(newStatus.toLowerCase());
     }

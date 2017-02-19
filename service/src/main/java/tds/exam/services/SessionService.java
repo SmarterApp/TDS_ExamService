@@ -18,7 +18,7 @@ public interface SessionService {
      * @param sessionId the session id
      * @return optional populated with {@link tds.session.Session session} if found otherwise empty
      */
-    Optional<Session> findSessionById(UUID sessionId);
+    Optional<Session> findSessionById(final UUID sessionId);
 
     /**
      * Retrieves the extern by client name
@@ -26,7 +26,7 @@ public interface SessionService {
      * @param clientName the client name for the exam
      * @return optional populated with {@link tds.session.ExternalSessionConfiguration} if found otherwise empty
      */
-    Optional<ExternalSessionConfiguration> findExternalSessionConfigurationByClientName(String clientName);
+    Optional<ExternalSessionConfiguration> findExternalSessionConfigurationByClientName(final String clientName);
 
     /**
      * Pause a {@link Session}
@@ -35,7 +35,7 @@ public interface SessionService {
      * @param newStatus The new status of the {@link Session}.
      * @return A {@link PauseSessionResponse} indicating the {@link Session} has been paused; otherwise empty.
      */
-    Optional<PauseSessionResponse> pause(UUID sessionId, String newStatus);
+    Optional<PauseSessionResponse> pause(final UUID sessionId, final String newStatus);
 
     /**
      * Finds the {@link tds.session.SessionAssessment} for the session id and assessment key
@@ -44,5 +44,5 @@ public interface SessionService {
      * @param assessmentKey assessment key
      * @return {@link tds.session.SessionAssessment} if found otherwise empty
      */
-    Optional<SessionAssessment> findSessionAssessment(UUID sessionId, String assessmentKey);
+    Optional<SessionAssessment> findSessionAssessment(final UUID sessionId, final String assessmentKey);
 }

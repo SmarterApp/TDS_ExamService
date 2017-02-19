@@ -17,7 +17,7 @@ public interface ExamAccommodationQueryRepository {
      * @param accommodationTypes a list of types of {@link tds.exam.ExamAccommodation}s to find
      * @return A list of {@link tds.exam.ExamAccommodation}s that correspond to the specified accommodation types
      */
-    List<ExamAccommodation> findAccommodations(UUID examId, String segmentKey, String... accommodationTypes);
+    List<ExamAccommodation> findAccommodations(final UUID examId, final String segmentKey, final String... accommodationTypes);
 
     /**
      * Retrieves all the accommodations associated with an exam
@@ -25,7 +25,7 @@ public interface ExamAccommodationQueryRepository {
      * @param examId the exam id for the
      * @return list of {@link tds.exam.ExamAccommodation}
      */
-    List<ExamAccommodation> findAccommodations(UUID examId);
+    List<ExamAccommodation> findAccommodations(final UUID examId);
 
     /**
      * Retrieves all the approved {@link tds.exam.ExamAccommodation} associated with the exam
@@ -33,5 +33,5 @@ public interface ExamAccommodationQueryRepository {
      * @param examId the unique id for the exam
      * @return list containing approved {@link tds.exam.ExamAccommodation}
      */
-    List<ExamAccommodation> findApprovedAccommodations(UUID examId);
+    List<ExamAccommodation> findApprovedAccommodations(final UUID examId);
 }

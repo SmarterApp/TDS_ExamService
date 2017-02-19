@@ -11,7 +11,6 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Clock;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -21,8 +20,8 @@ import java.util.UUID;
 
 import tds.common.Algorithm;
 import tds.exam.Exam;
-import tds.exam.builder.ExamBuilder;
 import tds.exam.ExamSegment;
+import tds.exam.builder.ExamBuilder;
 import tds.exam.repositories.ExamCommandRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;

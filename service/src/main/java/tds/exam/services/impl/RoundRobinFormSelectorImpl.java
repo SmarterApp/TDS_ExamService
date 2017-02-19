@@ -25,7 +25,7 @@ public class RoundRobinFormSelectorImpl implements FormSelector {
     }
 
     @Override
-    public Optional<Form> selectForm(Segment segment, String languageCode) {
+    public Optional<Form> selectForm(final Segment segment, final String languageCode) {
         List<Form> forms = segment.getForms(languageCode);
         int index = 0;
 

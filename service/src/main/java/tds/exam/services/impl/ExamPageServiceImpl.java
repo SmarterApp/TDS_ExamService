@@ -24,9 +24,9 @@ public class ExamPageServiceImpl implements ExamPageService {
     private final ExamApprovalService examApprovalService;
 
     @Autowired
-    public ExamPageServiceImpl(ExamPageQueryRepository examPageQueryRepository,
-                               ExamPageCommandRepository examPageCommandRepository,
-                               ExamApprovalService examApprovalService) {
+    public ExamPageServiceImpl(final ExamPageQueryRepository examPageQueryRepository,
+                               final ExamPageCommandRepository examPageCommandRepository,
+                               final ExamApprovalService examApprovalService) {
         this.examPageCommandRepository = examPageCommandRepository;
         this.examPageQueryRepository = examPageQueryRepository;
         this.examApprovalService = examApprovalService;
