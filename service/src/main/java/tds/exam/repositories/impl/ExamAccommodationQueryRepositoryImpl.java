@@ -22,14 +22,15 @@ import static tds.common.data.mapping.ResultSetMapperUtility.mapTimestampToJodaI
 @Repository
 public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQueryRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
+    private static final RowMapper<ExamAccommodation> accommodationRowMapper = new AccommodationRowMapper();
 
     @Autowired
-    public ExamAccommodationQueryRepositoryImpl(@Qualifier("queryJdbcTemplate") NamedParameterJdbcTemplate queryJdbcTemplate) {
+    public ExamAccommodationQueryRepositoryImpl(@Qualifier("queryJdbcTemplate") final NamedParameterJdbcTemplate queryJdbcTemplate) {
         this.jdbcTemplate = queryJdbcTemplate;
     }
 
     @Override
-    public List<ExamAccommodation> findAccommodations(UUID examId, String segmentKey, String[] accommodationTypes) {
+    public List<ExamAccommodation> findAccommodations(final UUID examId, final String segmentKey, final String[] accommodationTypes) {
         final MapSqlParameterSource parameters = new MapSqlParameterSource("examId", examId.toString())
             .addValue("segmentKey", segmentKey);
 
@@ -74,20 +75,20 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
 
         return jdbcTemplate.query(SQL,
             parameters,
-            new AccommodationRowMapper());
+            accommodationRowMapper);
     }
 
     @Override
-    public List<ExamAccommodation> findAccommodations(UUID examId) {
+    public List<ExamAccommodation> findAccommodations(final UUID examId) {
         return getAccommodations(examId, false);
     }
 
     @Override
-    public List<ExamAccommodation> findApprovedAccommodations(UUID examId) {
+    public List<ExamAccommodation> findApprovedAccommodations(final UUID examId) {
         return getAccommodations(examId, true);
     }
 
-    private List<ExamAccommodation> getAccommodations(UUID examId, boolean excludeDenied) {
+    private List<ExamAccommodation> getAccommodations(final UUID examId, final boolean excludeDenied) {
         final SqlParameterSource parameters = new MapSqlParameterSource("examId", examId.toString());
 
         String SQL =
@@ -129,10 +130,10 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
 
         return jdbcTemplate.query(SQL,
             parameters,
-            new AccommodationRowMapper());
+            accommodationRowMapper);
     }
 
-    private class AccommodationRowMapper implements RowMapper<ExamAccommodation> {
+    private static class AccommodationRowMapper implements RowMapper<ExamAccommodation> {
         @Override
         public ExamAccommodation mapRow(ResultSet rs, int rowNum) throws SQLException {
             return new ExamAccommodation.Builder(UUID.fromString(rs.getString("id")))
