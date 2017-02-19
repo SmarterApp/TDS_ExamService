@@ -14,5 +14,5 @@ public interface ExamItemResponseScoringService {
      * @return An {@link tds.exam.ExamItemResponseScore} describing the score and scoring metadata for this
      * {@link tds.exam.ExamItemResponse}
      */
-    ExamItemResponseScore getScore(ExamItemResponse response);
+    ExamItemResponseScore getScore(final ExamItemResponse response);
 }

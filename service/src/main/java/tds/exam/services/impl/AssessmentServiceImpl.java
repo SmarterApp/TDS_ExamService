@@ -31,7 +31,7 @@ class AssessmentServiceImpl implements AssessmentService {
     private final ExamServiceProperties examServiceProperties;
 
     @Autowired
-    public AssessmentServiceImpl(RestTemplate restTemplate, ExamServiceProperties examServiceProperties) {
+    public AssessmentServiceImpl(final RestTemplate restTemplate, final ExamServiceProperties examServiceProperties) {
         this.restTemplate = restTemplate;
         this.examServiceProperties = examServiceProperties;
     }
@@ -62,10 +62,10 @@ class AssessmentServiceImpl implements AssessmentService {
 
     @Override
     @Cacheable(CacheType.MEDIUM_TERM)
-    public List<AssessmentWindow> findAssessmentWindows(String clientName,
-                                                        String assessmentId,
-                                                        long studentId,
-                                                        ExternalSessionConfiguration configuration) {
+    public List<AssessmentWindow> findAssessmentWindows(final String clientName,
+                                                        final String assessmentId,
+                                                        final long studentId,
+                                                        final ExternalSessionConfiguration configuration) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
                 .fromHttpUrl(String.format("%s/%s/%s/%s/windows/student/%d",
@@ -105,7 +105,7 @@ class AssessmentServiceImpl implements AssessmentService {
     }
 
     @Override
-    public List<Accommodation> findAssessmentAccommodationsByAssessmentId(String clientName, String assessmentId) {
+    public List<Accommodation> findAssessmentAccommodationsByAssessmentId(final String clientName, final String assessmentId) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
                 .fromHttpUrl(String.format("%s/%s/%s/accommodations",

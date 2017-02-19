@@ -12,9 +12,9 @@ import java.util.UUID;
 import tds.common.Response;
 import tds.common.ValidationError;
 import tds.config.TimeLimitConfiguration;
-import tds.exam.ExamInfo;
 import tds.exam.Exam;
 import tds.exam.ExamApproval;
+import tds.exam.ExamInfo;
 import tds.exam.error.ValidationErrorCode;
 import tds.exam.repositories.ExamQueryRepository;
 import tds.exam.services.ExamApprovalService;
@@ -30,9 +30,9 @@ public class ExamApprovalServiceImpl implements ExamApprovalService {
     private final TimeLimitConfigurationService timeLimitConfigurationService;
 
     @Autowired
-    public ExamApprovalServiceImpl(ExamQueryRepository examQueryRepository,
-                                   SessionService sessionService,
-                                   TimeLimitConfigurationService timeLimitConfigurationService) {
+    public ExamApprovalServiceImpl(final ExamQueryRepository examQueryRepository,
+                                   final SessionService sessionService,
+                                   final TimeLimitConfigurationService timeLimitConfigurationService) {
         this.examQueryRepository = examQueryRepository;
         this.sessionService = sessionService;
         this.timeLimitConfigurationService = timeLimitConfigurationService;
@@ -51,7 +51,7 @@ public class ExamApprovalServiceImpl implements ExamApprovalService {
     }
 
     @Override
-    public List<Exam> getExamsPendingApproval(UUID sessionId) {
+    public List<Exam> getExamsPendingApproval(final UUID sessionId) {
         return examQueryRepository.getExamsPendingApproval(sessionId);
     }
 

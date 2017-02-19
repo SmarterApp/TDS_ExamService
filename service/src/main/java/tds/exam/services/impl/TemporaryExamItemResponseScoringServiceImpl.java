@@ -10,7 +10,7 @@ import tds.exam.services.ExamItemResponseScoringService;
 @Service
 public class TemporaryExamItemResponseScoringServiceImpl implements ExamItemResponseScoringService {
     @Override
-    public ExamItemResponseScore getScore(ExamItemResponse response) {
+    public ExamItemResponseScore getScore(final ExamItemResponse response) {
         // This implementation is temporary until scoring logic is ported over from legacy.  in particular, this
         // return value emulates returning an "empty"/dummy score when isScoringAsynchronous() == true
         // (tds.student.services.ItemScoringService, line 286).

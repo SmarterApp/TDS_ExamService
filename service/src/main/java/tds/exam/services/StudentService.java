@@ -27,5 +27,5 @@ public interface StudentService {
      * @param attributeNames the attribute names to use to fetch the attributes values from the package
      * @return list containing any {@link tds.student.RtsStudentPackageAttribute} corresponding to the attribute names
      */
-    List<RtsStudentPackageAttribute> findStudentPackageAttributes(long studentId, String clientName, String... attributeNames);
+    List<RtsStudentPackageAttribute> findStudentPackageAttributes(final long studentId, final String clientName, final String... attributeNames);
 }

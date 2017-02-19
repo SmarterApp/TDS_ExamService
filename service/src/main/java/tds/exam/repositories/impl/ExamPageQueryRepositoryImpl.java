@@ -1,10 +1,10 @@
 package tds.exam.repositories.impl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -28,16 +28,16 @@ import tds.exam.repositories.ExamPageQueryRepository;
 @Repository
 public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
-    private static final Logger LOG = LoggerFactory.getLogger(ExamPageQueryRepositoryImpl.class);
     private final static ExamPageRowMapper examPageRowMapper = new ExamPageRowMapper();
+    private final static ExamPageResultSetExtractor examPageResultExtractor = new ExamPageResultSetExtractor();
 
     @Autowired
-    public ExamPageQueryRepositoryImpl(@Qualifier("queryJdbcTemplate") NamedParameterJdbcTemplate queryJdbcTemplate) {
+    public ExamPageQueryRepositoryImpl(@Qualifier("queryJdbcTemplate") final NamedParameterJdbcTemplate queryJdbcTemplate) {
         this.jdbcTemplate = queryJdbcTemplate;
     }
 
     @Override
-    public List<ExamPage> findAll(UUID examId) {
+    public List<ExamPage> findAll(final UUID examId) {
         final MapSqlParameterSource parameters = new MapSqlParameterSource("examId", examId.toString());
 
         final String SQL =
@@ -71,7 +71,7 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
     }
 
     @Override
-    public Optional<ExamPage> find(UUID examId, int position) {
+    public Optional<ExamPage> find(final UUID examId, final int position) {
         final MapSqlParameterSource parameters = new MapSqlParameterSource("examId", examId.toString())
             .addValue("position", position);
 
@@ -112,7 +112,7 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
     }
 
     @Override
-    public Optional<ExamPage> findPageWithItems(UUID examId, int position) {
+    public Optional<ExamPage> findPageWithItems(final UUID examId, final int position) {
         final MapSqlParameterSource parameters = new MapSqlParameterSource("examId", examId.toString())
             .addValue("position", position);
 
@@ -190,7 +190,26 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
                 "ORDER BY \n" +
                 "   item.position";
 
-        return jdbcTemplate.query(SQL, parameters, resultExtractor -> {
+        return jdbcTemplate.query(SQL, parameters, examPageResultExtractor);
+    }
+
+    private static class ExamPageRowMapper implements RowMapper<ExamPage> {
+        @Override
+        public ExamPage mapRow(ResultSet rs, int rowNum) throws SQLException {
+            return new ExamPage.Builder()
+                .withId(UUID.fromString(rs.getString("id")))
+                .withPagePosition(rs.getInt("page_position"))
+                .withItemGroupKey(rs.getString("item_group_key"))
+                .withExamId(UUID.fromString(rs.getString("exam_id")))
+                .withCreatedAt(ResultSetMapperUtility.mapTimestampToJodaInstant(rs, "created_at"))
+                .withStartedAt(ResultSetMapperUtility.mapTimestampToJodaInstant(rs, "started_at"))
+                .build();
+        }
+    }
+
+    private static class ExamPageResultSetExtractor implements ResultSetExtractor<Optional<ExamPage>> {
+        @Override
+        public Optional<ExamPage> extractData(ResultSet resultExtractor) throws SQLException, DataAccessException {
             Optional<ExamPage> page = Optional.empty();
             List<ExamItem> items = new ArrayList<>();
 
@@ -248,20 +267,6 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
             }
 
             return page;
-        });
-    }
-
-    private static class ExamPageRowMapper implements RowMapper<ExamPage> {
-        @Override
-        public ExamPage mapRow(ResultSet rs, int rowNum) throws SQLException {
-            return new ExamPage.Builder()
-                .withId(UUID.fromString(rs.getString("id")))
-                .withPagePosition(rs.getInt("page_position"))
-                .withItemGroupKey(rs.getString("item_group_key"))
-                .withExamId(UUID.fromString(rs.getString("exam_id")))
-                .withCreatedAt(ResultSetMapperUtility.mapTimestampToJodaInstant(rs, "created_at"))
-                .withStartedAt(ResultSetMapperUtility.mapTimestampToJodaInstant(rs, "started_at"))
-                .build();
         }
     }
 }

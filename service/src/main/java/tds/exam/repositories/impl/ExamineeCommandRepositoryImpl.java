@@ -18,12 +18,12 @@ import tds.exam.repositories.ExamineeCommandRepository;
 public class ExamineeCommandRepositoryImpl implements ExamineeCommandRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
-    public ExamineeCommandRepositoryImpl(@Qualifier("commandJdbcTemplate") NamedParameterJdbcTemplate jdbcTemplate) {
+    public ExamineeCommandRepositoryImpl(@Qualifier("commandJdbcTemplate") final NamedParameterJdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
-    public void insertAttributes(ExamineeAttribute... attributes) {
+    public void insertAttributes(final ExamineeAttribute... attributes) {
         final SqlParameterSource[] batchParameters = Stream.of(attributes)
             .map(attribute -> new MapSqlParameterSource("examId", attribute.getExamId().toString())
                 .addValue("context", attribute.getContext().toString())
@@ -50,7 +50,7 @@ public class ExamineeCommandRepositoryImpl implements ExamineeCommandRepository 
     }
 
     @Override
-    public void insertRelationships(ExamineeRelationship... relationships) {
+    public void insertRelationships(final ExamineeRelationship... relationships) {
         final SqlParameterSource[] batchParameters = Stream.of(relationships)
             .map(relationship -> new MapSqlParameterSource("examId", relationship.getExamId().toString())
                 .addValue("attributeName", relationship.getName())

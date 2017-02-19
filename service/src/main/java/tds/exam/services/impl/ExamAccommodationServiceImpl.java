@@ -48,12 +48,12 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
     private final ExamQueryRepository examQueryRepository;
     
     @Autowired
-    public ExamAccommodationServiceImpl(ExamAccommodationQueryRepository examAccommodationQueryRepository,
-                                        ExamAccommodationCommandRepository examAccommodationCommandRepository,
-                                        AssessmentService assessmentService,
-                                        SessionService sessionService,
-                                        ExamApprovalService examApprovalService,
-                                        ExamQueryRepository examQueryRepository) {
+    public ExamAccommodationServiceImpl(final ExamAccommodationQueryRepository examAccommodationQueryRepository,
+                                        final ExamAccommodationCommandRepository examAccommodationCommandRepository,
+                                        final AssessmentService assessmentService,
+                                        final SessionService sessionService,
+                                        final ExamApprovalService examApprovalService,
+                                        final ExamQueryRepository examQueryRepository) {
         this.examAccommodationQueryRepository = examAccommodationQueryRepository;
         this.examAccommodationCommandRepository = examAccommodationCommandRepository;
         this.assessmentService = assessmentService;
@@ -63,18 +63,18 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
     }
 
     @Override
-    public List<ExamAccommodation> findAccommodations(UUID examId, String segmentId, String... accommodationTypes) {
+    public List<ExamAccommodation> findAccommodations(final UUID examId, final String segmentId, final String... accommodationTypes) {
         return examAccommodationQueryRepository.findAccommodations(examId, segmentId, accommodationTypes);
     }
 
     @Override
-    public List<ExamAccommodation> findAllAccommodations(UUID examId) {
+    public List<ExamAccommodation> findAllAccommodations(final UUID examId) {
         return examAccommodationQueryRepository.findAccommodations(examId);
     }
 
     @Transactional
     @Override
-    public List<ExamAccommodation> initializeExamAccommodations(Exam exam) {
+    public List<ExamAccommodation> initializeExamAccommodations(final Exam exam) {
         Instant now = Instant.now();
         // This method replaces StudentDLL._InitOpportunityAccommodations_SP.  One note is that the calls to testopporunity_readonly were not implemented because
         // these tables are only used for proctor and that is handled via the proctor related endpoints.
@@ -112,13 +112,17 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
     }
 
     @Override
-    public List<ExamAccommodation> findApprovedAccommodations(UUID examId) {
+    public List<ExamAccommodation> findApprovedAccommodations(final UUID examId) {
         return examAccommodationQueryRepository.findApprovedAccommodations(examId);
     }
 
     @Transactional
     @Override
-    public List<ExamAccommodation> initializeAccommodationsOnPreviousExam(Exam exam, Assessment assessment, int segmentPosition, boolean restoreRts, String guestAccommodations) {
+    public List<ExamAccommodation> initializeAccommodationsOnPreviousExam(final Exam exam,
+                                                                          final Assessment assessment,
+                                                                          final int segmentPosition,
+                                                                          final boolean restoreRts,
+                                                                          final String guestAccommodations) {
         /*
          This replaces the functionality of the following bits of code
          - StudentDLL 6834 - 6843
@@ -139,7 +143,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
 
     @Transactional
     @Override
-    public Optional<ValidationError> approveAccommodations(UUID examId, ApproveAccommodationsRequest request) {
+    public Optional<ValidationError> approveAccommodations(final UUID examId, final ApproveAccommodationsRequest request) {
         /* This method is a port of StudentDLL.T_ApproveAccommodations_SP, starting at line 11429 */
         ExamInfo examInfo = new ExamInfo(examId, request.getSessionId(), request.getBrowserId());
     
@@ -174,9 +178,8 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
         List<ExamAccommodation> currentAccommodations = examAccommodationQueryRepository.findApprovedAccommodations(examId);
     
         // For each assessment and segments separately, initialize their respective accommodations
-        request.getAccommodationCodes().forEach((segmentPosition, guestAccommodationCodes) -> {
-            initializePreviousAccommodations(exam, segmentPosition, false, currentAccommodations, guestAccommodationCodes, true);
-        });
+        request.getAccommodationCodes().forEach((segmentPosition, guestAccommodationCodes) ->
+            initializePreviousAccommodations(exam, segmentPosition, false, currentAccommodations, guestAccommodationCodes, true));
         
         return Optional.empty();
     }

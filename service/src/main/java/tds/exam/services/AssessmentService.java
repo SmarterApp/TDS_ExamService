@@ -19,7 +19,7 @@ public interface AssessmentService {
      * @param key unique key for the assessment
      * @return {@link tds.assessment.Assessment the assessment}
      */
-    Optional<Assessment> findAssessment(String clientName, String key);
+    Optional<Assessment> findAssessment(final String clientName, final String key);
 
     /**
      * Finds the assessment windows for an exam
@@ -30,7 +30,7 @@ public interface AssessmentService {
      * @param configuration {@link tds.session.ExternalSessionConfiguration} for the environment
      * @return array of {@link tds.assessment.AssessmentWindow}
      */
-    List<AssessmentWindow> findAssessmentWindows(String clientName, String assessmentId, long studentId, ExternalSessionConfiguration configuration);
+    List<AssessmentWindow> findAssessmentWindows(final String clientName, final String assessmentId, final long studentId, final ExternalSessionConfiguration configuration);
 
     /**
      * Finds the {@link tds.accommodation.Accommodation} for the assessment key

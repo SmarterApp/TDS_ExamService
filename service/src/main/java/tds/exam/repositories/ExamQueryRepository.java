@@ -20,7 +20,7 @@ public interface ExamQueryRepository {
      * @param examId exam id
      * @return the {@link tds.exam.Exam Exam} if found otherwise empty
      */
-    Optional<Exam> getExamById(UUID examId);
+    Optional<Exam> getExamById(final UUID examId);
 
     /**
      * Retrieves the latest exam that isn't ended
@@ -30,7 +30,7 @@ public interface ExamQueryRepository {
      * @param clientName   client name for the exam
      * @return the {@link tds.exam.Exam Exam} if found otherwise empty
      */
-    Optional<Exam> getLastAvailableExam(long studentId, String assessmentId, String clientName);
+    Optional<Exam> getLastAvailableExam(final long studentId, final String assessmentId, final String clientName);
 
     /**
      * Retrieves the {@link java.time.Instant} the {@link tds.exam.Exam} was last paused, an
@@ -40,7 +40,7 @@ public interface ExamQueryRepository {
      * @param examId the exam id of the paused exam
      * @return the time the exam was last paused
      */
-    Optional<Instant> findLastStudentActivity(UUID examId);
+    Optional<Instant> findLastStudentActivity(final UUID examId);
 
     /**
      * Find all {@link tds.exam.Exam}s that belong to a {@link tds.session.Session} so they can be paused.
@@ -49,7 +49,7 @@ public interface ExamQueryRepository {
      * @param statusSet A {@code java.util.Set} of statuses that can transition to "paused"
      * @return A collection of exams that are assigned to the specified session
      */
-    List<Exam> findAllExamsInSessionWithStatus(UUID sessionId, Set<String> statusSet);
+    List<Exam> findAllExamsInSessionWithStatus(final UUID sessionId, final Set<String> statusSet);
 
     /**
      * Retrieves a listing of all ability records for the specified exam and student.
@@ -60,7 +60,7 @@ public interface ExamQueryRepository {
      * @param studentId  the student taking the exam
      * @return a list of {@link Ability} objects for past exams
      */
-    List<Ability> findAbilities(UUID exam, String clientName, String subject, Long studentId);
+    List<Ability> findAbilities(final UUID exam, final String clientName, final String subject, final Long studentId);
 
     /**
      * List of exams pending approval from the proctor
@@ -68,5 +68,5 @@ public interface ExamQueryRepository {
      * @param sessionId session id of the exams pending approval
      * @return list of {@link tds.exam.Exam} pending approval
      */
-    List<Exam> getExamsPendingApproval(UUID sessionId);
+    List<Exam> getExamsPendingApproval(final UUID sessionId);
 }

@@ -20,13 +20,13 @@ class TimeLimitConfigurationServiceImpl implements TimeLimitConfigurationService
     private final RestTemplate restTemplate;
     private final ExamServiceProperties examServiceProperties;
 
-    public TimeLimitConfigurationServiceImpl(RestTemplate restTemplate, ExamServiceProperties examServiceProperties) {
+    public TimeLimitConfigurationServiceImpl(final RestTemplate restTemplate, final ExamServiceProperties examServiceProperties) {
         this.restTemplate = restTemplate;
         this.examServiceProperties = examServiceProperties;
     }
 
     @Override
-    public Optional<TimeLimitConfiguration> findTimeLimitConfiguration(String clientName, String assessmentId) {
+    public Optional<TimeLimitConfiguration> findTimeLimitConfiguration(final String clientName, final String assessmentId) {
         UriComponentsBuilder uriBuilder =
                 UriComponentsBuilder
                     .fromHttpUrl(String.format("%s/%s/time-limits/%s/%s",

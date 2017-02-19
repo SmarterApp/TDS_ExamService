@@ -20,12 +20,12 @@ public interface ExamItemCommandRepository {
      *
      * @param examItems The collection of {@link tds.exam.ExamItem}s to insert
      */
-    void insert(ExamItem... examItems);
+    void insert(final ExamItem... examItems);
 
     /**
      * Insert one or more {@link tds.exam.ExamItemResponse}s.
      *
      * @param responses The collection of {@link tds.exam.ExamItemResponse}s to insert
      */
-    void insertResponses(ExamItemResponse... responses);
+    void insertResponses(final ExamItemResponse... responses);
 }

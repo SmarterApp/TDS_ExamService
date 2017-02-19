@@ -17,5 +17,5 @@ public interface FormSelector {
      * @param languageCode The languageCode of the exam
      * @return The selected test forms
      */
-    Optional<Form> selectForm(Segment segment, String languageCode);
+    Optional<Form> selectForm(final Segment segment, final String languageCode);
 }

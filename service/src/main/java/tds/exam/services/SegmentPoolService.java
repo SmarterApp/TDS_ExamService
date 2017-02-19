@@ -20,6 +20,5 @@ public interface SegmentPoolService {
      * @param segment       The segment being constructed
      * @return The {@link tds.exam.models.SegmentPoolInfo} containing segment pool information
      */
-    SegmentPoolInfo computeSegmentPool(UUID examId, Segment segment, List<ItemConstraint> itemConstraints,
-                                       String languageCode);
+    SegmentPoolInfo computeSegmentPool(final UUID examId, final Segment segment, final List<ItemConstraint> itemConstraints, final String languageCode);
 }

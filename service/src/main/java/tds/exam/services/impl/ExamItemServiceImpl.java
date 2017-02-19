@@ -38,13 +38,13 @@ public class ExamItemServiceImpl implements ExamItemService {
     private final ExamItemResponseScoringService examItemResponseScoringService;
 
     @Autowired
-    public ExamItemServiceImpl(ExamItemQueryRepository examItemQueryRepository,
-                               ExamItemCommandRepository examItemCommandRepository,
-                               ExamPageCommandRepository examPageCommandRepository,
-                               ExamPageQueryRepository examPageQueryRepository,
-                               ExamQueryRepository examQueryRepository,
-                               ExamApprovalService examApprovalService,
-                               ExamItemResponseScoringService examItemResponseScoringService) {
+    public ExamItemServiceImpl(final ExamItemQueryRepository examItemQueryRepository,
+                               final ExamItemCommandRepository examItemCommandRepository,
+                               final ExamPageCommandRepository examPageCommandRepository,
+                               final ExamPageQueryRepository examPageQueryRepository,
+                               final ExamQueryRepository examQueryRepository,
+                               final ExamApprovalService examApprovalService,
+                               final ExamItemResponseScoringService examItemResponseScoringService) {
         this.examItemQueryRepository = examItemQueryRepository;
         this.examItemCommandRepository = examItemCommandRepository;
         this.examPageCommandRepository = examPageCommandRepository;
@@ -100,7 +100,7 @@ public class ExamItemServiceImpl implements ExamItemService {
     }
 
     @Override
-    public int getExamPosition(UUID examId) {
+    public int getExamPosition(final UUID examId) {
         return examItemQueryRepository.getCurrentExamItemPosition(examId);
     }
 }

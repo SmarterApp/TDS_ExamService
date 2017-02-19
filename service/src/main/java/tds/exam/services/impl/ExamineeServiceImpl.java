@@ -21,15 +21,15 @@ public class ExamineeServiceImpl implements ExamineeService {
     private final StudentService studentService;
 
     @Autowired
-    public ExamineeServiceImpl(ExamineeCommandRepository examineeCommandRepository,
-                               StudentService studentService) {
+    public ExamineeServiceImpl(final ExamineeCommandRepository examineeCommandRepository,
+                               final StudentService studentService) {
         this.examineeCommandRepository = examineeCommandRepository;
         this.studentService = studentService;
     }
 
     @Override
     @Transactional
-    public void insertAttributesAndRelationships(Exam exam, ExamineeContext context) {
+    public void insertAttributesAndRelationships(final Exam exam, final ExamineeContext context) {
         //A negative student id means it is a guest and attributes and relationships are not inserted because
         //test results are not sent to the scoring system
         if(exam.getStudentId() < 0) {
@@ -44,7 +44,7 @@ public class ExamineeServiceImpl implements ExamineeService {
 
     @Override
     @Transactional
-    public void insertAttributesAndRelationships(Exam exam, Student student, ExamineeContext context) {
+    public void insertAttributesAndRelationships(final Exam exam, final Student student, final ExamineeContext context) {
         ExamineeAttribute[] examineeAttributes = student.getAttributes().stream()
             .map(attribute -> new ExamineeAttribute.Builder()
                 .withExamId(exam.getId())

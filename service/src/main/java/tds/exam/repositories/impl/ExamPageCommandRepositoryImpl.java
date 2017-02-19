@@ -19,12 +19,12 @@ public class ExamPageCommandRepositoryImpl implements ExamPageCommandRepository 
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     @Autowired
-    public ExamPageCommandRepositoryImpl(@Qualifier("commandJdbcTemplate") NamedParameterJdbcTemplate jdbcTemplate) {
+    public ExamPageCommandRepositoryImpl(@Qualifier("commandJdbcTemplate") final NamedParameterJdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
-    public void insert(ExamPage... examPages) {
+    public void insert(final ExamPage... examPages) {
         final String examPageSQL =
             "INSERT INTO \n" +
                 "exam_page (\n" +
@@ -82,7 +82,7 @@ public class ExamPageCommandRepositoryImpl implements ExamPageCommandRepository 
     }
 
     @Override
-    public void update(ExamPage... examPages) {
+    public void update(final ExamPage... examPages) {
         final String updatePageSQL =
             "INSERT INTO exam_page_event (exam_page_id, deleted_at, started_at) \n" +
                 "VALUES (:examPageId, :deletedAt, :startedAt)";

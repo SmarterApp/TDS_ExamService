@@ -33,10 +33,10 @@ public class ExamSegmentServiceImpl implements ExamSegmentService {
     private final FieldTestService fieldTestService;
 
     @Autowired
-    public ExamSegmentServiceImpl(ExamSegmentCommandRepository commandRepository,
-                                  SegmentPoolService segmentPoolService,
-                                  FormSelector formSelector,
-                                  FieldTestService fieldTestService) {
+    public ExamSegmentServiceImpl(final ExamSegmentCommandRepository commandRepository,
+                                  final SegmentPoolService segmentPoolService,
+                                  final FormSelector formSelector,
+                                  final FieldTestService fieldTestService) {
         this.commandRepository = commandRepository;
         this.segmentPoolService = segmentPoolService;
         this.fieldTestService = fieldTestService;

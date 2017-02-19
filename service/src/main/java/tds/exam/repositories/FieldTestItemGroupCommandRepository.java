@@ -14,5 +14,5 @@ public interface FieldTestItemGroupCommandRepository {
      *
      * @param fieldTestItemGroups the {@link tds.exam.models.FieldTestItemGroup}s to insert
      */
-    void insert(List<FieldTestItemGroup> fieldTestItemGroups);
+    void insert(final List<FieldTestItemGroup> fieldTestItemGroups);
 }

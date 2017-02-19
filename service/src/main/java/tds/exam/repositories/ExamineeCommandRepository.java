@@ -12,12 +12,12 @@ public interface ExamineeCommandRepository {
      *
      * @param attributes One or more {@link tds.exam.ExamineeAttribute}s to insert
      */
-    void insertAttributes(ExamineeAttribute... attributes);
+    void insertAttributes(final ExamineeAttribute... attributes);
 
     /**
      * Insert a collection of {@link tds.exam.ExamineeRelationship}s into the database.
      *
      * @param relationships One or more {@link tds.exam.ExamineeRelationship}s to insert
      */
-    void insertRelationships(ExamineeRelationship... relationships);
+    void insertRelationships(final ExamineeRelationship... relationships);
 }

@@ -17,5 +17,5 @@ public interface FieldTestItemGroupQueryRepository {
      * @param segmentKey The id of the {@link tds.assessment.Segment} to fetch item groups by
      * @return The list of {@link tds.exam.models.FieldTestItemGroup}s fetched
      */
-    List<FieldTestItemGroup> find(UUID examId, String segmentKey);
+    List<FieldTestItemGroup> find(final UUID examId, final String segmentKey);
 }

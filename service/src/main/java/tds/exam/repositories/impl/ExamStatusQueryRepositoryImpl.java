@@ -16,12 +16,12 @@ public class ExamStatusQueryRepositoryImpl implements ExamStatusQueryRepository 
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     @Autowired
-    public ExamStatusQueryRepositoryImpl(@Qualifier("queryJdbcTemplate") NamedParameterJdbcTemplate queryJdbcTemplate) {
+    public ExamStatusQueryRepositoryImpl(@Qualifier("queryJdbcTemplate") final NamedParameterJdbcTemplate queryJdbcTemplate) {
         this.jdbcTemplate = queryJdbcTemplate;
     }
 
     @Override
-    public ExamStatusCode findExamStatusCode(String code) {
+    public ExamStatusCode findExamStatusCode(final String code) {
         SqlParameterSource parameters = new MapSqlParameterSource("code", code);
 
         String SQL = "SELECT \n" +

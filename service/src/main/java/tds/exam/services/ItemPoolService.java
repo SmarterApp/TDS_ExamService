@@ -20,7 +20,7 @@ public interface ItemPoolService {
      * @param items     the collection of all possible {@link tds.assessment.Item}s in a {@link tds.assessment.Segment}
      * @return  returns a filtered list of {@link tds.assessment.Item}s eligible for the segment pool
      */
-    Set<Item> getItemPool(UUID examId, List<ItemConstraint> itemConstraints, List<Item> items);
+    Set<Item> getItemPool(final UUID examId, final List<ItemConstraint> itemConstraints, final List<Item> items);
 
     /**
      * Retrieves a collection of eligible items for the exam segment based on exam accommodations and assessment
@@ -31,5 +31,5 @@ public interface ItemPoolService {
      * @param items           the collection of all possible {@link tds.assessment.Item}s in a {@link tds.assessment.Segment}
      * @return returns a filtered list of {@link tds.assessment.Item}s eligible for the segment pool
      */
-    Set<Item> getFieldTestItemPool(UUID examId, List<ItemConstraint> itemConstraints, List<Item> items);
+    Set<Item> getFieldTestItemPool(UUID examId, List<ItemConstraint> itemConstraints, final List<Item> items);
 }

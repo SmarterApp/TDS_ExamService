@@ -3,6 +3,7 @@ package tds.exam.services.impl;
 import org.joda.time.Instant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,17 +31,16 @@ public class FieldTestServiceImpl implements FieldTestService {
     private final FieldTestItemGroupSelector fieldTestItemGroupSelector;
 
     @Autowired
-    public FieldTestServiceImpl(FieldTestItemGroupQueryRepository fieldTestItemGroupQueryRepository,
-                                FieldTestItemGroupCommandRepository fieldTestItemGroupCommandRepository,
-                                FieldTestItemGroupSelector fieldTestItemGroupSelector) {
+    public FieldTestServiceImpl(final FieldTestItemGroupQueryRepository fieldTestItemGroupQueryRepository,
+                                final FieldTestItemGroupCommandRepository fieldTestItemGroupCommandRepository,
+                                final FieldTestItemGroupSelector fieldTestItemGroupSelector) {
         this.fieldTestItemGroupQueryRepository = fieldTestItemGroupQueryRepository;
         this.fieldTestItemGroupCommandRepository = fieldTestItemGroupCommandRepository;
         this.fieldTestItemGroupSelector = fieldTestItemGroupSelector;
     }
 
-
     @Override
-    public boolean isFieldTestEligible(Exam exam, Assessment assessment, String segmentKey) {
+    public boolean isFieldTestEligible(final Exam exam, final Assessment assessment, final String segmentKey) {
         boolean isEligible = false;
         Segment currentSegment = assessment.getSegment(segmentKey);
 
@@ -49,7 +49,7 @@ public class FieldTestServiceImpl implements FieldTestService {
             // Check if there exists at least one field test item in the segment with the selected language
             /* StudentDLL [4430] */
             Optional<Item> fieldTestItem = currentSegment.getItems(exam.getLanguageCode()).stream()
-                .filter(item -> item.isFieldTest())
+                .filter(Item::isFieldTest)
                 .findFirst();
 
              /* [4430 - 4442] checks to see if the segment contains at least one FT item */
@@ -80,6 +80,7 @@ public class FieldTestServiceImpl implements FieldTestService {
     /*
         This code covers legacy StudentDLL._FT_SelectItemgroups_SP [line 3033] and is called by _InitializeTestSegments_SP [4704]
      */
+    @Transactional
     @Override
     public int selectItemGroups(final Exam exam, final Assessment assessment, final String segmentKey) {
         Random rng = new Random();
@@ -198,7 +199,7 @@ public class FieldTestServiceImpl implements FieldTestService {
     /*
         This helper method is a null-tolerant Instant/date comparison for the test window
      */
-    private boolean isWithinFieldTestWindow(Instant startTime, Instant endTime) {
+    private boolean isWithinFieldTestWindow(final Instant startTime, final Instant endTime) {
         return !(startTime != null
             && !startTime.isBeforeNow())
             && (endTime == null || endTime.isAfterNow());

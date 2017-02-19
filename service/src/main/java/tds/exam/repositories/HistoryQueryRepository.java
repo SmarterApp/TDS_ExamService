@@ -12,7 +12,7 @@ public interface HistoryQueryRepository {
      * @param clientName    Name of the SBAC client
      * @param subject       Subject name (typically ELA or MATH)
      * @param studentId     Id of the student to obtain the ability for
-     * @return
+     * @return Ability if found otherwise empty
      */
-    Optional<Double> findAbilityFromHistoryForSubjectAndStudent(String clientName, String subject, Long studentId);
+    Optional<Double> findAbilityFromHistoryForSubjectAndStudent(final String clientName, final String subject, Long studentId);
 }

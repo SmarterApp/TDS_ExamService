@@ -19,7 +19,7 @@ public interface ExamineeQueryRepository {
      * @param context The {@link tds.exam.ExamineeContext} in which the attributes were stored
      * @return A collection of {@link tds.exam.ExamineeAttribute}s for the specified {@link tds.exam.ExamineeContext}
      */
-    List<ExamineeAttribute> findAllAttributes(UUID examId, ExamineeContext context);
+    List<ExamineeAttribute> findAllAttributes(final UUID examId, final ExamineeContext context);
 
     /**
      * Find the {@link tds.exam.ExamineeRelationship}s associated with an {@link tds.exam.Exam} for the specified
@@ -29,5 +29,5 @@ public interface ExamineeQueryRepository {
      * @param context The {@link tds.exam.ExamineeContext} in which the relationships were stored
      * @return A collection of {@link tds.exam.ExamineeRelationship}s for the specified {@link tds.exam.ExamineeContext}
      */
-    List<ExamineeRelationship> findAllRelationships(UUID examId, ExamineeContext context);
+    List<ExamineeRelationship> findAllRelationships(final UUID examId, final ExamineeContext context);
 }

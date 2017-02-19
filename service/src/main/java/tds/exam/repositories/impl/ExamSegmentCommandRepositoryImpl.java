@@ -8,7 +8,7 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,7 +21,6 @@ import tds.exam.repositories.ExamSegmentCommandRepository;
  */
 @Repository
 public class ExamSegmentCommandRepositoryImpl implements ExamSegmentCommandRepository {
-
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     @Autowired
@@ -87,7 +86,7 @@ public class ExamSegmentCommandRepositoryImpl implements ExamSegmentCommandRepos
 
     @Override
     public void update(final ExamSegment segment) {
-        update(Arrays.asList(segment));
+        update(Collections.singletonList(segment));
     }
 
     @Override

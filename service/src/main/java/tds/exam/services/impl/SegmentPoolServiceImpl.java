@@ -26,13 +26,15 @@ public class SegmentPoolServiceImpl implements SegmentPoolService {
     private final ItemPoolService itemPoolService;
 
     @Autowired
-    public SegmentPoolServiceImpl(ItemPoolService itemPoolService) {
+    public SegmentPoolServiceImpl(final ItemPoolService itemPoolService) {
         this.itemPoolService = itemPoolService;
     }
 
     @Override
-    public SegmentPoolInfo computeSegmentPool(final UUID examId, final Segment segment,
-                                              final List<ItemConstraint> itemConstraints, final String languageCode) {
+    public SegmentPoolInfo computeSegmentPool(final UUID examId,
+                                              final Segment segment,
+                                              final List<ItemConstraint> itemConstraints,
+                                              final String languageCode) {
         // Get the list of eligible items based on constraints and exam accommodations
         Set<Item> itemPool = itemPoolService.getItemPool(examId, itemConstraints, segment.getItems(languageCode));
         /* getItemPool selects the items that are eligible for the segment pool we are constructing.

@@ -13,19 +13,19 @@ public interface ExamPageCommandRepository {
      *
      * @param examPages One or more {@link tds.exam.ExamPage}s to insert
      */
-    void insert(ExamPage... examPages);
+    void insert(final ExamPage... examPages);
 
     /**
      * Marks all {@link tds.exam.ExamPage}s for the exam as deleted
      *
      * @param examId the id of the {@link tds.exam.Exam}
      */
-    void deleteAll(UUID examId);
+    void deleteAll(final UUID examId);
 
     /**
      * Update an {@link tds.exam.ExamPage}.
      *
      * @param examPages One or more {@link tds.exam.ExamPage} to update
      */
-    void update(ExamPage... examPages);
+    void update(final ExamPage... examPages);
 }

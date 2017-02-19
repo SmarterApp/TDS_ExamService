@@ -12,5 +12,5 @@ public interface ExamStatusQueryRepository {
      * @return {@link tds.exam.ExamStatusCode} or empty if not found
      * @throws org.springframework.dao.EmptyResultDataAccessException if the status code cannot be found
      */
-    ExamStatusCode findExamStatusCode(String code);
+    ExamStatusCode findExamStatusCode(final String code);
 }

@@ -10,7 +10,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.text.MessageFormat;
-import java.util.HashMap;
 import java.util.Optional;
 
 import tds.common.cache.CacheType;
@@ -31,14 +30,14 @@ class ConfigServiceImpl implements ConfigService {
     private final ExamServiceProperties examServiceProperties;
 
     @Autowired
-    public ConfigServiceImpl(RestTemplate restTemplate, ExamServiceProperties examServiceProperties) {
+    public ConfigServiceImpl(final RestTemplate restTemplate, final ExamServiceProperties examServiceProperties) {
         this.restTemplate = restTemplate;
         this.examServiceProperties = examServiceProperties;
     }
 
     @Override
     @Cacheable(CacheType.LONG_TERM)
-    public Optional<ClientSystemFlag> findClientSystemFlag(String clientName, String auditObject) {
+    public Optional<ClientSystemFlag> findClientSystemFlag(final String clientName, final String auditObject) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
                 .fromHttpUrl(String.format("%s/%s/client-system-flags/%s/%s",
@@ -62,19 +61,29 @@ class ConfigServiceImpl implements ConfigService {
 
     @Override
     @Cacheable(CacheType.LONG_TERM)
-    public String getFormattedMessage(String clientName, String context, String messageKey, Object... replacements) {
+    public String getFormattedMessage(final String clientName, final String context, final String messageKey, final Object... replacements) {
         return getFormattedMessage(clientName, context, messageKey, DEFAULT_LANGUAGE, replacements);
     }
 
     @Override
     @Cacheable(CacheType.LONG_TERM)
-    public String getFormattedMessage(String clientName, String context, String messageKey, String languageCode, Object... replacements) {
+    public String getFormattedMessage(final String clientName,
+                                      final String context,
+                                      final String messageKey,
+                                      final String languageCode,
+                                      final Object... replacements) {
         return getFormattedMessage(clientName, context, messageKey, languageCode, null, null, replacements);
     }
 
     @Override
     @Cacheable(CacheType.LONG_TERM)
-    public String getFormattedMessage(String clientName, String context, String messageKey, String languageCode, String subject, String grade, Object... replacements) {
+    public String getFormattedMessage(final String clientName,
+                                      final String context,
+                                      final String messageKey,
+                                      final String languageCode,
+                                      final String subject,
+                                      final String grade,
+                                      final Object... replacements) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
                 .fromHttpUrl(String.format("%s/%s/messages/%s/%s/%s/%s",
