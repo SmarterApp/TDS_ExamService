@@ -692,7 +692,7 @@ class ExamServiceImpl implements ExamService {
         //Exam if previous exam is null (0 ocnt in the legacy code)
 
         //Get timelmits for delay days  Line 516-525 OpenTestServiceImpl
-        int numberOfDaysToDelay = 0;
+        int numberOfDaysToDelay;
         Optional<TimeLimitConfiguration> maybeTimeLimitConfiguration = timeLimitConfigurationService.findTimeLimitConfiguration(clientName, openExamRequest.getAssessmentKey());
         if (maybeTimeLimitConfiguration.isPresent()) {
             numberOfDaysToDelay = maybeTimeLimitConfiguration.get().getExamDelayDays();
