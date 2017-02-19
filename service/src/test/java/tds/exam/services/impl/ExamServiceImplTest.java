@@ -864,8 +864,6 @@ public class ExamServiceImplTest {
         final String clientName = "SBAC_TEST6";
         final long studentId = 9898L;
         final float assessmentAbilityVal = 99F;
-        final Double slope = 2D;
-        final Double intercept = 1D;
 
         Assessment assessment = new Assessment();
         assessment.setKey("(SBAC)SBAC ELA 3-ELA-3-Spring-2112a");
