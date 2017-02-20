@@ -1,3 +1,9 @@
+#Configure the Spring Actuator endpoints to require an authenticated user with the MANAGEMENT role
+management:
+  security:
+    roles: MANAGEMENT
+
+---
 spring:
   profiles: local-development
   ds_queries:
@@ -10,6 +16,13 @@ spring:
     username: ${sbac.jdbc.user}
     password: ${sbac.jdbc.password}
     driver-class-name: 'com.mysql.jdbc.Driver'
+
+#Configure the default Spring Security user with the MANAGEMENT role
+security:
+  user:
+    name: user
+    password: password
+    role: MANAGEMENT
 
 server:
   port: 8081
