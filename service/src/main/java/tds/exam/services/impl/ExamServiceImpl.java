@@ -769,29 +769,4 @@ class ExamServiceImpl implements ExamService {
 
         return exam;
     }
-    
-    @Override
-    @Transactional
-    public Response<List<ExamSegment>> findExamSegments(final UUID examId, final UUID sessionId, final UUID browserId) {
-        /* This method is a port of the legacy OpportunityRepository.getOpportunitySegments() [241] and
-        *  StudentDLL.T_GetOpportunitySegments_SP [10212]*/
-        ExamInfo examInfo = new ExamInfo(examId, sessionId, browserId);
-        Optional<Exam> maybeExam = findExam(examId);
-        
-        if (!maybeExam.isPresent()) {
-            return new Response<>(new ValidationError(
-                ExamStatusCode.STATUS_FAILED, String.format("No exam found for id %s", examId)
-            ));
-        }
-        
-        Exam exam = maybeExam.get();
-        /* ValidateItemsAccess_FN() in StudentDLL [10214] */
-        Optional<ValidationError> maybeError = examApprovalService.verifyAccess(examInfo, exam);
-        
-        if (maybeError.isPresent()) {
-            return new Response<>(maybeError.get());
-        }
-        
-        return new Response<>(examSegmentService.findByExamId(examId));
-    }
 }

@@ -116,7 +116,7 @@ public class ExamSegment {
             return this;
         }
 
-        public Builder withIsPermeable(boolean newPermeable) {
+        public Builder withPermeable(boolean newPermeable) {
             this.permeable = newPermeable;
             return this;
         }
@@ -131,7 +131,7 @@ public class ExamSegment {
             return this;
         }
 
-        public Builder withIsSatisfied(boolean newIsSatisfied) {
+        public Builder withSatisfied(boolean newIsSatisfied) {
             this.satisfied = newIsSatisfied;
             return this;
         }

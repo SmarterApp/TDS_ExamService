@@ -36,7 +36,6 @@ import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
 import tds.exam.ExamConfiguration;
 import tds.exam.ExamInfo;
-import tds.exam.ExamSegment;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
 import tds.exam.ExamineeContext;
@@ -74,7 +73,6 @@ import tds.student.Student;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -1334,104 +1332,7 @@ public class ExamServiceImplTest {
 
         verify(mockExamCommandRepository, times(0)).update(Matchers.<Exam>anyVararg());
     }
-    
-    @Test
-    public void shouldReturnValidationErrorForNoExamFoundFindExamSegments() {
-        UUID sessionId = UUID.randomUUID();
-        UUID browserId = UUID.randomUUID();
-        Exam exam = new ExamBuilder()
-            .withSessionId(sessionId)
-            .withBrowserId(browserId)
-            .build();
-        ExamSegment seg1 = new ExamSegment.Builder()
-            .withSegmentKey("seg1")
-            .withExamId(exam.getId())
-            .withSegmentPosition(1)
-            .build();
-        ExamSegment seg2 = new ExamSegment.Builder()
-            .withSegmentKey("seg2")
-            .withExamId(exam.getId())
-            .withSegmentPosition(2)
-            .build();
-        ExamInfo examInfo = new ExamInfo(exam.getId(), sessionId, browserId);
-        
-        when(mockExamQueryRepository.getExamById(exam.getId())).thenReturn(Optional.empty());
-        when(mockExamApprovalService.verifyAccess(examInfo, exam)).thenReturn(Optional.empty());
-        when(mockExamSegmentService.findByExamId(exam.getId())).thenReturn(Arrays.asList(seg1, seg2));
-        Response<List<ExamSegment>> response = examService.findExamSegments(exam.getId(), sessionId, browserId);
-        verify(mockExamQueryRepository).getExamById(exam.getId());
-        verify(mockExamApprovalService, never()).verifyAccess(examInfo, exam);
-        verify(mockExamSegmentService, never()).findByExamId(exam.getId());
-        
-        assertThat(response.getError().isPresent()).isTrue();
-        assertThat(response.getData().isPresent()).isFalse();
-    }
-    
-    @Test
-    public void shouldReturnValidationErrorForFailedVerifyAccessFindExamSegments() {
-        UUID sessionId = UUID.randomUUID();
-        UUID browserId = UUID.randomUUID();
-        Exam exam = new ExamBuilder()
-            .withSessionId(sessionId)
-            .withBrowserId(browserId)
-            .build();
-        ExamSegment seg1 = new ExamSegment.Builder()
-            .withSegmentKey("seg1")
-            .withExamId(exam.getId())
-            .withSegmentPosition(1)
-            .build();
-        ExamSegment seg2 = new ExamSegment.Builder()
-            .withSegmentKey("seg2")
-            .withExamId(exam.getId())
-            .withSegmentPosition(2)
-            .build();
-        ExamInfo examInfo = new ExamInfo(exam.getId(), sessionId, browserId);
-        
-        when(mockExamQueryRepository.getExamById(exam.getId())).thenReturn(Optional.of(exam));
-        when(mockExamApprovalService.verifyAccess(examInfo, exam)).thenReturn(Optional.of(new ValidationError("Oh", "no")));
-        when(mockExamSegmentService.findByExamId(exam.getId())).thenReturn(Arrays.asList(seg1, seg2));
-        Response<List<ExamSegment>> response = examService.findExamSegments(exam.getId(), sessionId, browserId);
-        verify(mockExamQueryRepository).getExamById(exam.getId());
-        verify(mockExamApprovalService).verifyAccess(examInfo, exam);
-        verify(mockExamSegmentService, never()).findByExamId(exam.getId());
-        
-        assertThat(response.getError().isPresent()).isTrue();
-        assertThat(response.getData().isPresent()).isFalse();
-    }
 
-    @Test
-    public void shouldReturnExamSegmentsForExamId() {
-        UUID sessionId = UUID.randomUUID();
-        UUID browserId = UUID.randomUUID();
-        Exam exam = new ExamBuilder()
-            .withSessionId(sessionId)
-            .withBrowserId(browserId)
-            .build();
-        ExamSegment seg1 = new ExamSegment.Builder()
-            .withSegmentKey("seg1")
-            .withExamId(exam.getId())
-            .withSegmentPosition(1)
-            .build();
-        ExamSegment seg2 = new ExamSegment.Builder()
-            .withSegmentKey("seg2")
-            .withExamId(exam.getId())
-            .withSegmentPosition(2)
-            .build();
-        ExamInfo examInfo = new ExamInfo(exam.getId(), sessionId, browserId);
-        
-        when(mockExamQueryRepository.getExamById(exam.getId())).thenReturn(Optional.of(exam));
-        when(mockExamApprovalService.verifyAccess(examInfo, exam)).thenReturn(Optional.empty());
-        when(mockExamSegmentService.findByExamId(exam.getId())).thenReturn(Arrays.asList(seg1, seg2));
-        Response<List<ExamSegment>> response = examService.findExamSegments(exam.getId(), sessionId, browserId);
-        verify(mockExamQueryRepository).getExamById(exam.getId());
-        verify(mockExamApprovalService).verifyAccess(examInfo, exam);
-        verify(mockExamSegmentService).findByExamId(exam.getId());
-        
-        assertThat(response.getError().isPresent()).isFalse();
-        assertThat(response.getData().isPresent()).isTrue();
-        assertThat(response.getData().get()).hasSize(2);
-    }
-    
     private Exam createExam(UUID sessionId, UUID thisExamId, String assessmentId, String clientName, long studentId) {
         return new Exam.Builder()
             .withId(thisExamId)

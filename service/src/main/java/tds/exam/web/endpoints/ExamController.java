@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -25,7 +24,6 @@ import tds.common.web.exceptions.NotFoundException;
 import tds.common.web.resources.NoContentResponseResource;
 import tds.exam.Exam;
 import tds.exam.ExamConfiguration;
-import tds.exam.ExamSegment;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
 import tds.exam.OpenExamRequest;
@@ -124,20 +122,5 @@ public class ExamController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void pauseExamsInSession(@PathVariable final UUID sessionId) {
         examService.pauseAllExamsInSession(sessionId);
-    }
-    
-    @RequestMapping(value = "/segments/{examId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<Response<List<ExamSegment>>> getExamSegments(@PathVariable final UUID examId,
-                                                                @RequestParam final UUID browserId,
-                                                                @RequestParam final UUID sessionId) {
-        Response<List<ExamSegment>> examSegmentsResponse = examService.findExamSegments(examId, sessionId, browserId);
-        
-        if (examSegmentsResponse.getError().isPresent()) {
-            return new ResponseEntity<>(examSegmentsResponse, HttpStatus.UNPROCESSABLE_ENTITY);
-        } else if (examSegmentsResponse.getData().isPresent() && examSegmentsResponse.getData().get().isEmpty()) {
-            return new ResponseEntity<>(examSegmentsResponse, HttpStatus.NO_CONTENT);
-        }
-        
-        return ResponseEntity.ok(examSegmentsResponse);
     }
 }

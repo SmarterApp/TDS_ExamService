@@ -78,14 +78,4 @@ public interface ExamService {
      * @param sessionId The unique identifier of the session that has been closed
      */
     void pauseAllExamsInSession(final UUID sessionId);
-    
-    /**
-     * Fetches the {@link tds.exam.ExamSegment}s for the exam id after validating the exam and session.
-     *
-     * @param examId    The id of the exam to fetch the exam segments for
-     * @param sessionId The id of the session this exam belongs to
-     * @param browserId The id of the browser this exam belongs to
-     * @return The list of {@link tds.exam.ExamSegment}s for the exam
-     */
-    Response<List<ExamSegment>> findExamSegments(final UUID examId, final UUID sessionId, final UUID browserId);
 }
