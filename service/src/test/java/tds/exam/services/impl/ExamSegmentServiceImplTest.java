@@ -1,5 +1,6 @@
 package tds.exam.services.impl;
 
+import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -12,25 +13,34 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import tds.assessment.Assessment;
 import tds.assessment.Form;
 import tds.assessment.Item;
 import tds.assessment.Segment;
 import tds.common.Algorithm;
+import tds.common.Response;
+import tds.common.ValidationError;
 import tds.exam.Exam;
+import tds.exam.ExamApproval;
+import tds.exam.ExamInfo;
 import tds.exam.ExamSegment;
+import tds.exam.ExamStatusCode;
 import tds.exam.builder.AssessmentBuilder;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.builder.ItemBuilder;
 import tds.exam.builder.SegmentBuilder;
 import tds.exam.models.SegmentPoolInfo;
 import tds.exam.repositories.ExamSegmentCommandRepository;
+import tds.exam.repositories.ExamSegmentQueryRepository;
+import tds.exam.services.ExamApprovalService;
 import tds.exam.services.FieldTestService;
 import tds.exam.services.FormSelector;
 import tds.exam.services.SegmentPoolService;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -40,6 +50,9 @@ public class ExamSegmentServiceImplTest {
 
     @Mock
     private ExamSegmentCommandRepository mockExamSegmentCommandRepository;
+    
+    @Mock
+    private ExamSegmentQueryRepository mockExamSegmentQueryRepository;
 
     @Mock
     private SegmentPoolService mockSegmentPoolService;
@@ -50,13 +63,16 @@ public class ExamSegmentServiceImplTest {
     @Mock
     private FormSelector mockFormSelector;
 
+    @Mock
+    private ExamApprovalService mockExamApprovalService;
+
     @Captor
     private ArgumentCaptor<List<ExamSegment>> examSegmentCaptor;
 
     @Before
     public void setUp() {
-        examSegmentService = new ExamSegmentServiceImpl(mockExamSegmentCommandRepository,
-            mockSegmentPoolService, mockFormSelector, mockFieldTestService);
+        examSegmentService = new ExamSegmentServiceImpl(mockExamSegmentCommandRepository, mockExamSegmentQueryRepository,
+            mockSegmentPoolService, mockFormSelector, mockFieldTestService, mockExamApprovalService);
     }
 
     @Test(expected = IllegalStateException.class)
@@ -569,5 +585,61 @@ public class ExamSegmentServiceImplTest {
         assertThat(examSegment.isSatisfied()).isFalse();
         assertThat(examSegment.getPoolCount()).isEqualTo(segmentPoolInfo.getPoolCount());
         assertThat(examSegment.getItemPool()).containsExactlyInAnyOrder("item-1", "item-2", "item-3", "item-4");
+    }
+
+    @Test
+    public void shouldReturnValidationErrorForFailedVerifyAccessFindExamSegments() {
+        UUID examId = UUID.randomUUID();
+        UUID sessionId = UUID.randomUUID();
+        UUID browserId = UUID.randomUUID();
+        ExamSegment seg1 = new ExamSegment.Builder()
+            .withSegmentKey("seg1")
+            .withExamId(examId)
+            .withSegmentPosition(1)
+            .build();
+        ExamSegment seg2 = new ExamSegment.Builder()
+            .withSegmentKey("seg2")
+            .withExamId(examId)
+            .withSegmentPosition(2)
+            .build();
+        ExamInfo examInfo = new ExamInfo(examId, sessionId, browserId);
+
+        when(mockExamApprovalService.getApproval(examInfo)).thenReturn(new Response<>(new ValidationError("Oh", "no")));
+        when(mockExamSegmentQueryRepository.findByExamId(examId)).thenReturn(Arrays.asList(seg1, seg2));
+        Response<List<ExamSegment>> response = examSegmentService.findExamSegments(examId, sessionId, browserId);
+        verify(mockExamApprovalService).getApproval(examInfo);
+        verify(mockExamSegmentQueryRepository, never()).findByExamId(examId);
+
+        Assertions.assertThat(response.getError().isPresent()).isTrue();
+        Assertions.assertThat(response.getData().isPresent()).isFalse();
+    }
+
+    @Test
+    public void shouldReturnExamSegmentsForExamId() {
+        UUID examId = UUID.randomUUID();
+        UUID sessionId = UUID.randomUUID();
+        UUID browserId = UUID.randomUUID();
+        ExamSegment seg1 = new ExamSegment.Builder()
+            .withSegmentKey("seg1")
+            .withExamId(examId)
+            .withSegmentPosition(1)
+            .build();
+        ExamSegment seg2 = new ExamSegment.Builder()
+            .withSegmentKey("seg2")
+            .withExamId(examId)
+            .withSegmentPosition(2)
+            .build();
+        ExamInfo examInfo = new ExamInfo(examId, sessionId, browserId);
+        ExamApproval mockExamApproval = new ExamApproval(examId, new ExamStatusCode(ExamStatusCode.STATUS_APPROVED), "reason");
+
+        when(mockExamApprovalService.getApproval(examInfo)).thenReturn(new Response<>(mockExamApproval));
+        when(mockExamSegmentQueryRepository.findByExamId(examId)).thenReturn(Arrays.asList(seg1, seg2));
+        Response<List<ExamSegment>> response = examSegmentService.findExamSegments(examId, sessionId, browserId);
+        verify(mockExamApprovalService).getApproval(examInfo);
+        verify(mockExamSegmentQueryRepository).findByExamId(examId);
+
+        Assertions.assertThat(response.getError().isPresent()).isFalse();
+        Assertions.assertThat(response.getData().isPresent()).isTrue();
+        Assertions.assertThat(response.getData().get()).hasSize(2);
     }
 }
