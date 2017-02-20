@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import tds.assessment.Assessment;
@@ -16,10 +17,12 @@ import tds.assessment.Form;
 import tds.assessment.Item;
 import tds.assessment.Segment;
 import tds.common.Algorithm;
+import tds.common.Response;
 import tds.exam.Exam;
 import tds.exam.ExamSegment;
 import tds.exam.models.SegmentPoolInfo;
 import tds.exam.repositories.ExamSegmentCommandRepository;
+import tds.exam.repositories.ExamSegmentQueryRepository;
 import tds.exam.services.ExamSegmentService;
 import tds.exam.services.FieldTestService;
 import tds.exam.services.FormSelector;
@@ -28,16 +31,19 @@ import tds.exam.services.SegmentPoolService;
 @Service
 public class ExamSegmentServiceImpl implements ExamSegmentService {
     private final ExamSegmentCommandRepository commandRepository;
+    private final ExamSegmentQueryRepository queryRepository;
     private final SegmentPoolService segmentPoolService;
     private final FormSelector formSelector;
     private final FieldTestService fieldTestService;
 
     @Autowired
-    public ExamSegmentServiceImpl(final ExamSegmentCommandRepository commandRepository,
-                                  final SegmentPoolService segmentPoolService,
-                                  final FormSelector formSelector,
-                                  final FieldTestService fieldTestService) {
+    public ExamSegmentServiceImpl(ExamSegmentCommandRepository commandRepository,
+                                  ExamSegmentQueryRepository queryRepository,
+                                  SegmentPoolService segmentPoolService,
+                                  FormSelector formSelector,
+                                  FieldTestService fieldTestService) {
         this.commandRepository = commandRepository;
+        this.queryRepository = queryRepository;
         this.segmentPoolService = segmentPoolService;
         this.fieldTestService = fieldTestService;
         this.formSelector = formSelector;
@@ -149,5 +155,10 @@ public class ExamSegmentServiceImpl implements ExamSegmentService {
         commandRepository.insert(examSegments);
 
         return totalItems;
+    }
+    
+    @Override
+    public List<ExamSegment> findByExamId(final UUID examId) {
+        return queryRepository.findByExamId(examId);
     }
 }

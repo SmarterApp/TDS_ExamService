@@ -30,6 +30,7 @@ import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
 import tds.exam.ExamConfiguration;
 import tds.exam.ExamInfo;
+import tds.exam.ExamSegment;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
 import tds.exam.ExamineeContext;
@@ -767,5 +768,27 @@ class ExamServiceImpl implements ExamService {
         }
 
         return exam;
+    }
+    
+    @Override
+    @Transactional
+    public Response<List<ExamSegment>> findExamSegments(final UUID examId, final UUID sessionId, final UUID browserId) {
+        ExamInfo examInfo = new ExamInfo(examId, sessionId, browserId);
+        Optional<Exam> maybeExam = findExam(examId);
+        
+        if (!maybeExam.isPresent()) {
+            return new Response<>(new ValidationError(
+                ExamStatusCode.STATUS_FAILED, String.format("No exam found for id %s", examId)
+            ));
+        }
+        
+        Exam exam = maybeExam.get();
+        Optional<ValidationError> maybeError = examApprovalService.verifyAccess(examInfo, exam);
+        
+        if (maybeError.isPresent()) {
+            return new Response<>(maybeError.get());
+        }
+        
+        return new Response<>(examSegmentService.findByExamId(examId));
     }
 }

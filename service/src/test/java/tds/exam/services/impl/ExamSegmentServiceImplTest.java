@@ -26,6 +26,7 @@ import tds.exam.builder.ItemBuilder;
 import tds.exam.builder.SegmentBuilder;
 import tds.exam.models.SegmentPoolInfo;
 import tds.exam.repositories.ExamSegmentCommandRepository;
+import tds.exam.repositories.ExamSegmentQueryRepository;
 import tds.exam.services.FieldTestService;
 import tds.exam.services.FormSelector;
 import tds.exam.services.SegmentPoolService;
@@ -40,6 +41,9 @@ public class ExamSegmentServiceImplTest {
 
     @Mock
     private ExamSegmentCommandRepository mockExamSegmentCommandRepository;
+    
+    @Mock
+    private ExamSegmentQueryRepository mockExamSegmentQueryRepository;
 
     @Mock
     private SegmentPoolService mockSegmentPoolService;
@@ -55,7 +59,7 @@ public class ExamSegmentServiceImplTest {
 
     @Before
     public void setUp() {
-        examSegmentService = new ExamSegmentServiceImpl(mockExamSegmentCommandRepository,
+        examSegmentService = new ExamSegmentServiceImpl(mockExamSegmentCommandRepository, mockExamSegmentQueryRepository,
             mockSegmentPoolService, mockFormSelector, mockFieldTestService);
     }
 
@@ -569,5 +573,15 @@ public class ExamSegmentServiceImplTest {
         assertThat(examSegment.isSatisfied()).isFalse();
         assertThat(examSegment.getPoolCount()).isEqualTo(segmentPoolInfo.getPoolCount());
         assertThat(examSegment.getItemPool()).containsExactlyInAnyOrder("item-1", "item-2", "item-3", "item-4");
+    }
+    
+    @Test
+    public void shouldReturnExamSegmentsForExamId() {
+        Exam exam = new ExamBuilder().build();
+        when(mockExamSegmentQueryRepository.findByExamId(exam.getId()))
+          .thenReturn(Arrays.asList(new ExamSegment.Builder().build(), new ExamSegment.Builder().build()));
+        List<ExamSegment> retSegments = examSegmentService.findByExamId(exam.getId());
+        verify(mockExamSegmentQueryRepository).findByExamId(exam.getId());
+        assertThat(retSegments).hasSize(2);
     }
 }
