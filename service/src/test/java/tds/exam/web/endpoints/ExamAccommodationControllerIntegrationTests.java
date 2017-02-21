@@ -10,6 +10,13 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import tds.common.ValidationError;
+import tds.common.configuration.SecurityConfiguration;
+import tds.common.web.advice.ExceptionAdvice;
+import tds.exam.ApproveAccommodationsRequest;
+import tds.exam.ExamAccommodation;
+import tds.exam.builder.ExamAccommodationBuilder;
+import tds.exam.services.ExamAccommodationService;
 
 import java.net.URI;
 import java.util.Arrays;
@@ -17,13 +24,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.UUID;
-
-import tds.common.ValidationError;
-import tds.common.web.advice.ExceptionAdvice;
-import tds.exam.ApproveAccommodationsRequest;
-import tds.exam.ExamAccommodation;
-import tds.exam.builder.ExamAccommodationBuilder;
-import tds.exam.services.ExamAccommodationService;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasSize;
@@ -36,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @RunWith(SpringRunner.class)
 @WebMvcTest(ExamAccommodationController.class)
-@Import({ExceptionAdvice.class})
+@Import({ExceptionAdvice.class, SecurityConfiguration.class})
 public class ExamAccommodationControllerIntegrationTests {
     @Autowired
     private MockMvc http;

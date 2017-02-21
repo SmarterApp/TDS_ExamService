@@ -10,19 +10,19 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import tds.common.Response;
+import tds.common.ValidationError;
+import tds.common.configuration.JacksonObjectMapperConfiguration;
+import tds.common.configuration.SecurityConfiguration;
+import tds.common.web.advice.ExceptionAdvice;
+import tds.exam.ExamSegment;
+import tds.exam.services.ExamSegmentService;
 
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-
-import tds.common.Response;
-import tds.common.ValidationError;
-import tds.common.configuration.JacksonObjectMapperConfiguration;
-import tds.common.web.advice.ExceptionAdvice;
-import tds.exam.ExamSegment;
-import tds.exam.services.ExamSegmentService;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.Mockito.verify;
@@ -33,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @RunWith(SpringRunner.class)
 @WebMvcTest(ExamSegmentController.class)
-@Import({ExceptionAdvice.class, JacksonObjectMapperConfiguration.class})
+@Import({ExceptionAdvice.class, JacksonObjectMapperConfiguration.class, SecurityConfiguration.class})
 public class ExamSegmentControllerIntegrationTests {
     @Autowired
     private MockMvc http;

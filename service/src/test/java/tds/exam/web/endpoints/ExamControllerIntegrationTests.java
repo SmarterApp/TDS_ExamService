@@ -9,13 +9,9 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-
-import java.net.URI;
-import java.util.Optional;
-import java.util.UUID;
-
 import tds.common.ValidationError;
 import tds.common.configuration.JacksonObjectMapperConfiguration;
+import tds.common.configuration.SecurityConfiguration;
 import tds.common.web.advice.ExceptionAdvice;
 import tds.exam.Exam;
 import tds.exam.ExamStatusCode;
@@ -24,6 +20,10 @@ import tds.exam.builder.ExamBuilder;
 import tds.exam.error.ValidationErrorCode;
 import tds.exam.services.ExamPageService;
 import tds.exam.services.ExamService;
+
+import java.net.URI;
+import java.util.Optional;
+import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.Matchers.any;
@@ -40,7 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @RunWith(SpringRunner.class)
 @WebMvcTest(ExamController.class)
-@Import({ExceptionAdvice.class, JacksonObjectMapperConfiguration.class})
+@Import({ExceptionAdvice.class, JacksonObjectMapperConfiguration.class, SecurityConfiguration.class})
 public class ExamControllerIntegrationTests {
     @Autowired
     private MockMvc http;
