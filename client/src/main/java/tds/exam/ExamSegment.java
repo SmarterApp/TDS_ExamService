@@ -21,10 +21,10 @@ public class ExamSegment {
     private Algorithm algorithm;
     private int examItemCount;
     private int fieldTestItemCount;
-    private boolean isPermeable;
+    private boolean permeable;
     private String restorePermeableCondition;
     private String formCohort;
-    private boolean isSatisfied;
+    private boolean satisfied;
     private Instant exitedAt;
     private Set<String> itemPool;
     private int poolCount;
@@ -40,10 +40,10 @@ public class ExamSegment {
         this.algorithm = builder.algorithm;
         this.examItemCount = builder.examItemCount;
         this.fieldTestItemCount = builder.fieldTestItemCount;
-        this.isPermeable = builder.isPermeable;
+        this.permeable = builder.permeable;
         this.restorePermeableCondition = builder.restorePermeableCondition;
         this.formCohort = builder.formCohort;
-        this.isSatisfied = builder.isSatisfied;
+        this.satisfied = builder.satisfied;
         this.exitedAt = builder.exitedAt;
         this.itemPool = builder.itemPool;
         this.poolCount = builder.poolCount;
@@ -60,14 +60,35 @@ public class ExamSegment {
         private Algorithm algorithm;
         private int examItemCount;
         private int fieldTestItemCount;
-        private boolean isPermeable;
+        private boolean permeable;
         private String restorePermeableCondition;
         private String formCohort;
-        private boolean isSatisfied;
+        private boolean satisfied;
         private Instant exitedAt;
         private Set<String> itemPool;
         private int poolCount;
         private Instant createdAt;
+
+        public Builder fromSegment(ExamSegment segment) {
+            examId = segment.examId;
+            segmentKey = segment.segmentKey;
+            segmentId = segment.segmentId;
+            segmentPosition = segment.segmentPosition;
+            formKey = segment.formKey;
+            formId = segment.formId;
+            algorithm = segment.algorithm;
+            examItemCount = segment.examItemCount;
+            fieldTestItemCount = segment.fieldTestItemCount;
+            permeable = segment.permeable;
+            restorePermeableCondition = segment.restorePermeableCondition;
+            formCohort = segment.formCohort;
+            satisfied = segment.satisfied;
+            exitedAt = segment.exitedAt;
+            itemPool = segment.itemPool;
+            poolCount = segment.poolCount;
+            createdAt = segment.createdAt;
+            return this;
+        }
 
         public Builder withExamId(UUID newExamId) {
             this.examId = newExamId;
@@ -115,7 +136,7 @@ public class ExamSegment {
         }
 
         public Builder withIsPermeable(boolean newIsPermeable) {
-            this.isPermeable = newIsPermeable;
+            this.permeable = newIsPermeable;
             return this;
         }
 
@@ -130,7 +151,7 @@ public class ExamSegment {
         }
 
         public Builder withIsSatisfied(boolean newIsSatisfied) {
-            this.isSatisfied = newIsSatisfied;
+            this.satisfied = newIsSatisfied;
             return this;
         }
 
@@ -226,7 +247,7 @@ public class ExamSegment {
      * @return states whether a segment can be permeated (viewed by a student)
      */
     public boolean isPermeable() {
-        return isPermeable;
+        return permeable;
     }
 
     /**
@@ -247,7 +268,7 @@ public class ExamSegment {
      * @return states whether an exam segment has been "satisfied" (completed) by the student
      */
     public boolean isSatisfied() {
-        return isSatisfied;
+        return satisfied;
     }
 
     /**

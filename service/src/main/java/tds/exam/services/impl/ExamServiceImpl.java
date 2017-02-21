@@ -10,6 +10,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -23,6 +24,7 @@ import tds.assessment.AssessmentWindow;
 import tds.common.Response;
 import tds.common.ValidationError;
 import tds.common.data.legacy.LegacyComparer;
+import tds.common.entity.utils.ChangeListener;
 import tds.common.web.exceptions.NotFoundException;
 import tds.config.ClientSystemFlag;
 import tds.config.TimeLimitConfiguration;
@@ -93,6 +95,8 @@ class ExamServiceImpl implements ExamService {
 
     private final Set<String> statusesThatCanTransitionToPaused;
 
+    private final Collection<ChangeListener<Exam>> changeListeners;
+
     @Autowired
     public ExamServiceImpl(ExamQueryRepository examQueryRepository,
                            HistoryQueryRepository historyQueryRepository,
@@ -108,7 +112,8 @@ class ExamServiceImpl implements ExamService {
                            ExamStatusQueryRepository examStatusQueryRepository,
                            ExamAccommodationService examAccommodationService,
                            ExamApprovalService examApprovalService,
-                           ExamineeService examineeService) {
+                           ExamineeService examineeService,
+                           Collection<ChangeListener<Exam>> changeListeners) {
         this.examQueryRepository = examQueryRepository;
         this.historyQueryRepository = historyQueryRepository;
         this.sessionService = sessionService;
@@ -124,6 +129,7 @@ class ExamServiceImpl implements ExamService {
         this.examAccommodationService = examAccommodationService;
         this.examApprovalService = examApprovalService;
         this.examineeService = examineeService;
+        this.changeListeners = changeListeners;
 
         // From CommondDLL._IsValidStatusTransition_FN(): a collection of all the statuses that can transition to
         // "paused".  That is, each of these status values has a nested switch statement that contains the "paused"
@@ -277,6 +283,8 @@ class ExamServiceImpl implements ExamService {
             .build();
 
         examCommandRepository.update(updatedExam);
+
+        changeListeners.forEach(listener -> listener.accept(exam, updatedExam));
 
         return Optional.empty();
     }

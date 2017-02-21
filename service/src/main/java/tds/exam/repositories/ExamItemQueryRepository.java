@@ -1,6 +1,9 @@
 package tds.exam.repositories;
 
+import java.util.List;
 import java.util.UUID;
+
+import tds.exam.ExamItem;
 
 /**
  * Handles data reads from the exam_item_response table
@@ -13,5 +16,5 @@ public interface ExamItemQueryRepository {
      * @param examId the id of the {@link tds.exam.Exam} to find the position for
      * @return the item position of the last item responded to
      */
-    int getCurrentExamItemPosition(final UUID examId);
+    int getCurrentExamItemPosition(UUID examId);
 }
