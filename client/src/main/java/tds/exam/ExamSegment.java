@@ -30,6 +30,11 @@ public class ExamSegment {
     private int poolCount;
     private Instant createdAt;
 
+    /**
+     * Private constructor for frameworks
+     */
+    private ExamSegment() {}
+
     public ExamSegment(Builder builder) {
         this.examId = builder.examId;
         this.segmentKey = builder.segmentKey;
@@ -135,8 +140,8 @@ public class ExamSegment {
             return this;
         }
 
-        public Builder withIsPermeable(boolean newIsPermeable) {
-            this.permeable = newIsPermeable;
+        public Builder withPermeable(boolean newPermeable) {
+            this.permeable = newPermeable;
             return this;
         }
 
@@ -150,7 +155,7 @@ public class ExamSegment {
             return this;
         }
 
-        public Builder withIsSatisfied(boolean newIsSatisfied) {
+        public Builder withSatisfied(boolean newIsSatisfied) {
             this.satisfied = newIsSatisfied;
             return this;
         }

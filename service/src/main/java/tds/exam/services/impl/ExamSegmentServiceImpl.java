@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import tds.assessment.Assessment;
@@ -16,10 +17,15 @@ import tds.assessment.Form;
 import tds.assessment.Item;
 import tds.assessment.Segment;
 import tds.common.Algorithm;
+import tds.common.Response;
 import tds.exam.Exam;
+import tds.exam.ExamApproval;
+import tds.exam.ExamInfo;
 import tds.exam.ExamSegment;
 import tds.exam.models.SegmentPoolInfo;
 import tds.exam.repositories.ExamSegmentCommandRepository;
+import tds.exam.repositories.ExamSegmentQueryRepository;
+import tds.exam.services.ExamApprovalService;
 import tds.exam.services.ExamSegmentService;
 import tds.exam.services.FieldTestService;
 import tds.exam.services.FormSelector;
@@ -28,19 +34,25 @@ import tds.exam.services.SegmentPoolService;
 @Service
 public class ExamSegmentServiceImpl implements ExamSegmentService {
     private final ExamSegmentCommandRepository commandRepository;
+    private final ExamSegmentQueryRepository queryRepository;
     private final SegmentPoolService segmentPoolService;
     private final FormSelector formSelector;
     private final FieldTestService fieldTestService;
+    private final ExamApprovalService examApprovalService;
 
     @Autowired
     public ExamSegmentServiceImpl(final ExamSegmentCommandRepository commandRepository,
+                                  final ExamSegmentQueryRepository queryRepository,
                                   final SegmentPoolService segmentPoolService,
                                   final FormSelector formSelector,
-                                  final FieldTestService fieldTestService) {
+                                  final FieldTestService fieldTestService,
+                                  final ExamApprovalService examApprovalService) {
         this.commandRepository = commandRepository;
+        this.queryRepository = queryRepository;
         this.segmentPoolService = segmentPoolService;
         this.fieldTestService = fieldTestService;
         this.formSelector = formSelector;
+        this.examApprovalService = examApprovalService;
     }
 
     /*
@@ -134,8 +146,8 @@ public class ExamSegmentServiceImpl implements ExamSegmentService {
                 .withAlgorithm(segment.getSelectionAlgorithm())
                 .withExamItemCount(examItemCount)
                 .withFieldTestItemCount(fieldTestItemCount)
-                .withIsPermeable(false)
-                .withIsSatisfied(isSatisfied)
+                .withPermeable(false)
+                .withSatisfied(isSatisfied)
                 .withItemPool(itemPoolIds)
                 .withPoolCount(poolCount)
                 .build()
@@ -149,5 +161,20 @@ public class ExamSegmentServiceImpl implements ExamSegmentService {
         commandRepository.insert(examSegments);
 
         return totalItems;
+    }
+
+    @Override
+    public Response<List<ExamSegment>> findExamSegments(final UUID examId, final UUID sessionId, final UUID browserId) {
+        /* This method is a port of the legacy OpportunityRepository.getOpportunitySegments() [241] and
+        *  StudentDLL.T_GetOpportunitySegments_SP [10212]*/
+        ExamInfo examInfo = new ExamInfo(examId, sessionId, browserId);
+        /* ValidateItemsAccess_FN() in StudentDLL [10214] */
+        Response<ExamApproval> approval = examApprovalService.getApproval(examInfo);
+
+        if (approval.getError().isPresent()) {
+            return new Response<>(approval.getError().get());
+        }
+
+        return new Response<>(queryRepository.findByExamId(examId));
     }
 }
