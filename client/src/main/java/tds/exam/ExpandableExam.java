@@ -47,14 +47,23 @@ public class ExpandableExam {
         }
     }
 
+    /**
+     * @return The base {@link tds.exam.Exam}
+     */
     public Exam getExam() {
         return exam;
     }
 
+    /**
+     * @return The {@link tds.exam.ExamAccommodation}s of the exam
+     */
     public List<ExamAccommodation> getExamAccommodations() {
         return examAccommodations;
     }
 
+    /**
+     * @return The count of items that have existing responses for the exam
+     */
     public int getItemsResponseCount() {
         return itemResponseCount;
     }
