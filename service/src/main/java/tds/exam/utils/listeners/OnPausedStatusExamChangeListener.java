@@ -34,8 +34,8 @@ public class OnPausedStatusExamChangeListener implements ChangeListener<Exam> {
         Preconditions.checkNotNull(oldExam, "oldExam cannot be null");
         Preconditions.checkNotNull(newExam, "newExam cannot be null");
 
-        // If the status hasn't changed between exam instances or the status hasn't already been set to "paused" on the
-        // new version of the exam, exit
+        // If the status has not changed between exam instances or the status has not already been set to "paused" on
+        // the new version of the exam, exit
         if (oldExam.getStatus().equals(newExam.getStatus())
             || !newExam.getStatus().getCode().equals(ExamStatusCode.STATUS_PAUSED)) {
             return;
@@ -54,7 +54,7 @@ public class OnPausedStatusExamChangeListener implements ChangeListener<Exam> {
             && (segment.getRestorePermeableCondition().equals("segment") || segment.getRestorePermeableCondition().equals("paused"))) {
             examSegmentCommandRepository.update(new ExamSegment.Builder()
                 .fromSegment(segment)
-                .withIsPermeable(false)
+                .withPermeable(false)
                 .withRestorePermeableCondition(null)
                 .build());
         }

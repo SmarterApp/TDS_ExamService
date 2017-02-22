@@ -176,7 +176,7 @@ public class FieldTestItemGroup {
         private Integer positionAdministered;
         private Instant administeredAt;
 
-        public Builder withId(int id) {
+        public Builder withId(long id) {
             this.id = id;
             return this;
         }

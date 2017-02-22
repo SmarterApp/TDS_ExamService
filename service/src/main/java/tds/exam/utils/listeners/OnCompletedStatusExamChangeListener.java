@@ -4,15 +4,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import tds.common.util.Preconditions;
+import java.util.List;
+
 import tds.common.entity.utils.ChangeListener;
+import tds.common.util.Preconditions;
 import tds.common.web.exceptions.NotFoundException;
 import tds.exam.Exam;
 import tds.exam.ExamSegment;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamineeContext;
+import tds.exam.models.FieldTestItemGroup;
 import tds.exam.repositories.ExamSegmentCommandRepository;
 import tds.exam.repositories.ExamSegmentQueryRepository;
+import tds.exam.repositories.FieldTestItemGroupCommandRepository;
+import tds.exam.repositories.FieldTestItemGroupQueryRepository;
 import tds.exam.services.ExamineeService;
 
 /**
@@ -22,14 +27,20 @@ import tds.exam.services.ExamineeService;
 public class OnCompletedStatusExamChangeListener implements ChangeListener<Exam> {
     private final ExamSegmentQueryRepository examSegmentQueryRepository;
     private final ExamSegmentCommandRepository examSegmentCommandRepository;
+    private final FieldTestItemGroupCommandRepository fieldTestItemGroupCommandRepository;
+    private final FieldTestItemGroupQueryRepository fieldTestItemGroupQueryRepository;
     private final ExamineeService examineeService;
 
     @Autowired
     public OnCompletedStatusExamChangeListener(final ExamSegmentCommandRepository examSegmentCommandRepository,
                                                final ExamSegmentQueryRepository examSegmentQueryRepository,
+                                               final FieldTestItemGroupCommandRepository fieldTestItemGroupCommandRepository,
+                                               final FieldTestItemGroupQueryRepository fieldTestItemGroupQueryRepository,
                                                final ExamineeService examineeService) {
         this.examSegmentCommandRepository = examSegmentCommandRepository;
         this.examSegmentQueryRepository = examSegmentQueryRepository;
+        this.fieldTestItemGroupCommandRepository = fieldTestItemGroupCommandRepository;
+        this.fieldTestItemGroupQueryRepository = fieldTestItemGroupQueryRepository;
         this.examineeService = examineeService;
     }
 
@@ -39,7 +50,7 @@ public class OnCompletedStatusExamChangeListener implements ChangeListener<Exam>
         Preconditions.checkNotNull(oldExam, "oldExam cannot be null");
         Preconditions.checkNotNull(newExam, "newExam cannot be null");
 
-        // If the status hasn't changed between exam instances or the status hasn't already been set to "completed" on
+        // If the status has not changed between exam instances or the status has not already been set to "completed" on
         // the new version of the exam, exit
         if (oldExam.getStatus().equals(newExam.getStatus())
             || !newExam.getStatus().getCode().equals(ExamStatusCode.STATUS_COMPLETED)) {
@@ -53,15 +64,21 @@ public class OnCompletedStatusExamChangeListener implements ChangeListener<Exam>
 
         examSegmentCommandRepository.update(new ExamSegment.Builder()
             .fromSegment(segment)
-            .withIsPermeable(false)
+            .withPermeable(false)
             .build());
 
         // CommonDLL#_OnStatus_Completed_SP, line 1430: insert the final version of the student's attributes and
         // relationships
         examineeService.insertAttributesAndRelationships(newExam, ExamineeContext.FINAL);
 
-        // Update field test item usage
+        // CommonDLL#_OnStatus_Completed_SP, lines 1445 - 1453: Find all the field test items that were administered
+        // during an exam and record their usage.
+        List<FieldTestItemGroup> fieldTestItemGroupsToUpdate =
+            fieldTestItemGroupQueryRepository.findUsageInExam(newExam.getId());
 
+        if (fieldTestItemGroupsToUpdate.size() > 0) {
+            fieldTestItemGroupCommandRepository.update(fieldTestItemGroupsToUpdate.toArray(new FieldTestItemGroup[fieldTestItemGroupsToUpdate.size()]));
+        }
 
         // TODO:  Submit to TIS for scoring (CommonDLL#_OnStatus_Completed_SP, line 1433 - 1434), which changes the exam's status to "submitted"
     }
