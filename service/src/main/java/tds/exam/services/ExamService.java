@@ -9,15 +9,15 @@ import tds.common.Response;
 import tds.common.ValidationError;
 import tds.exam.Exam;
 import tds.exam.ExamConfiguration;
-import tds.exam.ExamSegment;
 import tds.exam.ExamStatusCode;
+import tds.exam.ExpandableExam;
 import tds.exam.OpenExamRequest;
 
 /**
  * Main entry point for interacting with {@link Exam}
  */
 public interface ExamService {
-    
+
     /**
      * Retrieves an exam based on the UUID
      *
@@ -25,7 +25,7 @@ public interface ExamService {
      * @return {@link Exam} otherwise null
      */
     Optional<Exam> findExam(final UUID uuid);
-    
+
     /**
      * Opens a new exam
      *
@@ -33,7 +33,7 @@ public interface ExamService {
      * @return {@link tds.common.Response<tds.exam.Exam>} containing exam or errors
      */
     Response<Exam> openExam(final OpenExamRequest openExamRequest);
-    
+
     /**
      * Starts a new or existing exam.
      *
@@ -41,7 +41,7 @@ public interface ExamService {
      * @return {@link tds.common.Response<tds.exam.Exam>} containing the exam's configuration or errors.
      */
     Response<ExamConfiguration> startExam(final UUID examId);
-    
+
     /**
      * Retrieves the initial ability value for an {@link Exam}.
      *
@@ -50,7 +50,7 @@ public interface ExamService {
      * @return the initial ability for an {@link Exam}.
      */
     Optional<Double> getInitialAbility(final Exam exam, final Assessment assessment);
-    
+
     /**
      * Change the {@link tds.exam.Exam}'s status to a new status.
      *
@@ -61,7 +61,7 @@ public interface ExamService {
      * to the new status; otherwise {@code Optional.empty()}.\
      */
     Optional<ValidationError> updateExamStatus(final UUID examId, final ExamStatusCode newStatus, final String statusChangeReason);
-    
+
     /**
      * Change the {@link tds.exam.Exam}'s status to a new status.
      *
@@ -71,11 +71,21 @@ public interface ExamService {
      * to the new status; otherwise {@code Optional.empty()}.\
      */
     Optional<ValidationError> updateExamStatus(final UUID examId, final ExamStatusCode newStatus);
-    
+
     /**
      * Update the status of all {@link tds.exam.Exam}s in the specified {@link tds.session.Session} to "paused"
      *
      * @param sessionId The unique identifier of the session that has been closed
      */
     void pauseAllExamsInSession(final UUID sessionId);
+
+    /**
+     * Returns a list of all {@link tds.exam.ExpandableExam}s within a session. The expandable exam contains
+     * additional optional exam data.
+     *
+     * @param sessionId        the id of the session the {@link tds.exam.Exam}s belong to
+     * @param expandableParams a param representing the optional expandable data to include
+     * @return the full list of {@link tds.exam.ExpandableExam}s in the session
+     */
+    List<ExpandableExam> findExamsBySessionId(final UUID sessionId, final String... expandableParams);
 }

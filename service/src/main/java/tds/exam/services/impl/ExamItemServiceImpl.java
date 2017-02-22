@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -102,5 +103,10 @@ public class ExamItemServiceImpl implements ExamItemService {
     @Override
     public int getExamPosition(final UUID examId) {
         return examItemQueryRepository.getCurrentExamItemPosition(examId);
+    }
+
+    @Override
+    public Map<UUID, Integer> getResponseCounts(UUID... examIds) {
+        return examItemQueryRepository.getResponseCounts(examIds);
     }
 }

@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import tds.exam.ExamAccommodation;
 import tds.exam.repositories.ExamAccommodationQueryRepository;
@@ -79,17 +80,23 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
     }
 
     @Override
-    public List<ExamAccommodation> findAccommodations(final UUID examId) {
-        return getAccommodations(examId, false);
+    public List<ExamAccommodation> findAccommodations(final UUID... examIds) {
+        return getAccommodations(false, examIds);
     }
 
     @Override
-    public List<ExamAccommodation> findApprovedAccommodations(final UUID examId) {
-        return getAccommodations(examId, true);
+    public List<ExamAccommodation> findApprovedAccommodations(final UUID... examIds) {
+        return getAccommodations(true, examIds);
     }
 
-    private List<ExamAccommodation> getAccommodations(final UUID examId, final boolean excludeDenied) {
-        final SqlParameterSource parameters = new MapSqlParameterSource("examId", examId.toString());
+    private List<ExamAccommodation> getAccommodations(final boolean excludeDenied, final UUID... examIds) {
+        final SqlParameterSource parameters = (examIds.length > 1)
+            ? new MapSqlParameterSource("examIds", Arrays.stream(examIds).map(UUID::toString).collect(Collectors.toSet()))
+            : new MapSqlParameterSource("examId", examIds[0].toString());
+
+        final String WHERE_CLAUSE = examIds.length > 1
+            ? "ea.exam_id IN (:examIds) \n"
+            : "ea.exam_id = :examId \n";
 
         String SQL =
             "SELECT \n" +
@@ -121,7 +128,7 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
                 "JOIN exam_accommodation_event eae \n" +
                 "  ON last_event.id = eae.id \n" +
                 "WHERE \n" +
-                "   ea.exam_id = :examId" +
+                WHERE_CLAUSE +
                 "   AND eae.deleted_at IS NULL";
 
         if (excludeDenied) {

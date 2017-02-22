@@ -1,5 +1,6 @@
 package tds.exam.services.impl;
 
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.Minutes;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -30,10 +32,10 @@ import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
 import tds.exam.ExamConfiguration;
 import tds.exam.ExamInfo;
-import tds.exam.ExamSegment;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
 import tds.exam.ExamineeContext;
+import tds.exam.ExpandableExam;
 import tds.exam.OpenExamRequest;
 import tds.exam.error.ValidationErrorCode;
 import tds.exam.models.Ability;
@@ -303,6 +305,42 @@ class ExamServiceImpl implements ExamService {
         examCommandRepository.update(pausedExams.toArray(new Exam[pausedExams.size()]));
     }
 
+    @Override
+    public List<ExpandableExam> findExamsBySessionId(final UUID sessionId, final String... expandableParams) {
+        final Set<String> params = Sets.newHashSet(expandableParams);
+        final Set<String> validExamStatuses = Sets.newHashSet(
+            ExamStatusCode.STATUS_PENDING,
+            ExamStatusCode.STATUS_SUSPENDED,
+            ExamStatusCode.STATUS_DENIED
+        );
+
+        final List<Exam> exams = examQueryRepository.findAllExamsInSessionWithStatus(sessionId, validExamStatuses);
+        final Map<UUID, ExpandableExam.Builder> examBuilders = exams.stream()
+            .collect(Collectors.toMap(Exam::getId, exam -> new ExpandableExam.Builder(exam)));
+        final UUID[] examIds = examBuilders.keySet().toArray(new UUID[examBuilders.size()]);
+
+        if (params.contains(ExpandableExam.EXPANDABLE_PARAMS_EXAM_ACCOMMODATIONS)) {
+            List<ExamAccommodation> examAccommodations = examAccommodationService.findApprovedAccommodations(examIds);
+            mapExamAccommodationsToExams(examBuilders, examAccommodations);
+        }
+
+        if (params.contains(ExpandableExam.EXPANDABLE_PARAMS_ITEM_RESPONSE_COUNT)) {
+            Map<UUID, Integer> itemResponseCounts = examItemService.getResponseCounts(examIds);
+            mapResponseCountsToExams(examBuilders, itemResponseCounts);
+        }
+
+        if (params.contains(ExpandableExam.EXPANDABLE_PARAMS_UNFULFILLED_REQUEST_COUNT)) {
+            //TODO: fetch count of unfulfilled print/emboss requests for each exam
+        }
+
+        // Build each exam
+        List<ExpandableExam> expandableExams = examBuilders.values().stream()
+            .map(builders -> builders.build())
+            .collect(Collectors.toList());
+
+        return expandableExams;
+    }
+
     @Transactional
     @Override
     public Response<ExamConfiguration> startExam(final UUID examId) {
@@ -531,7 +569,7 @@ class ExamServiceImpl implements ExamService {
         examCommandRepository.insert(exam);
 
         // OpenTestServiceImpl lines 409 - 410
-        if(!openExamRequest.isGuestStudent()) {
+        if (!openExamRequest.isGuestStudent()) {
             examineeService.insertAttributesAndRelationships(exam, student, ExamineeContext.INITIAL);
         }
 
@@ -680,7 +718,7 @@ class ExamServiceImpl implements ExamService {
         //Port of Student.DLL line 5593
         return Optional.of(new ValidationError(
             ValidationErrorCode.CURRENT_EXAM_OPEN,
-            configService.getFormattedMessage(currentSession.getClientName(),"_CanOpenTestOpportunity", "Current opportunity is active")
+            configService.getFormattedMessage(currentSession.getClientName(), "_CanOpenTestOpportunity", "Current opportunity is active")
         ));
     }
 
@@ -768,5 +806,25 @@ class ExamServiceImpl implements ExamService {
         }
 
         return exam;
+    }
+
+
+    private static void mapResponseCountsToExams(Map<UUID, ExpandableExam.Builder> examBuilders, Map<UUID, Integer> itemResponseCounts) {
+        itemResponseCounts.forEach((examId, responseCount) -> {
+            ExpandableExam.Builder builder = examBuilders.get(examId);
+            builder.withItemsResponseCount(responseCount);
+        });
+    }
+
+    private static void mapExamAccommodationsToExams(Map<UUID, ExpandableExam.Builder> examBuilders, List<ExamAccommodation> examAccommodations) {
+        // list exam accoms grouped by the examId
+        Map<UUID, List<ExamAccommodation>> sortedAccommodations = examAccommodations.stream()
+            .collect(Collectors.groupingBy(ExamAccommodation::getExamId));
+
+        // Assign each sub-list of exam accommodations to their respective exam ids
+        sortedAccommodations.forEach((examId, sortedExamAccommodations) -> {
+            ExpandableExam.Builder builder = examBuilders.get(examId);
+            builder.withExamAccommodations(sortedExamAccommodations);
+        });
     }
 }
