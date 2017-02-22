@@ -85,7 +85,7 @@ public interface ExamService {
      *
      * @param sessionId        the id of the session the {@link tds.exam.Exam}s belong to
      * @param expandableParams a param representing the optional expandable data to include
-     * @return the full list of {@link tds.exam.ExpandableExam}s in the session
+     * @return a {@link tds.common.Response} containing the full list of {@link tds.exam.ExpandableExam}s in the session
      */
-    List<ExpandableExam> findExamsBySessionId(final UUID sessionId, final String... expandableParams);
+    Response<List<ExpandableExam>> findExamsBySessionId(final UUID sessionId, final String... expandableParams);
 }

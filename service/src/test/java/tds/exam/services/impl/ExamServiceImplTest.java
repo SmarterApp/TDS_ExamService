@@ -1351,7 +1351,11 @@ public class ExamServiceImplTest {
         when(mockExamQueryRepository.findAllExamsInSessionWithStatus(eq(sessionId), any())).thenReturn(Arrays.asList(exam1, exam2));
         when(mockExamAccommodationService.findApprovedAccommodations(any(), any()))
             .thenReturn(Arrays.asList(exam1accommodation1, exam1accommodation2, exam2accommodation));
-        List<ExpandableExam> expandableExams = examService.findExamsBySessionId(sessionId, ExpandableExam.EXPANDABLE_PARAMS_EXAM_ACCOMMODATIONS);
+        Response<List<ExpandableExam>> response = examService.findExamsBySessionId(sessionId, ExpandableExam.EXPANDABLE_PARAMS_EXAM_ACCOMMODATIONS);
+        assertThat(response.getData().isPresent()).isTrue();
+        assertThat(response.getError().isPresent()).isFalse();
+        List<ExpandableExam> expandableExams = response.getData().get();
+
         verify(mockExamQueryRepository).findAllExamsInSessionWithStatus(eq(sessionId), any());
         verify(mockExamAccommodationService).findApprovedAccommodations(any(), any());
         // Should not call this
@@ -1393,8 +1397,12 @@ public class ExamServiceImplTest {
             exam1.getId(), 4,
             exam2.getId(), 1
         ));
-        List<ExpandableExam> expandableExams = examService.findExamsBySessionId(sessionId,
+        Response<List<ExpandableExam>> response = examService.findExamsBySessionId(sessionId,
             ExpandableExam.EXPANDABLE_PARAMS_EXAM_ACCOMMODATIONS, ExpandableExam.EXPANDABLE_PARAMS_ITEM_RESPONSE_COUNT);
+        assertThat(response.getData().isPresent()).isTrue();
+        assertThat(response.getError().isPresent()).isFalse();
+        List<ExpandableExam> expandableExams = response.getData().get();
+
         verify(mockExamQueryRepository).findAllExamsInSessionWithStatus(eq(sessionId), any());
         verify(mockExamAccommodationService).findApprovedAccommodations(any(), any());
         // Should not call this

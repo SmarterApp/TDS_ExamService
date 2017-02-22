@@ -306,7 +306,7 @@ class ExamServiceImpl implements ExamService {
     }
 
     @Override
-    public List<ExpandableExam> findExamsBySessionId(final UUID sessionId, final String... expandableParams) {
+    public Response<List<ExpandableExam>> findExamsBySessionId(final UUID sessionId, final String... expandableParams) {
         final Set<String> params = Sets.newHashSet(expandableParams);
         final Set<String> validExamStatuses = Sets.newHashSet(
             ExamStatusCode.STATUS_PENDING,
@@ -338,7 +338,7 @@ class ExamServiceImpl implements ExamService {
             .map(builders -> builders.build())
             .collect(Collectors.toList());
 
-        return expandableExams;
+        return new Response<>(expandableExams);
     }
 
     @Transactional
