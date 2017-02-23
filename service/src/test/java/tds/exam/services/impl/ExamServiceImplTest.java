@@ -1,6 +1,7 @@
 package tds.exam.services.impl;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import org.assertj.core.util.Lists;
 import org.joda.time.Days;
 import org.joda.time.Instant;
@@ -1342,23 +1343,28 @@ public class ExamServiceImplTest {
         UUID sessionId = UUID.randomUUID();
         Exam exam1 = new ExamBuilder().build();
         Exam exam2 = new ExamBuilder().build();
+        final Set<String> invalidStatuses = Sets.newHashSet(
+            ExamStatusCode.STATUS_PENDING,
+            ExamStatusCode.STATUS_SUSPENDED,
+            ExamStatusCode.STATUS_DENIED
+        );
 
         ExamAccommodation exam1accommodation1 = new ExamAccommodationBuilder().withExamId(exam1.getId()).build();
         ExamAccommodation exam1accommodation2 = new ExamAccommodationBuilder().withExamId(exam1.getId()).build();
         ExamAccommodation exam2accommodation = new ExamAccommodationBuilder().withExamId(exam2.getId()).build();
 
-
-        when(mockExamQueryRepository.findAllExamsInSessionWithStatus(eq(sessionId), any())).thenReturn(Arrays.asList(exam1, exam2));
+        when(mockExamQueryRepository.findAllExamsInSessionWithoutStatus(eq(sessionId), any())).thenReturn(Arrays.asList(exam1, exam2));
         when(mockExamAccommodationService.findApprovedAccommodations(any(), any()))
             .thenReturn(Arrays.asList(exam1accommodation1, exam1accommodation2, exam2accommodation));
-        Response<List<ExpandableExam>> response = examService.findExamsBySessionId(sessionId, ExpandableExam.EXPANDABLE_PARAMS_EXAM_ACCOMMODATIONS);
+        Response<List<ExpandableExam>> response = examService.findExamsBySessionId(sessionId, invalidStatuses,
+            ExpandableExam.EXPANDABLE_PARAMS_EXAM_ACCOMMODATIONS);
         assertThat(response.getData().isPresent()).isTrue();
         assertThat(response.getError().isPresent()).isFalse();
         List<ExpandableExam> expandableExams = response.getData().get();
 
-        verify(mockExamQueryRepository).findAllExamsInSessionWithStatus(eq(sessionId), any());
+        verify(mockExamQueryRepository).findAllExamsInSessionWithoutStatus(eq(sessionId), any());
         verify(mockExamAccommodationService).findApprovedAccommodations(any(), any());
-        // Should not call this
+        // Should not call this as the EXPANDABLE_PARAMS_ITEM_RESPONSE_COUNT wasn't requested
         verify(mockExamItemService, never()).getResponseCounts(any());
 
         assertThat(expandableExams).hasSize(2);
@@ -1382,6 +1388,12 @@ public class ExamServiceImplTest {
 
     @Test
     public void shouldReturnExpandableExamsWithExamAccommodationsAndResponseCountsSessionId() {
+        final Set<String> invalidStatuses = Sets.newHashSet(
+            ExamStatusCode.STATUS_PENDING,
+            ExamStatusCode.STATUS_SUSPENDED,
+            ExamStatusCode.STATUS_DENIED
+        );
+
         UUID sessionId = UUID.randomUUID();
         Exam exam1 = new ExamBuilder().build();
         Exam exam2 = new ExamBuilder().build();
@@ -1390,20 +1402,20 @@ public class ExamServiceImplTest {
         ExamAccommodation exam1accommodation2 = new ExamAccommodationBuilder().withExamId(exam1.getId()).build();
         ExamAccommodation exam2accommodation = new ExamAccommodationBuilder().withExamId(exam2.getId()).build();
 
-        when(mockExamQueryRepository.findAllExamsInSessionWithStatus(eq(sessionId), any())).thenReturn(Arrays.asList(exam1, exam2));
+        when(mockExamQueryRepository.findAllExamsInSessionWithoutStatus(eq(sessionId), any())).thenReturn(Arrays.asList(exam1, exam2));
         when(mockExamAccommodationService.findApprovedAccommodations(any(), any()))
             .thenReturn(Arrays.asList(exam1accommodation1, exam1accommodation2, exam2accommodation));
         when(mockExamItemService.getResponseCounts(any(), any())).thenReturn(ImmutableMap.of(
             exam1.getId(), 4,
             exam2.getId(), 1
         ));
-        Response<List<ExpandableExam>> response = examService.findExamsBySessionId(sessionId,
+        Response<List<ExpandableExam>> response = examService.findExamsBySessionId(sessionId, invalidStatuses,
             ExpandableExam.EXPANDABLE_PARAMS_EXAM_ACCOMMODATIONS, ExpandableExam.EXPANDABLE_PARAMS_ITEM_RESPONSE_COUNT);
         assertThat(response.getData().isPresent()).isTrue();
         assertThat(response.getError().isPresent()).isFalse();
         List<ExpandableExam> expandableExams = response.getData().get();
 
-        verify(mockExamQueryRepository).findAllExamsInSessionWithStatus(eq(sessionId), any());
+        verify(mockExamQueryRepository).findAllExamsInSessionWithoutStatus(eq(sessionId), any());
         verify(mockExamAccommodationService).findApprovedAccommodations(any(), any());
         // Should not call this
         verify(mockExamItemService).getResponseCounts(any(), any());

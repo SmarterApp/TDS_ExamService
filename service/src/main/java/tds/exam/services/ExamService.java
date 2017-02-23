@@ -2,6 +2,7 @@ package tds.exam.services;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import tds.assessment.Assessment;
@@ -87,5 +88,5 @@ public interface ExamService {
      * @param expandableParams a param representing the optional expandable data to include
      * @return a {@link tds.common.Response} containing the full list of {@link tds.exam.ExpandableExam}s in the session
      */
-    Response<List<ExpandableExam>> findExamsBySessionId(final UUID sessionId, final String... expandableParams);
+    Response<List<ExpandableExam>> findExamsBySessionId(final UUID sessionId, final Set<String> invalidStatuses, final String... expandableParams);
 }

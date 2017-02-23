@@ -255,7 +255,16 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
     }
 
     @Override
+    public List<Exam> findAllExamsInSessionWithoutStatus(final UUID sessionId, final Set<String> statuses) {
+        return findAllExamsWithStatus(sessionId, statuses, true);
+    }
+
+    @Override
     public List<Exam> findAllExamsInSessionWithStatus(final UUID sessionId, final Set<String> statuses) {
+        return findAllExamsWithStatus(sessionId, statuses, false);
+    }
+
+    private List<Exam> findAllExamsWithStatus(final UUID sessionId, final Set<String> statuses, final boolean inverse) {
         final SqlParameterSource parameters = new MapSqlParameterSource("sessionId", sessionId.toString())
             .addValue("statuses", statuses);
 
@@ -290,7 +299,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "          AND eacc.type = 'Language'\n" +
                 "  ) \n" +
                 "WHERE ee.session_id = :sessionId \n" +
-                "   AND ee.status IN (:statuses) \n " +
+                "   AND ee.status " + (inverse ? "NOT " : "") + " IN (:statuses) \n " +
                 "   AND lang.type = 'Language'";
 
         return jdbcTemplate.query(SQL, parameters, examRowMapper);

@@ -186,7 +186,12 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
 
         examAccommodationCommandRepository.insert(Arrays.asList(accommodation1, accommodation2, accommodation3));
 
-        assertThat(examAccommodationQueryRepository.findApprovedAccommodations(examId1)).hasSize(1);
+        List<ExamAccommodation> approvedAccommodationsExam1 = examAccommodationQueryRepository.findApprovedAccommodations(examId1);
+        assertThat(approvedAccommodationsExam1).containsExactly(accommodation1);
+
+        List<ExamAccommodation> approvedAccommodationsExam1And2 = examAccommodationQueryRepository.findApprovedAccommodations(examId1, examId2);
+        assertThat(approvedAccommodationsExam1And2).containsExactlyInAnyOrder(accommodation1, accommodation2, accommodation3);
+
         assertThat(examAccommodationQueryRepository.findApprovedAccommodations(examId1, examId2)).hasSize(3);
     }
 

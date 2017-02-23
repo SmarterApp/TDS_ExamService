@@ -90,13 +90,8 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
     }
 
     private List<ExamAccommodation> getAccommodations(final boolean excludeDenied, final UUID... examIds) {
-        final SqlParameterSource parameters = (examIds.length > 1)
-            ? new MapSqlParameterSource("examIds", Arrays.stream(examIds).map(UUID::toString).collect(Collectors.toSet()))
-            : new MapSqlParameterSource("examId", examIds[0].toString());
-
-        final String WHERE_CLAUSE = examIds.length > 1
-            ? "ea.exam_id IN (:examIds) \n"
-            : "ea.exam_id = :examId \n";
+        final SqlParameterSource parameters = new MapSqlParameterSource("examIds",
+            Arrays.stream(examIds).map(UUID::toString).collect(Collectors.toSet()));
 
         String SQL =
             "SELECT \n" +
@@ -128,7 +123,7 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
                 "JOIN exam_accommodation_event eae \n" +
                 "  ON last_event.id = eae.id \n" +
                 "WHERE \n" +
-                WHERE_CLAUSE +
+                "   ea.exam_id IN (:examIds) \n" +
                 "   AND eae.deleted_at IS NULL";
 
         if (excludeDenied) {

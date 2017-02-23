@@ -106,7 +106,7 @@ public class ExamItemServiceImpl implements ExamItemService {
     }
 
     @Override
-    public Map<UUID, Integer> getResponseCounts(UUID... examIds) {
+    public Map<UUID, Integer> getResponseCounts(final UUID... examIds) {
         return examItemQueryRepository.getResponseCounts(examIds);
     }
 }

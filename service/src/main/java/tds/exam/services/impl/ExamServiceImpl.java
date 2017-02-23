@@ -306,15 +306,10 @@ class ExamServiceImpl implements ExamService {
     }
 
     @Override
-    public Response<List<ExpandableExam>> findExamsBySessionId(final UUID sessionId, final String... expandableParams) {
+    public Response<List<ExpandableExam>> findExamsBySessionId(final UUID sessionId, final Set<String> invalidStatuses,
+                                                               final String... expandableParams) {
         final Set<String> params = Sets.newHashSet(expandableParams);
-        final Set<String> validExamStatuses = Sets.newHashSet(
-            ExamStatusCode.STATUS_PENDING,
-            ExamStatusCode.STATUS_SUSPENDED,
-            ExamStatusCode.STATUS_DENIED
-        );
-
-        final List<Exam> exams = examQueryRepository.findAllExamsInSessionWithStatus(sessionId, validExamStatuses);
+        final List<Exam> exams = examQueryRepository.findAllExamsInSessionWithoutStatus(sessionId, invalidStatuses);
         final Map<UUID, ExpandableExam.Builder> examBuilders = exams.stream()
             .collect(Collectors.toMap(Exam::getId, exam -> new ExpandableExam.Builder(exam)));
         final UUID[] examIds = examBuilders.keySet().toArray(new UUID[examBuilders.size()]);
@@ -808,15 +803,14 @@ class ExamServiceImpl implements ExamService {
         return exam;
     }
 
-
-    private static void mapResponseCountsToExams(Map<UUID, ExpandableExam.Builder> examBuilders, Map<UUID, Integer> itemResponseCounts) {
+    private static void mapResponseCountsToExams(final Map<UUID, ExpandableExam.Builder> examBuilders, final Map<UUID, Integer> itemResponseCounts) {
         itemResponseCounts.forEach((examId, responseCount) -> {
             ExpandableExam.Builder builder = examBuilders.get(examId);
             builder.withItemsResponseCount(responseCount);
         });
     }
 
-    private static void mapExamAccommodationsToExams(Map<UUID, ExpandableExam.Builder> examBuilders, List<ExamAccommodation> examAccommodations) {
+    private static void mapExamAccommodationsToExams(final Map<UUID, ExpandableExam.Builder> examBuilders, final List<ExamAccommodation> examAccommodations) {
         // list exam accoms grouped by the examId
         Map<UUID, List<ExamAccommodation>> sortedAccommodations = examAccommodations.stream()
             .collect(Collectors.groupingBy(ExamAccommodation::getExamId));

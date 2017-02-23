@@ -38,5 +38,5 @@ public interface ExamItemService {
      * @param examIds the ids of the exams to fetch response counts for
      * @return a mapping of examIds to the number of items that exam has responded to
      */
-    Map<UUID, Integer> getResponseCounts(UUID... examIds);
+    Map<UUID, Integer> getResponseCounts(final UUID... examIds);
 }
