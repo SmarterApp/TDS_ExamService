@@ -1,5 +1,6 @@
 package tds.exam.services;
 
+import java.util.Map;
 import java.util.UUID;
 
 import tds.common.Response;
@@ -22,7 +23,6 @@ public interface ExamItemService {
      */
     Response<ExamPage> insertResponses(final ExamInfo request, final int mostRecentPagePosition, final ExamItemResponse... responses);
 
-
     /**
      * Fetches the highest exam position - the position of the {@link tds.exam.ExamItem} that
      * was last responded to by a student.
@@ -31,4 +31,12 @@ public interface ExamItemService {
      * @return the position of the last {@link tds.exam.ExamItem} responded to by a student
      */
     int getExamPosition(final UUID examId);
+
+    /**
+     * Fetches a map of examIds for their respective number of items responded to
+     *
+     * @param examIds the ids of the exams to fetch response counts for
+     * @return a mapping of examIds to the number of items that exam has responded to
+     */
+    Map<UUID, Integer> getResponseCounts(final UUID... examIds);
 }

@@ -113,8 +113,8 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
     }
 
     @Override
-    public List<ExamAccommodation> findApprovedAccommodations(final UUID examId) {
-        return examAccommodationQueryRepository.findApprovedAccommodations(examId);
+    public List<ExamAccommodation> findApprovedAccommodations(final UUID... examIds) {
+        return examAccommodationQueryRepository.findApprovedAccommodations(examIds);
     }
 
     @Transactional

@@ -42,10 +42,10 @@ public interface ExamAccommodationService {
     /**
      * Finds the approved {@link tds.exam.ExamAccommodation}
      *
-     * @param examId the exam id
-     * @return list of approved {@link tds.exam.ExamAccommodation}
+     * @param examIds the exam ids
+     * @return list of approved {@link tds.exam.ExamAccommodation}s
      */
-    List<ExamAccommodation> findApprovedAccommodations(UUID examId);
+    List<ExamAccommodation> findApprovedAccommodations(UUID... examIds);
 
     /**
      * Initializes accommodations on a previous exam

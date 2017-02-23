@@ -1,5 +1,6 @@
 package tds.exam.repositories;
 
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -14,4 +15,12 @@ public interface ExamItemQueryRepository {
      * @return the item position of the last item responded to
      */
     int getCurrentExamItemPosition(final UUID examId);
+
+    /**
+     * Fetches a map of examIds for their respective number of items responded to
+     *
+     * @param examIds the ids of the exams to fetch response counts for
+     * @return a mapping of examIds to the number of items that exam has responded to
+     */
+    Map<UUID, Integer> getResponseCounts(final UUID... examIds);
 }
