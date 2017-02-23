@@ -29,6 +29,7 @@ import tds.assessment.AssessmentWindow;
 import tds.common.Algorithm;
 import tds.common.Response;
 import tds.common.ValidationError;
+import tds.common.entity.utils.ChangeListener;
 import tds.common.web.exceptions.NotFoundException;
 import tds.config.ClientSystemFlag;
 import tds.config.TimeLimitConfiguration;
@@ -137,6 +138,12 @@ public class ExamServiceImplTest {
     @Mock
     private ExamineeService mockExamineeService;
 
+    @Mock
+    private ChangeListener<Exam> mockOnCompletedExamChangeListener;
+
+    @Mock
+    private ChangeListener<Exam> mockOnPausedExamChangeListener;
+
     @Captor
     private ArgumentCaptor<Exam> examArgumentCaptor;
 
@@ -159,7 +166,8 @@ public class ExamServiceImplTest {
             mockExamStatusQueryRepository,
             mockExamAccommodationService,
             mockExamApprovalService,
-            mockExamineeService);
+            mockExamineeService,
+            Arrays.asList(mockOnCompletedExamChangeListener, mockOnPausedExamChangeListener));
 
         // Calls to get formatted message are throughout the exam service
         // Since we aren't testing that it returns anything specific in these tests I each option here for simplicity

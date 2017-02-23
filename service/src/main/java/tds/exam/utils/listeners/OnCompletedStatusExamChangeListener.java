@@ -59,7 +59,8 @@ public class OnCompletedStatusExamChangeListener implements ChangeListener<Exam>
 
         // CommonDLL#_OnStatus_Completed_SP, line 1425: Update the exam to indicate this segment is not permeable.
         // Legacy code sets isPermeable to -1
-        ExamSegment segment = examSegmentQueryRepository.findByExamIdAndSegmentPosition(newExam.getId(), newExam.getCurrentSegmentPosition())
+        ExamSegment segment = examSegmentQueryRepository.findByExamIdAndSegmentPosition(newExam.getId(),
+            newExam.getCurrentSegmentPosition())
             .orElseThrow(() -> new NotFoundException(String.format("Could not find an exam segment for exam id %s and segment position %d", newExam.getId(), newExam.getCurrentSegmentPosition())));
 
         examSegmentCommandRepository.update(new ExamSegment.Builder()
@@ -70,6 +71,10 @@ public class OnCompletedStatusExamChangeListener implements ChangeListener<Exam>
         // CommonDLL#_OnStatus_Completed_SP, line 1430: insert the final version of the student's attributes and
         // relationships
         examineeService.insertAttributesAndRelationships(newExam, ExamineeContext.FINAL);
+
+        // CommonDLL#_OnStatus_Completed_SP, line 1431: not importing CommonDLL#_RecordBPSatisfaction_SP.  The
+        // tables/queries that are referenced in that method are only used by the loader stored procedures, schema
+        // creation/modification scripts and/or SimDLL.java (which is related to the simulator).
 
         // CommonDLL#_OnStatus_Completed_SP, lines 1445 - 1453: Find all the field test items that were administered
         // during an exam and record their usage.

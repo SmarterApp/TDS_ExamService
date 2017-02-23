@@ -99,27 +99,4 @@ public class FieldTestItemGroupCommandRepositoryImpl implements FieldTestItemGro
 
         jdbcTemplate.batchUpdate(SQL, parameterSources);
     }
-
-    private void update(final FieldTestItemGroup fieldTestItemGroup) {
-        final SqlParameterSource params = new MapSqlParameterSource("id", fieldTestItemGroup.getId())
-            .addValue("deletedAt", ResultSetMapperUtility.mapInstantToTimestamp(fieldTestItemGroup.getDeletedAt()))
-            .addValue("positionAdministered", fieldTestItemGroup.getPositionAdministered())
-            .addValue("administeredAt", ResultSetMapperUtility.mapInstantToTimestamp(fieldTestItemGroup.getAdministeredAt()));
-
-        final String updateSQL =
-            "INSERT INTO field_test_item_group_event ( \n" +
-                "   field_test_item_group_id, \n" +
-                "   deleted_at, \n" +
-                "   position_administered, \n" +
-                "   administered_at \n" +
-                ") \n" +
-                "VALUES ( \n" +
-                "   :id, \n" +
-                "   :deletedAt, \n" +
-                "   :positionAdministered, \n" +
-                "   :administeredAt \n" +
-                ")";
-
-        jdbcTemplate.update(updateSQL, params);
-    }
 }

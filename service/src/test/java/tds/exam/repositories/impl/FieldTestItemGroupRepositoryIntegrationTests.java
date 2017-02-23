@@ -11,6 +11,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -110,5 +111,45 @@ public class FieldTestItemGroupRepositoryIntegrationTests {
         assertThat(retGroup1.getItemCount()).isEqualTo(group1.getItemCount());
         assertThat(retGroup1.getPosition()).isEqualTo(group1.getPosition());
         assertThat(retGroup1.getPositionAdministered()).isEqualTo(group1.getPositionAdministered());
+    }
+
+    @Test
+    public void shouldUpdateFieldTestItemGroupRecords() {
+        final Exam exam = new ExamBuilder().build();
+        examCommandRepository.insert(exam);
+        final UUID sessionId = UUID.randomUUID();
+        final String segmentKey = "segkey";
+
+        FieldTestItemGroup group1 = new FieldTestItemGroup.Builder()
+            .withExamId(exam.getId())
+            .withGroupId("groupid1")
+            .withGroupKey("groupkey1")
+            .withBlockId("A")
+            .withPositionAdministered(7)
+            .withLanguageCode("ENU")
+            .withPosition(2)
+            .withSegmentId("segid")
+            .withSegmentKey(segmentKey)
+            .withItemCount(1)
+            .withSessionId(sessionId)
+            .build();
+
+        fieldTestItemGroupCommandRepository.insert(Arrays.asList(group1));
+
+        Instant newAdministeredAt = Instant.now().minus(60L, ChronoUnit.SECONDS);
+        FieldTestItemGroup updatedGroup1 = new FieldTestItemGroup.Builder()
+            .fromFieldTestItemGroup(group1)
+            .withPositionAdministered(1)
+            .withAdministeredAt(newAdministeredAt)
+            .build();
+
+        fieldTestItemGroupCommandRepository.update(updatedGroup1);
+
+        List<FieldTestItemGroup> fieldTestItemGroups = fieldTestItemGroupQueryRepository.findUsageInExam(exam.getId());
+
+        assertThat(fieldTestItemGroups).hasSize(1);
+        FieldTestItemGroup result = fieldTestItemGroups.get(0);
+        assertThat(result.getAdministeredAt()).isEqualTo(newAdministeredAt);
+        assertThat(result.getPositionAdministered()).isEqualTo(updatedGroup1.getPosition());
     }
 }
