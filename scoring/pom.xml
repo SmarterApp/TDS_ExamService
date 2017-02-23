@@ -21,6 +21,14 @@
         <assertj.version>3.4.1</assertj.version>
     </properties>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.opentestsystem.delivery</groupId>
+            <artifactId>student.library</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
+
     <build>
         <plugins>
             <plugin>
