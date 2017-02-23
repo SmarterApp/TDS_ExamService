@@ -1,5 +1,6 @@
 package tds.exam.services.impl;
 
+import com.google.common.collect.ImmutableMap;
 import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.Test;
@@ -7,6 +8,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -146,7 +148,7 @@ public class ExamItemServiceImplTest {
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_STARTED, ExamStatusStage.IN_PROGRESS), Instant.now())
             .build();
         ValidationError mockApprovalFailure = new ValidationError(ValidationErrorCode.EXAM_APPROVAL_SESSION_CLOSED,
-                "The session is not available for testing, please check with your test administrator.");
+            "The session is not available for testing, please check with your test administrator.");
 
         when(mockExamQueryRepository.getExamById(examInfo.getExamId()))
             .thenReturn(Optional.of(mockExam));
@@ -215,6 +217,20 @@ public class ExamItemServiceImplTest {
         examItemService.insertResponses(examInfo, currentPagePosition, response);
         verify(mockExamApprovalService).getApproval(any(ExamInfo.class));
         verify(mockExamQueryRepository).getExamById(examInfo.getExamId());
+    }
+
+    @Test
+    public void shouldReturnResponseCountMap() {
+        UUID examId1 = UUID.randomUUID();
+        UUID examId2 = UUID.randomUUID();
+        Map<UUID, Integer> mockMap = ImmutableMap.of(
+            UUID.randomUUID(), 1,
+            UUID.randomUUID(), 2
+        );
+        when(mockExamItemQueryRepository.getResponseCounts(examId1, examId2)).thenReturn(mockMap);
+        Map<UUID, Integer> returnMap = examItemService.getResponseCounts(examId1, examId2);
+        assertThat(returnMap).hasSize(2);
+        verify(mockExamItemQueryRepository).getResponseCounts(examId1, examId2);
     }
 
     @Test(expected = NotFoundException.class)

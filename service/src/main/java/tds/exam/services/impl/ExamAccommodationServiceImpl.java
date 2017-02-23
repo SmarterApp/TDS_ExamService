@@ -95,6 +95,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                 .withCode(accommodation.getCode())
                 .withType(accommodation.getType())
                 .withDescription(accommodation.getValue())
+                .withSegmentPosition(accommodation.getSegmentPosition())
                 .withSegmentKey(accommodation.getSegmentKey() != null ? accommodation.getSegmentKey() : exam.getAssessmentKey())
                 .withValue(accommodation.getValue())
                 .withTotalTypeCount(accommodation.getTypeTotal())
@@ -112,8 +113,8 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
     }
 
     @Override
-    public List<ExamAccommodation> findApprovedAccommodations(final UUID examId) {
-        return examAccommodationQueryRepository.findApprovedAccommodations(examId);
+    public List<ExamAccommodation> findApprovedAccommodations(final UUID... examIds) {
+        return examAccommodationQueryRepository.findApprovedAccommodations(examIds);
     }
 
     @Transactional

@@ -1,11 +1,4 @@
-#Configure the Spring Actuator endpoints to require an authenticated user with the MANAGEMENT role
-management:
-  security:
-    roles: MANAGEMENT
-
----
 spring:
-  profiles: local-development
   ds_queries:
     jdbcUrl: ${sbac.jdbc.host}/exam
     username: ${sbac.jdbc.user}
@@ -17,15 +10,7 @@ spring:
     password: ${sbac.jdbc.password}
     driver-class-name: 'com.mysql.jdbc.Driver'
 
-#Configure the default Spring Security user with the MANAGEMENT role
-security:
-  user:
-    name: user
-    password: password
-    role: MANAGEMENT
-
 server:
-  port: 8081
   undertow:
     buffer-size: 16384
     buffers-per-region: 20
@@ -38,10 +23,3 @@ flyway:
   url: ${sbac.jdbc.host}/exam
   user: ${sbac.jdbc.user}
   password: ${sbac.jdbc.password}
-
-#Ports defined in TDS_Build:docker-compose.yml
-exam-service:
-  session-url: http://localhost:32842
-  student-url: http://localhost:32840
-  assessment-url: http://localhost:32841
-  config-url: http://localhost:32843
