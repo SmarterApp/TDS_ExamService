@@ -307,8 +307,8 @@ class ExamServiceImpl implements ExamService {
 
     @Override
     public List<ExpandableExam> findExamsBySessionId(final UUID sessionId, final Set<String> invalidStatuses,
-                                                     final String... expandableParams) {
-        final Set<String> params = Sets.newHashSet(expandableParams);
+                                                     final String... embed) {
+        final Set<String> params = Sets.newHashSet(embed);
         final List<Exam> exams = examQueryRepository.findAllExamsInSessionWithoutStatus(sessionId, invalidStatuses);
         final Map<UUID, ExpandableExam.Builder> examBuilders = exams.stream()
             .collect(Collectors.toMap(Exam::getId, exam -> new ExpandableExam.Builder(exam)));
