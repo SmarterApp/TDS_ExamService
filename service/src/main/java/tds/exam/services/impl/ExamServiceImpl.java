@@ -306,9 +306,9 @@ class ExamServiceImpl implements ExamService {
     }
 
     @Override
-    public Response<List<ExpandableExam>> findExamsBySessionId(final UUID sessionId, final Set<String> invalidStatuses,
-                                                               final String... expandableParams) {
-        final Set<String> params = Sets.newHashSet(expandableParams);
+    public List<ExpandableExam> findExamsBySessionId(final UUID sessionId, final Set<String> invalidStatuses,
+                                                     final String... embed) {
+        final Set<String> params = Sets.newHashSet(embed);
         final List<Exam> exams = examQueryRepository.findAllExamsInSessionWithoutStatus(sessionId, invalidStatuses);
         final Map<UUID, ExpandableExam.Builder> examBuilders = exams.stream()
             .collect(Collectors.toMap(Exam::getId, exam -> new ExpandableExam.Builder(exam)));
@@ -328,12 +328,10 @@ class ExamServiceImpl implements ExamService {
             //TODO: fetch count of unfulfilled print/emboss requests for each exam
         }
 
-        // Build each exam
-        List<ExpandableExam> expandableExams = examBuilders.values().stream()
+        // Build each exam and return
+        return examBuilders.values().stream()
             .map(builders -> builders.build())
             .collect(Collectors.toList());
-
-        return new Response<>(expandableExams);
     }
 
     @Transactional
