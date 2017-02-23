@@ -107,7 +107,7 @@ public class ExamController {
     @RequestMapping(value = "/session/{sessionId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<List<ExpandableExam>> findExamsForSessionId(@PathVariable final UUID sessionId,
                                                                @RequestParam final Set<String> statusNot,
-                                                               @RequestParam("expandable") final String... expandableParams) {
+                                                               @RequestParam(value = "expandable", required = false) final String... expandableParams) {
         final List<ExpandableExam> exams = examService.findExamsBySessionId(sessionId, statusNot,
             expandableParams);
 
