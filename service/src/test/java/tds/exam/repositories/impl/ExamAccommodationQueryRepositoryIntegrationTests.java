@@ -12,6 +12,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -172,6 +173,26 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
         assertThat(secondExamAccommodation.getCreatedAt()).isLessThan(Instant.now());
         assertThat(secondExamAccommodation.getDeniedAt()).isNull();
         assertThat(secondExamAccommodation.isApproved()).isTrue();
+    }
+
+    @Test
+    public void shouldReturnExamAccommodationsForTwoExams() {
+        final UUID examId1 = UUID.randomUUID();
+        final UUID examId2 = UUID.randomUUID();
+
+        ExamAccommodation accommodation1 = new ExamAccommodationBuilder().withExamId(examId1).build();
+        ExamAccommodation accommodation2 = new ExamAccommodationBuilder().withExamId(examId2).build();
+        ExamAccommodation accommodation3 = new ExamAccommodationBuilder().withExamId(examId2).build();
+
+        examAccommodationCommandRepository.insert(Arrays.asList(accommodation1, accommodation2, accommodation3));
+
+        List<ExamAccommodation> approvedAccommodationsExam1 = examAccommodationQueryRepository.findApprovedAccommodations(examId1);
+        assertThat(approvedAccommodationsExam1).containsExactly(accommodation1);
+
+        List<ExamAccommodation> approvedAccommodationsExam1And2 = examAccommodationQueryRepository.findApprovedAccommodations(examId1, examId2);
+        assertThat(approvedAccommodationsExam1And2).containsExactlyInAnyOrder(accommodation1, accommodation2, accommodation3);
+
+        assertThat(examAccommodationQueryRepository.findApprovedAccommodations(examId1, examId2)).hasSize(3);
     }
 
     @Test

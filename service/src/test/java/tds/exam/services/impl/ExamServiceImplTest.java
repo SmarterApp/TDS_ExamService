@@ -1,5 +1,7 @@
 package tds.exam.services.impl;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import org.assertj.core.util.Lists;
 import org.joda.time.Days;
 import org.joda.time.Instant;
@@ -40,6 +42,7 @@ import tds.exam.ExamInfo;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
 import tds.exam.ExamineeContext;
+import tds.exam.ExpandableExam;
 import tds.exam.OpenExamRequest;
 import tds.exam.builder.AssessmentBuilder;
 import tds.exam.builder.ExamAccommodationBuilder;
@@ -73,7 +76,9 @@ import tds.student.Student;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -305,7 +310,7 @@ public class ExamServiceImplTest {
         when(mockSessionService.findExternalSessionConfigurationByClientName("SBAC_PT")).thenReturn(Optional.of(extSessionConfig));
         when(mockConfigService.findClientSystemFlag("SBAC_PT", ALLOW_ANONYMOUS_STUDENT_FLAG_TYPE)).thenReturn(Optional.of(clientSystemFlag));
         when(mockSessionService.findSessionById(openExamRequest.getSessionId())).thenReturn(Optional.of(currentSession));
-                when(mockAssessmentService.findAssessment("SBAC_PT", openExamRequest.getAssessmentKey())).thenReturn(Optional.of(assessment));
+        when(mockAssessmentService.findAssessment("SBAC_PT", openExamRequest.getAssessmentKey())).thenReturn(Optional.of(assessment));
         when(mockExamQueryRepository.getLastAvailableExam(openExamRequest.getStudentId(), assessment.getAssessmentId(), "SBAC_PT")).thenReturn(Optional.empty());
         when(mockSessionService.findExternalSessionConfigurationByClientName("SBAC_PT")).thenReturn(Optional.of(extSessionConfig));
         when(mockAssessmentService.findAssessmentWindows("SBAC_PT", assessment.getAssessmentId(), openExamRequest.getStudentId(), extSessionConfig))
@@ -337,7 +342,7 @@ public class ExamServiceImplTest {
         assertThat(exam.getSubject()).isEqualTo(assessment.getSubject());
     }
 
-    @Test (expected = IllegalStateException.class)
+    @Test(expected = IllegalStateException.class)
     public void shouldThrowIfTimeConfigurationCannotBeFound() {
         OpenExamRequest openExamRequest = new OpenExamRequestBuilder()
             .withStudentId(-1)
@@ -1339,6 +1344,109 @@ public class ExamServiceImplTest {
         examService.pauseAllExamsInSession(mockSessionId);
 
         verify(mockExamCommandRepository, times(0)).update(Matchers.<Exam>anyVararg());
+    }
+
+    @Test
+    public void shouldReturnExpandableExamsWithExamAccommodationsOnlyForSessionId() {
+        UUID sessionId = UUID.randomUUID();
+        Exam exam1 = new ExamBuilder().build();
+        Exam exam2 = new ExamBuilder().build();
+        final Set<String> invalidStatuses = Sets.newHashSet(
+            ExamStatusCode.STATUS_PENDING,
+            ExamStatusCode.STATUS_SUSPENDED,
+            ExamStatusCode.STATUS_DENIED
+        );
+
+        ExamAccommodation exam1accommodation1 = new ExamAccommodationBuilder().withExamId(exam1.getId()).build();
+        ExamAccommodation exam1accommodation2 = new ExamAccommodationBuilder().withExamId(exam1.getId()).build();
+        ExamAccommodation exam2accommodation = new ExamAccommodationBuilder().withExamId(exam2.getId()).build();
+
+        when(mockExamQueryRepository.findAllExamsInSessionWithoutStatus(eq(sessionId), any())).thenReturn(Arrays.asList(exam1, exam2));
+        when(mockExamAccommodationService.findApprovedAccommodations(any(), any()))
+            .thenReturn(Arrays.asList(exam1accommodation1, exam1accommodation2, exam2accommodation));
+        Response<List<ExpandableExam>> response = examService.findExamsBySessionId(sessionId, invalidStatuses,
+            ExpandableExam.EXPANDABLE_PARAMS_EXAM_ACCOMMODATIONS);
+        assertThat(response.getData().isPresent()).isTrue();
+        assertThat(response.getError().isPresent()).isFalse();
+        List<ExpandableExam> expandableExams = response.getData().get();
+
+        verify(mockExamQueryRepository).findAllExamsInSessionWithoutStatus(eq(sessionId), any());
+        verify(mockExamAccommodationService).findApprovedAccommodations(any(), any());
+        // Should not call this as the EXPANDABLE_PARAMS_ITEM_RESPONSE_COUNT wasn't requested
+        verify(mockExamItemService, never()).getResponseCounts(any());
+
+        assertThat(expandableExams).hasSize(2);
+
+        ExpandableExam expExam1 = null;
+        ExpandableExam expExam2 = null;
+
+        for (ExpandableExam expandableExam : expandableExams) {
+            if (expandableExam.getExam().getId().equals(exam1.getId())) {
+                expExam1 = expandableExam;
+            } else if (expandableExam.getExam().getId().equals(exam2.getId())) {
+                expExam2 = expandableExam;
+            }
+        }
+
+        assertThat(expExam1.getExam()).isEqualTo(exam1);
+        assertThat(expExam1.getExamAccommodations()).hasSize(2);
+        assertThat(expExam2.getExam()).isEqualTo(exam2);
+        assertThat(expExam2.getExamAccommodations()).hasSize(1);
+    }
+
+    @Test
+    public void shouldReturnExpandableExamsWithExamAccommodationsAndResponseCountsSessionId() {
+        final Set<String> invalidStatuses = Sets.newHashSet(
+            ExamStatusCode.STATUS_PENDING,
+            ExamStatusCode.STATUS_SUSPENDED,
+            ExamStatusCode.STATUS_DENIED
+        );
+
+        UUID sessionId = UUID.randomUUID();
+        Exam exam1 = new ExamBuilder().build();
+        Exam exam2 = new ExamBuilder().build();
+
+        ExamAccommodation exam1accommodation1 = new ExamAccommodationBuilder().withExamId(exam1.getId()).build();
+        ExamAccommodation exam1accommodation2 = new ExamAccommodationBuilder().withExamId(exam1.getId()).build();
+        ExamAccommodation exam2accommodation = new ExamAccommodationBuilder().withExamId(exam2.getId()).build();
+
+        when(mockExamQueryRepository.findAllExamsInSessionWithoutStatus(eq(sessionId), any())).thenReturn(Arrays.asList(exam1, exam2));
+        when(mockExamAccommodationService.findApprovedAccommodations(any(), any()))
+            .thenReturn(Arrays.asList(exam1accommodation1, exam1accommodation2, exam2accommodation));
+        when(mockExamItemService.getResponseCounts(any(), any())).thenReturn(ImmutableMap.of(
+            exam1.getId(), 4,
+            exam2.getId(), 1
+        ));
+        Response<List<ExpandableExam>> response = examService.findExamsBySessionId(sessionId, invalidStatuses,
+            ExpandableExam.EXPANDABLE_PARAMS_EXAM_ACCOMMODATIONS, ExpandableExam.EXPANDABLE_PARAMS_ITEM_RESPONSE_COUNT);
+        assertThat(response.getData().isPresent()).isTrue();
+        assertThat(response.getError().isPresent()).isFalse();
+        List<ExpandableExam> expandableExams = response.getData().get();
+
+        verify(mockExamQueryRepository).findAllExamsInSessionWithoutStatus(eq(sessionId), any());
+        verify(mockExamAccommodationService).findApprovedAccommodations(any(), any());
+        // Should not call this
+        verify(mockExamItemService).getResponseCounts(any(), any());
+
+        assertThat(expandableExams).hasSize(2);
+
+        ExpandableExam expExam1 = null;
+        ExpandableExam expExam2 = null;
+
+        for (ExpandableExam expandableExam : expandableExams) {
+            if (expandableExam.getExam().getId().equals(exam1.getId())) {
+                expExam1 = expandableExam;
+            } else if (expandableExam.getExam().getId().equals(exam2.getId())) {
+                expExam2 = expandableExam;
+            }
+        }
+
+        assertThat(expExam1.getExam()).isEqualTo(exam1);
+        assertThat(expExam1.getExamAccommodations()).hasSize(2);
+        assertThat(expExam1.getItemsResponseCount()).isEqualTo(4);
+        assertThat(expExam2.getExam()).isEqualTo(exam2);
+        assertThat(expExam2.getExamAccommodations()).hasSize(1);
+        assertThat(expExam2.getItemsResponseCount()).isEqualTo(1);
     }
 
     private Exam createExam(UUID sessionId, UUID thisExamId, String assessmentId, String clientName, long studentId) {
