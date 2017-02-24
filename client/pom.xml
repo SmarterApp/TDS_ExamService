@@ -11,7 +11,7 @@
     <description>The client classes to interact with exam service</description>
 
     <parent>
-        <groupId>org.opentestsystem.exam</groupId>
+        <groupId>org.opentestsystem.delivery</groupId>
         <artifactId>tds-exam</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
@@ -24,7 +24,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.opentestsystem.common</groupId>
+            <groupId>org.opentestsystem.delivery</groupId>
             <artifactId>tds-common-legacy</artifactId>
             <version>${tds-common-legacy.version}</version>
         </dependency>
