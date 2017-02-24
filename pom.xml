@@ -30,7 +30,7 @@
         <tds-common-legacy.version>0.0.1</tds-common-legacy.version>
         <tds-exam-client.version>0.0.1-SNAPSHOT</tds-exam-client.version>
         <tds-session.version>0.0.1</tds-session.version>
-        <tds-assessment-client.version>0.0.1-SNAPSHOT</tds-assessment-client.version>
+        <tds-assessment-client.version>0.0.1</tds-assessment-client.version>
         <tds-student-client.version>0.0.1-SNAPSHOT</tds-student-client.version>
         <tds-config-client.version>0.0.1</tds-config-client.version>
 
