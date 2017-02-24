@@ -27,6 +27,7 @@ public class FieldTestItemGroup {
     private FieldTestItemGroup() {}
 
     public FieldTestItemGroup(Builder builder) {
+        this.id = builder.id;
         this.segmentKey = builder.segmentKey;
         this.examId = builder.examId;
         this.position = builder.position;
