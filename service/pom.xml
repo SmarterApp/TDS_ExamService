@@ -11,7 +11,7 @@
     <description>The microservice for exams</description>
 
     <parent>
-        <groupId>org.opentestsystem.exam</groupId>
+        <groupId>org.opentestsystem.delivery</groupId>
         <artifactId>tds-exam</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
@@ -36,32 +36,32 @@
     <dependencies>
         <!-- TDS -->
         <dependency>
-            <groupId>org.opentestsystem.exam</groupId>
+            <groupId>org.opentestsystem.delivery</groupId>
             <artifactId>tds-exam-client</artifactId>
             <version>${tds-exam-client.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.opentestsystem.common</groupId>
+            <groupId>org.opentestsystem.delivery</groupId>
             <artifactId>tds-common</artifactId>
             <version>${tds-common.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.opentestsystem.session</groupId>
+            <groupId>org.opentestsystem.delivery</groupId>
             <artifactId>tds-session-client</artifactId>
             <version>${tds-session.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.opentestsystem.student</groupId>
+            <groupId>org.opentestsystem.delivery</groupId>
             <artifactId>tds-student-client</artifactId>
             <version>${tds-student-client.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.opentestsystem.assessment</groupId>
+            <groupId>org.opentestsystem.delivery</groupId>
             <artifactId>tds-assessment-client</artifactId>
             <version>${tds-assessment-client.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.opentestsystem.config</groupId>
+            <groupId>org.opentestsystem.delivery</groupId>
             <artifactId>tds-config-client</artifactId>
             <version>${tds-config-client.version}</version>
         </dependency>
@@ -169,6 +169,12 @@
             <groupId>org.mockito</groupId>
             <artifactId>mockito-all</artifactId>
             <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.github.benas</groupId>
+            <artifactId>random-beans</artifactId>
+            <version>3.5.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>

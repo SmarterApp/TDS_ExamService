@@ -1,5 +1,6 @@
 package tds.exam.web.endpoints;
 
+import com.google.common.collect.ImmutableSet;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,21 +12,28 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import tds.common.ValidationError;
 import tds.common.configuration.JacksonObjectMapperConfiguration;
+import tds.common.configuration.SecurityConfiguration;
 import tds.common.web.advice.ExceptionAdvice;
 import tds.exam.Exam;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
+import tds.exam.ExpandableExam;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.error.ValidationErrorCode;
 import tds.exam.services.ExamPageService;
 import tds.exam.services.ExamService;
 
+import static io.github.benas.randombeans.api.EnhancedRandom.random;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isNull;
@@ -40,7 +48,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @RunWith(SpringRunner.class)
 @WebMvcTest(ExamController.class)
-@Import({ExceptionAdvice.class, JacksonObjectMapperConfiguration.class})
+@Import({ExceptionAdvice.class, JacksonObjectMapperConfiguration.class, SecurityConfiguration.class})
 public class ExamControllerIntegrationTests {
     @Autowired
     private MockMvc http;
@@ -122,45 +130,94 @@ public class ExamControllerIntegrationTests {
 
         verify(mockExamService).pauseAllExamsInSession(sessionId);
     }
-    
+
     @Test
     public void shouldUpdateExamStatus() throws Exception {
         final UUID examId = UUID.randomUUID();
         final String statusCode = ExamStatusCode.STATUS_APPROVED;
-        
+
         when(mockExamService.updateExamStatus(eq(examId), any(), (String) isNull())).thenReturn(Optional.empty());
-    
+
         http.perform(put(new URI(String.format("/exam/%s/status/", examId)))
             .param("status", statusCode)
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isNoContent());
-          
+
         verify(mockExamService).updateExamStatus(eq(examId), any(), (String) isNull());
     }
-    
+
     @Test
     public void shouldFailStatusUpdateWithError() throws Exception {
         final UUID examId = UUID.randomUUID();
         final String statusCode = ExamStatusCode.STATUS_APPROVED;
-        
+
         when(mockExamService.updateExamStatus(eq(examId), any(), (String) isNull()))
             .thenReturn(Optional.of(new ValidationError("Some", "Error")));
-        
+
         http.perform(put(new URI(String.format("/exam/%s/status/", examId)))
             .param("status", statusCode)
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isUnprocessableEntity());
-        
+
         verify(mockExamService).updateExamStatus(eq(examId), any(), (String) isNull());
     }
-    
+
+    @Test
+    public void shouldReturnNoContentForEmptyList() throws Exception {
+        final UUID sessionId = UUID.randomUUID();
+        final Set<String> invalidStatuses = ImmutableSet.of(ExamStatusCode.STATUS_SUSPENDED);
+        when(mockExamService.findExamsBySessionId(sessionId, invalidStatuses, ExpandableExam.EXPANDABLE_PARAMS_EXAM_ACCOMMODATIONS))
+            .thenReturn(new ArrayList<>());
+
+        http.perform(get(new URI(String.format("/exam/session/%s", sessionId)))
+            .param("statusNot", ExamStatusCode.STATUS_SUSPENDED)
+            .param("expandable", ExpandableExam.EXPANDABLE_PARAMS_EXAM_ACCOMMODATIONS)
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNoContent());
+    }
+
+    @Test
+    public void shouldReturnListOfExpandableExamsForSessionId() throws Exception {
+        final UUID sessionId = UUID.randomUUID();
+        final Set<String> invalidStatuses = ImmutableSet.of(
+            ExamStatusCode.STATUS_SUSPENDED,
+            ExamStatusCode.STATUS_PENDING,
+            ExamStatusCode.STATUS_DENIED
+        );
+
+        final ExpandableExam expandableExam1 = random(ExpandableExam.class);
+        final ExpandableExam expandableExam2 = random(ExpandableExam.class);
+
+        when(mockExamService.findExamsBySessionId(sessionId, invalidStatuses, ExpandableExam.EXPANDABLE_PARAMS_EXAM_ACCOMMODATIONS,
+            ExpandableExam.EXPANDABLE_PARAMS_ITEM_RESPONSE_COUNT))
+            .thenReturn(Arrays.asList(expandableExam1, expandableExam2));
+
+        http.perform(get(new URI(String.format("/exam/session/%s", sessionId)))
+            .param("statusNot", ExamStatusCode.STATUS_SUSPENDED)
+            .param("statusNot", ExamStatusCode.STATUS_PENDING)
+            .param("statusNot", ExamStatusCode.STATUS_DENIED)
+            .param("embed", ExpandableExam.EXPANDABLE_PARAMS_EXAM_ACCOMMODATIONS)
+            .param("embed", ExpandableExam.EXPANDABLE_PARAMS_ITEM_RESPONSE_COUNT)
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("[0].exam.id", is(expandableExam1.getExam().getId().toString())))
+            .andExpect(jsonPath("[0].itemsResponseCount", is(expandableExam1.getItemsResponseCount())))
+            .andExpect(jsonPath("[0].examAccommodations", hasSize(expandableExam1.getExamAccommodations().size())))
+            .andExpect(jsonPath("[0].examAccommodations[0].id", is(expandableExam1.getExamAccommodations().get(0).getId().toString())))
+            .andExpect(jsonPath("[0].examAccommodations[1].id", is(expandableExam1.getExamAccommodations().get(1).getId().toString())))
+            .andExpect(jsonPath("[1].exam.id", is(expandableExam2.getExam().getId().toString())))
+            .andExpect(jsonPath("[1].itemsResponseCount", is(expandableExam2.getItemsResponseCount())))
+            .andExpect(jsonPath("[1].examAccommodations[0].id", is(expandableExam2.getExamAccommodations().get(0).getId().toString())))
+            .andExpect(jsonPath("[1].examAccommodations", hasSize(expandableExam2.getExamAccommodations().size())));
+    }
+
     @Test
     public void shouldThrowWithNoStatusProvided() throws Exception {
         final UUID examId = UUID.randomUUID();
-        
+
         http.perform(put(new URI(String.format("/exam/%s/status/", examId)))
-          .contentType(MediaType.APPLICATION_JSON))
-          .andExpect(status().isInternalServerError());
-        
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isInternalServerError());
+
     }
 }

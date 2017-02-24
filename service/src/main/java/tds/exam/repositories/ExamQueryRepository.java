@@ -46,10 +46,20 @@ public interface ExamQueryRepository {
      * Find all {@link tds.exam.Exam}s that belong to a {@link tds.session.Session} so they can be paused.
      *
      * @param sessionId The unique identifier of the session
-     * @param statusSet A {@code java.util.Set} of statuses that can transition to "paused"
+     * @param statuses A {@code java.util.Set} the statuses to filter by
      * @return A collection of exams that are assigned to the specified session
      */
-    List<Exam> findAllExamsInSessionWithStatus(final UUID sessionId, final Set<String> statusSet);
+    List<Exam> findAllExamsInSessionWithStatus(final UUID sessionId, final Set<String> statuses);
+
+    /**
+     * Find all {@link tds.exam.Exam}s that belong to a {@link tds.session.Session} that do not have the provided
+     * status codes
+     *
+     * @param sessionId The unique identifier of the session
+     * @param statuses A {@code java.util.Set} the statuses to filter by
+     * @return A collection of exams that are assigned to the specified session
+     */
+    List<Exam> findAllExamsInSessionWithoutStatus(final UUID sessionId, final Set<String> statuses);
 
     /**
      * Retrieves a listing of all ability records for the specified exam and student.

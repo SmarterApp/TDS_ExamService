@@ -150,6 +150,7 @@ public class ExamAccommodationServiceImplTest {
             .withAccommodationCode("code")
             .withAccommodationType("type")
             .withSegmentKey("segmentKey")
+            .withSegmentPosition(0)
             .withDefaultAccommodation(true)
             .withDependsOnToolType(null)
             .build();
@@ -173,6 +174,7 @@ public class ExamAccommodationServiceImplTest {
         ExamAccommodation examAccommodation = accommodations.get(0);
         assertThat(examAccommodation.getCode()).isEqualTo("code");
         assertThat(examAccommodation.getType()).isEqualTo("type");
+        assertThat(examAccommodation.getSegmentPosition()).isEqualTo(0);
         assertThat(examAccommodation.getSegmentKey()).isEqualTo("segmentKey");
     }
 

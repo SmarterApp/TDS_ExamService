@@ -1,6 +1,8 @@
 package tds.exam.services;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import tds.assessment.Assessment;
@@ -9,6 +11,7 @@ import tds.common.ValidationError;
 import tds.exam.Exam;
 import tds.exam.ExamConfiguration;
 import tds.exam.ExamStatusCode;
+import tds.exam.ExpandableExam;
 import tds.exam.OpenExamRequest;
 
 /**
@@ -76,4 +79,14 @@ public interface ExamService {
      * @param sessionId The unique identifier of the session that has been closed
      */
     void pauseAllExamsInSession(final UUID sessionId);
+
+    /**
+     * Returns a list of all {@link tds.exam.ExpandableExam}s within a session. The expandable exam contains
+     * additional optional exam data.
+     *
+     * @param sessionId        the id of the session the {@link tds.exam.Exam}s belong to
+     * @param expandableParams a param representing the optional expandable data to include
+     * @return a list of {@link tds.exam.ExpandableExam}s in the session
+     */
+    List<ExpandableExam> findExamsBySessionId(final UUID sessionId, final Set<String> invalidStatuses, final String... expandableParams);
 }
