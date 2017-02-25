@@ -85,6 +85,6 @@ public class OnCompletedStatusExamChangeListener implements ChangeListener<Exam>
             fieldTestItemGroupCommandRepository.update(fieldTestItemGroupsToUpdate.toArray(new FieldTestItemGroup[fieldTestItemGroupsToUpdate.size()]));
         }
 
-        // TODO:  Submit to TIS for scoring (CommonDLL#_OnStatus_Completed_SP, line 1433 - 1434), which changes the exam's status to "submitted"
+        // TODO:  Submit for scoring (CommonDLL#_OnStatus_Completed_SP, line 1433 - 1434), which changes the exam's status to "submitted"
     }
 }

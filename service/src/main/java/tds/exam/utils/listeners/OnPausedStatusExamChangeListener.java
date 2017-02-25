@@ -51,7 +51,8 @@ public class OnPausedStatusExamChangeListener implements ChangeListener<Exam> {
             .orElseThrow(() -> new NotFoundException(String.format("Could not find an exam segment for exam id %s and segment position %d", newExam.getId(), newExam.getCurrentSegmentPosition())));
 
         if (segment.isPermeable()
-            && (segment.getRestorePermeableCondition().equals("segment") || segment.getRestorePermeableCondition().equals("paused"))) {
+            && (segment.getRestorePermeableCondition().equalsIgnoreCase("segment")
+            || segment.getRestorePermeableCondition().equalsIgnoreCase("paused"))) {
             examSegmentCommandRepository.update(new ExamSegment.Builder()
                 .fromSegment(segment)
                 .withPermeable(false)

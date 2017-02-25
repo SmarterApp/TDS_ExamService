@@ -36,7 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest
-//@Transactional
+@Transactional
 public class FieldTestItemGroupRepositoryIntegrationTests {
     @Autowired
     @Qualifier("commandJdbcTemplate")
@@ -113,8 +113,8 @@ public class FieldTestItemGroupRepositoryIntegrationTests {
         assertThat(retFieldTestItemGroups).containsExactly(group1, group2);
 
         FieldTestItemGroup retGroup1 = retFieldTestItemGroups.stream()
-                .filter(fieldTestItemGroup -> fieldTestItemGroup.equals(group1))
-                .findFirst().get();
+            .filter(fieldTestItemGroup -> fieldTestItemGroup.equals(group1))
+            .findFirst().get();
 
         assertThat(retGroup1.getBlockId()).isEqualTo(group1.getBlockId());
         assertThat(retGroup1.getGroupId()).isEqualTo(group1.getGroupId());
@@ -208,11 +208,9 @@ public class FieldTestItemGroupRepositoryIntegrationTests {
         assertThat(fieldTestItemGroups).hasSize(2);
         FieldTestItemGroup firstFtItemGroupResult = fieldTestItemGroups.get(0);
         assertThat(firstFtItemGroupResult.getPositionAdministered()).isEqualTo(mockFirstPageFirstItem.getPosition());
-        assertThat(firstFtItemGroupResult.getAdministeredAt()).isGreaterThan(mockFirstFtItemGroup.getAdministeredAt());
 
         FieldTestItemGroup secondFtItemGroupResult = fieldTestItemGroups.get(1);
         assertThat(secondFtItemGroupResult.getPositionAdministered()).isEqualTo(mockSecondPageFirstItem.getPosition());
-        assertThat(secondFtItemGroupResult.getAdministeredAt()).isGreaterThan(mockSecondFtItemGroup.getAdministeredAt());
     }
 
     @Test
@@ -251,5 +249,6 @@ public class FieldTestItemGroupRepositoryIntegrationTests {
         assertThat(fieldTestItemGroups).hasSize(1);
         FieldTestItemGroup result = fieldTestItemGroups.get(0);
         assertThat(result.getPositionAdministered()).isEqualTo(updatedFirstFtItemGroup.getPositionAdministered());
+        assertThat(result.getAdministeredAt()).isEqualTo(updatedFirstFtItemGroup.getAdministeredAt());
     }
 }

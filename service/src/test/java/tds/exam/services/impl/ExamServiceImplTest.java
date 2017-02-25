@@ -969,6 +969,8 @@ public class ExamServiceImplTest {
 
         Optional<ValidationError> maybeStatusTransitionFailure = examService.updateExamStatus(examId,
             new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE));
+        verify(mockOnPausedExamChangeListener).accept(any(Exam.class), any(Exam.class));
+        verify(mockOnCompletedExamChangeListener).accept(any(Exam.class), any(Exam.class)); // gets called; will do nothing (because status is "paused")
 
         assertThat(maybeStatusTransitionFailure).isNotPresent();
     }
@@ -986,6 +988,8 @@ public class ExamServiceImplTest {
 
         Optional<ValidationError> maybeStatusTransitionFailure = examService.updateExamStatus(examId,
             new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE));
+        verifyZeroInteractions(mockOnPausedExamChangeListener);
+        verifyZeroInteractions(mockOnCompletedExamChangeListener);
 
         assertThat(maybeStatusTransitionFailure).isPresent();
         ValidationError statusTransitionFailure = maybeStatusTransitionFailure.get();
