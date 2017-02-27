@@ -12,7 +12,9 @@ public class ExpandableExam {
 
     private Exam exam;
     private int itemResponseCount;
+    private int requestCount;
     private List<ExamAccommodation> examAccommodations;
+    private boolean multiStageBraille;
 
     /* Empty private constructor for frameworks */
     private ExpandableExam() {}
@@ -21,12 +23,16 @@ public class ExpandableExam {
         this.exam = builder.exam;
         this.examAccommodations = builder.examAccommodations;
         this.itemResponseCount = builder.itemResponseCount;
+        this.requestCount = builder.requestCount;
+        this.multiStageBraille = builder.multiStageBraille;
     }
 
     public static class Builder {
         private Exam exam;
         private List<ExamAccommodation> examAccommodations;
         private int itemResponseCount;
+        private int requestCount;
+        private boolean multiStageBraille;
 
         public Builder(Exam exam) {
             this.exam = exam;
@@ -39,6 +45,16 @@ public class ExpandableExam {
 
         public Builder withItemsResponseCount(int itemResponseCount) {
             this.itemResponseCount = itemResponseCount;
+            return this;
+        }
+
+        public Builder withRequestCount(int requestCount) {
+            this.requestCount = requestCount;
+            return this;
+        }
+
+        public Builder withMultiStageBraille(boolean multiStageBraille) {
+            this.multiStageBraille = multiStageBraille;
             return this;
         }
 
@@ -66,5 +82,19 @@ public class ExpandableExam {
      */
     public int getItemsResponseCount() {
         return itemResponseCount;
+    }
+
+    /**
+     * @return The number of unfulfilled print or emboss requests submitted
+     */
+    public int getRequestCount() {
+        return requestCount;
+    }
+
+    /**
+     * @return Flag indicating that the exam contains multi stage braille segments
+     */
+    public boolean isMultiStageBraille() {
+        return multiStageBraille;
     }
 }
