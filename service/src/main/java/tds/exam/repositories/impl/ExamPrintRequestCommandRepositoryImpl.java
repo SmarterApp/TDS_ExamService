@@ -23,7 +23,7 @@ public class ExamPrintRequestCommandRepositoryImpl implements ExamPrintRequestCo
 
     @Override
     public void insert(final ExamPrintRequest examPrintRequest) {
-        SqlParameterSource params = new MapSqlParameterSource("id", examPrintRequest.getId().toString())
+        final SqlParameterSource params = new MapSqlParameterSource("id", examPrintRequest.getId().toString())
             .addValue("examId", examPrintRequest.getExamId().toString())
             .addValue("sessionId", examPrintRequest.getSessionId().toString())
             .addValue("type", examPrintRequest.getType())
@@ -63,7 +63,7 @@ public class ExamPrintRequestCommandRepositoryImpl implements ExamPrintRequestCo
     }
 
     private void update(final ExamPrintRequest examPrintRequest) {
-        MapSqlParameterSource params = new MapSqlParameterSource("examRequestId", examPrintRequest.getId().toString())
+        final SqlParameterSource params = new MapSqlParameterSource("examRequestId", examPrintRequest.getId().toString())
             .addValue("approvedAt", mapJodaInstantToTimestamp(examPrintRequest.getApprovedAt()))
             .addValue("deniedAt", mapJodaInstantToTimestamp(examPrintRequest.getDeniedAt()))
             .addValue("reasonDenied", examPrintRequest.getReasonDenied());

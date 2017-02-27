@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 
 import java.util.Arrays;
@@ -26,7 +27,7 @@ public class ExamPrintRequestQueryRepositoryImpl implements ExamPrintRequestQuer
 
     @Override
     public Map<UUID, Integer> findRequestCountsForExamIds(final UUID sessionId, final UUID... examIds) {
-        final MapSqlParameterSource params = new MapSqlParameterSource("sessionId", sessionId.toString())
+        final SqlParameterSource params = new MapSqlParameterSource("sessionId", sessionId.toString())
             .addValue("examIds", Arrays.stream(examIds).map(UUID::toString).collect(Collectors.toSet()));
 
         final String SQL =
@@ -38,7 +39,7 @@ public class ExamPrintRequestQueryRepositoryImpl implements ExamPrintRequestQuer
                 "JOIN ( \n" +
                 "   SELECT \n" +
                 "       exam_print_request_id, \n" +
-                "       MAX(id) AS id \n"+
+                "       MAX(id) AS id \n" +
                 "   FROM \n" +
                 "       exam.exam_print_request_event \n" +
                 "   GROUP BY exam_print_request_id \n" +
