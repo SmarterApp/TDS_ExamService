@@ -12,6 +12,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -54,6 +55,7 @@ import tds.exam.services.ExamPrintRequestService;
 import tds.exam.services.ExamSegmentService;
 import tds.exam.services.ExamService;
 import tds.exam.services.ExamineeService;
+import tds.exam.services.ExpandableExamMapper;
 import tds.exam.services.SessionService;
 import tds.exam.services.StudentService;
 import tds.exam.services.TimeLimitConfigurationService;
@@ -95,7 +97,7 @@ class ExamServiceImpl implements ExamService {
     private final ExamAccommodationService examAccommodationService;
     private final ExamApprovalService examApprovalService;
     private final ExamineeService examineeService;
-    private final ExamPrintRequestService examPrintRequestService;
+    private final Collection<ExpandableExamMapper> expandableExamMappers;
 
     private final Set<String> statusesThatCanTransitionToPaused;
 
@@ -115,7 +117,7 @@ class ExamServiceImpl implements ExamService {
                            ExamAccommodationService examAccommodationService,
                            ExamApprovalService examApprovalService,
                            ExamineeService examineeService,
-                           ExamPrintRequestService examPrintRequestService) {
+                           Collection<ExpandableExamMapper> expandableExamMappers) {
         this.examQueryRepository = examQueryRepository;
         this.historyQueryRepository = historyQueryRepository;
         this.sessionService = sessionService;
@@ -131,7 +133,7 @@ class ExamServiceImpl implements ExamService {
         this.examAccommodationService = examAccommodationService;
         this.examApprovalService = examApprovalService;
         this.examineeService = examineeService;
-        this.examPrintRequestService = examPrintRequestService;
+        this.expandableExamMappers = expandableExamMappers;
 
         // From CommondDLL._IsValidStatusTransition_FN(): a collection of all the statuses that can transition to
         // "paused".  That is, each of these status values has a nested switch statement that contains the "paused"
@@ -313,7 +315,7 @@ class ExamServiceImpl implements ExamService {
     @Override
     public List<ExpandableExam> findExamsBySessionId(final UUID sessionId, final Set<String> invalidStatuses,
                                                      final String... embed) {
-        final Set<String> params = Sets.newHashSet(embed);
+        final Set<String> expandableExamAttributes = Sets.newHashSet(embed);
         final List<Exam> exams = examQueryRepository.findAllExamsInSessionWithoutStatus(sessionId, invalidStatuses);
         final Map<UUID, ExpandableExam.Builder> examBuilders = exams.stream()
             .collect(Collectors.toMap(Exam::getId, exam -> new ExpandableExam.Builder(exam)));
@@ -323,20 +325,7 @@ class ExamServiceImpl implements ExamService {
             return new ArrayList<>();
         }
 
-        if (params.contains(ExpandableExam.EXPANDABLE_PARAMS_EXAM_ACCOMMODATIONS)) {
-            List<ExamAccommodation> examAccommodations = examAccommodationService.findApprovedAccommodations(examIds);
-            mapExamAccommodationsToExams(examBuilders, examAccommodations);
-        }
-
-        if (params.contains(ExpandableExam.EXPANDABLE_PARAMS_ITEM_RESPONSE_COUNT)) {
-            Map<UUID, Integer> itemResponseCounts = examItemService.getResponseCounts(examIds);
-            mapResponseCountsToExams(examBuilders, itemResponseCounts);
-        }
-
-        if (params.contains(ExpandableExam.EXPANDABLE_PARAMS_UNFULFILLED_REQUEST_COUNT)) {
-            Map<UUID, Integer> examRequestCounts = examPrintRequestService.findRequestCountsForExamIds(sessionId, examIds);
-            mapPrintRequestCountsToExams(examBuilders, examRequestCounts);
-        }
+        expandableExamMappers.forEach(mapper -> mapper.updateExpandableMapper(expandableExamAttributes, examBuilders, sessionId));
 
         // Build each exam and return
         return examBuilders.values().stream()
@@ -810,31 +799,4 @@ class ExamServiceImpl implements ExamService {
 
         return exam;
     }
-
-    private static void mapResponseCountsToExams(final Map<UUID, ExpandableExam.Builder> examBuilders, final Map<UUID, Integer> itemResponseCounts) {
-        itemResponseCounts.forEach((examId, responseCount) -> {
-            ExpandableExam.Builder builder = examBuilders.get(examId);
-            builder.withItemsResponseCount(responseCount);
-        });
-    }
-
-    private static void mapExamAccommodationsToExams(final Map<UUID, ExpandableExam.Builder> examBuilders, final List<ExamAccommodation> examAccommodations) {
-        // list exam accoms grouped by the examId
-        Map<UUID, List<ExamAccommodation>> sortedAccommodations = examAccommodations.stream()
-            .collect(Collectors.groupingBy(ExamAccommodation::getExamId));
-
-        // Assign each sub-list of exam accommodations to their respective exam ids
-        sortedAccommodations.forEach((examId, sortedExamAccommodations) -> {
-            ExpandableExam.Builder builder = examBuilders.get(examId);
-            builder.withExamAccommodations(sortedExamAccommodations);
-        });
-    }
-
-    private void mapPrintRequestCountsToExams(final Map<UUID, ExpandableExam.Builder> examBuilders, final Map<UUID, Integer> examRequestCounts) {
-        examRequestCounts.forEach((examId, requestCount) -> {
-            ExpandableExam.Builder builder = examBuilders.get(examId);
-            builder.withRequestCount(requestCount);
-        });
-    }
-
 }
