@@ -7,11 +7,11 @@ import java.util.List;
  */
 public class ExpandableExam {
     public static final String EXPANDABLE_PARAMS_EXAM_ACCOMMODATIONS = "examAccommodations";
-    public static final String EXPANDABLE_PARAMS_ITEM_RESPONSE_COUNT = "itemResponseCount";
+    public static final String EXPANDABLE_PARAMS_ITEM_RESPONSE_COUNT = "itemsResponseCount";
     public static final String EXPANDABLE_PARAMS_UNFULFILLED_REQUEST_COUNT = "unfulfilledRequestCount";
 
     private Exam exam;
-    private int itemResponseCount;
+    private int itemsResponseCount;
     private int requestCount;
     private List<ExamAccommodation> examAccommodations;
     private boolean multiStageBraille;
@@ -22,7 +22,7 @@ public class ExpandableExam {
     public ExpandableExam(Builder builder) {
         this.exam = builder.exam;
         this.examAccommodations = builder.examAccommodations;
-        this.itemResponseCount = builder.itemResponseCount;
+        this.itemsResponseCount = builder.itemsResponseCount;
         this.requestCount = builder.requestCount;
         this.multiStageBraille = builder.multiStageBraille;
     }
@@ -30,7 +30,7 @@ public class ExpandableExam {
     public static class Builder {
         private Exam exam;
         private List<ExamAccommodation> examAccommodations;
-        private int itemResponseCount;
+        private int itemsResponseCount;
         private int requestCount;
         private boolean multiStageBraille;
 
@@ -43,8 +43,8 @@ public class ExpandableExam {
             return this;
         }
 
-        public Builder withItemsResponseCount(int itemResponseCount) {
-            this.itemResponseCount = itemResponseCount;
+        public Builder withItemsResponseCount(int itemsResponseCount) {
+            this.itemsResponseCount = itemsResponseCount;
             return this;
         }
 
@@ -81,7 +81,7 @@ public class ExpandableExam {
      * @return The count of items that have existing responses for the exam
      */
     public int getItemsResponseCount() {
-        return itemResponseCount;
+        return itemsResponseCount;
     }
 
     /**
