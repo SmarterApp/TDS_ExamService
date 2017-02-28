@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -321,6 +322,10 @@ class ExamServiceImpl implements ExamService {
         final Map<UUID, ExpandableExam.Builder> examBuilders = exams.stream()
             .collect(Collectors.toMap(Exam::getId, exam -> new ExpandableExam.Builder(exam)));
         final UUID[] examIds = examBuilders.keySet().toArray(new UUID[examBuilders.size()]);
+
+        if (examIds.length == 0) {
+            return new ArrayList<>();
+        }
 
         if (params.contains(ExpandableExam.EXPANDABLE_PARAMS_EXAM_ACCOMMODATIONS)) {
             List<ExamAccommodation> examAccommodations = examAccommodationService.findApprovedAccommodations(examIds);
