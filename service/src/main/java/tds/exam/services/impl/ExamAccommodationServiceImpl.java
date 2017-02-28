@@ -302,29 +302,39 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
         }
 
         List<ExamAccommodation> examAccommodationsToInsert = new ArrayList<>();
-        List<ExamAccommodation> examAccommodationsToUpdate = new ArrayList<>();
+        List<ExamAccommodation> examAccommodationsToDelete = new ArrayList<>();
 
         for (ExamAccommodation examAccommodation : accommodationsToAdd) {
-            if (existingExamAccommodations.contains(examAccommodation)) {
-                ExamAccommodation existingAccommodation = existingExamAccommodations.get(existingExamAccommodations.indexOf(examAccommodation));
-                if (!isEqual(existingAccommodation, examAccommodation)) {
-                    examAccommodationsToUpdate.add(examAccommodation);
+            // Find an existing accommodation for the same type
+            //  This might have the same code or not, so can't use contains since it checks for equality
+            Optional<ExamAccommodation> existingAccommodation = existingExamAccommodations.stream()
+                .filter(acc ->
+                    acc.getExamId().equals(examAccommodation.getExamId())
+                    && acc.getSegmentPosition() == examAccommodation.getSegmentPosition()
+                    && acc.getType().equals(examAccommodation.getType())
+                ).findFirst();
+
+            if (existingAccommodation.isPresent()) {
+                // check to see if the ExamAccommodations are logically the same
+                //  if they changed then the existing one is removed and replaced with the new code
+                if (!isEquivalent(existingAccommodation.get(), examAccommodation)) {
+                    examAccommodationsToDelete.add(existingAccommodation.get());
+                    examAccommodationsToInsert.add(examAccommodation);
                 }
             } else {
                 examAccommodationsToInsert.add(examAccommodation);
             }
         }
 
+        if (!examAccommodationsToDelete.isEmpty()) {
+            examAccommodationCommandRepository.delete(examAccommodationsToDelete);
+        }
+
         if (!examAccommodationsToInsert.isEmpty()) {
             examAccommodationCommandRepository.insert(examAccommodationsToInsert);
         }
 
-        if (!examAccommodationsToUpdate.isEmpty()) {
-            examAccommodationCommandRepository.update(examAccommodationsToUpdate.toArray(new ExamAccommodation[examAccommodationsToUpdate.size()]));
-        }
-
         Set<ExamAccommodation> examAccommodations = new HashSet<>(examAccommodationsToInsert);
-        examAccommodations.addAll(examAccommodationsToUpdate);
 
         //Add all the exam accommodations that were not updated or inserted.
         examAccommodations.addAll(existingExamAccommodations);
@@ -332,7 +342,14 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
         return examAccommodations.stream().collect(Collectors.toList());
     }
 
-    private static boolean isEqual(ExamAccommodation ea1, ExamAccommodation ea2) {
+    /**
+     * Used to see if two ExamAccommodations's are logically the same.  The {@link tds.exam.ExamAccommodation} equals() method cannot be used
+     * since one the accommodations is fetched from the database and the other is provided by the UI so not all fields will match.
+     * @param ea1 first {@link tds.exam.ExamAccommodation}
+     * @param ea2 second {@link tds.exam.ExamAccommodation}
+     * @return true if the {@link tds.exam.ExamAccommodation}s are logically the same
+     */
+    private static boolean isEquivalent(ExamAccommodation ea1, ExamAccommodation ea2) {
         return ea1.getSegmentPosition() == ea2.getSegmentPosition()
             && StringUtils.equals(ea1.getSegmentKey(), ea2.getSegmentKey())
             && StringUtils.equals(ea1.getCode(), ea2.getCode())
