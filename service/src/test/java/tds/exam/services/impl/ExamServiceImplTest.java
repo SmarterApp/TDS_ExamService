@@ -62,6 +62,7 @@ import tds.exam.services.ExamAccommodationService;
 import tds.exam.services.ExamApprovalService;
 import tds.exam.services.ExamItemService;
 import tds.exam.services.ExamPageService;
+import tds.exam.services.ExamPrintRequestService;
 import tds.exam.services.ExamSegmentService;
 import tds.exam.services.ExamService;
 import tds.exam.services.ExamineeService;
@@ -142,6 +143,9 @@ public class ExamServiceImplTest {
     @Mock
     private ExamineeService mockExamineeService;
 
+    @Mock
+    private ExamPrintRequestService mockExamPrintRequestService;
+
     @Captor
     private ArgumentCaptor<Exam> examArgumentCaptor;
 
@@ -164,7 +168,8 @@ public class ExamServiceImplTest {
             mockExamStatusQueryRepository,
             mockExamAccommodationService,
             mockExamApprovalService,
-            mockExamineeService);
+            mockExamineeService,
+            mockExamPrintRequestService);
 
         // Calls to get formatted message are throughout the exam service
         // Since we aren't testing that it returns anything specific in these tests I each option here for simplicity
@@ -1384,7 +1389,7 @@ public class ExamServiceImplTest {
     }
 
     @Test
-    public void shouldReturnExpandableExamsWithExamAccommodationsAndResponseCountsSessionId() {
+    public void shouldReturnExpandableExamsWithExamAccommodationsRequestAndResponseCountsSessionId() {
         final Set<String> invalidStatuses = Sets.newHashSet(
             ExamStatusCode.STATUS_PENDING,
             ExamStatusCode.STATUS_SUSPENDED,
@@ -1406,13 +1411,18 @@ public class ExamServiceImplTest {
             exam1.getId(), 4,
             exam2.getId(), 1
         ));
+        when(mockExamPrintRequestService.findRequestCountsForExamIds(eq(sessionId), any(), any())).thenReturn(ImmutableMap.of(
+            exam1.getId(), 2
+        ));
         List<ExpandableExam> expandableExams = examService.findExamsBySessionId(sessionId, invalidStatuses,
-            ExpandableExam.EXPANDABLE_PARAMS_EXAM_ACCOMMODATIONS, ExpandableExam.EXPANDABLE_PARAMS_ITEM_RESPONSE_COUNT);
+            ExpandableExam.EXPANDABLE_PARAMS_EXAM_ACCOMMODATIONS, ExpandableExam.EXPANDABLE_PARAMS_ITEM_RESPONSE_COUNT,
+            ExpandableExam.EXPANDABLE_PARAMS_UNFULFILLED_REQUEST_COUNT);
 
         verify(mockExamQueryRepository).findAllExamsInSessionWithoutStatus(eq(sessionId), any());
         verify(mockExamAccommodationService).findApprovedAccommodations(any(), any());
         // Should not call this
         verify(mockExamItemService).getResponseCounts(any(), any());
+        verify(mockExamPrintRequestService).findRequestCountsForExamIds(eq(sessionId), any(), any());
 
         assertThat(expandableExams).hasSize(2);
 
@@ -1430,9 +1440,12 @@ public class ExamServiceImplTest {
         assertThat(expExam1.getExam()).isEqualTo(exam1);
         assertThat(expExam1.getExamAccommodations()).hasSize(2);
         assertThat(expExam1.getItemsResponseCount()).isEqualTo(4);
+        assertThat(expExam1.getRequestCount()).isEqualTo(2);
+
         assertThat(expExam2.getExam()).isEqualTo(exam2);
         assertThat(expExam2.getExamAccommodations()).hasSize(1);
         assertThat(expExam2.getItemsResponseCount()).isEqualTo(1);
+        assertThat(expExam2.getRequestCount()).isEqualTo(0);
     }
 
     private Exam createExam(UUID sessionId, UUID thisExamId, String assessmentId, String clientName, long studentId) {

@@ -49,6 +49,7 @@ import tds.exam.services.ExamAccommodationService;
 import tds.exam.services.ExamApprovalService;
 import tds.exam.services.ExamItemService;
 import tds.exam.services.ExamPageService;
+import tds.exam.services.ExamPrintRequestService;
 import tds.exam.services.ExamSegmentService;
 import tds.exam.services.ExamService;
 import tds.exam.services.ExamineeService;
@@ -93,6 +94,7 @@ class ExamServiceImpl implements ExamService {
     private final ExamAccommodationService examAccommodationService;
     private final ExamApprovalService examApprovalService;
     private final ExamineeService examineeService;
+    private final ExamPrintRequestService examPrintRequestService;
 
     private final Set<String> statusesThatCanTransitionToPaused;
 
@@ -111,7 +113,8 @@ class ExamServiceImpl implements ExamService {
                            ExamStatusQueryRepository examStatusQueryRepository,
                            ExamAccommodationService examAccommodationService,
                            ExamApprovalService examApprovalService,
-                           ExamineeService examineeService) {
+                           ExamineeService examineeService,
+                           ExamPrintRequestService examPrintRequestService) {
         this.examQueryRepository = examQueryRepository;
         this.historyQueryRepository = historyQueryRepository;
         this.sessionService = sessionService;
@@ -127,6 +130,7 @@ class ExamServiceImpl implements ExamService {
         this.examAccommodationService = examAccommodationService;
         this.examApprovalService = examApprovalService;
         this.examineeService = examineeService;
+        this.examPrintRequestService = examPrintRequestService;
 
         // From CommondDLL._IsValidStatusTransition_FN(): a collection of all the statuses that can transition to
         // "paused".  That is, each of these status values has a nested switch statement that contains the "paused"
@@ -325,7 +329,8 @@ class ExamServiceImpl implements ExamService {
         }
 
         if (params.contains(ExpandableExam.EXPANDABLE_PARAMS_UNFULFILLED_REQUEST_COUNT)) {
-            //TODO: fetch count of unfulfilled print/emboss requests for each exam
+            Map<UUID, Integer> examRequestCounts = examPrintRequestService.findRequestCountsForExamIds(sessionId, examIds);
+            mapPrintRequestCountsToExams(examBuilders, examRequestCounts);
         }
 
         // Build each exam and return
@@ -819,4 +824,12 @@ class ExamServiceImpl implements ExamService {
             builder.withExamAccommodations(sortedExamAccommodations);
         });
     }
+
+    private void mapPrintRequestCountsToExams(final Map<UUID, ExpandableExam.Builder> examBuilders, final Map<UUID, Integer> examRequestCounts) {
+        examRequestCounts.forEach((examId, requestCount) -> {
+            ExpandableExam.Builder builder = examBuilders.get(examId);
+            builder.withRequestCount(requestCount);
+        });
+    }
+
 }
