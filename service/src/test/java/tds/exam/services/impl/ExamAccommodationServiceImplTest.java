@@ -42,6 +42,7 @@ import tds.session.Session;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -292,7 +293,8 @@ public class ExamAccommodationServiceImplTest {
 
         examAccommodationService.initializeAccommodationsOnPreviousExam(exam, assessment, 0, false, guestAccommodations);
 
-        verify(mockExamAccommodationCommandRepository).insert(examAccommodationInsertCaptor.capture());
+        verify(mockExamAccommodationCommandRepository, times(1)).insert(examAccommodationInsertCaptor.capture());
+        verify(mockExamAccommodationCommandRepository, times(1)).delete(any());
 
         List<ExamAccommodation> examAccommodations = examAccommodationInsertCaptor.getValue();
 
