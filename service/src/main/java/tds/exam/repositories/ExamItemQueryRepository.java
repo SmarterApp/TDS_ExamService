@@ -15,7 +15,7 @@ public interface ExamItemQueryRepository {
      * @return the item position of the last item responded to
      */
 
-    int getCurrentExamItemPosition(UUID examId);
+    int getCurrentExamItemPosition(final UUID examId);
 
     /**
      * Fetches a map of examIds for their respective number of items responded to

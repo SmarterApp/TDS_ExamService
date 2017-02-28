@@ -98,7 +98,7 @@ class ExamServiceImpl implements ExamService {
 
     private final Set<String> statusesThatCanTransitionToPaused;
 
-    private final Collection<ChangeListener<Exam>> changeListeners;
+    private final Collection<ChangeListener<Exam>> examStatusChangeListeners;
 
     @Autowired
     public ExamServiceImpl(ExamQueryRepository examQueryRepository,
@@ -116,7 +116,7 @@ class ExamServiceImpl implements ExamService {
                            ExamAccommodationService examAccommodationService,
                            ExamApprovalService examApprovalService,
                            ExamineeService examineeService,
-                           Collection<ChangeListener<Exam>> changeListeners) {
+                           Collection<ChangeListener<Exam>> examStatusChangeListeners) {
         this.examQueryRepository = examQueryRepository;
         this.historyQueryRepository = historyQueryRepository;
         this.sessionService = sessionService;
@@ -132,7 +132,7 @@ class ExamServiceImpl implements ExamService {
         this.examAccommodationService = examAccommodationService;
         this.examApprovalService = examApprovalService;
         this.examineeService = examineeService;
-        this.changeListeners = changeListeners;
+        this.examStatusChangeListeners = examStatusChangeListeners;
 
         // From CommondDLL._IsValidStatusTransition_FN(): a collection of all the statuses that can transition to
         // "paused".  That is, each of these status values has a nested switch statement that contains the "paused"
@@ -287,7 +287,7 @@ class ExamServiceImpl implements ExamService {
 
         examCommandRepository.update(updatedExam);
 
-        changeListeners.forEach(listener -> listener.accept(exam, updatedExam));
+        examStatusChangeListeners.forEach(listener -> listener.accept(exam, updatedExam));
 
         return Optional.empty();
     }

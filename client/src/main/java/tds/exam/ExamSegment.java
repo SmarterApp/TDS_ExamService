@@ -74,25 +74,25 @@ public class ExamSegment {
         private int poolCount;
         private Instant createdAt;
 
-        public Builder fromSegment(ExamSegment segment) {
-            examId = segment.examId;
-            segmentKey = segment.segmentKey;
-            segmentId = segment.segmentId;
-            segmentPosition = segment.segmentPosition;
-            formKey = segment.formKey;
-            formId = segment.formId;
-            algorithm = segment.algorithm;
-            examItemCount = segment.examItemCount;
-            fieldTestItemCount = segment.fieldTestItemCount;
-            permeable = segment.permeable;
-            restorePermeableCondition = segment.restorePermeableCondition;
-            formCohort = segment.formCohort;
-            satisfied = segment.satisfied;
-            exitedAt = segment.exitedAt;
-            itemPool = segment.itemPool;
-            poolCount = segment.poolCount;
-            createdAt = segment.createdAt;
-            return this;
+        public static Builder fromSegment(final ExamSegment segment) {
+            return new Builder()
+                .withExamId(segment.examId)
+                .withSegmentKey(segment.segmentKey)
+                .withSegmentId(segment.segmentId)
+                .withSegmentPosition(segment.segmentPosition)
+                .withFormKey(segment.formKey)
+                .withFormId(segment.formId)
+                .withAlgorithm(segment.algorithm)
+                .withExamItemCount(segment.examItemCount)
+                .withFieldTestItemCount(segment.fieldTestItemCount)
+                .withPermeable(segment.permeable)
+                .withRestorePermeableCondition(segment.restorePermeableCondition)
+                .withFormCohort(segment.formCohort)
+                .withSatisfied(segment.satisfied)
+                .withExitedAt(segment.exitedAt)
+                .withItemPool(segment.itemPool)
+                .withPoolCount(segment.poolCount)
+                .withCreatedAt(segment.createdAt);
         }
 
         public Builder withExamId(UUID newExamId) {

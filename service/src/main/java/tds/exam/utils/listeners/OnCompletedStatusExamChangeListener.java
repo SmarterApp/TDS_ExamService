@@ -57,13 +57,14 @@ public class OnCompletedStatusExamChangeListener implements ChangeListener<Exam>
             return;
         }
 
-        // CommonDLL#_OnStatus_Completed_SP, line 1425: Update the exam to indicate this segment is not permeable.
-        // Legacy code sets isPermeable to -1
+        // CommonDLL#_OnStatus_Completed_SP, line 1425: Update the exam to indicate this segment is not permeable,
+        // meaning the segment cannot be accessed/visited again.  Legacy code sets isPermeable to -1
         ExamSegment segment = examSegmentQueryRepository.findByExamIdAndSegmentPosition(newExam.getId(),
             newExam.getCurrentSegmentPosition())
             .orElseThrow(() -> new NotFoundException(String.format("Could not find an exam segment for exam id %s and segment position %d", newExam.getId(), newExam.getCurrentSegmentPosition())));
 
-        examSegmentCommandRepository.update(new ExamSegment.Builder()
+        new ExamSegment.Builder();
+        examSegmentCommandRepository.update(ExamSegment.Builder
             .fromSegment(segment)
             .withPermeable(false)
             .build());

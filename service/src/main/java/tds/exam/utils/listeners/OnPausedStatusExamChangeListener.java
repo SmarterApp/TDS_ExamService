@@ -53,7 +53,7 @@ public class OnPausedStatusExamChangeListener implements ChangeListener<Exam> {
         if (segment.isPermeable()
             && (segment.getRestorePermeableCondition().equalsIgnoreCase("segment")
             || segment.getRestorePermeableCondition().equalsIgnoreCase("paused"))) {
-            examSegmentCommandRepository.update(new ExamSegment.Builder()
+            examSegmentCommandRepository.update(ExamSegment.Builder
                 .fromSegment(segment)
                 .withPermeable(false)
                 .withRestorePermeableCondition(null)

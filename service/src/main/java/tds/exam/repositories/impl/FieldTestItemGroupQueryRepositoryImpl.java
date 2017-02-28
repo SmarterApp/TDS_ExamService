@@ -109,12 +109,12 @@ public class FieldTestItemGroupQueryRepositoryImpl implements FieldTestItemGroup
                 "   AND page.item_group_key = ftitem_group.group_key \n" +
                 "JOIN ( \n" +
                 "   SELECT \n" +
-                "   field_test_item_group_id, \n" +
-                "   MAX(id) AS id \n" +
-                "FROM \n" +
-                "   field_test_item_group_event \n" +
-                "GROUP BY \n" +
-                "   field_test_item_group_id) AS last_event \n" +
+                "       field_test_item_group_id, \n" +
+                "       MAX(id) AS id \n" +
+                "   FROM \n" +
+                "       field_test_item_group_event \n" +
+                "   GROUP BY \n" +
+                "       field_test_item_group_id) AS last_event \n" +
                 "   ON ftitem_group.id = last_event.field_test_item_group_id \n" +
                 "JOIN \n" +
                 "   field_test_item_group_event ftitem_event \n" +
