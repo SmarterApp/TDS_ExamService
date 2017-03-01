@@ -633,10 +633,9 @@ class ExamServiceImpl implements ExamService {
         //StudentDLL - around line 6793
         //If the student already has started the exam then the exam starts in a suspended state otherwise
         //the new exam being opened is treated as a fresh one which is pending state waiting for the proctor to approve
-        ExamStatusCode status = examStatusQueryRepository.findExamStatusCode(STATUS_PENDING);
-        if (previousExam.getStartedAt() != null) {
-            status = examStatusQueryRepository.findExamStatusCode(STATUS_SUSPENDED);
-        }
+        ExamStatusCode status = previousExam.getStartedAt() == null
+            ? examStatusQueryRepository.findExamStatusCode(STATUS_PENDING)
+            : examStatusQueryRepository.findExamStatusCode(STATUS_SUSPENDED);
 
         //Student DLL - around line 6804
         //If for some reason the previous exam is in an inuse stage then we still allow the prevous exam to
