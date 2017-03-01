@@ -19,6 +19,8 @@
     <properties>
         <java.version>1.8</java.version>
         <assertj.version>3.4.1</assertj.version>
+        <item-scoring.version>1.1.0-SNAPSHOT</item-scoring.version>
+        <item-renderer.version>0.0.1-SNAPSHOT</item-renderer.version>
     </properties>
 
     <dependencies>
@@ -26,7 +28,56 @@
             <groupId>org.opentestsystem.delivery</groupId>
             <artifactId>student.library</artifactId>
             <version>0.0.1-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.opentestsystem.delivery</groupId>
+                    <artifactId>tds-exam-client</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.opentestsystem.shared</groupId>
+                    <artifactId>shared-tr-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.opentestsystem.delivery</groupId>
+                    <artifactId>item-renderer</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.opentestsystem.delivery</groupId>
+                    <artifactId>tds-dll-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.opentestsystem.delivery</groupId>
+                    <artifactId>item-scoring-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
+        <dependency>
+            <groupId>org.opentestsystem.delivery</groupId>
+            <artifactId>item-scoring-api</artifactId>
+            <version>${item-scoring.version}</version>
+        </dependency>
+
+        <!-- TODO - Need to exclude unneeded dependencies for anything included in this block -->
+        <dependency>
+            <groupId>org.opentestsystem.delivery</groupId>
+            <artifactId>item-renderer</artifactId>
+            <version>${item-renderer.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.opentestsystem.delivery</groupId>
+            <artifactId>item-scoring-engine</artifactId>
+            <version>${item-scoring.version}</version>
+        </dependency>
+        <!-- END of the block for dependency check -->
+
+        <!-- Dependencies for testing -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>

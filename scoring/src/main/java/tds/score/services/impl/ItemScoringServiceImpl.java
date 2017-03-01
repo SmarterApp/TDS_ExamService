@@ -8,6 +8,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
 import javax.xml.bind.JAXBException;
 import java.io.BufferedReader;
@@ -38,10 +39,9 @@ import tds.itemscoringengine.ScoringStatus;
 import tds.itemscoringengine.WebProxyItemScorerCallback;
 import tds.score.configuration.ItemScoreSettings;
 import tds.score.services.ItemScoringService;
+import tds.score.services.ResponseService;
+import tds.score.services.ScoreConfigService;
 import tds.student.services.abstractions.IContentService;
-import tds.student.sql.abstractions.IConfigRepository;
-import tds.student.sql.abstractions.IResponseRepository;
-import tds.student.sql.abstractions.IScoringRepository;
 import tds.student.sql.data.IItemResponseScorable;
 import tds.student.sql.data.IItemResponseUpdate;
 import tds.student.sql.data.ItemResponseUpdate;
@@ -49,31 +49,27 @@ import tds.student.sql.data.ItemResponseUpdateStatus;
 import tds.student.sql.data.ItemScoringConfig;
 import tds.student.sql.data.OpportunityInstance;
 
+@Service
 public class ItemScoringServiceImpl implements ItemScoringService {
     private static final Logger LOG = LoggerFactory.getLogger(ItemScoringService.class);
 
-    private final IResponseRepository responseRepository;
-    private final IConfigRepository configRepository;
-    private final IScoringRepository scoringRepository;
+    private final ScoreConfigService scoreConfigService;
     private final IContentService contentService;
     private final IItemScorerManager itemScorer;
     private final ItemScoreSettings itemScoreSettings;
+    private final ResponseService responseService;
 
-    public ItemScoringServiceImpl(final IResponseRepository responseRepository,
-                                  final IConfigRepository configRepository,
-                                  final IScoringRepository scoringRepository,
+    public ItemScoringServiceImpl(final ResponseService responseService,
+                                  final ScoreConfigService scoreConfigService,
                                   final IContentService contentService,
                                   final IItemScorerManager itemScorer,
                                   final ItemScoreSettings itemScoreSettings) {
-        this.responseRepository = responseRepository;
-        this.configRepository = configRepository;
-        this.scoringRepository = scoringRepository;
+        this.responseService = responseService;
+        this.scoreConfigService = scoreConfigService;
         this.contentService = contentService;
         this.itemScorer = itemScorer;
         this.itemScoreSettings = itemScoreSettings;
     }
-
-
 
     /**
      * Check a response to see if it is scoreable. If it is not scoreable then you
@@ -128,7 +124,7 @@ public class ItemScoringServiceImpl implements ItemScoringService {
         }
 
         // check if item scoring config is enabled for this format
-        ItemScoringConfig itemScoringConfig = getItemScoringConfig(itemFormat, responseScorable.getTestID());
+        ItemScoringConfig itemScoringConfig = getItemScoringConfig(responseScorable.getClientName(), itemFormat, responseScorable.getTestID());
 
         // check if item scoring config exists (there should always be a default
         // configured)
@@ -144,7 +140,7 @@ public class ItemScoringServiceImpl implements ItemScoringService {
         return null;
     }
 
-    private String getDimensionsXmlForSP(ItemScore score) throws ReturnStatusException {
+    private String getDimensionsXml(ItemScore score) throws ReturnStatusException {
         ItemScoreInfo scoreInfo = score.getScoreInfo();
         scoreInfo.setRationale(null);
 
@@ -174,13 +170,12 @@ public class ItemScoringServiceImpl implements ItemScoringService {
         // here
         // before it is
         // removed
-        String scoreDimensions = getDimensionsXmlForSP(score);
+        String scoreDimensions = getDimensionsXml(score);
 
-        ReturnStatus updateStatus = scoringRepository.updateItemScore(oppKey, response, score.getScoreInfo().getPoints(), score.getScoreInfo().getStatus().toString(), scoreRationale.getMsg(),
+        ReturnStatus updateStatus = responseService.updateItemScore(oppKey, response, score.getScoreInfo().getPoints(), score.getScoreInfo().getStatus().toString(), scoreRationale.getMsg(),
             scoreDimensions);
 
-        return (updateStatus.getStatus().equals("updated"));
-
+        return updateStatus.getStatus().equals("updated");
     }
 
     /**
@@ -194,7 +189,7 @@ public class ItemScoringServiceImpl implements ItemScoringService {
 
         ItemScoreInfo scoreInfoObj = score.getScoreInfo();
         ScoreRationale scoreRationaleObj = score.getScoreInfo().getRationale();
-        ReturnStatus updateStatus = responseRepository.updateScoredResponse(oppInstance, responseUpdated, scoreInfoObj.getPoints(), scoreInfoObj.getStatus().toString(), scoreRationaleObj.getMsg(),
+        ReturnStatus updateStatus = responseService.updateScoredResponse(oppInstance, responseUpdated, scoreInfoObj.getPoints(), scoreInfoObj.getStatus().toString(), scoreRationaleObj.getMsg(),
             score.getScoreLatency(), itemDuration);
 
         dbTimer.stop();
@@ -203,7 +198,7 @@ public class ItemScoringServiceImpl implements ItemScoringService {
             throw new ReturnStatusException(updateStatus);
         }
 
-        return (new ItemResponseUpdateStatus(responseUpdated.getPosition(), updateStatus.getStatus(), updateStatus.getReason(), dbTimer.getTime()));
+        return new ItemResponseUpdateStatus(responseUpdated.getPosition(), updateStatus.getStatus(), updateStatus.getReason(), dbTimer.getTime());
     }
 
     @Override
@@ -284,7 +279,7 @@ public class ItemScoringServiceImpl implements ItemScoringService {
      *
      * @throws ReturnStatusException
      */
-    private URL getServerUri(String format, String testID) throws ReturnStatusException {
+    private URL getServerUri(String clientName, String format, String testID) throws ReturnStatusException {
         String serverUrl = null;
 
         // TODO shiva: this does not make sense? should we not look for in the
@@ -294,7 +289,7 @@ public class ItemScoringServiceImpl implements ItemScoringService {
         // i am instead going to code it up differently.
         // if there is no url from settings then try and get from configs
         // get server url from item scoring config SP
-        ItemScoringConfig itemScoringConfig = getItemScoringConfig(format, testID);
+        ItemScoringConfig itemScoringConfig = getItemScoringConfig(clientName, format, testID);
 
         if (itemScoringConfig != null && itemScoringConfig.getServerUrl() != null) {
             // use config url
@@ -336,9 +331,8 @@ public class ItemScoringServiceImpl implements ItemScoringService {
 
     // function for logging item scorer errors and use TDSLogger
     private void log(IItemResponseScorable responseScorable, String message, String methodName, Exception ex) {
-        String error = String.format("ITEM SCORER (%s): %s", responseScorable.getItemID(), message);
-
-
+        String error = String.format("Method: %s - ITEM SCORER (%s): %s", methodName, responseScorable.getItemID(), message);
+        LOG.error(error, ex);
     }
 
     @Override
@@ -451,7 +445,7 @@ public class ItemScoringServiceImpl implements ItemScoringService {
             WebProxyItemScorerCallback webProxyCallback = null;
 
             // check if there is a URL which will make this call asynchronous
-            URL serverUri = getServerUri(itemFormat, responseScorable.getTestID());
+            URL serverUri = getServerUri(responseScorable.getClientName(), itemFormat, responseScorable.getTestID());
             URL callbackUri = getCallbackUri();
 
             if (serverUri != null && callbackUri != null) {
@@ -506,8 +500,8 @@ public class ItemScoringServiceImpl implements ItemScoringService {
     /**
      * Get the item scoring config.
      */
-    private ItemScoringConfig getItemScoringConfig(String format, String testID) throws ReturnStatusException {
-        Iterable<ItemScoringConfig> itemScoringConfigs = configRepository.getItemScoringConfigs();
+    private ItemScoringConfig getItemScoringConfig(String clientName, String format, String testID) throws ReturnStatusException {
+        Iterable<ItemScoringConfig> itemScoringConfigs = scoreConfigService.findItemScoreConfigs(clientName);
         Iterator<ItemScoringConfig> configsIterator = itemScoringConfigs.iterator();
         ItemScoringConfig selected = null;
 
