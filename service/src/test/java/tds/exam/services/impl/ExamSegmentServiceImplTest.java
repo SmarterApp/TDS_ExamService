@@ -22,6 +22,7 @@ import tds.assessment.Segment;
 import tds.common.Algorithm;
 import tds.common.Response;
 import tds.common.ValidationError;
+import tds.common.web.exceptions.NotFoundException;
 import tds.exam.Exam;
 import tds.exam.ExamApproval;
 import tds.exam.ExamInfo;
@@ -29,6 +30,7 @@ import tds.exam.ExamSegment;
 import tds.exam.ExamStatusCode;
 import tds.exam.builder.AssessmentBuilder;
 import tds.exam.builder.ExamBuilder;
+import tds.exam.builder.ExamSegmentBuilder;
 import tds.exam.builder.ItemBuilder;
 import tds.exam.builder.SegmentBuilder;
 import tds.exam.models.SegmentPoolInfo;
@@ -40,6 +42,7 @@ import tds.exam.services.FormSelector;
 import tds.exam.services.SegmentPoolService;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -50,7 +53,7 @@ public class ExamSegmentServiceImplTest {
 
     @Mock
     private ExamSegmentCommandRepository mockExamSegmentCommandRepository;
-    
+
     @Mock
     private ExamSegmentQueryRepository mockExamSegmentQueryRepository;
 
@@ -641,5 +644,32 @@ public class ExamSegmentServiceImplTest {
         Assertions.assertThat(response.getError().isPresent()).isFalse();
         Assertions.assertThat(response.getData().isPresent()).isTrue();
         Assertions.assertThat(response.getData().get()).hasSize(2);
+    }
+
+    @Test
+    public void shouldFindExamSegmentByExamIdAndSegmentPosition() {
+        Exam mockExam = new ExamBuilder().build();
+        ExamSegment mockSegment = new ExamSegmentBuilder().build();
+
+        when(mockExamSegmentQueryRepository.findByExamIdAndSegmentPosition(any(UUID.class), any(Integer.class)))
+            .thenReturn(Optional.of(mockSegment));
+
+        Response<ExamSegment> segmentResponse =
+            examSegmentService.findByExamIdAndSegmentPosition(mockExam.getId(), mockExam.getCurrentSegmentPosition());
+
+        assertThat(segmentResponse.getData().isPresent()).isTrue();
+        assertThat(segmentResponse.getError().isPresent()).isFalse();
+        ExamSegment result = segmentResponse.getData().get();
+        assertThat(result).isEqualToComparingFieldByFieldRecursively(mockSegment);
+    }
+
+    @Test(expected = NotFoundException.class)
+    public void shouldThrowNotFoundExceptionWhenAnExamSegmentCannotBeFoundForExamIdAndSegmentPosition() {
+        Exam mockExam = new ExamBuilder().build();
+
+        when(mockExamSegmentQueryRepository.findByExamIdAndSegmentPosition(any(UUID.class), any(Integer.class)))
+            .thenReturn(Optional.empty());
+
+        examSegmentService.findByExamIdAndSegmentPosition(mockExam.getId(), mockExam.getCurrentSegmentPosition());
     }
 }
