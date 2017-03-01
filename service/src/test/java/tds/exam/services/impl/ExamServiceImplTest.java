@@ -31,6 +31,7 @@ import tds.assessment.AssessmentWindow;
 import tds.common.Algorithm;
 import tds.common.Response;
 import tds.common.ValidationError;
+import tds.common.entity.utils.ChangeListener;
 import tds.common.web.exceptions.NotFoundException;
 import tds.config.ClientSystemFlag;
 import tds.config.TimeLimitConfiguration;
@@ -143,7 +144,11 @@ public class ExamServiceImplTest {
     @Mock
     private ExamineeService mockExamineeService;
 
+    @Mock
+    private ChangeListener<Exam> mockOnCompletedExamChangeListener;
+
     private Collection<ExpandableExamMapper> mockExamMappers;
+
 
     @Captor
     private ArgumentCaptor<Exam> examArgumentCaptor;
@@ -170,7 +175,9 @@ public class ExamServiceImplTest {
             mockExamAccommodationService,
             mockExamApprovalService,
             mockExamineeService,
+            Arrays.asList(mockOnCompletedExamChangeListener),
             mockExamMappers);
+
 
         // Calls to get formatted message are throughout the exam service
         // Since we aren't testing that it returns anything specific in these tests I each option here for simplicity
@@ -967,6 +974,7 @@ public class ExamServiceImplTest {
 
         Optional<ValidationError> maybeStatusTransitionFailure = examService.updateExamStatus(examId,
             new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE));
+        verify(mockOnCompletedExamChangeListener).accept(any(Exam.class), any(Exam.class)); // gets called; will do nothing (because status is "paused")
 
         assertThat(maybeStatusTransitionFailure).isNotPresent();
     }
@@ -984,6 +992,7 @@ public class ExamServiceImplTest {
 
         Optional<ValidationError> maybeStatusTransitionFailure = examService.updateExamStatus(examId,
             new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE));
+        verifyZeroInteractions(mockOnCompletedExamChangeListener);
 
         assertThat(maybeStatusTransitionFailure).isPresent();
         ValidationError statusTransitionFailure = maybeStatusTransitionFailure.get();
@@ -1328,7 +1337,8 @@ public class ExamServiceImplTest {
 
         examService.pauseAllExamsInSession(mockSessionId);
 
-        verify(mockExamCommandRepository).update(Matchers.<Exam>anyVararg());
+        verify(mockExamCommandRepository, times(3)).update(any(Exam.class));
+        verify(mockOnCompletedExamChangeListener, times(3)).accept(any(Exam.class), any(Exam.class));
     }
 
     @Test

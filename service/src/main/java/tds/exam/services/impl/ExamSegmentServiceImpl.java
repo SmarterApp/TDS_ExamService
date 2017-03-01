@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -18,6 +19,7 @@ import tds.assessment.Item;
 import tds.assessment.Segment;
 import tds.common.Algorithm;
 import tds.common.Response;
+import tds.common.web.exceptions.NotFoundException;
 import tds.exam.Exam;
 import tds.exam.ExamApproval;
 import tds.exam.ExamInfo;
@@ -176,5 +178,18 @@ public class ExamSegmentServiceImpl implements ExamSegmentService {
         }
 
         return new Response<>(queryRepository.findByExamId(examId));
+    }
+
+    @Override
+    public Response<ExamSegment> findByExamIdAndSegmentPosition(final UUID examId, final int segmentPosition) {
+        ExamSegment segment = queryRepository.findByExamIdAndSegmentPosition(examId, segmentPosition)
+            .orElseThrow(() -> new NotFoundException(String.format("Could not find an exam segment for exam id %s and segment position %d", examId, segmentPosition)));
+
+        return new Response<>(segment);
+    }
+
+    @Override
+    public void update(final ExamSegment... examSegments) {
+        commandRepository.update(Arrays.asList(examSegments));
     }
 }

@@ -27,6 +27,7 @@ public class FieldTestItemGroup {
     private FieldTestItemGroup() {}
 
     public FieldTestItemGroup(Builder builder) {
+        this.id = builder.id;
         this.segmentKey = builder.segmentKey;
         this.examId = builder.examId;
         this.position = builder.position;
@@ -176,7 +177,7 @@ public class FieldTestItemGroup {
         private Integer positionAdministered;
         private Instant administeredAt;
 
-        public Builder withId(int id) {
+        public Builder withId(long id) {
             this.id = id;
             return this;
         }

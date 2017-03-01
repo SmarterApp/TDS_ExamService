@@ -10,6 +10,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import tds.common.data.mapping.ResultSetMapperUtility;
 import tds.exam.models.FieldTestItemGroup;
@@ -74,13 +75,15 @@ public class FieldTestItemGroupCommandRepositoryImpl implements FieldTestItemGro
         });
     }
 
-    private void update(final FieldTestItemGroup fieldTestItemGroup) {
-        final SqlParameterSource params = new MapSqlParameterSource("id", fieldTestItemGroup.getId())
-            .addValue("deletedAt", ResultSetMapperUtility.mapInstantToTimestamp(fieldTestItemGroup.getDeletedAt()))
-            .addValue("positionAdministered", fieldTestItemGroup.getPositionAdministered())
-            .addValue("administeredAt", ResultSetMapperUtility.mapInstantToTimestamp(fieldTestItemGroup.getAdministeredAt()));
-
-        final String updateSQL =
+    @Override
+    public void update(final FieldTestItemGroup... fieldTestItemGroups) {
+        final SqlParameterSource[] parameterSources = Stream.of(fieldTestItemGroups)
+            .map(fieldTestItemGroup -> new MapSqlParameterSource("id", fieldTestItemGroup.getId())
+                .addValue("deletedAt", ResultSetMapperUtility.mapInstantToTimestamp(fieldTestItemGroup.getDeletedAt()))
+                .addValue("positionAdministered", fieldTestItemGroup.getPositionAdministered())
+                .addValue("administeredAt", ResultSetMapperUtility.mapInstantToTimestamp(fieldTestItemGroup.getAdministeredAt()))
+            ).toArray(SqlParameterSource[]::new);
+        final String SQL =
             "INSERT INTO field_test_item_group_event ( \n" +
                 "   field_test_item_group_id, \n" +
                 "   deleted_at, \n" +
@@ -94,6 +97,6 @@ public class FieldTestItemGroupCommandRepositoryImpl implements FieldTestItemGro
                 "   :administeredAt \n" +
                 ")";
 
-        jdbcTemplate.update(updateSQL, params);
+        jdbcTemplate.batchUpdate(SQL, parameterSources);
     }
 }

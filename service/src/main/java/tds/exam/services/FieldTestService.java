@@ -1,7 +1,11 @@
 package tds.exam.services;
 
+import java.util.List;
+import java.util.UUID;
+
 import tds.assessment.Assessment;
 import tds.exam.Exam;
+import tds.exam.models.FieldTestItemGroup;
 
 /**
  * Service for field test related interactions and checks
@@ -28,4 +32,22 @@ public interface FieldTestService {
      * @return The total number of field test items for this {@link tds.assessment.Segment}
      */
     int selectItemGroups(final Exam exam, final Assessment assessment, final String segmentKey);
+
+    /**
+     * Find the {@link tds.exam.models.FieldTestItemGroup}s that were administered in an {@link tds.exam.Exam} for the
+     * specified id.
+     *
+     * @param examId The id of the {@link tds.exam.Exam} for which {@link tds.exam.models.FieldTestItemGroup}s should be
+     *               found
+     * @return A collection of {@link tds.exam.models.FieldTestItemGroup}s that were administered in the
+     * {@link tds.exam.Exam} for the specified id.
+     */
+    List<FieldTestItemGroup> findUsageInExam(final UUID examId);
+
+    /**
+     * Update a collection of {@link tds.exam.models.FieldTestItemGroup}s to reflect new values.
+     *
+     * @param fieldTestItemGroups A collection of {@link tds.exam.models.FieldTestItemGroup}s to update
+     */
+    void update(final FieldTestItemGroup... fieldTestItemGroups);
 }

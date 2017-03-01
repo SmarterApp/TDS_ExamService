@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -71,6 +72,78 @@ public class FieldTestItemGroupQueryRepositoryImpl implements FieldTestItemGroup
                 "   F.position \n";
 
         return jdbcTemplate.query(SQL, parameters, fieldTestItemGroupMapper);
+    }
+
+    @Override
+    public List<FieldTestItemGroup> findUsageInExam(final UUID examId) {
+        // CommonDLL#_OnStatus_Completed_SP, lines 1445 - 1453: Find all the field test items that were administered
+        // during an exam.  In this case, we only need an "abbreviated" representation of the FieldTestItemGroup, one
+        // that shows the first position when then field test item was viewed by the student.  This information is then
+        // used to update the field test item usage (when it was administered and what position it was administered in)
+        // for this exam.
+        // NOTE:  The block_id is omitted from this query; it is only used in the SELECT statement of the legacy query
+        // and never appears to be updated.
+        // NOTE:  The SELECT statement below returns field test items regardless whether their "deleted_at" column is
+        // set (that is, deleted and non-deleted field test items are returned).  This is because the legacy query does
+        // not filter deleted field test items (CommonDLL#_OnStatus_Completed_SP, line 1445), even though the
+        // session.ft_opportunityitem table has a "deleted" column.  CommonDLL#_OnStatus_Completed_SP updates records in
+        // session.ft_opportunityitem regardless of whether they are marked as deleted.
+        final SqlParameterSource parameters = new MapSqlParameterSource("examId", examId.toString());
+        final String SQL =
+            "SELECT \n" +
+                "   ftitem_group.id, \n" +
+                "   ftitem_group.exam_id, \n" +
+                "   ftitem_group.language_code, \n" +
+                "   page.item_group_key, \n" +
+                "   segment.segment_key, \n" +
+                "   MIN(item.position) AS position_administered, \n" +
+                "   ftitem_event.deleted_at \n" +
+                "FROM \n" +
+                "   exam_page page \n" +
+                "JOIN \n" +
+                "   exam_segment segment \n" +
+                "   ON segment.exam_id = page.exam_id \n" +
+                "   AND segment.segment_key = page.exam_segment_key \n" +
+                "JOIN \n" +
+                "   exam_item item \n" +
+                "   ON page.id = item.exam_page_id \n" +
+                "JOIN \n" +
+                "   field_test_item_group ftitem_group \n" +
+                "   ON page.exam_id = ftitem_group.exam_id \n" +
+                "   AND segment.segment_key = ftitem_group.segment_key \n" +
+                "   AND page.item_group_key = ftitem_group.group_key \n" +
+                "JOIN ( \n" +
+                "   SELECT \n" +
+                "       field_test_item_group_id, \n" +
+                "       MAX(id) AS id \n" +
+                "   FROM \n" +
+                "       field_test_item_group_event \n" +
+                "   GROUP BY \n" +
+                "       field_test_item_group_id) AS last_event \n" +
+                "   ON ftitem_group.id = last_event.field_test_item_group_id \n" +
+                "JOIN \n" +
+                "   field_test_item_group_event ftitem_event \n" +
+                "   ON last_event.id = ftitem_event.id \n" +
+                "WHERE \n" +
+                "   page.exam_id = :examId \n" +
+                "   AND item.is_fieldtest = 1 \n" +
+                "GROUP BY \n" +
+                "   ftitem_group.id, \n" +
+                "   ftitem_group.exam_id, \n" +
+                "   ftitem_group.language_code, \n" +
+                "   page.item_group_key, \n" +
+                "   segment.segment_key, \n" +
+                "   ftitem_event.deleted_at";
+
+        return jdbcTemplate.query(SQL, parameters, (rs, r) -> new FieldTestItemGroup.Builder()
+            .withId(rs.getLong("id"))
+            .withExamId(UUID.fromString(rs.getString("exam_id")))
+            .withLanguageCode(rs.getString("language_code"))
+            .withGroupKey(rs.getString("item_group_key"))
+            .withSegmentKey(rs.getString("segment_key"))
+            .withPositionAdministered(rs.getInt("position_administered"))
+            .withDeletedAt(ResultSetMapperUtility.mapTimestampToInstant(rs, "deleted_at"))
+            .build());
     }
 
     private static class FieldTestItemGroupMapper implements RowMapper<FieldTestItemGroup> {

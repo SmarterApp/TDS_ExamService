@@ -18,4 +18,12 @@ public interface FieldTestItemGroupQueryRepository {
      * @return The list of {@link tds.exam.models.FieldTestItemGroup}s fetched
      */
     List<FieldTestItemGroup> find(final UUID examId, final String segmentKey);
+
+    /**
+     * Find all {@link tds.exam.models.FieldTestItemGroup}s that were delivered/administered in an exam.
+     *
+     * @param examId The id of the {@link tds.exam.Exam} to fetch item groups by
+     * @return The list of all {@link tds.exam.models.FieldTestItemGroup}s in the specified exam
+     */
+    List<FieldTestItemGroup> findUsageInExam(final UUID examId);
 }
