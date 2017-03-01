@@ -208,8 +208,8 @@ public class FieldTestServiceImpl implements FieldTestService {
     }
 
     /*
-            This helper method is a null-tolerant Instant/date comparison for the test window
-         */
+        This helper method is a null-tolerant Instant/date comparison for the test window
+     */
     private boolean isWithinFieldTestWindow(final Instant startTime, final Instant endTime) {
         return !(startTime != null
             && !startTime.isBeforeNow())
