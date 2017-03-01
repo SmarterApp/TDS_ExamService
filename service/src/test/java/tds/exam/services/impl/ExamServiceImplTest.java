@@ -146,9 +146,6 @@ public class ExamServiceImplTest {
     @Mock
     private ChangeListener<Exam> mockOnCompletedExamChangeListener;
 
-    @Mock
-    private ChangeListener<Exam> mockOnPausedExamChangeListener;
-
     @Captor
     private ArgumentCaptor<Exam> examArgumentCaptor;
 
@@ -172,7 +169,7 @@ public class ExamServiceImplTest {
             mockExamAccommodationService,
             mockExamApprovalService,
             mockExamineeService,
-            Arrays.asList(mockOnCompletedExamChangeListener, mockOnPausedExamChangeListener));
+            Arrays.asList(mockOnCompletedExamChangeListener));
 
         // Calls to get formatted message are throughout the exam service
         // Since we aren't testing that it returns anything specific in these tests I each option here for simplicity
@@ -969,7 +966,6 @@ public class ExamServiceImplTest {
 
         Optional<ValidationError> maybeStatusTransitionFailure = examService.updateExamStatus(examId,
             new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE));
-        verify(mockOnPausedExamChangeListener).accept(any(Exam.class), any(Exam.class));
         verify(mockOnCompletedExamChangeListener).accept(any(Exam.class), any(Exam.class)); // gets called; will do nothing (because status is "paused")
 
         assertThat(maybeStatusTransitionFailure).isNotPresent();
@@ -988,7 +984,6 @@ public class ExamServiceImplTest {
 
         Optional<ValidationError> maybeStatusTransitionFailure = examService.updateExamStatus(examId,
             new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE));
-        verifyZeroInteractions(mockOnPausedExamChangeListener);
         verifyZeroInteractions(mockOnCompletedExamChangeListener);
 
         assertThat(maybeStatusTransitionFailure).isPresent();
@@ -1334,7 +1329,8 @@ public class ExamServiceImplTest {
 
         examService.pauseAllExamsInSession(mockSessionId);
 
-        verify(mockExamCommandRepository).update(Matchers.<Exam>anyVararg());
+        verify(mockExamCommandRepository, times(3)).update(any(Exam.class));
+        verify(mockOnCompletedExamChangeListener, times(3)).accept(any(Exam.class), any(Exam.class));
     }
 
     @Test

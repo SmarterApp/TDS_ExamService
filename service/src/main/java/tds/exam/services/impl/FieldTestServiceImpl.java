@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import tds.assessment.Assessment;
@@ -196,9 +197,19 @@ public class FieldTestServiceImpl implements FieldTestService {
         return totalFtItemCount;
     }
 
+    @Override
+    public List<FieldTestItemGroup> findUsageInExam(final UUID examId) {
+        return fieldTestItemGroupQueryRepository.findUsageInExam(examId);
+    }
+
+    @Override
+    public void update(final FieldTestItemGroup... fieldTestItemGroups) {
+        fieldTestItemGroupCommandRepository.update(fieldTestItemGroups);
+    }
+
     /*
-        This helper method is a null-tolerant Instant/date comparison for the test window
-     */
+            This helper method is a null-tolerant Instant/date comparison for the test window
+         */
     private boolean isWithinFieldTestWindow(final Instant startTime, final Instant endTime) {
         return !(startTime != null
             && !startTime.isBeforeNow())

@@ -286,9 +286,7 @@ class ExamServiceImpl implements ExamService {
             .withStatusChangeReason(statusChangeReason)
             .build();
 
-        examCommandRepository.update(updatedExam);
-
-        examStatusChangeListeners.forEach(listener -> listener.accept(exam, updatedExam));
+        updateExam(exam, updatedExam);
 
         return Optional.empty();
     }
@@ -304,14 +302,14 @@ class ExamServiceImpl implements ExamService {
         }
 
         ExamStatusCode pausedStatus = new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE);
-        List<Exam> pausedExams = examsInSession.stream()
-            .map(e -> new Exam.Builder().fromExam(e)
+        for (Exam exam : examsInSession) {
+            Exam pausedExam = new Exam.Builder().fromExam(exam)
                 .withStatus(pausedStatus, org.joda.time.Instant.now())
                 .withStatusChangeReason("paused by session")
-                .build())
-            .collect(Collectors.toList());
+                .build();
 
-        examCommandRepository.update(pausedExams.toArray(new Exam[pausedExams.size()]));
+            updateExam(exam, pausedExam);
+        }
     }
 
     @Override
@@ -439,7 +437,7 @@ class ExamServiceImpl implements ExamService {
                 .withStartedAt(now)
                 .build();
 
-            examCommandRepository.update(restartedExam);
+            updateExam(exam, restartedExam);
             /* Skip restart increment on [209] because we are already incrementing earlier in this method */
             /* [212] No need to call updateUnfinishedResponsePages since we no longer need to keep count of "opportunityrestart" */
             examConfig = getExamConfiguration(exam, assessment, timeLimitConfiguration, startPosition);
@@ -464,7 +462,7 @@ class ExamServiceImpl implements ExamService {
             .withMaxItems(testLength)
             .build();
 
-        examCommandRepository.update(initializedExam);
+        updateExam(exam, initializedExam);
 
         return initializedExam;
     }
@@ -662,7 +660,7 @@ class ExamServiceImpl implements ExamService {
             .withAbnormalStarts(previousExam.getAbnormalStarts() + abnormalIncrement)
             .build();
 
-        examCommandRepository.update(currentExam);
+        updateExam(previousExam, currentExam);
 
         //The next block replaces OpenTestServiceImpl lines 194-202 fetching the guest accommodations if not a guest student
         //Fetches the client system flag for restoring accommodations StudentDLL._RestoreRTSAccommodations_FN
@@ -807,7 +805,7 @@ class ExamServiceImpl implements ExamService {
                 .withCustomAccommodation(maybeExamAccommodation.isPresent())
                 .build();
 
-            examCommandRepository.update(updatedExam);
+            updateExam(exam, updatedExam);
             return updatedExam;
         }
 
@@ -831,5 +829,18 @@ class ExamServiceImpl implements ExamService {
             ExpandableExam.Builder builder = examBuilders.get(examId);
             builder.withExamAccommodations(sortedExamAccommodations);
         });
+    }
+
+    /**
+     * Perform the update to the new {@link tds.exam.Exam} then execute the
+     * {@link tds.common.entity.utils.ChangeListener}s to apply any rules/business logic as a result of the update.
+     *
+     * @param exam        The {@link tds.exam.Exam} in its original state
+     * @param updatedExam The {@link tds.exam.Exam} with new values to persist
+     */
+    private void updateExam(final Exam exam, final Exam updatedExam) {
+        examCommandRepository.update(updatedExam);
+
+        examStatusChangeListeners.forEach(listener -> listener.accept(exam, updatedExam));
     }
 }

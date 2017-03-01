@@ -10,9 +10,9 @@ import org.mockito.runners.MockitoJUnitRunner;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Optional;
 import java.util.UUID;
 
+import tds.common.Response;
 import tds.common.entity.utils.ChangeListener;
 import tds.common.web.exceptions.NotFoundException;
 import tds.exam.Exam;
@@ -22,14 +22,11 @@ import tds.exam.ExamStatusStage;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.builder.ExamSegmentBuilder;
 import tds.exam.models.FieldTestItemGroup;
-import tds.exam.repositories.ExamSegmentCommandRepository;
-import tds.exam.repositories.ExamSegmentQueryRepository;
-import tds.exam.repositories.FieldTestItemGroupCommandRepository;
-import tds.exam.repositories.FieldTestItemGroupQueryRepository;
+import tds.exam.services.ExamSegmentService;
 import tds.exam.services.ExamineeService;
+import tds.exam.services.FieldTestService;
 
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyVararg;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
@@ -37,16 +34,10 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class OnCompletedStatusExamChangeListenerTest {
     @Mock
-    private ExamSegmentCommandRepository mockExamSegmentCommandRepository;
+    private ExamSegmentService mockExamSegmentService;
 
     @Mock
-    private ExamSegmentQueryRepository mockExamSegmentQueryRepository;
-
-    @Mock
-    private FieldTestItemGroupCommandRepository mockFieldTestItemGroupCommandRepository;
-
-    @Mock
-    private FieldTestItemGroupQueryRepository mockFieldTestItemGroupQueryRepository;
+    private FieldTestService mockFieldTestService;
 
     @Mock
     private ExamineeService mockExamineeService;
@@ -55,10 +46,8 @@ public class OnCompletedStatusExamChangeListenerTest {
 
     @Before
     public void setUp() {
-        onCompletedExamStatusChangeListener = new OnCompletedStatusExamChangeListener(mockExamSegmentCommandRepository,
-            mockExamSegmentQueryRepository,
-            mockFieldTestItemGroupCommandRepository,
-            mockFieldTestItemGroupQueryRepository,
+        onCompletedExamStatusChangeListener = new OnCompletedStatusExamChangeListener(mockExamSegmentService,
+            mockFieldTestService,
             mockExamineeService);
     }
 
@@ -100,17 +89,16 @@ public class OnCompletedStatusExamChangeListenerTest {
             .withSessionId(UUID.randomUUID())
             .build();
 
-        when(mockExamSegmentQueryRepository.findByExamIdAndSegmentPosition(newExam.getId(),
+        when(mockExamSegmentService.findByExamIdAndSegmentPosition(newExam.getId(),
             newExam.getCurrentSegmentPosition()))
-            .thenReturn(Optional.of(mockSegment));
-        when(mockFieldTestItemGroupQueryRepository.findUsageInExam(newExam.getId()))
+            .thenReturn(new Response<>(mockSegment));
+        when(mockFieldTestService.findUsageInExam(newExam.getId()))
             .thenReturn(Arrays.asList(mockFirstFtItemGroup, mockSecondFtItemGroup));
 
         onCompletedExamStatusChangeListener.accept(oldExam, newExam);
-        verify(mockExamSegmentQueryRepository).findByExamIdAndSegmentPosition(newExam.getId(), newExam.getCurrentSegmentPosition());
-        verify(mockExamSegmentCommandRepository).update(any(ExamSegment.class));
-        verify(mockFieldTestItemGroupQueryRepository).findUsageInExam(newExam.getId());
-        verify(mockFieldTestItemGroupCommandRepository).update(anyVararg());
+        verify(mockExamSegmentService).findByExamIdAndSegmentPosition(newExam.getId(),
+            newExam.getCurrentSegmentPosition());
+        verify(mockFieldTestService).findUsageInExam(newExam.getId());
     }
 
     @Test
@@ -123,17 +111,16 @@ public class OnCompletedStatusExamChangeListenerTest {
             .withExamId(newExam.getId())
             .build();
 
-        when(mockExamSegmentQueryRepository.findByExamIdAndSegmentPosition(newExam.getId(),
+        when(mockExamSegmentService.findByExamIdAndSegmentPosition(newExam.getId(),
             newExam.getCurrentSegmentPosition()))
-            .thenReturn(Optional.of(mockSegment));
-        when(mockFieldTestItemGroupQueryRepository.findUsageInExam(newExam.getId()))
+            .thenReturn(new Response<>(mockSegment));
+        when(mockFieldTestService.findUsageInExam(newExam.getId()))
             .thenReturn(Collections.emptyList());
 
         onCompletedExamStatusChangeListener.accept(oldExam, newExam);
-        verify(mockExamSegmentQueryRepository).findByExamIdAndSegmentPosition(newExam.getId(), newExam.getCurrentSegmentPosition());
-        verify(mockExamSegmentCommandRepository).update(any(ExamSegment.class));
-        verify(mockFieldTestItemGroupQueryRepository).findUsageInExam(newExam.getId());
-        verifyZeroInteractions(mockFieldTestItemGroupCommandRepository);
+        verify(mockExamSegmentService).findByExamIdAndSegmentPosition(newExam.getId(),
+            newExam.getCurrentSegmentPosition());
+        verify(mockFieldTestService).findUsageInExam(newExam.getId());
     }
 
     @Test
@@ -142,11 +129,9 @@ public class OnCompletedStatusExamChangeListenerTest {
         Exam newExam = new ExamBuilder().build();
 
         onCompletedExamStatusChangeListener.accept(oldExam, newExam);
-        verifyZeroInteractions(mockExamSegmentQueryRepository);
-        verifyZeroInteractions(mockExamSegmentCommandRepository);
+        verifyZeroInteractions(mockExamSegmentService);
         verifyZeroInteractions(mockExamineeService);
-        verifyZeroInteractions(mockFieldTestItemGroupQueryRepository);
-        verifyZeroInteractions(mockFieldTestItemGroupCommandRepository);
+        verifyZeroInteractions(mockFieldTestService);
     }
 
     @Test
@@ -159,11 +144,9 @@ public class OnCompletedStatusExamChangeListenerTest {
             .build();
 
         onCompletedExamStatusChangeListener.accept(oldExam, newExam);
-        verifyZeroInteractions(mockExamSegmentQueryRepository);
-        verifyZeroInteractions(mockExamSegmentCommandRepository);
+        verifyZeroInteractions(mockExamSegmentService);
         verifyZeroInteractions(mockExamineeService);
-        verifyZeroInteractions(mockFieldTestItemGroupQueryRepository);
-        verifyZeroInteractions(mockFieldTestItemGroupCommandRepository);
+        verifyZeroInteractions(mockFieldTestService);
     }
 
     @Test(expected = NotFoundException.class)
@@ -173,14 +156,13 @@ public class OnCompletedStatusExamChangeListenerTest {
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_COMPLETED, ExamStatusStage.IN_PROGRESS), Instant.now())
             .build();
 
-        when(mockExamSegmentQueryRepository.findByExamIdAndSegmentPosition(newExam.getId(),
+        when(mockExamSegmentService.findByExamIdAndSegmentPosition(newExam.getId(),
             newExam.getCurrentSegmentPosition()))
             .thenThrow(new NotFoundException("Could not find exam segment"));
 
         onCompletedExamStatusChangeListener.accept(oldExam, newExam);
-        verifyZeroInteractions(mockExamSegmentCommandRepository);
+        verify(mockExamSegmentService).findByExamIdAndSegmentPosition(any(UUID.class), any(Integer.class));
         verifyZeroInteractions(mockExamineeService);
-        verifyZeroInteractions(mockFieldTestItemGroupQueryRepository);
-        verifyZeroInteractions(mockFieldTestItemGroupCommandRepository);
+        verifyZeroInteractions(mockFieldTestService);
     }
 }

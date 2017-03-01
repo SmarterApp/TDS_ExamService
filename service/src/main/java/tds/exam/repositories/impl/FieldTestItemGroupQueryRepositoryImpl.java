@@ -83,6 +83,11 @@ public class FieldTestItemGroupQueryRepositoryImpl implements FieldTestItemGroup
         // for this exam.
         // NOTE:  The block_id is omitted from this query; it is only used in the SELECT statement of the legacy query
         // and never appears to be updated.
+        // NOTE:  The SELECT statement below returns field test items regardless whether their "deleted_at" column is
+        // set (that is, deleted and non-deleted field test items are returned).  This is because the legacy query does
+        // not filter deleted field test items (CommonDLL#_OnStatus_Completed_SP, line 1445), even though the
+        // session.ft_opportunityitem table has a "deleted" column.  CommonDLL#_OnStatus_Completed_SP updates records in
+        // session.ft_opportunityitem regardless of whether they are marked as deleted.
         final SqlParameterSource parameters = new MapSqlParameterSource("examId", examId.toString());
         final String SQL =
             "SELECT \n" +

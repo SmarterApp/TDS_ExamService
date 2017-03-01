@@ -7,8 +7,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.Optional;
-
+import tds.common.Response;
 import tds.common.entity.utils.ChangeListener;
 import tds.common.web.exceptions.NotFoundException;
 import tds.exam.Exam;
@@ -17,10 +16,11 @@ import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.builder.ExamSegmentBuilder;
-import tds.exam.repositories.ExamSegmentCommandRepository;
-import tds.exam.repositories.ExamSegmentQueryRepository;
+import tds.exam.services.ExamSegmentService;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyVararg;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
@@ -28,17 +28,13 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class OnPausedStatusExamChangeListenerTest {
     @Mock
-    private ExamSegmentCommandRepository mockExamSegmentCommandRepository;
-
-    @Mock
-    private ExamSegmentQueryRepository mockExamSegmentQueryRepository;
+    private ExamSegmentService mockExamSegmentService;
 
     private ChangeListener<Exam> onPausedStatusExamChangeListener;
 
     @Before
     public void setUp() {
-        onPausedStatusExamChangeListener = new OnPausedStatusExamChangeListener(mockExamSegmentCommandRepository,
-            mockExamSegmentQueryRepository);
+        onPausedStatusExamChangeListener = new OnPausedStatusExamChangeListener(mockExamSegmentService);
     }
 
     @Test
@@ -53,14 +49,14 @@ public class OnPausedStatusExamChangeListenerTest {
             .withRestorePermeableCondition("segment")
             .build();
 
-        when(mockExamSegmentQueryRepository.findByExamIdAndSegmentPosition(newExam.getId(),
+        when(mockExamSegmentService.findByExamIdAndSegmentPosition(newExam.getId(),
             newExam.getCurrentSegmentPosition()))
-            .thenReturn(Optional.of(mockSegment));
+            .thenReturn(new Response<>(mockSegment));
 
         onPausedStatusExamChangeListener.accept(oldExam, newExam);
-        verify(mockExamSegmentQueryRepository).findByExamIdAndSegmentPosition(newExam.getId(),
+        verify(mockExamSegmentService).findByExamIdAndSegmentPosition(newExam.getId(),
             newExam.getCurrentSegmentPosition());
-        verify(mockExamSegmentCommandRepository).update(any(ExamSegment.class));
+        verify(mockExamSegmentService).update(any(ExamSegment.class));
     }
 
     @Test
@@ -69,8 +65,7 @@ public class OnPausedStatusExamChangeListenerTest {
         Exam newExam = new ExamBuilder().build();
 
         onPausedStatusExamChangeListener.accept(oldExam, newExam);
-        verifyZeroInteractions(mockExamSegmentQueryRepository);
-        verifyZeroInteractions(mockExamSegmentCommandRepository);
+        verifyZeroInteractions(mockExamSegmentService);
     }
 
     @Test
@@ -83,8 +78,7 @@ public class OnPausedStatusExamChangeListenerTest {
             .build();
 
         onPausedStatusExamChangeListener.accept(oldExam, newExam);
-        verifyZeroInteractions(mockExamSegmentQueryRepository);
-        verifyZeroInteractions(mockExamSegmentCommandRepository);
+        verifyZeroInteractions(mockExamSegmentService);
     }
 
     @Test
@@ -98,14 +92,14 @@ public class OnPausedStatusExamChangeListenerTest {
             .withIsPermeable(false)
             .build();
 
-        when(mockExamSegmentQueryRepository.findByExamIdAndSegmentPosition(newExam.getId(),
+        when(mockExamSegmentService.findByExamIdAndSegmentPosition(newExam.getId(),
             newExam.getCurrentSegmentPosition()))
-            .thenReturn(Optional.of(mockSegment));
+            .thenReturn(new Response<>(mockSegment));
 
         onPausedStatusExamChangeListener.accept(oldExam, newExam);
-        verify(mockExamSegmentQueryRepository).findByExamIdAndSegmentPosition(newExam.getId(),
+        verify(mockExamSegmentService).findByExamIdAndSegmentPosition(newExam.getId(),
             newExam.getCurrentSegmentPosition());
-        verifyZeroInteractions(mockExamSegmentCommandRepository);
+        verify(mockExamSegmentService, never()).update(anyVararg());
     }
 
     @Test
@@ -120,14 +114,14 @@ public class OnPausedStatusExamChangeListenerTest {
             .withRestorePermeableCondition("unit test") // should only update segment when this is "segment" or "paused"
             .build();
 
-        when(mockExamSegmentQueryRepository.findByExamIdAndSegmentPosition(newExam.getId(),
+        when(mockExamSegmentService.findByExamIdAndSegmentPosition(newExam.getId(),
             newExam.getCurrentSegmentPosition()))
-            .thenReturn(Optional.of(mockSegment));
+            .thenReturn(new Response<>(mockSegment));
 
         onPausedStatusExamChangeListener.accept(oldExam, newExam);
-        verify(mockExamSegmentQueryRepository).findByExamIdAndSegmentPosition(newExam.getId(),
+        verify(mockExamSegmentService).findByExamIdAndSegmentPosition(newExam.getId(),
             newExam.getCurrentSegmentPosition());
-        verifyZeroInteractions(mockExamSegmentCommandRepository);
+        verify(mockExamSegmentService, never()).update(anyVararg());
     }
 
     @Test(expected = NotFoundException.class)
@@ -137,11 +131,11 @@ public class OnPausedStatusExamChangeListenerTest {
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE), Instant.now())
             .build();
 
-        when(mockExamSegmentQueryRepository.findByExamIdAndSegmentPosition(newExam.getId(),
+        when(mockExamSegmentService.findByExamIdAndSegmentPosition(newExam.getId(),
             newExam.getCurrentSegmentPosition()))
             .thenThrow(new NotFoundException("Could not find exam segment"));
 
         onPausedStatusExamChangeListener.accept(oldExam, newExam);
-        verifyZeroInteractions(mockExamSegmentCommandRepository);
+        verify(mockExamSegmentService, never()).update(anyVararg());
     }
 }
