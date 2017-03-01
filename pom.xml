@@ -27,13 +27,13 @@
         <unit-tests.skip>false</unit-tests.skip>
         <integration-tests.skip>true</integration-tests.skip>
 
-        <tds-common.version>0.0.1</tds-common.version>
-        <tds-common-legacy.version>0.0.1</tds-common-legacy.version>
+        <tds-common.version>0.0.2</tds-common.version>
+        <tds-common-legacy.version>0.0.2</tds-common-legacy.version>
         <tds-exam-client.version>0.0.1-SNAPSHOT</tds-exam-client.version>
-        <tds-session.version>0.0.1-SNAPSHOT</tds-session.version>
-        <tds-assessment-client.version>0.0.1-SNAPSHOT</tds-assessment-client.version>
+        <tds-session.version>0.0.2</tds-session.version>
+        <tds-assessment-client.version>0.0.2</tds-assessment-client.version>
         <tds-student-client.version>0.0.1-SNAPSHOT</tds-student-client.version>
-        <tds-config-client.version>0.0.1-SNAPSHOT</tds-config-client.version>
+        <tds-config-client.version>0.0.2</tds-config-client.version>
 
         <mockito.version>1.10.19</mockito.version>
         <docker.image.prefix>fwsbac</docker.image.prefix>

@@ -110,10 +110,6 @@ public class ExamController {
                                                                @RequestParam(required = false) final String... embed) {
         final List<ExpandableExam> exams = examService.findExamsBySessionId(sessionId, statusNot, embed);
 
-        if (exams.isEmpty()) {
-            return new ResponseEntity<>(exams, HttpStatus.NO_CONTENT);
-        }
-
         return ResponseEntity.ok(exams);
     }
 

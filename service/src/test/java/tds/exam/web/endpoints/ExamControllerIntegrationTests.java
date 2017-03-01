@@ -163,7 +163,7 @@ public class ExamControllerIntegrationTests {
     }
 
     @Test
-    public void shouldReturnNoContentForEmptyList() throws Exception {
+    public void shouldReturnEmptyForEmptyList() throws Exception {
         final UUID sessionId = UUID.randomUUID();
         final Set<String> invalidStatuses = ImmutableSet.of(ExamStatusCode.STATUS_SUSPENDED);
         when(mockExamService.findExamsBySessionId(sessionId, invalidStatuses, ExpandableExam.EXPANDABLE_PARAMS_EXAM_ACCOMMODATIONS))
@@ -173,7 +173,8 @@ public class ExamControllerIntegrationTests {
             .param("statusNot", ExamStatusCode.STATUS_SUSPENDED)
             .param("expandable", ExpandableExam.EXPANDABLE_PARAMS_EXAM_ACCOMMODATIONS)
             .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isNoContent());
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("[0]").doesNotExist());
     }
 
     @Test
