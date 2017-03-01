@@ -1,6 +1,5 @@
 package tds.exam.services.impl;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import org.assertj.core.util.Lists;
 import org.joda.time.Days;
@@ -18,6 +17,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -66,6 +66,7 @@ import tds.exam.services.ExamPageService;
 import tds.exam.services.ExamSegmentService;
 import tds.exam.services.ExamService;
 import tds.exam.services.ExamineeService;
+import tds.exam.services.ExpandableExamMapper;
 import tds.exam.services.SessionService;
 import tds.exam.services.StudentService;
 import tds.exam.services.TimeLimitConfigurationService;
@@ -78,7 +79,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -146,6 +147,9 @@ public class ExamServiceImplTest {
     @Mock
     private ChangeListener<Exam> mockOnCompletedExamChangeListener;
 
+    private Collection<ExpandableExamMapper> mockExamMappers;
+
+
     @Captor
     private ArgumentCaptor<Exam> examArgumentCaptor;
 
@@ -153,6 +157,8 @@ public class ExamServiceImplTest {
 
     @Before
     public void setUp() {
+        mockExamMappers = Arrays.asList(mock(ExpandableExamMapper.class), mock(ExpandableExamMapper.class));
+
         examService = new ExamServiceImpl(
             mockExamQueryRepository,
             mockHistoryRepository,
@@ -169,7 +175,9 @@ public class ExamServiceImplTest {
             mockExamAccommodationService,
             mockExamApprovalService,
             mockExamineeService,
-            Arrays.asList(mockOnCompletedExamChangeListener));
+            Arrays.asList(mockOnCompletedExamChangeListener),
+            mockExamMappers);
+
 
         // Calls to get formatted message are throughout the exam service
         // Since we aren't testing that it returns anything specific in these tests I each option here for simplicity
@@ -1347,7 +1355,7 @@ public class ExamServiceImplTest {
     }
 
     @Test
-    public void shouldReturnExpandableExamsWithExamAccommodationsOnlyForSessionId() {
+    public void shouldReturnExpandableExams() {
         UUID sessionId = UUID.randomUUID();
         Exam exam1 = new ExamBuilder().build();
         Exam exam2 = new ExamBuilder().build();
@@ -1357,20 +1365,13 @@ public class ExamServiceImplTest {
             ExamStatusCode.STATUS_DENIED
         );
 
-        ExamAccommodation exam1accommodation1 = new ExamAccommodationBuilder().withExamId(exam1.getId()).build();
-        ExamAccommodation exam1accommodation2 = new ExamAccommodationBuilder().withExamId(exam1.getId()).build();
-        ExamAccommodation exam2accommodation = new ExamAccommodationBuilder().withExamId(exam2.getId()).build();
-
         when(mockExamQueryRepository.findAllExamsInSessionWithoutStatus(eq(sessionId), any())).thenReturn(Arrays.asList(exam1, exam2));
-        when(mockExamAccommodationService.findApprovedAccommodations(any(), any()))
-            .thenReturn(Arrays.asList(exam1accommodation1, exam1accommodation2, exam2accommodation));
+
         List<ExpandableExam> expandableExams = examService.findExamsBySessionId(sessionId, invalidStatuses,
             ExpandableExam.EXPANDABLE_PARAMS_EXAM_ACCOMMODATIONS);
 
         verify(mockExamQueryRepository).findAllExamsInSessionWithoutStatus(eq(sessionId), any());
-        verify(mockExamAccommodationService).findApprovedAccommodations(any(), any());
-        // Should not call this as the EXPANDABLE_PARAMS_ITEM_RESPONSE_COUNT wasn't requested
-        verify(mockExamItemService, never()).getResponseCounts(any());
+        mockExamMappers.forEach(mockMapper -> verify(mockMapper).updateExpandableMapper(any(), any(), any()));
 
         assertThat(expandableExams).hasSize(2);
 
@@ -1386,61 +1387,7 @@ public class ExamServiceImplTest {
         }
 
         assertThat(expExam1.getExam()).isEqualTo(exam1);
-        assertThat(expExam1.getExamAccommodations()).hasSize(2);
         assertThat(expExam2.getExam()).isEqualTo(exam2);
-        assertThat(expExam2.getExamAccommodations()).hasSize(1);
-    }
-
-    @Test
-    public void shouldReturnExpandableExamsWithExamAccommodationsAndResponseCountsSessionId() {
-        final Set<String> invalidStatuses = Sets.newHashSet(
-            ExamStatusCode.STATUS_PENDING,
-            ExamStatusCode.STATUS_SUSPENDED,
-            ExamStatusCode.STATUS_DENIED
-        );
-
-        UUID sessionId = UUID.randomUUID();
-        Exam exam1 = new ExamBuilder().build();
-        Exam exam2 = new ExamBuilder().build();
-
-        ExamAccommodation exam1accommodation1 = new ExamAccommodationBuilder().withExamId(exam1.getId()).build();
-        ExamAccommodation exam1accommodation2 = new ExamAccommodationBuilder().withExamId(exam1.getId()).build();
-        ExamAccommodation exam2accommodation = new ExamAccommodationBuilder().withExamId(exam2.getId()).build();
-
-        when(mockExamQueryRepository.findAllExamsInSessionWithoutStatus(eq(sessionId), any())).thenReturn(Arrays.asList(exam1, exam2));
-        when(mockExamAccommodationService.findApprovedAccommodations(any(), any()))
-            .thenReturn(Arrays.asList(exam1accommodation1, exam1accommodation2, exam2accommodation));
-        when(mockExamItemService.getResponseCounts(any(), any())).thenReturn(ImmutableMap.of(
-            exam1.getId(), 4,
-            exam2.getId(), 1
-        ));
-        List<ExpandableExam> expandableExams = examService.findExamsBySessionId(sessionId, invalidStatuses,
-            ExpandableExam.EXPANDABLE_PARAMS_EXAM_ACCOMMODATIONS, ExpandableExam.EXPANDABLE_PARAMS_ITEM_RESPONSE_COUNT);
-
-        verify(mockExamQueryRepository).findAllExamsInSessionWithoutStatus(eq(sessionId), any());
-        verify(mockExamAccommodationService).findApprovedAccommodations(any(), any());
-        // Should not call this
-        verify(mockExamItemService).getResponseCounts(any(), any());
-
-        assertThat(expandableExams).hasSize(2);
-
-        ExpandableExam expExam1 = null;
-        ExpandableExam expExam2 = null;
-
-        for (ExpandableExam expandableExam : expandableExams) {
-            if (expandableExam.getExam().getId().equals(exam1.getId())) {
-                expExam1 = expandableExam;
-            } else if (expandableExam.getExam().getId().equals(exam2.getId())) {
-                expExam2 = expandableExam;
-            }
-        }
-
-        assertThat(expExam1.getExam()).isEqualTo(exam1);
-        assertThat(expExam1.getExamAccommodations()).hasSize(2);
-        assertThat(expExam1.getItemsResponseCount()).isEqualTo(4);
-        assertThat(expExam2.getExam()).isEqualTo(exam2);
-        assertThat(expExam2.getExamAccommodations()).hasSize(1);
-        assertThat(expExam2.getItemsResponseCount()).isEqualTo(1);
     }
 
     private Exam createExam(UUID sessionId, UUID thisExamId, String assessmentId, String clientName, long studentId) {
