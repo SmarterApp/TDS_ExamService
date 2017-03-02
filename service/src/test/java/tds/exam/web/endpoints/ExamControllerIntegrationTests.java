@@ -205,7 +205,6 @@ public class ExamControllerIntegrationTests {
             .andExpect(jsonPath("[0].itemsResponseCount", is(expandableExam1.getItemsResponseCount())))
             .andExpect(jsonPath("[0].examAccommodations", hasSize(expandableExam1.getExamAccommodations().size())))
             .andExpect(jsonPath("[0].examAccommodations[0].id", is(expandableExam1.getExamAccommodations().get(0).getId().toString())))
-            .andExpect(jsonPath("[0].examAccommodations[1].id", is(expandableExam1.getExamAccommodations().get(1).getId().toString())))
             .andExpect(jsonPath("[1].exam.id", is(expandableExam2.getExam().getId().toString())))
             .andExpect(jsonPath("[1].itemsResponseCount", is(expandableExam2.getItemsResponseCount())))
             .andExpect(jsonPath("[1].examAccommodations[0].id", is(expandableExam2.getExamAccommodations().get(0).getId().toString())))
