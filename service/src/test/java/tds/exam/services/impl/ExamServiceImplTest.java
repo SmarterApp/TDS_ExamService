@@ -345,6 +345,7 @@ public class ExamServiceImplTest {
         assertThat(exam.getEnvironment()).isEqualTo(extSessionConfig.getEnvironment());
         assertThat(exam.getStatus().getCode()).isEqualTo(STATUS_PENDING);
         assertThat(exam.getSubject()).isEqualTo(assessment.getSubject());
+        assertThat(exam.isWaitingForSegmentApproval()).isTrue();
     }
 
     @Test(expected = IllegalStateException.class)
@@ -1145,6 +1146,7 @@ public class ExamServiceImplTest {
         assertThat(updatedExam.getStatus().getStage()).isEqualTo(ExamStatusStage.IN_PROGRESS);
         assertThat(updatedExam.getStatus().getCode()).isEqualTo(ExamStatusCode.STATUS_STARTED);
         assertThat(updatedExam.getStatusChangedAt()).isGreaterThan(approvedStatusDate);
+        assertThat(updatedExam.isWaitingForSegmentApproval()).isFalse();
     }
 
     @Test
