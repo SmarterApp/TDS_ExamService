@@ -29,7 +29,7 @@ public class ExamBuilder {
     private Instant startedAt = null;
     private Instant completedAt = null;
     private Instant expiresAt = null;
-    private ExamStatusCode status = new ExamStatusCode(STATUS_PENDING, ExamStatusStage.IN_USE);
+    private ExamStatusCode status = new ExamStatusCode(STATUS_PENDING);
     private Instant statusChangeDate = Instant.now();
     private String subject = "ELA";
     private String studentKey = "ADV001";
