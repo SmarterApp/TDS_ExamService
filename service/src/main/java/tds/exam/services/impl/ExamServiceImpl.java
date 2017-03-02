@@ -453,6 +453,7 @@ class ExamServiceImpl implements ExamService {
             .withExpiresAt(now)
             .withRestartsAndResumptions(0)
             .withMaxItems(testLength)
+            .withWaitingForSegmentApproval(false)
             .build();
 
         updateExam(exam, initializedExam);
@@ -561,6 +562,7 @@ class ExamServiceImpl implements ExamService {
             .withAssessmentWindowId(assessmentWindow.getWindowId())
             .withEnvironment(externalSessionConfiguration.getEnvironment())
             .withSubject(assessment.getSubject())
+            .withWaitingForSegmentApproval(true)
             .build();
 
         examCommandRepository.insert(exam);
