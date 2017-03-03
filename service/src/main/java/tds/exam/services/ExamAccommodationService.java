@@ -36,16 +36,9 @@ public interface ExamAccommodationService {
      * Initializes and inserts exam accommodations for the exam;
      *
      * @param exam exam to use to initialize the {@link tds.exam.ExamAccommodation}
+     * @param studentAccommodationCodes the separated list of accommodations from the student package retrieved from ART
      */
-    List<ExamAccommodation> initializeExamAccommodations(Exam exam);
-
-    /**
-     * Initializes and inserts exam accommodations for the exam;
-     *
-     * @param exam exam to use to initialize the {@link tds.exam.ExamAccommodation}
-     * @param studentAccommodations the separated list of accommodations from the student package retrieved from ART
-     */
-    List<ExamAccommodation> initializeExamAccommodations(Exam exam, String studentAccommodations);
+    List<ExamAccommodation> initializeExamAccommodations(Exam exam, String studentAccommodationCodes);
 
     /**
      * Finds the approved {@link tds.exam.ExamAccommodation}
@@ -62,11 +55,11 @@ public interface ExamAccommodationService {
      * @param assessment          {@link tds.assessment.Assessment}
      * @param segmentPosition     the segment position for the accommodations
      * @param restoreRts          {@code true} if the restore rts
-     * @param guestAccommodations the guest accommodations String
+     * @param studentAccommodationCodes the student accommodations String
      *
      * @return list of {@link tds.exam.ExamAccommodation}
      */
-    List<ExamAccommodation> initializeAccommodationsOnPreviousExam(Exam exam, Assessment assessment, int segmentPosition, boolean restoreRts, String guestAccommodations);
+    List<ExamAccommodation> initializeAccommodationsOnPreviousExam(Exam exam, Assessment assessment, int segmentPosition, boolean restoreRts, String studentAccommodationCodes);
     
     /**
      * Approves {@link tds.exam.ExamAccommodation}s for an exam and set of accommodation codes.

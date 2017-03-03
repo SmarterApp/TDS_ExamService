@@ -79,6 +79,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
+import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -456,6 +457,7 @@ public class ExamServiceImplTest {
 
         RtsStudentPackageAttribute externalIdAttribute = new RtsStudentPackageAttribute(EXTERNAL_ID, "External Id");
         RtsStudentPackageAttribute entityNameAttribute = new RtsStudentPackageAttribute(ENTITY_NAME, "Entity Id");
+        RtsStudentPackageAttribute entityAccommodationAttribute = new RtsStudentPackageAttribute(ACCOMMODATIONS, "MATH:Code1;ELA:Code2");
 
         TimeLimitConfiguration configuration = new TimeLimitConfiguration.Builder().withExamDelayDays(0).build();
 
@@ -465,7 +467,7 @@ public class ExamServiceImplTest {
         when(mockExamQueryRepository.getLastAvailableExam(openExamRequest.getStudentId(), assessment.getAssessmentId(), "SBAC_PT")).thenReturn(Optional.empty());
         when(mockSessionService.findExternalSessionConfigurationByClientName("SBAC_PT")).thenReturn(Optional.of(extSessionConfig));
         when(mockStudentService.findStudentPackageAttributes(openExamRequest.getStudentId(), "SBAC_PT", EXTERNAL_ID, ENTITY_NAME, ACCOMMODATIONS))
-            .thenReturn(Arrays.asList(externalIdAttribute, entityNameAttribute));
+            .thenReturn(Arrays.asList(externalIdAttribute, entityNameAttribute, entityAccommodationAttribute));
         when(mockAssessmentService.findAssessmentWindows(currentSession.getClientName(), assessment.getAssessmentId(), openExamRequest.getStudentId(), extSessionConfig))
             .thenReturn(Collections.singletonList(window));
         when(mockTimeLimitConfigurationService.findTimeLimitConfiguration("SBAC_PT", openExamRequest.getAssessmentKey())).thenReturn(Optional.of(configuration));
@@ -473,7 +475,7 @@ public class ExamServiceImplTest {
 
         Response<Exam> examResponse = examService.openExam(openExamRequest);
         verify(mockExamCommandRepository).insert(isA(Exam.class));
-        verify(mockExamAccommodationService).initializeExamAccommodations(isA(Exam.class));
+        verify(mockExamAccommodationService).initializeExamAccommodations(isA(Exam.class), isA(String.class));
         verify(mockExamineeService).insertAttributesAndRelationships(isA(Exam.class), isA(Student.class), isA(ExamineeContext.class));
 
         assertThat(examResponse.hasError()).isFalse();
@@ -506,6 +508,7 @@ public class ExamServiceImplTest {
 
         RtsStudentPackageAttribute externalIdAttribute = new RtsStudentPackageAttribute(EXTERNAL_ID, "External Id");
         RtsStudentPackageAttribute entityNameAttribute = new RtsStudentPackageAttribute(ENTITY_NAME, "Entity Id");
+        RtsStudentPackageAttribute entityAccommodationsAttribute = new RtsStudentPackageAttribute(ACCOMMODATIONS, "MATH:CODE1;ELA:CODE2");
 
         TimeLimitConfiguration configuration = new TimeLimitConfiguration.Builder().withExamDelayDays(0).build();
 
@@ -519,16 +522,16 @@ public class ExamServiceImplTest {
         when(mockExamQueryRepository.getLastAvailableExam(openExamRequest.getStudentId(), assessment.getAssessmentId(), "SBAC_PT")).thenReturn(Optional.empty());
         when(mockSessionService.findExternalSessionConfigurationByClientName("SBAC_PT")).thenReturn(Optional.of(extSessionConfig));
         when(mockStudentService.findStudentPackageAttributes(openExamRequest.getStudentId(), "SBAC_PT", EXTERNAL_ID, ENTITY_NAME, ACCOMMODATIONS))
-            .thenReturn(Arrays.asList(externalIdAttribute, entityNameAttribute));
+            .thenReturn(Arrays.asList(externalIdAttribute, entityNameAttribute, entityAccommodationsAttribute));
         when(mockAssessmentService.findAssessmentWindows(currentSession.getClientName(), assessment.getAssessmentId(), openExamRequest.getStudentId(), extSessionConfig))
             .thenReturn(Collections.singletonList(window));
         when(mockTimeLimitConfigurationService.findTimeLimitConfiguration("SBAC_PT", openExamRequest.getAssessmentKey())).thenReturn(Optional.of(configuration));
         when(mockExamStatusQueryRepository.findExamStatusCode(STATUS_PENDING)).thenReturn(new ExamStatusCode(STATUS_PENDING, OPEN));
-        when(mockExamAccommodationService.initializeExamAccommodations(isA(Exam.class))).thenReturn(Collections.singletonList(customExamAccommodation));
+        when(mockExamAccommodationService.initializeExamAccommodations(isA(Exam.class), isA(String.class))).thenReturn(Collections.singletonList(customExamAccommodation));
 
         Response<Exam> examResponse = examService.openExam(openExamRequest);
         verify(mockExamCommandRepository).insert(isA(Exam.class));
-        verify(mockExamAccommodationService).initializeExamAccommodations(isA(Exam.class));
+        verify(mockExamAccommodationService).initializeExamAccommodations(isA(Exam.class), isA(String.class));
         verify(mockExamineeService).insertAttributesAndRelationships(isA(Exam.class), isA(Student.class), isA(ExamineeContext.class));
 
         assertThat(examResponse.hasError()).isFalse();

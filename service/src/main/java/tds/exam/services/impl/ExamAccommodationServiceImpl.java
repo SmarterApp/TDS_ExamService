@@ -76,12 +76,6 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
 
     @Transactional
     @Override
-    public List<ExamAccommodation> initializeExamAccommodations(final Exam exam) {
-        return initializeExamAccommodations(exam, "");
-    }
-
-    @Transactional
-    @Override
     public List<ExamAccommodation> initializeExamAccommodations(final Exam exam, final String studentAccommodationCodes) {
         Instant now = Instant.now();
         // This method replaces StudentDLL._InitOpportunityAccommodations_SP.  One note is that the calls to testopportunity_readonly were not implemented because
@@ -104,7 +98,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
 
         // StudentDLL line 6645 - the query filters the results of the temporary table fetched above by these two values.
         // It was decided the record usage and report usage values that are also queried are not actually used.
-        // Do not include accommodations that are included in the student accommodations from the student package
+        // Exclude accommodations that are included in the student accommodations from the student package
         List<Accommodation> accommodations = assessmentAccommodations.stream().filter(
             accommodation ->
                 accommodation.isDefaultAccommodation()
@@ -149,7 +143,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                                                                           final Assessment assessment,
                                                                           final int segmentPosition,
                                                                           final boolean restoreRts,
-                                                                          final String guestAccommodations) {
+                                                                          final String studentAccommodationCodes) {
         /*
          This replaces the functionality of the following bits of code
          - StudentDLL 6834 - 6843
@@ -158,10 +152,10 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
          */
         List<ExamAccommodation> examAccommodations = findAllAccommodations(exam.getId());
         if (examAccommodations.isEmpty()) {
-            examAccommodations = initializeExamAccommodations(exam);
+            examAccommodations = initializeExamAccommodations(exam, studentAccommodationCodes);
         } else {
             //CommonDLL line 2590 - gets the accommodation codes based on guest accommodations and the accommodation family for the assessment
-            Set<String> accommodationCodes = splitAccommodationCodes(assessment.getAccommodationFamily(), guestAccommodations);
+            Set<String> accommodationCodes = splitAccommodationCodes(assessment.getAccommodationFamily(), studentAccommodationCodes);
             examAccommodations = initializePreviousAccommodations(exam, segmentPosition, restoreRts, examAccommodations, accommodationCodes, false);
         }
 
