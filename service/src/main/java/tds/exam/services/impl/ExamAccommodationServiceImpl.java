@@ -84,7 +84,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
         // StudentDLL fetches the key accommodations via CommonDLL.TestKeyAccommodations_FN which this call replicates.  The legacy application leverages
         // temporary tables for most of its data structures which is unnecessary in this case so a collection is returned.
         Map<String, Accommodation> assessmentAccommodations = assessmentService.findAssessmentAccommodationsByAssessmentKey(exam.getClientName(), exam.getAssessmentKey())
-            .stream().collect(Collectors.toMap(Accommodation::getCode, a -> a));
+            .stream().collect(Collectors.toMap(Accommodation::getCode, a -> a, (a1, a2) -> a1));
 
         // Get the list of accommodations from the student package, for the particular Exam subject
         //  Take the accommodation code, lookup the accommodation and put into a Map by type for easy lookup
