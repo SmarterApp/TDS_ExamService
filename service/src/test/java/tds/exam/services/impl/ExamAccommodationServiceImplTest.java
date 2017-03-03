@@ -157,11 +157,15 @@ public class ExamAccommodationServiceImplTest {
             .build();
 
         Accommodation nonDefaultAccommodation = new Accommodation.Builder()
+            .withAccommodationCode("code2")
+            .withAccommodationType("type")
             .withDefaultAccommodation(false)
             .withDependsOnToolType(null)
             .build();
 
         Accommodation dependsOnToolTypeAccommodation = new Accommodation.Builder()
+            .withAccommodationCode("code3")
+            .withAccommodationType("type")
             .withDefaultAccommodation(true)
             .withDependsOnToolType("dependingSoCool")
             .build();
