@@ -1,6 +1,5 @@
 package tds.exam.services.impl;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import org.assertj.core.util.Lists;
 import org.joda.time.Days;
@@ -18,6 +17,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -31,6 +31,7 @@ import tds.assessment.AssessmentWindow;
 import tds.common.Algorithm;
 import tds.common.Response;
 import tds.common.ValidationError;
+import tds.common.entity.utils.ChangeListener;
 import tds.common.web.exceptions.NotFoundException;
 import tds.config.ClientSystemFlag;
 import tds.config.TimeLimitConfiguration;
@@ -65,6 +66,7 @@ import tds.exam.services.ExamPageService;
 import tds.exam.services.ExamSegmentService;
 import tds.exam.services.ExamService;
 import tds.exam.services.ExamineeService;
+import tds.exam.services.ExpandableExamMapper;
 import tds.exam.services.SessionService;
 import tds.exam.services.StudentService;
 import tds.exam.services.TimeLimitConfigurationService;
@@ -77,7 +79,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.never;
+import static org.mockito.Matchers.isNull;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -142,6 +145,12 @@ public class ExamServiceImplTest {
     @Mock
     private ExamineeService mockExamineeService;
 
+    @Mock
+    private ChangeListener<Exam> mockOnCompletedExamChangeListener;
+
+    private Collection<ExpandableExamMapper> mockExamMappers;
+
+
     @Captor
     private ArgumentCaptor<Exam> examArgumentCaptor;
 
@@ -149,6 +158,8 @@ public class ExamServiceImplTest {
 
     @Before
     public void setUp() {
+        mockExamMappers = Arrays.asList(mock(ExpandableExamMapper.class), mock(ExpandableExamMapper.class));
+
         examService = new ExamServiceImpl(
             mockExamQueryRepository,
             mockHistoryRepository,
@@ -164,7 +175,10 @@ public class ExamServiceImplTest {
             mockExamStatusQueryRepository,
             mockExamAccommodationService,
             mockExamApprovalService,
-            mockExamineeService);
+            mockExamineeService,
+            Arrays.asList(mockOnCompletedExamChangeListener),
+            mockExamMappers);
+
 
         // Calls to get formatted message are throughout the exam service
         // Since we aren't testing that it returns anything specific in these tests I each option here for simplicity
@@ -332,6 +346,7 @@ public class ExamServiceImplTest {
         assertThat(exam.getEnvironment()).isEqualTo(extSessionConfig.getEnvironment());
         assertThat(exam.getStatus().getCode()).isEqualTo(STATUS_PENDING);
         assertThat(exam.getSubject()).isEqualTo(assessment.getSubject());
+        assertThat(exam.isWaitingForSegmentApproval()).isTrue();
     }
 
     @Test(expected = IllegalStateException.class)
@@ -442,6 +457,7 @@ public class ExamServiceImplTest {
 
         RtsStudentPackageAttribute externalIdAttribute = new RtsStudentPackageAttribute(EXTERNAL_ID, "External Id");
         RtsStudentPackageAttribute entityNameAttribute = new RtsStudentPackageAttribute(ENTITY_NAME, "Entity Id");
+        RtsStudentPackageAttribute entityAccommodationAttribute = new RtsStudentPackageAttribute(ACCOMMODATIONS, "MATH:Code1;ELA:Code2");
 
         TimeLimitConfiguration configuration = new TimeLimitConfiguration.Builder().withExamDelayDays(0).build();
 
@@ -451,7 +467,7 @@ public class ExamServiceImplTest {
         when(mockExamQueryRepository.getLastAvailableExam(openExamRequest.getStudentId(), assessment.getAssessmentId(), "SBAC_PT")).thenReturn(Optional.empty());
         when(mockSessionService.findExternalSessionConfigurationByClientName("SBAC_PT")).thenReturn(Optional.of(extSessionConfig));
         when(mockStudentService.findStudentPackageAttributes(openExamRequest.getStudentId(), "SBAC_PT", EXTERNAL_ID, ENTITY_NAME, ACCOMMODATIONS))
-            .thenReturn(Arrays.asList(externalIdAttribute, entityNameAttribute));
+            .thenReturn(Arrays.asList(externalIdAttribute, entityNameAttribute, entityAccommodationAttribute));
         when(mockAssessmentService.findAssessmentWindows(currentSession.getClientName(), assessment.getAssessmentId(), openExamRequest.getStudentId(), extSessionConfig))
             .thenReturn(Collections.singletonList(window));
         when(mockTimeLimitConfigurationService.findTimeLimitConfiguration("SBAC_PT", openExamRequest.getAssessmentKey())).thenReturn(Optional.of(configuration));
@@ -459,7 +475,7 @@ public class ExamServiceImplTest {
 
         Response<Exam> examResponse = examService.openExam(openExamRequest);
         verify(mockExamCommandRepository).insert(isA(Exam.class));
-        verify(mockExamAccommodationService).initializeExamAccommodations(isA(Exam.class));
+        verify(mockExamAccommodationService).initializeExamAccommodations(isA(Exam.class), isA(String.class));
         verify(mockExamineeService).insertAttributesAndRelationships(isA(Exam.class), isA(Student.class), isA(ExamineeContext.class));
 
         assertThat(examResponse.hasError()).isFalse();
@@ -492,6 +508,7 @@ public class ExamServiceImplTest {
 
         RtsStudentPackageAttribute externalIdAttribute = new RtsStudentPackageAttribute(EXTERNAL_ID, "External Id");
         RtsStudentPackageAttribute entityNameAttribute = new RtsStudentPackageAttribute(ENTITY_NAME, "Entity Id");
+        RtsStudentPackageAttribute entityAccommodationsAttribute = new RtsStudentPackageAttribute(ACCOMMODATIONS, "MATH:CODE1;ELA:CODE2");
 
         TimeLimitConfiguration configuration = new TimeLimitConfiguration.Builder().withExamDelayDays(0).build();
 
@@ -505,16 +522,16 @@ public class ExamServiceImplTest {
         when(mockExamQueryRepository.getLastAvailableExam(openExamRequest.getStudentId(), assessment.getAssessmentId(), "SBAC_PT")).thenReturn(Optional.empty());
         when(mockSessionService.findExternalSessionConfigurationByClientName("SBAC_PT")).thenReturn(Optional.of(extSessionConfig));
         when(mockStudentService.findStudentPackageAttributes(openExamRequest.getStudentId(), "SBAC_PT", EXTERNAL_ID, ENTITY_NAME, ACCOMMODATIONS))
-            .thenReturn(Arrays.asList(externalIdAttribute, entityNameAttribute));
+            .thenReturn(Arrays.asList(externalIdAttribute, entityNameAttribute, entityAccommodationsAttribute));
         when(mockAssessmentService.findAssessmentWindows(currentSession.getClientName(), assessment.getAssessmentId(), openExamRequest.getStudentId(), extSessionConfig))
             .thenReturn(Collections.singletonList(window));
         when(mockTimeLimitConfigurationService.findTimeLimitConfiguration("SBAC_PT", openExamRequest.getAssessmentKey())).thenReturn(Optional.of(configuration));
         when(mockExamStatusQueryRepository.findExamStatusCode(STATUS_PENDING)).thenReturn(new ExamStatusCode(STATUS_PENDING, OPEN));
-        when(mockExamAccommodationService.initializeExamAccommodations(isA(Exam.class))).thenReturn(Collections.singletonList(customExamAccommodation));
+        when(mockExamAccommodationService.initializeExamAccommodations(isA(Exam.class), isA(String.class))).thenReturn(Collections.singletonList(customExamAccommodation));
 
         Response<Exam> examResponse = examService.openExam(openExamRequest);
         verify(mockExamCommandRepository).insert(isA(Exam.class));
-        verify(mockExamAccommodationService).initializeExamAccommodations(isA(Exam.class));
+        verify(mockExamAccommodationService).initializeExamAccommodations(isA(Exam.class), isA(String.class));
         verify(mockExamineeService).insertAttributesAndRelationships(isA(Exam.class), isA(Student.class), isA(ExamineeContext.class));
 
         assertThat(examResponse.hasError()).isFalse();
@@ -961,6 +978,7 @@ public class ExamServiceImplTest {
 
         Optional<ValidationError> maybeStatusTransitionFailure = examService.updateExamStatus(examId,
             new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE));
+        verify(mockOnCompletedExamChangeListener).accept(any(Exam.class), any(Exam.class)); // gets called; will do nothing (because status is "paused")
 
         assertThat(maybeStatusTransitionFailure).isNotPresent();
     }
@@ -978,6 +996,7 @@ public class ExamServiceImplTest {
 
         Optional<ValidationError> maybeStatusTransitionFailure = examService.updateExamStatus(examId,
             new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE));
+        verifyZeroInteractions(mockOnCompletedExamChangeListener);
 
         assertThat(maybeStatusTransitionFailure).isPresent();
         ValidationError statusTransitionFailure = maybeStatusTransitionFailure.get();
@@ -1130,6 +1149,7 @@ public class ExamServiceImplTest {
         assertThat(updatedExam.getStatus().getStage()).isEqualTo(ExamStatusStage.IN_PROGRESS);
         assertThat(updatedExam.getStatus().getCode()).isEqualTo(ExamStatusCode.STATUS_STARTED);
         assertThat(updatedExam.getStatusChangedAt()).isGreaterThan(approvedStatusDate);
+        assertThat(updatedExam.isWaitingForSegmentApproval()).isFalse();
     }
 
     @Test
@@ -1322,7 +1342,8 @@ public class ExamServiceImplTest {
 
         examService.pauseAllExamsInSession(mockSessionId);
 
-        verify(mockExamCommandRepository).update(Matchers.<Exam>anyVararg());
+        verify(mockExamCommandRepository, times(3)).update(any(Exam.class));
+        verify(mockOnCompletedExamChangeListener, times(3)).accept(any(Exam.class), any(Exam.class));
     }
 
     @Test
@@ -1339,7 +1360,7 @@ public class ExamServiceImplTest {
     }
 
     @Test
-    public void shouldReturnExpandableExamsWithExamAccommodationsOnlyForSessionId() {
+    public void shouldReturnExpandableExams() {
         UUID sessionId = UUID.randomUUID();
         Exam exam1 = new ExamBuilder().build();
         Exam exam2 = new ExamBuilder().build();
@@ -1349,20 +1370,13 @@ public class ExamServiceImplTest {
             ExamStatusCode.STATUS_DENIED
         );
 
-        ExamAccommodation exam1accommodation1 = new ExamAccommodationBuilder().withExamId(exam1.getId()).build();
-        ExamAccommodation exam1accommodation2 = new ExamAccommodationBuilder().withExamId(exam1.getId()).build();
-        ExamAccommodation exam2accommodation = new ExamAccommodationBuilder().withExamId(exam2.getId()).build();
-
         when(mockExamQueryRepository.findAllExamsInSessionWithoutStatus(eq(sessionId), any())).thenReturn(Arrays.asList(exam1, exam2));
-        when(mockExamAccommodationService.findApprovedAccommodations(any(), any()))
-            .thenReturn(Arrays.asList(exam1accommodation1, exam1accommodation2, exam2accommodation));
+
         List<ExpandableExam> expandableExams = examService.findExamsBySessionId(sessionId, invalidStatuses,
             ExpandableExam.EXPANDABLE_PARAMS_EXAM_ACCOMMODATIONS);
 
         verify(mockExamQueryRepository).findAllExamsInSessionWithoutStatus(eq(sessionId), any());
-        verify(mockExamAccommodationService).findApprovedAccommodations(any(), any());
-        // Should not call this as the EXPANDABLE_PARAMS_ITEM_RESPONSE_COUNT wasn't requested
-        verify(mockExamItemService, never()).getResponseCounts(any());
+        mockExamMappers.forEach(mockMapper -> verify(mockMapper).updateExpandableMapper(any(), any(), any()));
 
         assertThat(expandableExams).hasSize(2);
 
@@ -1378,61 +1392,7 @@ public class ExamServiceImplTest {
         }
 
         assertThat(expExam1.getExam()).isEqualTo(exam1);
-        assertThat(expExam1.getExamAccommodations()).hasSize(2);
         assertThat(expExam2.getExam()).isEqualTo(exam2);
-        assertThat(expExam2.getExamAccommodations()).hasSize(1);
-    }
-
-    @Test
-    public void shouldReturnExpandableExamsWithExamAccommodationsAndResponseCountsSessionId() {
-        final Set<String> invalidStatuses = Sets.newHashSet(
-            ExamStatusCode.STATUS_PENDING,
-            ExamStatusCode.STATUS_SUSPENDED,
-            ExamStatusCode.STATUS_DENIED
-        );
-
-        UUID sessionId = UUID.randomUUID();
-        Exam exam1 = new ExamBuilder().build();
-        Exam exam2 = new ExamBuilder().build();
-
-        ExamAccommodation exam1accommodation1 = new ExamAccommodationBuilder().withExamId(exam1.getId()).build();
-        ExamAccommodation exam1accommodation2 = new ExamAccommodationBuilder().withExamId(exam1.getId()).build();
-        ExamAccommodation exam2accommodation = new ExamAccommodationBuilder().withExamId(exam2.getId()).build();
-
-        when(mockExamQueryRepository.findAllExamsInSessionWithoutStatus(eq(sessionId), any())).thenReturn(Arrays.asList(exam1, exam2));
-        when(mockExamAccommodationService.findApprovedAccommodations(any(), any()))
-            .thenReturn(Arrays.asList(exam1accommodation1, exam1accommodation2, exam2accommodation));
-        when(mockExamItemService.getResponseCounts(any(), any())).thenReturn(ImmutableMap.of(
-            exam1.getId(), 4,
-            exam2.getId(), 1
-        ));
-        List<ExpandableExam> expandableExams = examService.findExamsBySessionId(sessionId, invalidStatuses,
-            ExpandableExam.EXPANDABLE_PARAMS_EXAM_ACCOMMODATIONS, ExpandableExam.EXPANDABLE_PARAMS_ITEM_RESPONSE_COUNT);
-
-        verify(mockExamQueryRepository).findAllExamsInSessionWithoutStatus(eq(sessionId), any());
-        verify(mockExamAccommodationService).findApprovedAccommodations(any(), any());
-        // Should not call this
-        verify(mockExamItemService).getResponseCounts(any(), any());
-
-        assertThat(expandableExams).hasSize(2);
-
-        ExpandableExam expExam1 = null;
-        ExpandableExam expExam2 = null;
-
-        for (ExpandableExam expandableExam : expandableExams) {
-            if (expandableExam.getExam().getId().equals(exam1.getId())) {
-                expExam1 = expandableExam;
-            } else if (expandableExam.getExam().getId().equals(exam2.getId())) {
-                expExam2 = expandableExam;
-            }
-        }
-
-        assertThat(expExam1.getExam()).isEqualTo(exam1);
-        assertThat(expExam1.getExamAccommodations()).hasSize(2);
-        assertThat(expExam1.getItemsResponseCount()).isEqualTo(4);
-        assertThat(expExam2.getExam()).isEqualTo(exam2);
-        assertThat(expExam2.getExamAccommodations()).hasSize(1);
-        assertThat(expExam2.getItemsResponseCount()).isEqualTo(1);
     }
 
     private Exam createExam(UUID sessionId, UUID thisExamId, String assessmentId, String clientName, long studentId) {

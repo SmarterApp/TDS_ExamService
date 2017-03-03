@@ -34,11 +34,11 @@ public class ExamStatusCode {
     static {
         Map<String, ExamStatusStage> stageMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
         stageMap.put(STATUS_PAUSED, ExamStatusStage.INACTIVE);
-        stageMap.put(STATUS_PENDING, ExamStatusStage.IN_USE);
-        stageMap.put(STATUS_APPROVED, ExamStatusStage.IN_USE);
-        stageMap.put(STATUS_SUSPENDED, ExamStatusStage.IN_USE);
+        stageMap.put(STATUS_PENDING, ExamStatusStage.NEW);
+        stageMap.put(STATUS_APPROVED, ExamStatusStage.NEW);
+        stageMap.put(STATUS_SUSPENDED, ExamStatusStage.IN_PROGRESS);
         stageMap.put(STATUS_REVIEW, ExamStatusStage.IN_USE);
-        stageMap.put(STATUS_STARTED, ExamStatusStage.IN_USE);
+        stageMap.put(STATUS_STARTED, ExamStatusStage.IN_PROGRESS);
         stageMap.put(STATUS_DENIED, ExamStatusStage.INACTIVE);
         stageMap.put(STATUS_COMPLETED, ExamStatusStage.CLOSED);
         stageMap.put(STATUS_SCORED, ExamStatusStage.CLOSED);

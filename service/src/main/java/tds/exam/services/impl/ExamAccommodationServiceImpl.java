@@ -7,8 +7,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -46,7 +48,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
     private final SessionService sessionService;
     private final AssessmentService assessmentService;
     private final ExamQueryRepository examQueryRepository;
-    
+
     @Autowired
     public ExamAccommodationServiceImpl(final ExamAccommodationQueryRepository examAccommodationQueryRepository,
                                         final ExamAccommodationCommandRepository examAccommodationCommandRepository,
@@ -74,19 +76,37 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
 
     @Transactional
     @Override
-    public List<ExamAccommodation> initializeExamAccommodations(final Exam exam) {
+    public List<ExamAccommodation> initializeExamAccommodations(final Exam exam, final String studentAccommodationCodes) {
         Instant now = Instant.now();
-        // This method replaces StudentDLL._InitOpportunityAccommodations_SP.  One note is that the calls to testopporunity_readonly were not implemented because
+        // This method replaces StudentDLL._InitOpportunityAccommodations_SP.  One note is that the calls to testopportunity_readonly were not implemented because
         // these tables are only used for proctor and that is handled via the proctor related endpoints.
 
         // StudentDLL fetches the key accommodations via CommonDLL.TestKeyAccommodations_FN which this call replicates.  The legacy application leverages
         // temporary tables for most of its data structures which is unnecessary in this case so a collection is returned.
-        List<Accommodation> assessmentAccommodations = assessmentService.findAssessmentAccommodationsByAssessmentKey(exam.getClientName(), exam.getAssessmentKey());
+        Map<String, Accommodation> assessmentAccommodations = assessmentService.findAssessmentAccommodationsByAssessmentKey(exam.getClientName(), exam.getAssessmentKey())
+            .stream().collect(Collectors.toMap(Accommodation::getCode, a -> a, (a1, a2) -> a1));
+
+        // Get the list of accommodations from the student package, for the particular Exam subject
+        //  Take the accommodation code, lookup the accommodation and put into a Map by type for easy lookup
+        Map<String, Accommodation> studentAccommodations = new HashMap<>();
+        splitAccommodationCodes(exam.getSubject(), studentAccommodationCodes).forEach(code -> {
+            if (assessmentAccommodations.containsKey(code)) {
+                Accommodation accommodation = assessmentAccommodations.get(code);
+                studentAccommodations.put(accommodation.getType(), accommodation);
+            }
+        });
 
         // StudentDLL line 6645 - the query filters the results of the temporary table fetched above by these two values.
         // It was decided the record usage and report usage values that are also queried are not actually used.
-        List<Accommodation> accommodations = assessmentAccommodations.stream().filter(accommodation ->
-            accommodation.isDefaultAccommodation() && accommodation.getDependsOnToolType() == null).collect(Collectors.toList());
+        // Exclude accommodations that are included in the student accommodations from the student package
+        List<Accommodation> accommodations = assessmentAccommodations.values().stream().filter(
+            accommodation ->
+                accommodation.isDefaultAccommodation()
+                    && accommodation.getDependsOnToolType() == null
+                    && !studentAccommodations.containsKey(accommodation.getType())
+        ).collect(Collectors.toList());
+
+        accommodations.addAll(studentAccommodations.values());
 
         List<ExamAccommodation> examAccommodations = new ArrayList<>();
         accommodations.forEach(accommodation -> {
@@ -123,7 +143,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                                                                           final Assessment assessment,
                                                                           final int segmentPosition,
                                                                           final boolean restoreRts,
-                                                                          final String guestAccommodations) {
+                                                                          final String studentAccommodationCodes) {
         /*
          This replaces the functionality of the following bits of code
          - StudentDLL 6834 - 6843
@@ -132,10 +152,10 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
          */
         List<ExamAccommodation> examAccommodations = findAllAccommodations(exam.getId());
         if (examAccommodations.isEmpty()) {
-            examAccommodations = initializeExamAccommodations(exam);
+            examAccommodations = initializeExamAccommodations(exam, studentAccommodationCodes);
         } else {
             //CommonDLL line 2590 - gets the accommodation codes based on guest accommodations and the accommodation family for the assessment
-            Set<String> accommodationCodes = splitAccommodationCodes(assessment.getAccommodationFamily(), guestAccommodations);
+            Set<String> accommodationCodes = splitAccommodationCodes(assessment.getAccommodationFamily(), studentAccommodationCodes);
             examAccommodations = initializePreviousAccommodations(exam, segmentPosition, restoreRts, examAccommodations, accommodationCodes, false);
         }
 
@@ -147,13 +167,13 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
     public Optional<ValidationError> approveAccommodations(final UUID examId, final ApproveAccommodationsRequest request) {
         /* This method is a port of StudentDLL.T_ApproveAccommodations_SP, starting at line 11429 */
         ExamInfo examInfo = new ExamInfo(examId, request.getSessionId(), request.getBrowserId());
-    
+
         Optional<Exam> maybeExam = examQueryRepository.getExamById(examId);
-        
+
         if (!maybeExam.isPresent()) {
             return Optional.of(new ValidationError(ValidationErrorCode.EXAM_DOES_NOT_EXIST, "The test opportunity does not exist"));
         }
-        
+
         Exam exam = maybeExam.get();
         Optional<ValidationError> maybeError = Optional.empty();
 
@@ -161,30 +181,30 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
             /* line 11441 */
             maybeError = examApprovalService.verifyAccess(examInfo, exam);
         }
-        
+
         if (maybeError.isPresent()) {
             return maybeError;
         }
     
         /* lines 11465-11473 */
         Optional<Session> maybeSession = sessionService.findSessionById(exam.getSessionId());
-        
+
         if (!maybeSession.isPresent()) {
             return Optional.of(new ValidationError(ValidationErrorCode.EXAM_NOT_ENROLLED_IN_SESSION, "The test opportunity is not enrolled in this session"));
         } else if (maybeSession.isPresent() && !maybeSession.get().isProctorless() && request.isGuest()) {
             return Optional.of(new ValidationError(ValidationErrorCode.STUDENT_SELF_APPROVE_UNPROCTORED_SESSION, "Student can only self-approve unproctored sessions"));
         }
-        
+
         // Get the list of current exam accomms in case we need to update them (for example, if a pre-initialized default was changed by the guest user)
         List<ExamAccommodation> currentAccommodations = examAccommodationQueryRepository.findApprovedAccommodations(examId);
-    
+
         // For each assessment and segments separately, initialize their respective accommodations
         request.getAccommodationCodes().forEach((segmentPosition, guestAccommodationCodes) ->
             initializePreviousAccommodations(exam, segmentPosition, false, currentAccommodations, guestAccommodationCodes, true));
-        
+
         return Optional.empty();
     }
-    
+
     private static String getOtherAccommodationValue(String formattedValue) {
         return formattedValue.substring("TDS_Other#".length());
     }
@@ -302,29 +322,39 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
         }
 
         List<ExamAccommodation> examAccommodationsToInsert = new ArrayList<>();
-        List<ExamAccommodation> examAccommodationsToUpdate = new ArrayList<>();
+        List<ExamAccommodation> examAccommodationsToDelete = new ArrayList<>();
 
         for (ExamAccommodation examAccommodation : accommodationsToAdd) {
-            if (existingExamAccommodations.contains(examAccommodation)) {
-                ExamAccommodation existingAccommodation = existingExamAccommodations.get(existingExamAccommodations.indexOf(examAccommodation));
-                if (!isEqual(existingAccommodation, examAccommodation)) {
-                    examAccommodationsToUpdate.add(examAccommodation);
+            // Find an existing accommodation for the same type
+            //  This might have the same code or not, so can't use contains since it checks for equality
+            Optional<ExamAccommodation> existingAccommodation = existingExamAccommodations.stream()
+                .filter(acc ->
+                    acc.getExamId().equals(examAccommodation.getExamId())
+                        && acc.getSegmentPosition() == examAccommodation.getSegmentPosition()
+                        && acc.getType().equals(examAccommodation.getType())
+                ).findFirst();
+
+            if (existingAccommodation.isPresent()) {
+                // check to see if the ExamAccommodations are logically the same
+                //  if they changed then the existing one is removed and replaced with the new code
+                if (!isEquivalent(existingAccommodation.get(), examAccommodation)) {
+                    examAccommodationsToDelete.add(existingAccommodation.get());
+                    examAccommodationsToInsert.add(examAccommodation);
                 }
             } else {
                 examAccommodationsToInsert.add(examAccommodation);
             }
         }
 
+        if (!examAccommodationsToDelete.isEmpty()) {
+            examAccommodationCommandRepository.delete(examAccommodationsToDelete);
+        }
+
         if (!examAccommodationsToInsert.isEmpty()) {
             examAccommodationCommandRepository.insert(examAccommodationsToInsert);
         }
 
-        if (!examAccommodationsToUpdate.isEmpty()) {
-            examAccommodationCommandRepository.update(examAccommodationsToUpdate.toArray(new ExamAccommodation[examAccommodationsToUpdate.size()]));
-        }
-
         Set<ExamAccommodation> examAccommodations = new HashSet<>(examAccommodationsToInsert);
-        examAccommodations.addAll(examAccommodationsToUpdate);
 
         //Add all the exam accommodations that were not updated or inserted.
         examAccommodations.addAll(existingExamAccommodations);
@@ -332,7 +362,15 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
         return examAccommodations.stream().collect(Collectors.toList());
     }
 
-    private static boolean isEqual(ExamAccommodation ea1, ExamAccommodation ea2) {
+    /**
+     * Used to see if two ExamAccommodations's are logically the same.  The {@link tds.exam.ExamAccommodation} equals() method cannot be used
+     * since one the accommodations is fetched from the database and the other is provided by the UI so not all fields will match.
+     *
+     * @param ea1 first {@link tds.exam.ExamAccommodation}
+     * @param ea2 second {@link tds.exam.ExamAccommodation}
+     * @return true if the {@link tds.exam.ExamAccommodation}s are logically the same
+     */
+    private static boolean isEquivalent(ExamAccommodation ea1, ExamAccommodation ea2) {
         return ea1.getSegmentPosition() == ea2.getSegmentPosition()
             && StringUtils.equals(ea1.getSegmentKey(), ea2.getSegmentKey())
             && StringUtils.equals(ea1.getCode(), ea2.getCode())

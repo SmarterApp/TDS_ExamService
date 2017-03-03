@@ -14,6 +14,7 @@ public interface ExamItemQueryRepository {
      * @param examId the id of the {@link tds.exam.Exam} to find the position for
      * @return the item position of the last item responded to
      */
+
     int getCurrentExamItemPosition(final UUID examId);
 
     /**
@@ -23,4 +24,5 @@ public interface ExamItemQueryRepository {
      * @return a mapping of examIds to the number of items that exam has responded to
      */
     Map<UUID, Integer> getResponseCounts(final UUID... examIds);
+
 }

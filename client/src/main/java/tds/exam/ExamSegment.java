@@ -29,7 +29,10 @@ public class ExamSegment {
     private Set<String> itemPool;
     private int poolCount;
     private Instant createdAt;
-    
+
+    /**
+     * Private constructor for frameworks
+     */
     private ExamSegment() {}
 
     public ExamSegment(Builder builder) {
@@ -70,6 +73,27 @@ public class ExamSegment {
         private Set<String> itemPool;
         private int poolCount;
         private Instant createdAt;
+
+        public static Builder fromSegment(final ExamSegment segment) {
+            return new Builder()
+                .withExamId(segment.examId)
+                .withSegmentKey(segment.segmentKey)
+                .withSegmentId(segment.segmentId)
+                .withSegmentPosition(segment.segmentPosition)
+                .withFormKey(segment.formKey)
+                .withFormId(segment.formId)
+                .withAlgorithm(segment.algorithm)
+                .withExamItemCount(segment.examItemCount)
+                .withFieldTestItemCount(segment.fieldTestItemCount)
+                .withPermeable(segment.permeable)
+                .withRestorePermeableCondition(segment.restorePermeableCondition)
+                .withFormCohort(segment.formCohort)
+                .withSatisfied(segment.satisfied)
+                .withExitedAt(segment.exitedAt)
+                .withItemPool(segment.itemPool)
+                .withPoolCount(segment.poolCount)
+                .withCreatedAt(segment.createdAt);
+        }
 
         public Builder withExamId(UUID newExamId) {
             this.examId = newExamId;
