@@ -7,8 +7,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -75,18 +77,42 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
     @Transactional
     @Override
     public List<ExamAccommodation> initializeExamAccommodations(final Exam exam) {
+        return initializeExamAccommodations(exam, "");
+    }
+
+    @Transactional
+    @Override
+    public List<ExamAccommodation> initializeExamAccommodations(final Exam exam, final String studentAccommodationCodes) {
         Instant now = Instant.now();
-        // This method replaces StudentDLL._InitOpportunityAccommodations_SP.  One note is that the calls to testopporunity_readonly were not implemented because
+        // This method replaces StudentDLL._InitOpportunityAccommodations_SP.  One note is that the calls to testopportunity_readonly were not implemented because
         // these tables are only used for proctor and that is handled via the proctor related endpoints.
 
         // StudentDLL fetches the key accommodations via CommonDLL.TestKeyAccommodations_FN which this call replicates.  The legacy application leverages
         // temporary tables for most of its data structures which is unnecessary in this case so a collection is returned.
         List<Accommodation> assessmentAccommodations = assessmentService.findAssessmentAccommodationsByAssessmentKey(exam.getClientName(), exam.getAssessmentKey());
 
+        // Get the list of accommodations from the student package, for the particular Exam subject
+        //  Take the accommodation code, lookup the accommodation and put into a Map by type for easy lookup
+        Map<String, Accommodation> studentAccommodations = new HashMap<>();
+        splitAccommodationCodes(exam.getSubject(), studentAccommodationCodes).forEach(code -> {
+            assessmentAccommodations
+                .stream()
+                .filter(accommodation -> accommodation.getCode().equals(code))
+                .findFirst()
+                .ifPresent(accommodation -> studentAccommodations.put(accommodation.getType(), accommodation));
+        });
+
         // StudentDLL line 6645 - the query filters the results of the temporary table fetched above by these two values.
         // It was decided the record usage and report usage values that are also queried are not actually used.
-        List<Accommodation> accommodations = assessmentAccommodations.stream().filter(accommodation ->
-            accommodation.isDefaultAccommodation() && accommodation.getDependsOnToolType() == null).collect(Collectors.toList());
+        // Do not include accommodations that are included in the student accommodations from the student package
+        List<Accommodation> accommodations = assessmentAccommodations.stream().filter(
+            accommodation ->
+                accommodation.isDefaultAccommodation()
+                && accommodation.getDependsOnToolType() == null
+                && !studentAccommodations.containsKey(accommodation.getType())
+        ).collect(Collectors.toList());
+
+        accommodations.addAll(studentAccommodations.values());
 
         List<ExamAccommodation> examAccommodations = new ArrayList<>();
         accommodations.forEach(accommodation -> {

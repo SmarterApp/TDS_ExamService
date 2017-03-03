@@ -499,7 +499,7 @@ class ExamServiceImpl implements ExamService {
             examBuilder.withStatus(examStatusQueryRepository.findExamStatusCode(ExamStatusCode.STATUS_PENDING), org.joda.time.Instant.now());
         }
 
-        String guestAccommodations = openExamRequest.getGuestAccommodations();
+        String studentAccommodations = openExamRequest.getGuestAccommodations();
         if (openExamRequest.isGuestStudent()) {
             examBuilder.withStudentName("GUEST");
             examBuilder.withLoginSSID("GUEST");
@@ -511,8 +511,8 @@ class ExamServiceImpl implements ExamService {
                     examBuilder.withLoginSSID(attribute.getValue());
                 } else if (ENTITY_NAME.equals(attribute.getName())) {
                     examBuilder.withStudentName(attribute.getValue());
-                } else if (StringUtils.isEmpty(guestAccommodations) && ACCOMMODATIONS.equals(attribute.getName())) {
-                    guestAccommodations = attribute.getValue();
+                } else if (StringUtils.isEmpty(studentAccommodations) && ACCOMMODATIONS.equals(attribute.getName())) {
+                    studentAccommodations = attribute.getValue();
                 }
             }
         }
@@ -574,7 +574,7 @@ class ExamServiceImpl implements ExamService {
 
         //Lines 412 - 421 OpenTestServiceImpl is not implemented.  After talking with data warehouse and Smarter Balanced
         //The initial student attributes are not used and smarter balance suggested removing them
-        List<ExamAccommodation> examAccommodations = examAccommodationService.initializeExamAccommodations(exam);
+        List<ExamAccommodation> examAccommodations = examAccommodationService.initializeExamAccommodations(exam, studentAccommodations);
 
         exam = updateExamWithCustomAccommodations(exam, examAccommodations);
 

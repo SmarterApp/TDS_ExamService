@@ -40,6 +40,14 @@ public interface ExamAccommodationService {
     List<ExamAccommodation> initializeExamAccommodations(Exam exam);
 
     /**
+     * Initializes and inserts exam accommodations for the exam;
+     *
+     * @param exam exam to use to initialize the {@link tds.exam.ExamAccommodation}
+     * @param studentAccommodations the separated list of accommodations from the student package retrieved from ART
+     */
+    List<ExamAccommodation> initializeExamAccommodations(Exam exam, String studentAccommodations);
+
+    /**
      * Finds the approved {@link tds.exam.ExamAccommodation}
      *
      * @param examIds the exam ids
