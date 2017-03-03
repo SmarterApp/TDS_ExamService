@@ -48,7 +48,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
     private final SessionService sessionService;
     private final AssessmentService assessmentService;
     private final ExamQueryRepository examQueryRepository;
-    
+
     @Autowired
     public ExamAccommodationServiceImpl(final ExamAccommodationQueryRepository examAccommodationQueryRepository,
                                         final ExamAccommodationCommandRepository examAccommodationCommandRepository,
@@ -83,27 +83,27 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
 
         // StudentDLL fetches the key accommodations via CommonDLL.TestKeyAccommodations_FN which this call replicates.  The legacy application leverages
         // temporary tables for most of its data structures which is unnecessary in this case so a collection is returned.
-        List<Accommodation> assessmentAccommodations = assessmentService.findAssessmentAccommodationsByAssessmentKey(exam.getClientName(), exam.getAssessmentKey());
+        Map<String, Accommodation> assessmentAccommodations = assessmentService.findAssessmentAccommodationsByAssessmentKey(exam.getClientName(), exam.getAssessmentKey())
+            .stream().collect(Collectors.toMap(Accommodation::getCode, a -> a));
 
         // Get the list of accommodations from the student package, for the particular Exam subject
         //  Take the accommodation code, lookup the accommodation and put into a Map by type for easy lookup
         Map<String, Accommodation> studentAccommodations = new HashMap<>();
         splitAccommodationCodes(exam.getSubject(), studentAccommodationCodes).forEach(code -> {
-            assessmentAccommodations
-                .stream()
-                .filter(accommodation -> accommodation.getCode().equals(code))
-                .findFirst()
-                .ifPresent(accommodation -> studentAccommodations.put(accommodation.getType(), accommodation));
+            if (assessmentAccommodations.containsKey(code)) {
+                Accommodation accommodation = assessmentAccommodations.get(code);
+                studentAccommodations.put(accommodation.getType(), accommodation);
+            }
         });
 
         // StudentDLL line 6645 - the query filters the results of the temporary table fetched above by these two values.
         // It was decided the record usage and report usage values that are also queried are not actually used.
         // Exclude accommodations that are included in the student accommodations from the student package
-        List<Accommodation> accommodations = assessmentAccommodations.stream().filter(
+        List<Accommodation> accommodations = assessmentAccommodations.values().stream().filter(
             accommodation ->
                 accommodation.isDefaultAccommodation()
-                && accommodation.getDependsOnToolType() == null
-                && !studentAccommodations.containsKey(accommodation.getType())
+                    && accommodation.getDependsOnToolType() == null
+                    && !studentAccommodations.containsKey(accommodation.getType())
         ).collect(Collectors.toList());
 
         accommodations.addAll(studentAccommodations.values());
@@ -167,13 +167,13 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
     public Optional<ValidationError> approveAccommodations(final UUID examId, final ApproveAccommodationsRequest request) {
         /* This method is a port of StudentDLL.T_ApproveAccommodations_SP, starting at line 11429 */
         ExamInfo examInfo = new ExamInfo(examId, request.getSessionId(), request.getBrowserId());
-    
+
         Optional<Exam> maybeExam = examQueryRepository.getExamById(examId);
-        
+
         if (!maybeExam.isPresent()) {
             return Optional.of(new ValidationError(ValidationErrorCode.EXAM_DOES_NOT_EXIST, "The test opportunity does not exist"));
         }
-        
+
         Exam exam = maybeExam.get();
         Optional<ValidationError> maybeError = Optional.empty();
 
@@ -181,30 +181,30 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
             /* line 11441 */
             maybeError = examApprovalService.verifyAccess(examInfo, exam);
         }
-        
+
         if (maybeError.isPresent()) {
             return maybeError;
         }
     
         /* lines 11465-11473 */
         Optional<Session> maybeSession = sessionService.findSessionById(exam.getSessionId());
-        
+
         if (!maybeSession.isPresent()) {
             return Optional.of(new ValidationError(ValidationErrorCode.EXAM_NOT_ENROLLED_IN_SESSION, "The test opportunity is not enrolled in this session"));
         } else if (maybeSession.isPresent() && !maybeSession.get().isProctorless() && request.isGuest()) {
             return Optional.of(new ValidationError(ValidationErrorCode.STUDENT_SELF_APPROVE_UNPROCTORED_SESSION, "Student can only self-approve unproctored sessions"));
         }
-        
+
         // Get the list of current exam accomms in case we need to update them (for example, if a pre-initialized default was changed by the guest user)
         List<ExamAccommodation> currentAccommodations = examAccommodationQueryRepository.findApprovedAccommodations(examId);
-    
+
         // For each assessment and segments separately, initialize their respective accommodations
         request.getAccommodationCodes().forEach((segmentPosition, guestAccommodationCodes) ->
             initializePreviousAccommodations(exam, segmentPosition, false, currentAccommodations, guestAccommodationCodes, true));
-        
+
         return Optional.empty();
     }
-    
+
     private static String getOtherAccommodationValue(String formattedValue) {
         return formattedValue.substring("TDS_Other#".length());
     }
@@ -330,8 +330,8 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
             Optional<ExamAccommodation> existingAccommodation = existingExamAccommodations.stream()
                 .filter(acc ->
                     acc.getExamId().equals(examAccommodation.getExamId())
-                    && acc.getSegmentPosition() == examAccommodation.getSegmentPosition()
-                    && acc.getType().equals(examAccommodation.getType())
+                        && acc.getSegmentPosition() == examAccommodation.getSegmentPosition()
+                        && acc.getType().equals(examAccommodation.getType())
                 ).findFirst();
 
             if (existingAccommodation.isPresent()) {
@@ -365,6 +365,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
     /**
      * Used to see if two ExamAccommodations's are logically the same.  The {@link tds.exam.ExamAccommodation} equals() method cannot be used
      * since one the accommodations is fetched from the database and the other is provided by the UI so not all fields will match.
+     *
      * @param ea1 first {@link tds.exam.ExamAccommodation}
      * @param ea2 second {@link tds.exam.ExamAccommodation}
      * @return true if the {@link tds.exam.ExamAccommodation}s are logically the same
