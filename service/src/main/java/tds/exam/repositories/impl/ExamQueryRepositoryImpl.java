@@ -69,7 +69,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
         "ee.started_at, \n" +
         "ee.scored_at, \n" +
         "ee.abnormal_starts, \n" +
-        "ee.waiting_for_segment_approval, \n" +
+        "ee.waiting_for_segment_approval_position, \n" +
         "ee.current_segment_position, \n" +
         "ee.custom_accommodations, \n" +
         "e.created_at, \n" +
@@ -446,7 +446,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 ), mapTimestampToJodaInstant(rs, "status_changed_at"))
                 .withStatusChangeReason(rs.getString("status_change_reason"))
                 .withAbnormalStarts(rs.getInt("abnormal_starts"))
-                .withWaitingForSegmentApproval(rs.getBoolean("waiting_for_segment_approval"))
+                .withWaitingForSegmentApprovalPosition(rs.getInt("waiting_for_segment_approval_position"))
                 .withCurrentSegmentPosition(rs.getInt("current_segment_position"))
                 .withCustomAccommodation(rs.getBoolean("custom_accommodations"))
                 .build();

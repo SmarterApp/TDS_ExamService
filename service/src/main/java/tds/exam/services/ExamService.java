@@ -13,6 +13,7 @@ import tds.exam.ExamConfiguration;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExpandableExam;
 import tds.exam.OpenExamRequest;
+import tds.exam.SegmentApprovalRequest;
 
 /**
  * Main entry point for interacting with {@link Exam}
@@ -55,11 +56,24 @@ public interface ExamService {
     /**
      * Change the {@link tds.exam.Exam}'s status to a new status.
      *
+     * @param examId                    The id of the exam whose status is being changed
+     * @param newStatus                 The {@link tds.exam.ExamStatusCode} to transition to
+     * @param statusChangeReason        The reason why the {@link tds.exam.Exam} status is being updated
+     * @param waitingForSegmentPosition The position of the exam segment to pause for approval
+     * @return {@code Optional<ValidationError>} if the {@link tds.exam.Exam} cannot be updated from its current status
+     * to the new status; otherwise {@code Optional.empty()}.
+     */
+    Optional<ValidationError> updateExamStatus(final UUID examId, final ExamStatusCode newStatus, final String statusChangeReason,
+                                               final int waitingForSegmentPosition);
+
+    /**
+     * Change the {@link tds.exam.Exam}'s status to a new status.
+     *
      * @param examId             The id of the exam whose status is being changed
      * @param newStatus          The {@link tds.exam.ExamStatusCode} to transition to
      * @param statusChangeReason The reason why the {@link tds.exam.Exam} status is being updated
      * @return {@code Optional<ValidationError>} if the {@link tds.exam.Exam} cannot be updated from its current status
-     * to the new status; otherwise {@code Optional.empty()}.\
+     * to the new status; otherwise {@code Optional.empty()}.
      */
     Optional<ValidationError> updateExamStatus(final UUID examId, final ExamStatusCode newStatus, final String statusChangeReason);
 
@@ -69,7 +83,7 @@ public interface ExamService {
      * @param examId    The id of the exam whose status is being changed
      * @param newStatus The {@link tds.exam.ExamStatusCode} to transition to
      * @return {@code Optional<ValidationError>} if the {@link tds.exam.Exam} cannot be updated from its current status
-     * to the new status; otherwise {@code Optional.empty()}.\
+     * to the new status; otherwise {@code Optional.empty()}.
      */
     Optional<ValidationError> updateExamStatus(final UUID examId, final ExamStatusCode newStatus);
 
@@ -89,4 +103,14 @@ public interface ExamService {
      * @return a list of {@link tds.exam.ExpandableExam}s in the session
      */
     List<ExpandableExam> findExamsBySessionId(final UUID sessionId, final Set<String> invalidStatuses, final String... expandableParams);
+
+    /**
+     * Performs exam access validation and updates the {@link Exam} status to wait for segment approval.
+     *
+     * @param examId The id of the exam seeking segment approval
+     * @param request A request object containing data related to the segment approval request
+     * @return {@code Optional<ValidationError>} if the {@link tds.exam.Exam} cannot be updated from its current status
+     * to the new status of if the approval request fails.
+     */
+    Optional<ValidationError> waitForSegmentApproval(UUID examId, SegmentApprovalRequest request);
 }
