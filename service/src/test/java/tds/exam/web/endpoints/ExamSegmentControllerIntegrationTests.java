@@ -10,13 +10,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import tds.common.Response;
-import tds.common.ValidationError;
-import tds.common.configuration.JacksonObjectMapperConfiguration;
-import tds.common.configuration.SecurityConfiguration;
-import tds.common.web.advice.ExceptionAdvice;
-import tds.exam.ExamSegment;
-import tds.exam.services.ExamSegmentService;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -25,12 +18,19 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import tds.common.Response;
+import tds.common.ValidationError;
+import tds.common.configuration.JacksonObjectMapperConfiguration;
+import tds.common.configuration.SecurityConfiguration;
+import tds.common.web.advice.ExceptionAdvice;
+import tds.exam.ExamSegment;
+import tds.exam.services.ExamSegmentService;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -119,8 +119,7 @@ public class ExamSegmentControllerIntegrationTests {
 
         http.perform(put(new URI(String.format("/exam/segments/%s/exit/%d", examId, segmentPosition)))
             .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isNoContent())
-            .andExpect(header().string("Location", String.format("http://localhost/exam/%s", examId)));
+            .andExpect(status().isNoContent());
 
         verify(mockExamSegmentService).exitSegment(examId, segmentPosition);
     }

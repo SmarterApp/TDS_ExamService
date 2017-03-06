@@ -1,8 +1,6 @@
 package tds.exam.web.endpoints;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.Link;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -21,9 +19,6 @@ import tds.common.ValidationError;
 import tds.common.web.resources.NoContentResponseResource;
 import tds.exam.ExamSegment;
 import tds.exam.services.ExamSegmentService;
-
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/exam/segments")
@@ -60,10 +55,6 @@ public class ExamSegmentController {
             return new ResponseEntity<>(response, HttpStatus.UNPROCESSABLE_ENTITY);
         }
 
-        Link link = linkTo(methodOn(ExamController.class).getExamById(examId)).withSelfRel();
-        final HttpHeaders headers = new HttpHeaders();
-        headers.add("Location", link.getHref());
-
-        return new ResponseEntity<>(headers, HttpStatus.NO_CONTENT);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

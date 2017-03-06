@@ -38,22 +38,22 @@ import tds.exam.services.SegmentPoolService;
 
 @Service
 public class ExamSegmentServiceImpl implements ExamSegmentService {
-    private final ExamSegmentCommandRepository commandRepository;
-    private final ExamSegmentQueryRepository queryRepository;
+    private final ExamSegmentCommandRepository examSegmentCommandRepository;
+    private final ExamSegmentQueryRepository examSegmentQueryRepository;
     private final SegmentPoolService segmentPoolService;
     private final FormSelector formSelector;
     private final FieldTestService fieldTestService;
     private final ExamApprovalService examApprovalService;
 
     @Autowired
-    public ExamSegmentServiceImpl(final ExamSegmentCommandRepository commandRepository,
-                                  final ExamSegmentQueryRepository queryRepository,
+    public ExamSegmentServiceImpl(final ExamSegmentCommandRepository examSegmentCommandRepository,
+                                  final ExamSegmentQueryRepository examSegmentQueryRepository,
                                   final SegmentPoolService segmentPoolService,
                                   final FormSelector formSelector,
                                   final FieldTestService fieldTestService,
                                   final ExamApprovalService examApprovalService) {
-        this.commandRepository = commandRepository;
-        this.queryRepository = queryRepository;
+        this.examSegmentCommandRepository = examSegmentCommandRepository;
+        this.examSegmentQueryRepository = examSegmentQueryRepository;
         this.segmentPoolService = segmentPoolService;
         this.fieldTestService = fieldTestService;
         this.formSelector = formSelector;
@@ -163,7 +163,7 @@ public class ExamSegmentServiceImpl implements ExamSegmentService {
             throw new IllegalStateException("There are no items available in the item pool for any segment.");
         }
         /* Lines [4753-4764] */
-        commandRepository.insert(examSegments);
+        examSegmentCommandRepository.insert(examSegments);
 
         return totalItems;
     }
@@ -180,12 +180,12 @@ public class ExamSegmentServiceImpl implements ExamSegmentService {
             return new Response<>(approval.getError().get());
         }
 
-        return new Response<>(queryRepository.findByExamId(examId));
+        return new Response<>(examSegmentQueryRepository.findByExamId(examId));
     }
 
     @Override
     public Response<ExamSegment> findByExamIdAndSegmentPosition(final UUID examId, final int segmentPosition) {
-        ExamSegment segment = queryRepository.findByExamIdAndSegmentPosition(examId, segmentPosition)
+        ExamSegment segment = examSegmentQueryRepository.findByExamIdAndSegmentPosition(examId, segmentPosition)
             .orElseThrow(() -> new NotFoundException(String.format("Could not find an exam segment for exam id %s and segment position %d", examId, segmentPosition)));
 
         return new Response<>(segment);
@@ -193,12 +193,12 @@ public class ExamSegmentServiceImpl implements ExamSegmentService {
 
     @Override
     public void update(final ExamSegment... examSegments) {
-        commandRepository.update(Arrays.asList(examSegments));
+        examSegmentCommandRepository.update(Arrays.asList(examSegments));
     }
 
     @Override
     public Optional<ValidationError> exitSegment(final UUID examId, final int segmentPosition) {
-        Optional<ExamSegment> maybeExamSegment = queryRepository.findByExamIdAndSegmentPosition(examId, segmentPosition);
+        Optional<ExamSegment> maybeExamSegment = examSegmentQueryRepository.findByExamIdAndSegmentPosition(examId, segmentPosition);
 
         if (!maybeExamSegment.isPresent()) {
             return Optional.of(new ValidationError(ValidationErrorCode.EXAM_SEGMENT_DOES_NOT_EXIST, "The exam segment does not exist"));
@@ -209,7 +209,7 @@ public class ExamSegmentServiceImpl implements ExamSegmentService {
             .withExitedAt(Instant.now())
             .build();
 
-        commandRepository.update(updatedExamSegment);
+        examSegmentCommandRepository.update(updatedExamSegment);
 
         return Optional.empty();
     }
