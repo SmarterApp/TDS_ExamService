@@ -239,6 +239,7 @@ public class ExamControllerIntegrationTests {
         http.perform(put(new URI(String.format("/exam/%s/segmentApproval/", examId)))
             .contentType(MediaType.APPLICATION_JSON)
             .content(ow.writeValueAsString(request)))
+            .andExpect(header().string("Location", String.format("http://localhost/exam/%s", examId)))
             .andExpect(status().isNoContent());
 
         verify(mockExamService).waitForSegmentApproval(eq(examId), any());
@@ -257,6 +258,7 @@ public class ExamControllerIntegrationTests {
             .contentType(MediaType.APPLICATION_JSON)
             .content(ow.writeValueAsString(request)))
             .andExpect(status().isUnprocessableEntity());
+
 
         verify(mockExamService).waitForSegmentApproval(eq(examId), any());
     }

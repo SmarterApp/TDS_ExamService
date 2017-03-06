@@ -269,20 +269,18 @@ class ExamServiceImpl implements ExamService {
         return ability;
     }
 
-    @Transactional
     @Override
     public Optional<ValidationError> updateExamStatus(final UUID examId, final ExamStatusCode newStatus) {
         return updateExamStatus(examId, newStatus, null);
     }
 
-    @Transactional
     @Override
     public Optional<ValidationError> updateExamStatus(final UUID examId, final ExamStatusCode newStatus, final String statusChangeReason) {
         return updateExamStatus(examId, newStatus, statusChangeReason, -1);
     }
 
-    @Override
-    public Optional<ValidationError> updateExamStatus(final UUID examId, final ExamStatusCode newStatus, final String statusChangeReason,
+    @Transactional
+    private Optional<ValidationError> updateExamStatus(final UUID examId, final ExamStatusCode newStatus, final String statusChangeReason,
                                                       final int waitingForSegmentPosition) {
         Exam exam = examQueryRepository.getExamById(examId)
             .orElseThrow(() -> new NotFoundException(String.format("Exam could not be found for id %s", examId)));

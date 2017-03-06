@@ -56,19 +56,6 @@ public interface ExamService {
     /**
      * Change the {@link tds.exam.Exam}'s status to a new status.
      *
-     * @param examId                    The id of the exam whose status is being changed
-     * @param newStatus                 The {@link tds.exam.ExamStatusCode} to transition to
-     * @param statusChangeReason        The reason why the {@link tds.exam.Exam} status is being updated
-     * @param waitingForSegmentPosition The position of the exam segment to pause for approval
-     * @return {@code Optional<ValidationError>} if the {@link tds.exam.Exam} cannot be updated from its current status
-     * to the new status; otherwise {@code Optional.empty()}.
-     */
-    Optional<ValidationError> updateExamStatus(final UUID examId, final ExamStatusCode newStatus, final String statusChangeReason,
-                                               final int waitingForSegmentPosition);
-
-    /**
-     * Change the {@link tds.exam.Exam}'s status to a new status.
-     *
      * @param examId             The id of the exam whose status is being changed
      * @param newStatus          The {@link tds.exam.ExamStatusCode} to transition to
      * @param statusChangeReason The reason why the {@link tds.exam.Exam} status is being updated
