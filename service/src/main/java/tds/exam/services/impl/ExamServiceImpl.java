@@ -33,6 +33,7 @@ import tds.config.ClientSystemFlag;
 import tds.config.TimeLimitConfiguration;
 import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
+import tds.exam.ExamApproval;
 import tds.exam.ExamConfiguration;
 import tds.exam.ExamInfo;
 import tds.exam.ExamStatusCode;
@@ -40,6 +41,7 @@ import tds.exam.ExamStatusStage;
 import tds.exam.ExamineeContext;
 import tds.exam.ExpandableExam;
 import tds.exam.OpenExamRequest;
+import tds.exam.SegmentApprovalRequest;
 import tds.exam.error.ValidationErrorCode;
 import tds.exam.models.Ability;
 import tds.exam.repositories.ExamCommandRepository;
@@ -52,7 +54,6 @@ import tds.exam.services.ExamAccommodationService;
 import tds.exam.services.ExamApprovalService;
 import tds.exam.services.ExamItemService;
 import tds.exam.services.ExamPageService;
-import tds.exam.services.ExamPrintRequestService;
 import tds.exam.services.ExamSegmentService;
 import tds.exam.services.ExamService;
 import tds.exam.services.ExamineeService;
@@ -268,15 +269,19 @@ class ExamServiceImpl implements ExamService {
         return ability;
     }
 
-    @Transactional
     @Override
     public Optional<ValidationError> updateExamStatus(final UUID examId, final ExamStatusCode newStatus) {
         return updateExamStatus(examId, newStatus, null);
     }
 
-    @Transactional
     @Override
     public Optional<ValidationError> updateExamStatus(final UUID examId, final ExamStatusCode newStatus, final String statusChangeReason) {
+        return updateExamStatus(examId, newStatus, statusChangeReason, -1);
+    }
+
+    @Transactional
+    private Optional<ValidationError> updateExamStatus(final UUID examId, final ExamStatusCode newStatus, final String statusChangeReason,
+                                                      final int waitingForSegmentPosition) {
         Exam exam = examQueryRepository.getExamById(examId)
             .orElseThrow(() -> new NotFoundException(String.format("Exam could not be found for id %s", examId)));
 
@@ -289,6 +294,7 @@ class ExamServiceImpl implements ExamService {
             .fromExam(exam)
             .withStatus(newStatus, org.joda.time.Instant.now())
             .withStatusChangeReason(statusChangeReason)
+            .withWaitingForSegmentApprovalPosition(waitingForSegmentPosition)
             .build();
 
         updateExam(exam, updatedExam);
@@ -336,6 +342,28 @@ class ExamServiceImpl implements ExamService {
         return examBuilders.values().stream()
             .map(builders -> builders.build())
             .collect(Collectors.toList());
+    }
+
+    @Override
+    public Optional<ValidationError> waitForSegmentApproval(final UUID examId, final SegmentApprovalRequest request) {
+        Response<ExamApproval> approvalResponse = examApprovalService.getApproval(new ExamInfo(examId, request.getSessionId(), request.getBrowserId()));
+
+        if (approvalResponse.getError().isPresent()) {
+            return Optional.of(approvalResponse.getError().get());
+        }
+
+        Optional<ValidationError> maybeError;
+
+        /* StudentDLL - T_WaitForSegment_SP lines [1859 - 1864] + 1876*/
+        if (request.isEntryApproval()) {
+            maybeError = updateExamStatus(examId, new ExamStatusCode(ExamStatusCode.STATUS_SEGMENT_ENTRY), null,
+                request.getSegmentPosition());
+        } else {
+            maybeError = updateExamStatus(examId, new ExamStatusCode(ExamStatusCode.STATUS_SEGMENT_EXIT), null,
+                request.getSegmentPosition());
+        }
+
+        return maybeError;
     }
 
     @Transactional
@@ -453,7 +481,7 @@ class ExamServiceImpl implements ExamService {
             .withExpiresAt(now)
             .withRestartsAndResumptions(0)
             .withMaxItems(testLength)
-            .withWaitingForSegmentApproval(false)
+            .withWaitingForSegmentApprovalPosition(-1)
             .build();
 
         updateExam(exam, initializedExam);
@@ -562,7 +590,7 @@ class ExamServiceImpl implements ExamService {
             .withAssessmentWindowId(assessmentWindow.getWindowId())
             .withEnvironment(externalSessionConfiguration.getEnvironment())
             .withSubject(assessment.getSubject())
-            .withWaitingForSegmentApproval(true)
+            .withWaitingForSegmentApprovalPosition(1)
             .build();
 
         examCommandRepository.insert(exam);

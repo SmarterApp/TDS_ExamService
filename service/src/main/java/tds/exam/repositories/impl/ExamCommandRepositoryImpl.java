@@ -101,7 +101,7 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
                 .addValue("scoredAt", mapJodaInstantToTimestamp(exam.getScoredAt()))
                 .addValue("expiresAt", mapJodaInstantToTimestamp(exam.getExpiresAt()))
                 .addValue("abnormalStarts", exam.getAbnormalStarts())
-                .addValue("waitingForSegmentApproval", exam.isWaitingForSegmentApproval())
+                .addValue("waitingForSegmentApprovalPosition", exam.getWaitingForSegmentApprovalPosition())
                 .addValue("currentSegmentPosition", exam.getCurrentSegmentPosition())
                 .addValue("customAccommodations", exam.isCustomAccommodations())
                 .addValue("startedAt", mapJodaInstantToTimestamp(exam.getStartedAt())))
@@ -124,7 +124,7 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
                 "completed_at, \n" +
                 "scored_at, \n" +
                 "started_at, \n" +
-                "waiting_for_segment_approval, \n" +
+                "waiting_for_segment_approval_position, \n" +
                 "current_segment_position, \n" +
                 "custom_accommodations, \n" +
                 "abnormal_starts \n" +
@@ -146,7 +146,7 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
                 ":completedAt, \n" +
                 ":scoredAt, \n" +
                 ":startedAt, \n" +
-                ":waitingForSegmentApproval,\n" +
+                ":waitingForSegmentApprovalPosition,\n" +
                 ":currentSegmentPosition, \n" +
                 ":customAccommodations, \n" +
                 ":abnormalStarts \n" +

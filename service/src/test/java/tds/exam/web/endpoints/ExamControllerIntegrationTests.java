@@ -1,5 +1,7 @@
 package tds.exam.web.endpoints;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.collect.ImmutableSet;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,6 +28,7 @@ import tds.exam.Exam;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
 import tds.exam.ExpandableExam;
+import tds.exam.SegmentApprovalRequest;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.error.ValidationErrorCode;
 import tds.exam.services.ExamPageService;
@@ -58,6 +61,9 @@ public class ExamControllerIntegrationTests {
 
     @MockBean
     private ExamPageService mockExamPageService;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Test
     public void shouldReturnExam() throws Exception {
@@ -219,5 +225,41 @@ public class ExamControllerIntegrationTests {
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isInternalServerError());
 
+    }
+
+    @Test
+    public void shouldWaitForSegmentSuccessfully() throws Exception {
+        UUID examId = UUID.randomUUID();
+        SegmentApprovalRequest request = random(SegmentApprovalRequest.class);
+        when(mockExamService.waitForSegmentApproval(eq(examId), any())).thenReturn(Optional.empty());
+
+        ObjectWriter ow = objectMapper
+            .writer().withDefaultPrettyPrinter();
+
+        http.perform(put(new URI(String.format("/exam/%s/segmentApproval/", examId)))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(ow.writeValueAsString(request)))
+            .andExpect(header().string("Location", String.format("http://localhost/exam/%s", examId)))
+            .andExpect(status().isNoContent());
+
+        verify(mockExamService).waitForSegmentApproval(eq(examId), any());
+    }
+
+    @Test
+    public void shouldReturnErrorWaitForSegment() throws Exception {
+        UUID examId = UUID.randomUUID();
+        SegmentApprovalRequest request = random(SegmentApprovalRequest.class);
+        when(mockExamService.waitForSegmentApproval(eq(examId), any())).thenReturn(Optional.of(new ValidationError("some", "error")));
+
+        ObjectWriter ow = objectMapper
+            .writer().withDefaultPrettyPrinter();
+
+        http.perform(put(new URI(String.format("/exam/%s/segmentApproval/", examId)))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(ow.writeValueAsString(request)))
+            .andExpect(status().isUnprocessableEntity());
+
+
+        verify(mockExamService).waitForSegmentApproval(eq(examId), any());
     }
 }

@@ -54,7 +54,7 @@ public class ExamPrintRequestRepositoryIntegrationTests {
         examCommandRepository.insert(diffSessionExam);
 
         // Exam 1
-        ExamPrintRequest exam1Request1 = new ExamPrintRequest.Builder()
+        ExamPrintRequest exam1Request1 = new ExamPrintRequest.Builder(UUID.randomUUID())
             .fromExamPrintRequest(random(ExamPrintRequest.class))
             .withSessionId(sessionId)
             .withExamId(exam1.getId())
@@ -63,7 +63,7 @@ public class ExamPrintRequestRepositoryIntegrationTests {
             .withApprovedAt(null)
             .withType(ExamPrintRequest.REQUEST_TYPE_EMBOSS_ITEM)
             .build();
-        ExamPrintRequest exam1Request2 = new ExamPrintRequest.Builder()
+        ExamPrintRequest exam1Request2 = new ExamPrintRequest.Builder(UUID.randomUUID())
             .fromExamPrintRequest(random(ExamPrintRequest.class))
             .withSessionId(sessionId)
             .withExamId(exam1.getId())
@@ -74,7 +74,7 @@ public class ExamPrintRequestRepositoryIntegrationTests {
             .build();
 
         // Exam 2
-        ExamPrintRequest exam2Request = new ExamPrintRequest.Builder()
+        ExamPrintRequest exam2Request = new ExamPrintRequest.Builder(UUID.randomUUID())
             .fromExamPrintRequest(random(ExamPrintRequest.class))
             .withSessionId(sessionId)
             .withExamId(exam2.getId())
@@ -84,7 +84,7 @@ public class ExamPrintRequestRepositoryIntegrationTests {
             .withType(ExamPrintRequest.REQUEST_TYPE_EMBOSS_PASSAGE)
             .build();
         // Should not be included in count - fulfilled
-        ExamPrintRequest exam2FulfilledRequest = new ExamPrintRequest.Builder()
+        ExamPrintRequest exam2FulfilledRequest = new ExamPrintRequest.Builder(UUID.randomUUID())
             .fromExamPrintRequest(random(ExamPrintRequest.class))
             .withSessionId(sessionId)
             .withExamId(exam2.getId())
@@ -95,7 +95,7 @@ public class ExamPrintRequestRepositoryIntegrationTests {
             .build();
 
         // Exam 3 - different session, should not be included
-        ExamPrintRequest diffSessionExamRequest = new ExamPrintRequest.Builder()
+        ExamPrintRequest diffSessionExamRequest = new ExamPrintRequest.Builder(UUID.randomUUID())
             .fromExamPrintRequest(random(ExamPrintRequest.class))
             .withSessionId(diffSessionExam.getSessionId())
             .withExamId(diffSessionExam.getId())

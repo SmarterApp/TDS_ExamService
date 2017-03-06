@@ -44,8 +44,8 @@ public class StatusTransitionValidator {
             ExamStatusCode.STATUS_COMPLETED,
             ExamStatusCode.STATUS_EXPIRED,
             ExamStatusCode.STATUS_INVALIDATED,
-            ExamStatusCode.STATUS_SEGMENT_ENTRY,
-            ExamStatusCode.STATUS_SEGMENT_EXIT,
+            ExamStatusCode.STATUS_SEGMENT_ENTRY.toLowerCase(),
+            ExamStatusCode.STATUS_SEGMENT_EXIT.toLowerCase(),
             ExamStatusCode.STATUS_FORCE_COMPLETED
         ))
         .put(ExamStatusCode.STATUS_APPROVED.toLowerCase(), Sets.newHashSet(
@@ -64,8 +64,8 @@ public class StatusTransitionValidator {
             ExamStatusCode.STATUS_EXPIRED,
             ExamStatusCode.STATUS_INVALIDATED,
             ExamStatusCode.STATUS_FORCE_COMPLETED,
-            ExamStatusCode.STATUS_SEGMENT_ENTRY,
-            ExamStatusCode.STATUS_SEGMENT_EXIT
+            ExamStatusCode.STATUS_SEGMENT_ENTRY.toLowerCase(),
+            ExamStatusCode.STATUS_SEGMENT_EXIT.toLowerCase()
         ))
         .put(ExamStatusCode.STATUS_PAUSED.toLowerCase(), Sets.newHashSet(
             ExamStatusCode.STATUS_PAUSED,
