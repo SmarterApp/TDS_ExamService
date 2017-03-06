@@ -37,6 +37,7 @@ import tds.config.ClientSystemFlag;
 import tds.config.TimeLimitConfiguration;
 import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
+import tds.exam.ExamApproval;
 import tds.exam.ExamConfiguration;
 import tds.exam.ExamInfo;
 import tds.exam.ExamStatusCode;
@@ -44,6 +45,7 @@ import tds.exam.ExamStatusStage;
 import tds.exam.ExamineeContext;
 import tds.exam.ExpandableExam;
 import tds.exam.OpenExamRequest;
+import tds.exam.SegmentApprovalRequest;
 import tds.exam.builder.AssessmentBuilder;
 import tds.exam.builder.ExamAccommodationBuilder;
 import tds.exam.builder.ExamBuilder;
@@ -75,12 +77,13 @@ import tds.session.Session;
 import tds.student.RtsStudentPackageAttribute;
 import tds.student.Student;
 
+import static io.github.benas.randombeans.api.EnhancedRandom.random;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
-import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -346,7 +349,7 @@ public class ExamServiceImplTest {
         assertThat(exam.getEnvironment()).isEqualTo(extSessionConfig.getEnvironment());
         assertThat(exam.getStatus().getCode()).isEqualTo(STATUS_PENDING);
         assertThat(exam.getSubject()).isEqualTo(assessment.getSubject());
-        assertThat(exam.isWaitingForSegmentApproval()).isTrue();
+        assertThat(exam.getWaitingForSegmentApprovalPosition()).isEqualTo(1);
     }
 
     @Test(expected = IllegalStateException.class)
@@ -1149,7 +1152,7 @@ public class ExamServiceImplTest {
         assertThat(updatedExam.getStatus().getStage()).isEqualTo(ExamStatusStage.IN_PROGRESS);
         assertThat(updatedExam.getStatus().getCode()).isEqualTo(ExamStatusCode.STATUS_STARTED);
         assertThat(updatedExam.getStatusChangedAt()).isGreaterThan(approvedStatusDate);
-        assertThat(updatedExam.isWaitingForSegmentApproval()).isFalse();
+        assertThat(updatedExam.getWaitingForSegmentApprovalPosition()).isEqualTo(-1);
     }
 
     @Test
@@ -1393,6 +1396,95 @@ public class ExamServiceImplTest {
 
         assertThat(expExam1.getExam()).isEqualTo(exam1);
         assertThat(expExam2.getExam()).isEqualTo(exam2);
+    }
+
+    @Test
+    public void shouldMarkExamAsWaitingForSegmentEntryApproval() {
+        Exam exam = new Exam.Builder()
+            .fromExam(random(Exam.class))
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_STARTED), Instant.now())
+            .build();
+        SegmentApprovalRequest request = new SegmentApprovalRequest(exam.getSessionId(), exam.getBrowserId(), 2, true);
+
+        when(mockExamQueryRepository.getExamById(exam.getId())).thenReturn(Optional.of(exam));
+        when(mockExamApprovalService.getApproval(new ExamInfo(exam.getId(), request.getSessionId(), request.getBrowserId())))
+            .thenReturn(new Response<>(new ExamApproval(exam.getId(), exam.getStatus(), null)));
+
+        Optional<ValidationError> maybeError = examService.waitForSegmentApproval(exam.getId(), request);
+        assertThat(maybeError).isNotPresent();
+
+        verify(mockExamQueryRepository).getExamById(exam.getId());
+        verify(mockExamApprovalService).getApproval(new ExamInfo(exam.getId(), request.getSessionId(), request.getBrowserId()));
+        verify(mockExamCommandRepository).update(examArgumentCaptor.capture());
+
+        Exam updatedExam = examArgumentCaptor.getValue();
+        assertThat(updatedExam.getStatus().getCode()).isEqualTo(ExamStatusCode.STATUS_SEGMENT_ENTRY);
+        assertThat(updatedExam.getWaitingForSegmentApprovalPosition()).isEqualTo(2);
+    }
+
+    @Test
+    public void shouldMarkExamAsWaitingForSegmentExitApproval() {
+        Exam exam = new Exam.Builder()
+            .fromExam(random(Exam.class))
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_STARTED), Instant.now())
+            .build();
+        SegmentApprovalRequest request = new SegmentApprovalRequest(exam.getSessionId(), exam.getBrowserId(), 1, false);
+
+        when(mockExamQueryRepository.getExamById(exam.getId())).thenReturn(Optional.of(exam));
+        when(mockExamApprovalService.getApproval(new ExamInfo(exam.getId(), request.getSessionId(), request.getBrowserId())))
+            .thenReturn(new Response<>(new ExamApproval(exam.getId(), exam.getStatus(), null)));
+
+        Optional<ValidationError> maybeError = examService.waitForSegmentApproval(exam.getId(), request);
+        assertThat(maybeError).isNotPresent();
+
+        verify(mockExamQueryRepository).getExamById(exam.getId());
+        verify(mockExamApprovalService).getApproval(new ExamInfo(exam.getId(), request.getSessionId(), request.getBrowserId()));
+        verify(mockExamCommandRepository).update(examArgumentCaptor.capture());
+
+        Exam updatedExam = examArgumentCaptor.getValue();
+        assertThat(updatedExam.getStatus().getCode()).isEqualTo(ExamStatusCode.STATUS_SEGMENT_EXIT);
+        assertThat(updatedExam.getWaitingForSegmentApprovalPosition()).isEqualTo(1);
+    }
+
+    @Test
+    public void shouldReturnValidationErrorForInvalidStatusTransition() {
+        Exam exam = new Exam.Builder()
+            .fromExam(random(Exam.class))
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_SUSPENDED), Instant.now())
+            .build();
+        SegmentApprovalRequest request = new SegmentApprovalRequest(exam.getSessionId(), exam.getBrowserId(), 1, false);
+
+        when(mockExamQueryRepository.getExamById(exam.getId())).thenReturn(Optional.of(exam));
+        when(mockExamApprovalService.getApproval(new ExamInfo(exam.getId(), request.getSessionId(), request.getBrowserId())))
+            .thenReturn(new Response<>(new ExamApproval(exam.getId(), exam.getStatus(), null)));
+
+        Optional<ValidationError> maybeError = examService.waitForSegmentApproval(exam.getId(), request);
+        assertThat(maybeError).isPresent();
+        assertThat(maybeError.get().getCode()).isEqualTo(ValidationErrorCode.EXAM_STATUS_TRANSITION_FAILURE);
+
+        verify(mockExamQueryRepository).getExamById(exam.getId());
+        verify(mockExamApprovalService).getApproval(new ExamInfo(exam.getId(), request.getSessionId(), request.getBrowserId()));
+        verify(mockExamCommandRepository, never()).update(isA(Exam.class));
+    }
+
+    @Test
+    public void shouldReturnValidationErrorForFailedVerifyAccess() {
+        Exam exam = new Exam.Builder()
+            .fromExam(random(Exam.class))
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_SUSPENDED), Instant.now())
+            .build();
+        SegmentApprovalRequest request = new SegmentApprovalRequest(exam.getSessionId(), exam.getBrowserId(), 1, false);
+
+        when(mockExamApprovalService.getApproval(new ExamInfo(exam.getId(), request.getSessionId(), request.getBrowserId())))
+            .thenReturn(new Response<>(new ValidationError("some", "error")));
+
+        Optional<ValidationError> maybeError = examService.waitForSegmentApproval(exam.getId(), request);
+        assertThat(maybeError).isPresent();
+        assertThat(maybeError.get().getCode()).isEqualTo("some");
+        assertThat(maybeError.get().getMessage()).isEqualTo("error");
+
+        verify(mockExamApprovalService).getApproval(new ExamInfo(exam.getId(), request.getSessionId(), request.getBrowserId()));
+        verify(mockExamCommandRepository, never()).update(isA(Exam.class));
     }
 
     private Exam createExam(UUID sessionId, UUID thisExamId, String assessmentId, String clientName, long studentId) {

@@ -30,6 +30,7 @@ import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
 import tds.exam.ExpandableExam;
 import tds.exam.OpenExamRequest;
+import tds.exam.SegmentApprovalRequest;
 import tds.exam.services.ExamService;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
@@ -134,5 +135,22 @@ public class ExamController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void pauseExamsInSession(@PathVariable final UUID sessionId) {
         examService.pauseAllExamsInSession(sessionId);
+    }
+
+    @RequestMapping(value = "/{examId}/segmentApproval", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<NoContentResponseResource> waitForSegmentApproval(@PathVariable final UUID examId,
+                                                                     @RequestBody final SegmentApprovalRequest request) {
+        final Optional<ValidationError> maybeStatusTransitionFailure = examService.waitForSegmentApproval(examId, request);
+
+        if (maybeStatusTransitionFailure.isPresent()) {
+            NoContentResponseResource response = new NoContentResponseResource(maybeStatusTransitionFailure.get());
+            return new ResponseEntity<>(response, HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+
+        Link link = linkTo(methodOn(ExamController.class).getExamById(examId)).withSelfRel();
+        final HttpHeaders headers = new HttpHeaders();
+        headers.add("Location", link.getHref());
+
+        return new ResponseEntity<>(headers, HttpStatus.NO_CONTENT);
     }
 }
