@@ -27,4 +27,7 @@ public class ValidationErrorCode {
     public static final String EXAM_DOES_NOT_EXIST = "examDoesNotExist";
     public static final String EXAM_NOT_ENROLLED_IN_SESSION = "examNotEnrolledInSession";
     public static final String STUDENT_SELF_APPROVE_UNPROCTORED_SESSION = "studentSelfApproveUnproctoredSession";
+
+    // Exam Segments
+    public static final String EXAM_SEGMENT_DOES_NOT_EXIST = "examSegmentDoesNotExist";
 }

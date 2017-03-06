@@ -11,9 +11,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import tds.common.Response;
+import tds.common.ValidationError;
+import tds.common.web.resources.NoContentResponseResource;
 import tds.exam.ExamSegment;
 import tds.exam.services.ExamSegmentService;
 
@@ -40,5 +43,18 @@ public class ExamSegmentController {
         }
 
         return ResponseEntity.ok(examSegmentsResponse);
+    }
+
+    @RequestMapping(value = "/{examId}/exit/{segmentPosition}", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<NoContentResponseResource> exitSegment(@PathVariable final UUID examId,
+                                                          @PathVariable final int segmentPosition) {
+        Optional<ValidationError> maybeError = examSegmentService.exitSegment(examId, segmentPosition);
+
+        if (maybeError.isPresent()) {
+            NoContentResponseResource response = new NoContentResponseResource(maybeError.get());
+            return new ResponseEntity<>(response, HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
