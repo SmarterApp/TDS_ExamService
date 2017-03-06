@@ -22,12 +22,15 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -108,4 +111,31 @@ public class ExamSegmentControllerIntegrationTests {
         verify(mockExamSegmentService).findExamSegments(examId, sessionId, browserId);
     }
 
+    @Test
+    public void shouldExitExamSegmentSuccessfully() throws Exception {
+        final UUID examId = UUID.randomUUID();
+        final int segmentPosition = 1;
+        when(mockExamSegmentService.exitSegment(examId, segmentPosition)).thenReturn(Optional.empty());
+
+        http.perform(put(new URI(String.format("/exam/segments/%s/exit/%d", examId, segmentPosition)))
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNoContent())
+            .andExpect(header().string("Location", String.format("http://localhost/exam/%s", examId)));
+
+        verify(mockExamSegmentService).exitSegment(examId, segmentPosition);
+    }
+
+    @Test
+    public void shouldFailToExitExamWithValidationError() throws Exception {
+        final UUID examId = UUID.randomUUID();
+        final int segmentPosition = 1;
+        when(mockExamSegmentService.exitSegment(examId, segmentPosition))
+            .thenReturn(Optional.of(new ValidationError("waffles", "burritos")));
+
+        http.perform(put(new URI(String.format("/exam/segments/%s/exit/%d", examId, segmentPosition)))
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isUnprocessableEntity());
+
+        verify(mockExamSegmentService).exitSegment(examId, segmentPosition);
+    }
 }

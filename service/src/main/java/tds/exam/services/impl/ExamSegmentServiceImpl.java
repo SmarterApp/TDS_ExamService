@@ -1,5 +1,6 @@
 package tds.exam.services.impl;
 
+import org.joda.time.Instant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,11 +20,13 @@ import tds.assessment.Item;
 import tds.assessment.Segment;
 import tds.common.Algorithm;
 import tds.common.Response;
+import tds.common.ValidationError;
 import tds.common.web.exceptions.NotFoundException;
 import tds.exam.Exam;
 import tds.exam.ExamApproval;
 import tds.exam.ExamInfo;
 import tds.exam.ExamSegment;
+import tds.exam.error.ValidationErrorCode;
 import tds.exam.models.SegmentPoolInfo;
 import tds.exam.repositories.ExamSegmentCommandRepository;
 import tds.exam.repositories.ExamSegmentQueryRepository;
@@ -191,5 +194,23 @@ public class ExamSegmentServiceImpl implements ExamSegmentService {
     @Override
     public void update(final ExamSegment... examSegments) {
         commandRepository.update(Arrays.asList(examSegments));
+    }
+
+    @Override
+    public Optional<ValidationError> exitSegment(final UUID examId, final int segmentPosition) {
+        Optional<ExamSegment> maybeExamSegment = queryRepository.findByExamIdAndSegmentPosition(examId, segmentPosition);
+
+        if (!maybeExamSegment.isPresent()) {
+            return Optional.of(new ValidationError(ValidationErrorCode.EXAM_SEGMENT_DOES_NOT_EXIST, "The exam segment does not exist"));
+        }
+
+        ExamSegment updatedExamSegment = new ExamSegment.Builder()
+            .fromSegment(maybeExamSegment.get())
+            .withExitedAt(Instant.now())
+            .build();
+
+        commandRepository.update(updatedExamSegment);
+
+        return Optional.empty();
     }
 }
