@@ -8,8 +8,7 @@ public enum ExamStatusStage {
     IN_USE("inuse"),
     CLOSED("closed"),
     INACTIVE("inactive"),
-    OPEN("open"),
-    NEW("new");
+    OPEN("open");
 
     private final String type;
 
