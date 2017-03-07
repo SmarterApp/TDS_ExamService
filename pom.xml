@@ -31,7 +31,7 @@
         <tds-exam-client.version>0.0.1-SNAPSHOT</tds-exam-client.version>
         <tds-session.version>0.0.2</tds-session.version>
         <tds-assessment-client.version>0.0.2</tds-assessment-client.version>
-        <tds-student-client.version>0.0.1-SNAPSHOT</tds-student-client.version>
+        <tds-student-client.version>0.0.1</tds-student-client.version>
         <tds-config-client.version>0.0.2</tds-config-client.version>
 
         <mockito.version>1.10.19</mockito.version>
