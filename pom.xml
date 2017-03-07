@@ -21,23 +21,78 @@
     </parent>
 
     <properties>
-        <maven.compiler.plugin.version>3.5.1</maven.compiler.plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <unit-tests.skip>false</unit-tests.skip>
         <integration-tests.skip>true</integration-tests.skip>
-
-        <tds-common.version>0.0.3</tds-common.version>
-        <tds-common-legacy.version>0.0.3</tds-common-legacy.version>
-        <tds-exam-client.version>0.0.1-SNAPSHOT</tds-exam-client.version>
-        <tds-session.version>0.0.2</tds-session.version>
-        <tds-assessment-client.version>0.0.2</tds-assessment-client.version>
-        <tds-student-client.version>0.0.1</tds-student-client.version>
-        <tds-config-client.version>0.0.2</tds-config-client.version>
-
         <mockito.version>1.10.19</mockito.version>
         <docker.image.prefix>fwsbac</docker.image.prefix>
         <mysql.version>5.1.39</mysql.version>
         <joda-time.version>2.9.5</joda-time.version>
         <spring.cloud.config.version>1.2.2.RELEASE</spring.cloud.config.version>
+
+        <tds-common.version>0.0.3</tds-common.version>
+        <tds-common-legacy.version>0.0.3</tds-common-legacy.version>
+        <tds-session.version>0.0.2</tds-session.version>
+        <tds-assessment-client.version>0.0.2</tds-assessment-client.version>
+        <tds-student-client.version>0.0.1</tds-student-client.version>
+        <tds-config-client.version>0.0.2</tds-config-client.version>
+
+        <maven.compiler.plugin.version>3.5.1</maven.compiler.plugin.version>
+        <maven.release.plugin.version>2.5.3</maven.release.plugin.version>
+        <maven.source.plugin.version>2.1.2</maven.source.plugin.version>
+        <maven.toolchains.plugin.version>1.1</maven.toolchains.plugin.version>
     </properties>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${maven.compiler.plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-release-plugin</artifactId>
+                    <version>${maven.release.plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>${maven.source.plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-toolchains-plugin</artifactId>
+                    <version>${maven.toolchains.plugin.version}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <plugin>
+                <artifactId>maven-release-plugin</artifactId>
+                <configuration>
+                    <tagNameFormat>@{project.version}</tagNameFormat>
+                    <useReleaseProfile>false</useReleaseProfile>
+                    <releaseProfiles>release</releaseProfiles>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <scm>
+        <connection>scm:git:https://github.com/SmarterApp/TDS_ExamService.git</connection>
+        <developerConnection>scm:git:git://github.com/SmarterApp/TDS_ExamService.git</developerConnection>
+        <url>https://github.com/SmarterApp/TDS_ExamService</url>
+        <tag>HEAD</tag>
+    </scm>
+
+    <distributionManagement>
+        <repository>
+            <id>central</id>
+            <name>airdev-releases</name>
+            <url>https://airdev.jfrog.io/airdev/libs-releases-local</url>
+        </repository>
+    </distributionManagement>
 </project>
