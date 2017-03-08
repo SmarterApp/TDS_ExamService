@@ -7,11 +7,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest
-public class QaViewsTest {
+public class QaViewsIntegrationTests {
     @Autowired
     @Qualifier("commandJdbcTemplate")
     private NamedParameterJdbcTemplate jdbcTemplate;
@@ -73,7 +72,7 @@ public class QaViewsTest {
     }
 
 
-    private void queryView(String viewName) {
+    private void queryView(final String viewName) {
         jdbcTemplate.query("select * from " + viewName + " limit 0, 1", resultSet -> "success");
     }
 }
