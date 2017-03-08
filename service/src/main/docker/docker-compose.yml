@@ -1,0 +1,45 @@
+#-----------------------------------------------------------------------------------------------------------------------
+# File:  docker-compose.yml
+#
+# Desc:  Create a Docker container that hosts the Exam Support Service listening on 32844.
+#
+# Usage Notes
+# ===========
+# This docker-compose file expects the following:
+#
+#   * The fwsbac/tds-exam-service is already built.  Typically, the fwsbac/tds-exam-service image is built as part
+#     of the Maven build process.  The following command is used to build the .jars and the associated Docker image:
+#
+#       mvn clean package docker:build -f /path/to/service/pom.xml
+#
+#   * An enivronment file named exam-service.env exists in the same directory as this docker-compose file.  The
+#     following environment variables should be configured:
+#
+#       EXAM_DB_HOST=IP address or FQDN of the MySQL database server that hosts the TDS exam database
+#       EXAM_DB_PORT=The port on which the MySQL database server listens
+#       EXAM_DB_NAME=The name of the TDS exam database (typically "exam")
+#       EXAM_DB_USER=The MySQL user account with sufficient privileges to read from the exam database
+#       EXAM_DB_PASSWORD=The password for the MySQL user account
+#
+#     Due to the sensitive content contained within the exam-service.env file, it is not (and should not be) checked
+#     into source control.
+#
+#-----------------------------------------------------------------------------------------------------------------------
+version: '2'
+services:
+  exam_mysql:
+    image: mysql
+    ports:
+      - "32777:3306"
+    volumes_from:
+      - exam_mysql_data
+    env_file: exam-service.env
+    image: mysql
+    entrypoint: /bin/bash
+  exam:
+    image: fwsbac/tds-exam-service
+    ports:
+      - "32844:8080"
+    depends_on:
+      - exam_mysql
+    env_file: exam-service.env

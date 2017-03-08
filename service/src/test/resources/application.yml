@@ -1,0 +1,25 @@
+spring:
+  ds_queries:
+    jdbcUrl: ${sbac.jdbc.host}/exam
+    username: ${sbac.jdbc.user}
+    password: ${sbac.jdbc.password}
+    driver-class-name: 'com.mysql.jdbc.Driver'
+  ds_commands:
+    jdbcUrl: ${sbac.jdbc.host}/exam
+    username: ${sbac.jdbc.user}
+    password: ${sbac.jdbc.password}
+    driver-class-name: 'com.mysql.jdbc.Driver'
+
+server:
+  undertow:
+    buffer-size: 16384
+    buffers-per-region: 20
+    io-threads: 64
+    worker-threads: 512
+    direct-buffers: true
+
+flyway:
+  enabled: true
+  url: ${sbac.jdbc.host}/exam
+  user: ${sbac.jdbc.user}
+  password: ${sbac.jdbc.password}
