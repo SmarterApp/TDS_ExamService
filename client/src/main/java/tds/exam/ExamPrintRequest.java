@@ -10,8 +10,10 @@ import java.util.UUID;
 public class ExamPrintRequest {
     public static final String REQUEST_TYPE_EMBOSS_ITEM = "EMBOSSITEM";
     public static final String REQUEST_TYPE_EMBOSS_PASSAGE = "EMBOSSPASSAGE";
+    public static final String REQUEST_TYPE_EMBOSS_PAGE = "EMBOSSPAGE";
     public static final String REQUEST_TYPE_PRINT_ITEM = "PRINTITEM";
     public static final String REQUEST_TYPE_PRINT_PASSAGE = "PRINTPASSAGE";
+    public static final String REQUEST_TYPE_PRINT_PAGE = "PRINTPAGE";
 
     private UUID id;
     private UUID examId;
@@ -61,9 +63,8 @@ public class ExamPrintRequest {
         private Instant deniedAt;
         private String reasonDenied;
 
-        public Builder withId(UUID id) {
+        public Builder(UUID id) {
             this.id = id;
-            return this;
         }
 
         public Builder withExamId(UUID examId) {

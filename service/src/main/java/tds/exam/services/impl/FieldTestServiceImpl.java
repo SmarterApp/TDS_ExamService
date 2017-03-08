@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import tds.assessment.Assessment;
@@ -194,6 +195,16 @@ public class FieldTestServiceImpl implements FieldTestService {
 
         /* [3386] No need to get the count of field test items again - this count is maintained in loop above */
         return totalFtItemCount;
+    }
+
+    @Override
+    public List<FieldTestItemGroup> findUsageInExam(final UUID examId) {
+        return fieldTestItemGroupQueryRepository.findUsageInExam(examId);
+    }
+
+    @Override
+    public void update(final FieldTestItemGroup... fieldTestItemGroups) {
+        fieldTestItemGroupCommandRepository.update(fieldTestItemGroups);
     }
 
     /*

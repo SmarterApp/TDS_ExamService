@@ -157,17 +157,21 @@ public class ExamAccommodationServiceImplTest {
             .build();
 
         Accommodation nonDefaultAccommodation = new Accommodation.Builder()
+            .withAccommodationCode("code2")
+            .withAccommodationType("type")
             .withDefaultAccommodation(false)
             .withDependsOnToolType(null)
             .build();
 
         Accommodation dependsOnToolTypeAccommodation = new Accommodation.Builder()
+            .withAccommodationCode("code3")
+            .withAccommodationType("type")
             .withDefaultAccommodation(true)
             .withDependsOnToolType("dependingSoCool")
             .build();
 
         when(mockAssessmentService.findAssessmentAccommodationsByAssessmentKey(exam.getClientName(), exam.getAssessmentKey())).thenReturn(Arrays.asList(accommodation, nonDefaultAccommodation, dependsOnToolTypeAccommodation));
-        examAccommodationService.initializeExamAccommodations(exam);
+        examAccommodationService.initializeExamAccommodations(exam, "");
         verify(mockExamAccommodationCommandRepository).insert(examAccommodationInsertCaptor.capture());
 
         List<ExamAccommodation> accommodations = examAccommodationInsertCaptor.getValue();
@@ -175,6 +179,59 @@ public class ExamAccommodationServiceImplTest {
         ExamAccommodation examAccommodation = accommodations.get(0);
         assertThat(examAccommodation.getCode()).isEqualTo("code");
         assertThat(examAccommodation.getType()).isEqualTo("type");
+        assertThat(examAccommodation.getSegmentPosition()).isEqualTo(0);
+        assertThat(examAccommodation.getSegmentKey()).isEqualTo("segmentKey");
+    }
+
+    @Test
+    public void shouldInitializeExamAccommodationsWithStudentDefaults() {
+        Exam exam = new ExamBuilder()
+            .withSubject("MATH")
+            .build();
+
+        Accommodation englishAccommodation = new Accommodation.Builder()
+            .withAccommodationCode("ENU")
+            .withAccommodationType("Language")
+            .withSegmentKey("segmentKey")
+            .withSegmentPosition(0)
+            .withDefaultAccommodation(true)
+            .withDependsOnToolType(null)
+            .build();
+
+        Accommodation spanishAccommodation = new Accommodation.Builder()
+            .withAccommodationCode("ESN")
+            .withAccommodationType("Language")
+            .withSegmentKey("segmentKey")
+            .withSegmentPosition(0)
+            .withDefaultAccommodation(false)
+            .withDependsOnToolType(null)
+            .build();
+
+        Accommodation nonDefaultAccommodation = new Accommodation.Builder()
+            .withAccommodationCode("code1")
+            .withAccommodationType("type1")
+            .withDefaultAccommodation(false)
+            .withDependsOnToolType(null)
+            .build();
+
+        Accommodation dependsOnToolTypeAccommodation = new Accommodation.Builder()
+            .withAccommodationCode("code2")
+            .withAccommodationType("type2")
+            .withDefaultAccommodation(true)
+            .withDependsOnToolType("dependingSoCool")
+            .build();
+
+        String studentAccommodationCodes = "MATH:ESN;MATH:TDS_CC0;ELA:ENU";
+
+        when(mockAssessmentService.findAssessmentAccommodationsByAssessmentKey(exam.getClientName(), exam.getAssessmentKey())).thenReturn(Arrays.asList(englishAccommodation, spanishAccommodation, nonDefaultAccommodation, dependsOnToolTypeAccommodation));
+        examAccommodationService.initializeExamAccommodations(exam, studentAccommodationCodes);
+        verify(mockExamAccommodationCommandRepository).insert(examAccommodationInsertCaptor.capture());
+
+        List<ExamAccommodation> accommodations = examAccommodationInsertCaptor.getValue();
+        assertThat(accommodations).hasSize(1);
+        ExamAccommodation examAccommodation = accommodations.get(0);
+        assertThat(examAccommodation.getCode()).isEqualTo("ESN");
+        assertThat(examAccommodation.getType()).isEqualTo("Language");
         assertThat(examAccommodation.getSegmentPosition()).isEqualTo(0);
         assertThat(examAccommodation.getSegmentKey()).isEqualTo("segmentKey");
     }

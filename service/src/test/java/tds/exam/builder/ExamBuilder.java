@@ -29,7 +29,7 @@ public class ExamBuilder {
     private Instant startedAt = null;
     private Instant completedAt = null;
     private Instant expiresAt = null;
-    private ExamStatusCode status = new ExamStatusCode(STATUS_PENDING, ExamStatusStage.IN_USE);
+    private ExamStatusCode status = new ExamStatusCode(STATUS_PENDING);
     private Instant statusChangeDate = Instant.now();
     private String subject = "ELA";
     private String studentKey = "ADV001";
@@ -42,7 +42,7 @@ public class ExamBuilder {
     private String languageCode = "ENU";
     private boolean segmented = false;
     private int abnormalStarts = 1;
-    private boolean waitingForSegmentApproval = false;
+    private int waitingForSegmentApprovalPosition = -1;
     private int currentSegmentPosition = 1;
     private boolean customAccommodations = true;
     private String language = "English";
@@ -77,7 +77,7 @@ public class ExamBuilder {
             .withAbnormalStarts(abnormalStarts)
             .withLanguageCode(languageCode)
             .withExpiresAt(expiresAt)
-            .withWaitingForSegmentApproval(waitingForSegmentApproval)
+            .withWaitingForSegmentApprovalPosition(waitingForSegmentApprovalPosition)
             .withCurrentSegmentPosition(currentSegmentPosition)
             .withCustomAccommodation(customAccommodations)
             .withResumptions(resumptions)
@@ -214,8 +214,8 @@ public class ExamBuilder {
         return this;
     }
 
-    public ExamBuilder withWaitingForSegmentApproval(boolean waitingForSegmentApproval) {
-        this.waitingForSegmentApproval = waitingForSegmentApproval;
+    public ExamBuilder withWaitingForSegmentApproval(int waitingForSegmentApprovalPosition) {
+        this.waitingForSegmentApprovalPosition = waitingForSegmentApprovalPosition;
         return this;
     }
 

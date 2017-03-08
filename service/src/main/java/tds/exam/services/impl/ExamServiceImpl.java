@@ -27,11 +27,13 @@ import tds.assessment.AssessmentWindow;
 import tds.common.Response;
 import tds.common.ValidationError;
 import tds.common.data.legacy.LegacyComparer;
+import tds.common.entity.utils.ChangeListener;
 import tds.common.web.exceptions.NotFoundException;
 import tds.config.ClientSystemFlag;
 import tds.config.TimeLimitConfiguration;
 import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
+import tds.exam.ExamApproval;
 import tds.exam.ExamConfiguration;
 import tds.exam.ExamInfo;
 import tds.exam.ExamStatusCode;
@@ -39,6 +41,7 @@ import tds.exam.ExamStatusStage;
 import tds.exam.ExamineeContext;
 import tds.exam.ExpandableExam;
 import tds.exam.OpenExamRequest;
+import tds.exam.SegmentApprovalRequest;
 import tds.exam.error.ValidationErrorCode;
 import tds.exam.models.Ability;
 import tds.exam.repositories.ExamCommandRepository;
@@ -51,7 +54,6 @@ import tds.exam.services.ExamAccommodationService;
 import tds.exam.services.ExamApprovalService;
 import tds.exam.services.ExamItemService;
 import tds.exam.services.ExamPageService;
-import tds.exam.services.ExamPrintRequestService;
 import tds.exam.services.ExamSegmentService;
 import tds.exam.services.ExamService;
 import tds.exam.services.ExamineeService;
@@ -101,6 +103,8 @@ class ExamServiceImpl implements ExamService {
 
     private final Set<String> statusesThatCanTransitionToPaused;
 
+    private final Collection<ChangeListener<Exam>> examStatusChangeListeners;
+
     @Autowired
     public ExamServiceImpl(ExamQueryRepository examQueryRepository,
                            HistoryQueryRepository historyQueryRepository,
@@ -117,6 +121,7 @@ class ExamServiceImpl implements ExamService {
                            ExamAccommodationService examAccommodationService,
                            ExamApprovalService examApprovalService,
                            ExamineeService examineeService,
+                           Collection<ChangeListener<Exam>> examStatusChangeListeners,
                            Collection<ExpandableExamMapper> expandableExamMappers) {
         this.examQueryRepository = examQueryRepository;
         this.historyQueryRepository = historyQueryRepository;
@@ -133,6 +138,7 @@ class ExamServiceImpl implements ExamService {
         this.examAccommodationService = examAccommodationService;
         this.examApprovalService = examApprovalService;
         this.examineeService = examineeService;
+        this.examStatusChangeListeners = examStatusChangeListeners;
         this.expandableExamMappers = expandableExamMappers;
 
         // From CommondDLL._IsValidStatusTransition_FN(): a collection of all the statuses that can transition to
@@ -263,15 +269,19 @@ class ExamServiceImpl implements ExamService {
         return ability;
     }
 
-    @Transactional
     @Override
     public Optional<ValidationError> updateExamStatus(final UUID examId, final ExamStatusCode newStatus) {
         return updateExamStatus(examId, newStatus, null);
     }
 
-    @Transactional
     @Override
     public Optional<ValidationError> updateExamStatus(final UUID examId, final ExamStatusCode newStatus, final String statusChangeReason) {
+        return updateExamStatus(examId, newStatus, statusChangeReason, -1);
+    }
+
+    @Transactional
+    private Optional<ValidationError> updateExamStatus(final UUID examId, final ExamStatusCode newStatus, final String statusChangeReason,
+                                                      final int waitingForSegmentPosition) {
         Exam exam = examQueryRepository.getExamById(examId)
             .orElseThrow(() -> new NotFoundException(String.format("Exam could not be found for id %s", examId)));
 
@@ -284,9 +294,10 @@ class ExamServiceImpl implements ExamService {
             .fromExam(exam)
             .withStatus(newStatus, org.joda.time.Instant.now())
             .withStatusChangeReason(statusChangeReason)
+            .withWaitingForSegmentApprovalPosition(waitingForSegmentPosition)
             .build();
 
-        examCommandRepository.update(updatedExam);
+        updateExam(exam, updatedExam);
 
         return Optional.empty();
     }
@@ -302,14 +313,14 @@ class ExamServiceImpl implements ExamService {
         }
 
         ExamStatusCode pausedStatus = new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE);
-        List<Exam> pausedExams = examsInSession.stream()
-            .map(e -> new Exam.Builder().fromExam(e)
+        for (Exam exam : examsInSession) {
+            Exam pausedExam = new Exam.Builder().fromExam(exam)
                 .withStatus(pausedStatus, org.joda.time.Instant.now())
                 .withStatusChangeReason("paused by session")
-                .build())
-            .collect(Collectors.toList());
+                .build();
 
-        examCommandRepository.update(pausedExams.toArray(new Exam[pausedExams.size()]));
+            updateExam(exam, pausedExam);
+        }
     }
 
     @Override
@@ -331,6 +342,28 @@ class ExamServiceImpl implements ExamService {
         return examBuilders.values().stream()
             .map(builders -> builders.build())
             .collect(Collectors.toList());
+    }
+
+    @Override
+    public Optional<ValidationError> waitForSegmentApproval(final UUID examId, final SegmentApprovalRequest request) {
+        Response<ExamApproval> approvalResponse = examApprovalService.getApproval(new ExamInfo(examId, request.getSessionId(), request.getBrowserId()));
+
+        if (approvalResponse.getError().isPresent()) {
+            return Optional.of(approvalResponse.getError().get());
+        }
+
+        Optional<ValidationError> maybeError;
+
+        /* StudentDLL - T_WaitForSegment_SP lines [1859 - 1864] + 1876*/
+        if (request.isEntryApproval()) {
+            maybeError = updateExamStatus(examId, new ExamStatusCode(ExamStatusCode.STATUS_SEGMENT_ENTRY), null,
+                request.getSegmentPosition());
+        } else {
+            maybeError = updateExamStatus(examId, new ExamStatusCode(ExamStatusCode.STATUS_SEGMENT_EXIT), null,
+                request.getSegmentPosition());
+        }
+
+        return maybeError;
     }
 
     @Transactional
@@ -425,7 +458,7 @@ class ExamServiceImpl implements ExamService {
                 .withStartedAt(now)
                 .build();
 
-            examCommandRepository.update(restartedExam);
+            updateExam(exam, restartedExam);
             /* Skip restart increment on [209] because we are already incrementing earlier in this method */
             /* [212] No need to call updateUnfinishedResponsePages since we no longer need to keep count of "opportunityrestart" */
             examConfig = getExamConfiguration(exam, assessment, timeLimitConfiguration, startPosition);
@@ -448,9 +481,10 @@ class ExamServiceImpl implements ExamService {
             .withExpiresAt(now)
             .withRestartsAndResumptions(0)
             .withMaxItems(testLength)
+            .withWaitingForSegmentApprovalPosition(-1)
             .build();
 
-        examCommandRepository.update(initializedExam);
+        updateExam(exam, initializedExam);
 
         return initializedExam;
     }
@@ -493,7 +527,7 @@ class ExamServiceImpl implements ExamService {
             examBuilder.withStatus(examStatusQueryRepository.findExamStatusCode(ExamStatusCode.STATUS_PENDING), org.joda.time.Instant.now());
         }
 
-        String guestAccommodations = openExamRequest.getGuestAccommodations();
+        String studentAccommodations = openExamRequest.getGuestAccommodations();
         if (openExamRequest.isGuestStudent()) {
             examBuilder.withStudentName("GUEST");
             examBuilder.withLoginSSID("GUEST");
@@ -505,8 +539,8 @@ class ExamServiceImpl implements ExamService {
                     examBuilder.withLoginSSID(attribute.getValue());
                 } else if (ENTITY_NAME.equals(attribute.getName())) {
                     examBuilder.withStudentName(attribute.getValue());
-                } else if (StringUtils.isEmpty(guestAccommodations) && ACCOMMODATIONS.equals(attribute.getName())) {
-                    guestAccommodations = attribute.getValue();
+                } else if (StringUtils.isEmpty(studentAccommodations) && ACCOMMODATIONS.equals(attribute.getName())) {
+                    studentAccommodations = attribute.getValue();
                 }
             }
         }
@@ -556,6 +590,7 @@ class ExamServiceImpl implements ExamService {
             .withAssessmentWindowId(assessmentWindow.getWindowId())
             .withEnvironment(externalSessionConfiguration.getEnvironment())
             .withSubject(assessment.getSubject())
+            .withWaitingForSegmentApprovalPosition(1)
             .build();
 
         examCommandRepository.insert(exam);
@@ -567,7 +602,7 @@ class ExamServiceImpl implements ExamService {
 
         //Lines 412 - 421 OpenTestServiceImpl is not implemented.  After talking with data warehouse and Smarter Balanced
         //The initial student attributes are not used and smarter balance suggested removing them
-        List<ExamAccommodation> examAccommodations = examAccommodationService.initializeExamAccommodations(exam);
+        List<ExamAccommodation> examAccommodations = examAccommodationService.initializeExamAccommodations(exam, studentAccommodations);
 
         exam = updateExamWithCustomAccommodations(exam, examAccommodations);
 
@@ -647,7 +682,7 @@ class ExamServiceImpl implements ExamService {
             .withAbnormalStarts(previousExam.getAbnormalStarts() + abnormalIncrement)
             .build();
 
-        examCommandRepository.update(currentExam);
+        updateExam(previousExam, currentExam);
 
         //The next block replaces OpenTestServiceImpl lines 194-202 fetching the guest accommodations if not a guest student
         //Fetches the client system flag for restoring accommodations StudentDLL._RestoreRTSAccommodations_FN
@@ -792,10 +827,23 @@ class ExamServiceImpl implements ExamService {
                 .withCustomAccommodation(maybeExamAccommodation.isPresent())
                 .build();
 
-            examCommandRepository.update(updatedExam);
+            updateExam(exam, updatedExam);
             return updatedExam;
         }
 
         return exam;
+    }
+
+    /**
+     * Perform the update to the new {@link tds.exam.Exam} then execute the
+     * {@link tds.common.entity.utils.ChangeListener}s to apply any rules/business logic as a result of the update.
+     *
+     * @param exam        The {@link tds.exam.Exam} in its original state
+     * @param updatedExam The {@link tds.exam.Exam} with new values to persist
+     */
+    private void updateExam(final Exam exam, final Exam updatedExam) {
+        examCommandRepository.update(updatedExam);
+
+        examStatusChangeListeners.forEach(listener -> listener.accept(exam, updatedExam));
     }
 }

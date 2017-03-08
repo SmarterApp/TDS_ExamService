@@ -39,7 +39,7 @@ public class Exam {
     private String languageCode;
     private boolean segmented;
     private int abnormalStarts;
-    private boolean waitingForSegmentApproval;
+    private int waitingForSegmentApprovalPosition;
     private int currentSegmentPosition;
     private boolean customAccommodations;
     private int resumptions;
@@ -81,7 +81,7 @@ public class Exam {
         private String languageCode;
         private boolean segmented;
         private int abnormalStarts;
-        private boolean waitingForSegmentApproval;
+        private int waitingForSegmentApprovalPosition;
         private int currentSegmentPosition;
         private boolean customAccommodations;
         private int resumptions;
@@ -226,8 +226,8 @@ public class Exam {
             return this;
         }
 
-        public Builder withWaitingForSegmentApproval(boolean waitingForSegmentApproval) {
-            this.waitingForSegmentApproval = waitingForSegmentApproval;
+        public Builder withWaitingForSegmentApprovalPosition(int waitingForSegmentApprovalPosition) {
+            this.waitingForSegmentApprovalPosition = waitingForSegmentApprovalPosition;
             return this;
         }
 
@@ -285,7 +285,7 @@ public class Exam {
             environment = exam.environment;
             segmented = exam.segmented;
             abnormalStarts = exam.abnormalStarts;
-            waitingForSegmentApproval = exam.waitingForSegmentApproval;
+            waitingForSegmentApprovalPosition = exam.waitingForSegmentApprovalPosition;
             currentSegmentPosition = exam.currentSegmentPosition;
             languageCode = exam.languageCode;
             customAccommodations = exam.isCustomAccommodations();
@@ -328,7 +328,7 @@ public class Exam {
         environment = builder.environment;
         segmented = builder.segmented;
         abnormalStarts = builder.abnormalStarts;
-        waitingForSegmentApproval = builder.waitingForSegmentApproval;
+        waitingForSegmentApprovalPosition = builder.waitingForSegmentApprovalPosition;
         currentSegmentPosition = builder.currentSegmentPosition;
         customAccommodations = builder.customAccommodations;
         languageCode = builder.languageCode;
@@ -547,8 +547,8 @@ public class Exam {
     /**
      * @return {@code true} when approval is required before the student can move onto the next segment
      */
-    public boolean isWaitingForSegmentApproval() {
-        return waitingForSegmentApproval;
+    public int getWaitingForSegmentApprovalPosition() {
+        return waitingForSegmentApprovalPosition;
     }
 
     /**

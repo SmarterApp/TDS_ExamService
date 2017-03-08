@@ -1,6 +1,5 @@
 package tds.exam.services.impl;
 
-import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,6 +21,7 @@ import tds.assessment.Segment;
 import tds.common.Algorithm;
 import tds.common.Response;
 import tds.common.ValidationError;
+import tds.common.web.exceptions.NotFoundException;
 import tds.exam.Exam;
 import tds.exam.ExamApproval;
 import tds.exam.ExamInfo;
@@ -29,8 +29,10 @@ import tds.exam.ExamSegment;
 import tds.exam.ExamStatusCode;
 import tds.exam.builder.AssessmentBuilder;
 import tds.exam.builder.ExamBuilder;
+import tds.exam.builder.ExamSegmentBuilder;
 import tds.exam.builder.ItemBuilder;
 import tds.exam.builder.SegmentBuilder;
+import tds.exam.error.ValidationErrorCode;
 import tds.exam.models.SegmentPoolInfo;
 import tds.exam.repositories.ExamSegmentCommandRepository;
 import tds.exam.repositories.ExamSegmentQueryRepository;
@@ -39,7 +41,10 @@ import tds.exam.services.FieldTestService;
 import tds.exam.services.FormSelector;
 import tds.exam.services.SegmentPoolService;
 
-import static org.assertj.core.api.Java6Assertions.assertThat;
+import static io.github.benas.randombeans.api.EnhancedRandom.random;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -50,7 +55,7 @@ public class ExamSegmentServiceImplTest {
 
     @Mock
     private ExamSegmentCommandRepository mockExamSegmentCommandRepository;
-    
+
     @Mock
     private ExamSegmentQueryRepository mockExamSegmentQueryRepository;
 
@@ -67,7 +72,10 @@ public class ExamSegmentServiceImplTest {
     private ExamApprovalService mockExamApprovalService;
 
     @Captor
-    private ArgumentCaptor<List<ExamSegment>> examSegmentCaptor;
+    private ArgumentCaptor<List<ExamSegment>> examSegmentsCaptor;
+
+    @Captor
+    private ArgumentCaptor<ExamSegment> examSegmentCaptor;
 
     @Before
     public void setUp() {
@@ -202,8 +210,8 @@ public class ExamSegmentServiceImplTest {
         verify(mockFieldTestService).isFieldTestEligible(exam, assessment, segment1.getKey());
         verify(mockFieldTestService).selectItemGroups(exam, assessment, segment1.getKey());
         verify(mockFormSelector).selectForm(segment2, language);
-        verify(mockExamSegmentCommandRepository).insert(examSegmentCaptor.capture());
-        List<ExamSegment> examSegments = examSegmentCaptor.getValue();
+        verify(mockExamSegmentCommandRepository).insert(examSegmentsCaptor.capture());
+        List<ExamSegment> examSegments = examSegmentsCaptor.getValue();
         assertThat(examSegments).hasSize(2);
 
         ExamSegment examSegment1 = null;
@@ -289,8 +297,8 @@ public class ExamSegmentServiceImplTest {
             language);
         verify(mockFieldTestService).isFieldTestEligible(exam, assessment, segment2.getKey());
 
-        verify(mockExamSegmentCommandRepository).insert(examSegmentCaptor.capture());
-        List<ExamSegment> examSegments = examSegmentCaptor.getValue();
+        verify(mockExamSegmentCommandRepository).insert(examSegmentsCaptor.capture());
+        List<ExamSegment> examSegments = examSegmentsCaptor.getValue();
 
         assertThat(examSegments).hasSize(2);
         Optional<ExamSegment> maybeExamSegment2 = examSegments.stream()
@@ -335,9 +343,9 @@ public class ExamSegmentServiceImplTest {
         when(mockFormSelector.selectForm(segment, language)).thenReturn(Optional.of(enuForm));
         int totalItems = examSegmentService.initializeExamSegments(exam, assessment);
         assertThat(totalItems).isEqualTo(enuForm.getLength());
-        verify(mockExamSegmentCommandRepository).insert(examSegmentCaptor.capture());
+        verify(mockExamSegmentCommandRepository).insert(examSegmentsCaptor.capture());
         verify(mockFormSelector).selectForm(segment, language);
-        List<ExamSegment> examSegments = examSegmentCaptor.getValue();
+        List<ExamSegment> examSegments = examSegmentsCaptor.getValue();
         ExamSegment examSegment = examSegments.get(0);
         assertThat(examSegments).hasSize(1);
         assertThat(examSegment.getExamId()).isEqualTo(exam.getId());
@@ -382,8 +390,8 @@ public class ExamSegmentServiceImplTest {
             language);
         verify(mockFieldTestService).isFieldTestEligible(exam, assessment, segment.getKey());
 
-        verify(mockExamSegmentCommandRepository).insert(examSegmentCaptor.capture());
-        List<ExamSegment> examSegments = examSegmentCaptor.getValue();
+        verify(mockExamSegmentCommandRepository).insert(examSegmentsCaptor.capture());
+        List<ExamSegment> examSegments = examSegmentsCaptor.getValue();
         ExamSegment examSegment = examSegments.get(0);
         assertThat(examSegments).hasSize(1);
         assertThat(examSegment.getExamId()).isEqualTo(exam.getId());
@@ -429,8 +437,8 @@ public class ExamSegmentServiceImplTest {
             language);
         verify(mockFieldTestService).isFieldTestEligible(exam, assessment, segment.getKey());
 
-        verify(mockExamSegmentCommandRepository).insert(examSegmentCaptor.capture());
-        List<ExamSegment> examSegments = examSegmentCaptor.getValue();
+        verify(mockExamSegmentCommandRepository).insert(examSegmentsCaptor.capture());
+        List<ExamSegment> examSegments = examSegmentsCaptor.getValue();
         ExamSegment examSegment = examSegments.get(0);
         assertThat(examSegments).hasSize(1);
         assertThat(examSegment.getExamId()).isEqualTo(exam.getId());
@@ -502,9 +510,9 @@ public class ExamSegmentServiceImplTest {
         int totalItems = examSegmentService.initializeExamSegments(exam, assessment);
         assertThat(totalItems).isEqualTo(enuForm1Seg1.getLength() + enuForm1Seg2.getLength());
         verify(mockFormSelector).selectForm(segment1, language);
-        verify(mockExamSegmentCommandRepository).insert(examSegmentCaptor.capture());
+        verify(mockExamSegmentCommandRepository).insert(examSegmentsCaptor.capture());
 
-        List<ExamSegment> examSegments = examSegmentCaptor.getValue();
+        List<ExamSegment> examSegments = examSegmentsCaptor.getValue();
         assertThat(examSegments).hasSize(2);
         ExamSegment examSegment1 = examSegments.get(0);
         assertThat(examSegment1.getExamId()).isEqualTo(exam.getId());
@@ -570,8 +578,8 @@ public class ExamSegmentServiceImplTest {
         verify(mockFieldTestService).isFieldTestEligible(exam, assessment, segment.getKey());
         verify(mockFieldTestService).selectItemGroups(exam, assessment, segment.getKey());
 
-        verify(mockExamSegmentCommandRepository).insert(examSegmentCaptor.capture());
-        List<ExamSegment> examSegments = examSegmentCaptor.getValue();
+        verify(mockExamSegmentCommandRepository).insert(examSegmentsCaptor.capture());
+        List<ExamSegment> examSegments = examSegmentsCaptor.getValue();
         ExamSegment examSegment = examSegments.get(0);
         assertThat(examSegments).hasSize(1);
         assertThat(examSegment.getExamId()).isEqualTo(exam.getId());
@@ -610,8 +618,8 @@ public class ExamSegmentServiceImplTest {
         verify(mockExamApprovalService).getApproval(examInfo);
         verify(mockExamSegmentQueryRepository, never()).findByExamId(examId);
 
-        Assertions.assertThat(response.getError().isPresent()).isTrue();
-        Assertions.assertThat(response.getData().isPresent()).isFalse();
+        assertThat(response.getError().isPresent()).isTrue();
+        assertThat(response.getData().isPresent()).isFalse();
     }
 
     @Test
@@ -638,8 +646,77 @@ public class ExamSegmentServiceImplTest {
         verify(mockExamApprovalService).getApproval(examInfo);
         verify(mockExamSegmentQueryRepository).findByExamId(examId);
 
-        Assertions.assertThat(response.getError().isPresent()).isFalse();
-        Assertions.assertThat(response.getData().isPresent()).isTrue();
-        Assertions.assertThat(response.getData().get()).hasSize(2);
+        assertThat(response.getError().isPresent()).isFalse();
+        assertThat(response.getData().isPresent()).isTrue();
+        assertThat(response.getData().get()).hasSize(2);
+    }
+
+    @Test
+    public void shouldFindExamSegmentByExamIdAndSegmentPosition() {
+        Exam mockExam = new ExamBuilder().build();
+        ExamSegment mockSegment = new ExamSegmentBuilder().build();
+
+        when(mockExamSegmentQueryRepository.findByExamIdAndSegmentPosition(any(UUID.class), any(Integer.class)))
+            .thenReturn(Optional.of(mockSegment));
+
+        Response<ExamSegment> segmentResponse =
+            examSegmentService.findByExamIdAndSegmentPosition(mockExam.getId(), mockExam.getCurrentSegmentPosition());
+
+        assertThat(segmentResponse.getData().isPresent()).isTrue();
+        assertThat(segmentResponse.getError().isPresent()).isFalse();
+        ExamSegment result = segmentResponse.getData().get();
+        assertThat(result).isEqualToComparingFieldByFieldRecursively(mockSegment);
+    }
+
+    @Test(expected = NotFoundException.class)
+    public void shouldThrowNotFoundExceptionWhenAnExamSegmentCannotBeFoundForExamIdAndSegmentPosition() {
+        Exam mockExam = new ExamBuilder().build();
+
+        when(mockExamSegmentQueryRepository.findByExamIdAndSegmentPosition(any(UUID.class), any(Integer.class)))
+            .thenReturn(Optional.empty());
+
+        examSegmentService.findByExamIdAndSegmentPosition(mockExam.getId(), mockExam.getCurrentSegmentPosition());
+    }
+
+    @Test
+    public void shouldExitExamSegment() {
+        final UUID examId = UUID.randomUUID();
+        final int segmentPosition = 1;
+        ExamSegment segment = new ExamSegment.Builder()
+            .fromSegment(random(ExamSegment.class))
+            .withExitedAt(null)
+            .withSegmentPosition(segmentPosition)
+            .build();
+
+        when(mockExamSegmentQueryRepository.findByExamIdAndSegmentPosition(examId, segmentPosition))
+            .thenReturn(Optional.of(segment));
+
+        Optional<ValidationError> maybeError = examSegmentService.exitSegment(examId, segmentPosition);
+        assertThat(maybeError).isNotPresent();
+        verify(mockExamSegmentQueryRepository).findByExamIdAndSegmentPosition(examId, segmentPosition);
+        verify(mockExamSegmentCommandRepository).update(examSegmentCaptor.capture());
+
+        ExamSegment updatedExamSegment = examSegmentCaptor.getValue();
+
+        assertThat(updatedExamSegment.getSegmentId()).isEqualTo(segment.getSegmentId());
+        assertThat(updatedExamSegment.getSegmentPosition()).isEqualTo(segment.getSegmentPosition());
+        assertThat(updatedExamSegment.getExitedAt()).isNotNull();
+    }
+
+    @Test
+    public void shouldFailToExitSegmentDueToExamSegmentNotFound() {
+        final UUID examId = UUID.randomUUID();
+        final int segmentPosition = 1;
+
+        when(mockExamSegmentQueryRepository.findByExamIdAndSegmentPosition(examId, segmentPosition))
+            .thenReturn(Optional.empty());
+
+        Optional<ValidationError> maybeError = examSegmentService.exitSegment(examId, segmentPosition);
+        assertThat(maybeError).isPresent();
+        assertThat(maybeError.get().getCode()).isEqualTo(ValidationErrorCode.EXAM_SEGMENT_DOES_NOT_EXIST);
+        assertThat(maybeError.get().getMessage()).isEqualTo("The exam segment does not exist");
+
+        verify(mockExamSegmentQueryRepository).findByExamIdAndSegmentPosition(examId, segmentPosition);
+        verify(mockExamSegmentCommandRepository, never()).update(isA(ExamSegment.class));
     }
 }
