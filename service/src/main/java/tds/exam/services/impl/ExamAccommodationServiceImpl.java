@@ -120,6 +120,8 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                 .withValue(accommodation.getValue())
                 .withTotalTypeCount(accommodation.getTypeTotal())
                 .withCustom(!accommodation.isDefaultAccommodation())
+                .withAllowChange(accommodation.isAllowChange())
+                .withSelectable(accommodation.isSelectable())
                 .withCreatedAt(now)
                 .build();
 
