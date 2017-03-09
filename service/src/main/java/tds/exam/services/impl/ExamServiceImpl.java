@@ -452,7 +452,6 @@ class ExamServiceImpl implements ExamService {
             Exam restartedExam = new Exam.Builder()
                 .fromExam(exam)
                 .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_STARTED, ExamStatusStage.IN_PROGRESS), now)
-                .withChangedAt(now)
                 .withResumptions(resumptions)
                 .withRestartsAndResumptions(restartsAndResumptions)
                 .withStartedAt(now)
@@ -477,7 +476,6 @@ class ExamServiceImpl implements ExamService {
             .fromExam(exam)
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_STARTED, ExamStatusStage.IN_PROGRESS), org.joda.time.Instant.now())
             .withStartedAt(now)
-            .withChangedAt(now)
             .withExpiresAt(now)
             .withRestartsAndResumptions(0)
             .withMaxItems(testLength)
@@ -678,7 +676,6 @@ class ExamServiceImpl implements ExamService {
             .withStatus(status, org.joda.time.Instant.now())
             .withBrowserId(openExamRequest.getBrowserId())
             .withSessionId(openExamRequest.getSessionId())
-            .withChangedAt(org.joda.time.Instant.now())
             .withAbnormalStarts(previousExam.getAbnormalStarts() + abnormalIncrement)
             .build();
 
