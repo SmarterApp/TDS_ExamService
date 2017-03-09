@@ -17,6 +17,11 @@ spring:
     password: ${sbac.jdbc.password}
     driver-class-name: 'com.mysql.jdbc.Driver'
 
+#Logging
+logging:
+  level:
+    tds.common.web: DEBUG
+
 #Configure the default Spring Security user with the MANAGEMENT role
 security:
   user:
