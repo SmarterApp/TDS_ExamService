@@ -7,6 +7,8 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 
+import java.util.UUID;
+
 import tds.exam.ExamPrintRequest;
 import tds.exam.repositories.ExamPrintRequestCommandRepository;
 
@@ -62,7 +64,8 @@ public class ExamPrintRequestCommandRepositoryImpl implements ExamPrintRequestCo
         update(examPrintRequest);
     }
 
-    private void update(final ExamPrintRequest examPrintRequest) {
+    @Override
+    public void update(final ExamPrintRequest examPrintRequest) {
         final SqlParameterSource params = new MapSqlParameterSource("examRequestId", examPrintRequest.getId().toString())
             .addValue("approvedAt", mapJodaInstantToTimestamp(examPrintRequest.getApprovedAt()))
             .addValue("deniedAt", mapJodaInstantToTimestamp(examPrintRequest.getDeniedAt()))

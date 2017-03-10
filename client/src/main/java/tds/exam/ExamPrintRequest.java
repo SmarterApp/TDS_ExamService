@@ -239,4 +239,40 @@ public class ExamPrintRequest {
     public String getReasonDenied() {
         return reasonDenied;
     }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        final ExamPrintRequest that = (ExamPrintRequest) o;
+
+        if (itemPosition != that.itemPosition) return false;
+        if (pagePosition != that.pagePosition) return false;
+        if (!examId.equals(that.examId)) return false;
+        if (!sessionId.equals(that.sessionId)) return false;
+        if (!type.equals(that.type)) return false;
+        if (value != null ? !value.equals(that.value) : that.value != null) return false;
+        if (parameters != null ? !parameters.equals(that.parameters) : that.parameters != null) return false;
+        if (description != null ? !description.equals(that.description) : that.description != null) return false;
+        if (approvedAt != null ? !approvedAt.equals(that.approvedAt) : that.approvedAt != null) return false;
+        if (deniedAt != null ? !deniedAt.equals(that.deniedAt) : that.deniedAt != null) return false;
+        return reasonDenied != null ? reasonDenied.equals(that.reasonDenied) : that.reasonDenied == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = examId.hashCode();
+        result = 31 * result + sessionId.hashCode();
+        result = 31 * result + type.hashCode();
+        result = 31 * result + (value != null ? value.hashCode() : 0);
+        result = 31 * result + itemPosition;
+        result = 31 * result + pagePosition;
+        result = 31 * result + (parameters != null ? parameters.hashCode() : 0);
+        result = 31 * result + (description != null ? description.hashCode() : 0);
+        result = 31 * result + (approvedAt != null ? approvedAt.hashCode() : 0);
+        result = 31 * result + (deniedAt != null ? deniedAt.hashCode() : 0);
+        result = 31 * result + (reasonDenied != null ? reasonDenied.hashCode() : 0);
+        return result;
+    }
 }
