@@ -35,7 +35,7 @@ public class ExamPrintRequestController {
     }
 
     @RequestMapping(value = "/approved/{sessionId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<ExamPrintRequest>> findUnfulfilledRequests(@PathVariable UUID sessionId) {
+    public ResponseEntity<List<ExamPrintRequest>> findApprovedRequests(@PathVariable UUID sessionId) {
         return ResponseEntity.ok(examPrintRequestService.findApprovedRequests(sessionId));
     }
 
