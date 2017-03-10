@@ -83,7 +83,7 @@ public class ExamCommandRepositoryImplIntegrationTests {
         assertThat(savedExam.getAssessmentKey()).isEqualTo(exam.getAssessmentKey());
         assertThat(savedExam.getAssessmentWindowId()).isEqualTo(exam.getAssessmentWindowId());
         assertThat(savedExam.getDateJoined()).isEqualTo(now);
-        assertThat(savedExam.getChangedAt()).isEqualTo(exam.getChangedAt());
+        assertThat(savedExam.getChangedAt()).isGreaterThanOrEqualTo(now);
         assertThat(savedExam.getStartedAt()).isEqualTo(exam.getStartedAt());
         assertThat(savedExam.getScoredAt()).isEqualTo(exam.getScoredAt());
         assertThat(savedExam.getCompletedAt()).isEqualTo(exam.getCompletedAt());

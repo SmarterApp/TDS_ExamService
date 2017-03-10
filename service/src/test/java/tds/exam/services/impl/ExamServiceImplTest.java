@@ -818,7 +818,6 @@ public class ExamServiceImplTest {
         assertThat(savedExam.getBrowserId()).isNotEqualTo(previousExam.getBrowserId());
         assertThat(savedExam.getStatus().getCode()).isEqualTo(STATUS_SUSPENDED);
         assertThat(savedExam.getStatusChangedAt()).isGreaterThan(approvedStatusDate);
-        assertThat(savedExam.getChangedAt()).isNotNull();
         assertThat(savedExam.getStartedAt()).isEqualTo(previousExam.getStartedAt());
         assertThat(savedExam.getSessionId()).isEqualTo(request.getSessionId());
     }
@@ -1087,11 +1086,11 @@ public class ExamServiceImplTest {
     @Test
     public void shouldStartNewExam() throws InterruptedException {
         Session session = new SessionBuilder().build();
-        Instant approvedStatusDate = org.joda.time.Instant.now().minus(5000);
+        Instant now = org.joda.time.Instant.now().minus(5000);
+        Instant approvedStatusDate = now.minus(5000);
         Exam exam = new ExamBuilder()
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.OPEN), approvedStatusDate)
             .withSessionId(session.getId())
-            .withChangedAt(Instant.now().minus(50000))
             .withStartedAt(null)
             .build();
         Assessment assessment = new AssessmentBuilder().build();
@@ -1147,7 +1146,6 @@ public class ExamServiceImplTest {
         assertThat(updatedExam.getId()).isEqualTo(exam.getId());
         assertThat(updatedExam.getMaxItems()).isEqualTo(testLength);
         assertThat(updatedExam.getStartedAt()).isNotNull();
-        assertThat(updatedExam.getChangedAt()).isGreaterThan(exam.getChangedAt());
         assertThat(updatedExam.getExpiresAt()).isNotNull();
         assertThat(updatedExam.getStatus().getStage()).isEqualTo(ExamStatusStage.IN_PROGRESS);
         assertThat(updatedExam.getStatus().getCode()).isEqualTo(ExamStatusCode.STATUS_STARTED);
@@ -1158,15 +1156,15 @@ public class ExamServiceImplTest {
     @Test
     public void shouldRestartExistingExamOutsideGracePeriodPausedExam() throws InterruptedException {
         Session session = new SessionBuilder().build();
-        final Instant approvedStatusDate = org.joda.time.Instant.now().minus(5000);
-        final Instant lastStudentActivityTime = org.joda.time.Instant.now().minus(25 * 60 * 1000); // minus 25 minutes
+        final Instant now = org.joda.time.Instant.now().minus(5000);
+        final Instant approvedStatusDate = now.minus(5000);
+        final Instant lastStudentActivityTime = now.minus(25 * 60 * 1000); // minus 25 minutes
         final int testLength = 10;
 
         Exam exam = new ExamBuilder()
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.OPEN), approvedStatusDate)
             .withSessionId(session.getId())
             .withResumptions(3)
-            .withChangedAt(Instant.now().minus(50000))
             .withRestartsAndResumptions(5)
             .withMaxItems(10)
             .withStartedAt(Instant.now().minus(60000))
@@ -1223,7 +1221,6 @@ public class ExamServiceImplTest {
         assertThat(updatedExam.getStartedAt()).isNotNull();
         assertThat(updatedExam.getResumptions()).isEqualTo(3);
         assertThat(updatedExam.getRestartsAndResumptions()).isEqualTo(6);
-        assertThat(updatedExam.getChangedAt()).isGreaterThan(exam.getChangedAt());
         assertThat(updatedExam.getExpiresAt()).isNull();
         assertThat(updatedExam.getStatus().getStage()).isEqualTo(ExamStatusStage.IN_PROGRESS);
         assertThat(updatedExam.getStatus().getCode()).isEqualTo(ExamStatusCode.STATUS_STARTED);
@@ -1233,8 +1230,9 @@ public class ExamServiceImplTest {
     @Test
     public void shouldResumeExistingExamWithinGracePeriodPausedExam() throws InterruptedException {
         Session session = new SessionBuilder().build();
-        final Instant approvedStatusDate = org.joda.time.Instant.now().minus(5000);
-        final Instant lastStudentActivityTime = org.joda.time.Instant.now().minus(15 * 60 * 1000); // minus 15 minutes, within grace period
+        final Instant now = org.joda.time.Instant.now();
+        final Instant approvedStatusDate = now.minus(5000);
+        final Instant lastStudentActivityTime = now.minus(15 * 60 * 1000); // minus 15 minutes, within grace period
         final int resumePosition = 5;
         final int testLength = 10;
 
@@ -1242,10 +1240,9 @@ public class ExamServiceImplTest {
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.OPEN), approvedStatusDate)
             .withSessionId(session.getId())
             .withResumptions(3)
-            .withChangedAt(Instant.now().minus(50000))
             .withRestartsAndResumptions(5)
             .withMaxItems(10)
-            .withStartedAt(Instant.now().minus(60000))
+            .withStartedAt(now.minus(60000))
             .build();
         Assessment assessment = new AssessmentBuilder().build();
         TimeLimitConfiguration timeLimitConfiguration = new TimeLimitConfiguration.Builder()
@@ -1303,7 +1300,6 @@ public class ExamServiceImplTest {
         assertThat(updatedExam.getStartedAt()).isNotNull();
         assertThat(updatedExam.getResumptions()).isEqualTo(4);
         assertThat(updatedExam.getRestartsAndResumptions()).isEqualTo(6);
-        assertThat(updatedExam.getChangedAt()).isGreaterThan(exam.getChangedAt());
         assertThat(updatedExam.getExpiresAt()).isNull();
         assertThat(updatedExam.getStatus().getStage()).isEqualTo(ExamStatusStage.IN_PROGRESS);
         assertThat(updatedExam.getStatus().getCode()).isEqualTo(ExamStatusCode.STATUS_STARTED);

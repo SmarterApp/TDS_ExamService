@@ -1,5 +1,6 @@
 package tds.exam.repositories.impl;
 
+import org.joda.time.Instant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -85,6 +86,8 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
 
     @Override
     public void update(final Exam... exams) {
+        Instant now = org.joda.time.Instant.now();
+
         SqlParameterSource[] batchParameters = Stream.of(exams)
             .map(exam -> new MapSqlParameterSource("examId", exam.getId().toString())
                 .addValue("attempts", exam.getAttempts())
@@ -95,7 +98,7 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
                 .addValue("maxItems", exam.getMaxItems())
                 .addValue("languageCode", exam.getLanguageCode())
                 .addValue("statusChangeReason", exam.getStatusChangeReason())
-                .addValue("changedAt", mapJodaInstantToTimestamp(exam.getChangedAt()))
+                .addValue("changedAt", mapJodaInstantToTimestamp(now))
                 .addValue("deletedAt", mapJodaInstantToTimestamp(exam.getDeletedAt()))
                 .addValue("completedAt", mapJodaInstantToTimestamp(exam.getCompletedAt()))
                 .addValue("scoredAt", mapJodaInstantToTimestamp(exam.getScoredAt()))
