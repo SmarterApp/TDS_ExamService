@@ -184,11 +184,8 @@ public class ExamSegmentServiceImpl implements ExamSegmentService {
     }
 
     @Override
-    public Response<ExamSegment> findByExamIdAndSegmentPosition(final UUID examId, final int segmentPosition) {
-        ExamSegment segment = examSegmentQueryRepository.findByExamIdAndSegmentPosition(examId, segmentPosition)
-            .orElseThrow(() -> new NotFoundException(String.format("Could not find an exam segment for exam id %s and segment position %d", examId, segmentPosition)));
-
-        return new Response<>(segment);
+    public Optional<ExamSegment> findByExamIdAndSegmentPosition(final UUID examId, final int segmentPosition) {
+        return examSegmentQueryRepository.findByExamIdAndSegmentPosition(examId, segmentPosition);
     }
 
     @Override

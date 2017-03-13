@@ -41,7 +41,7 @@ public interface ExamSegmentService {
      * @param segmentPosition The position/sequence of the {@link tds.exam.ExamSegment} to find
      * @return The {@link tds.exam.ExamSegment} for the specified exam id and position
      */
-    Response<ExamSegment> findByExamIdAndSegmentPosition(final UUID examId, final int segmentPosition);
+    Optional<ExamSegment> findByExamIdAndSegmentPosition(final UUID examId, final int segmentPosition);
 
     /**
      * Update a one or more {@link tds.exam.ExamSegment}s with new values.

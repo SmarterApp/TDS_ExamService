@@ -659,17 +659,15 @@ public class ExamSegmentServiceImplTest {
         when(mockExamSegmentQueryRepository.findByExamIdAndSegmentPosition(any(UUID.class), any(Integer.class)))
             .thenReturn(Optional.of(mockSegment));
 
-        Response<ExamSegment> segmentResponse =
+        Optional<ExamSegment> maybeExamSegment =
             examSegmentService.findByExamIdAndSegmentPosition(mockExam.getId(), mockExam.getCurrentSegmentPosition());
 
-        assertThat(segmentResponse.getData().isPresent()).isTrue();
-        assertThat(segmentResponse.getError().isPresent()).isFalse();
-        ExamSegment result = segmentResponse.getData().get();
-        assertThat(result).isEqualToComparingFieldByFieldRecursively(mockSegment);
+        assertThat(maybeExamSegment.isPresent()).isTrue();
+        assertThat(maybeExamSegment.get()).isEqualToComparingFieldByFieldRecursively(mockSegment);
     }
 
-    @Test(expected = NotFoundException.class)
-    public void shouldThrowNotFoundExceptionWhenAnExamSegmentCannotBeFoundForExamIdAndSegmentPosition() {
+    @Test
+    public void shouldReturnEmptyWhenAnExamSegmentCannotBeFoundForExamIdAndSegmentPosition() {
         Exam mockExam = new ExamBuilder().build();
 
         when(mockExamSegmentQueryRepository.findByExamIdAndSegmentPosition(any(UUID.class), any(Integer.class)))
