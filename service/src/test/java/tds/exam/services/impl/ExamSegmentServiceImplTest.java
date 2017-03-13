@@ -659,12 +659,11 @@ public class ExamSegmentServiceImplTest {
         when(mockExamSegmentQueryRepository.findByExamIdAndSegmentPosition(any(UUID.class), any(Integer.class)))
             .thenReturn(Optional.of(mockSegment));
 
-        Response<ExamSegment> segmentResponse =
+        Optional<ExamSegment> maybeExamSegment =
             examSegmentService.findByExamIdAndSegmentPosition(mockExam.getId(), mockExam.getCurrentSegmentPosition());
 
-        assertThat(segmentResponse.getData().isPresent()).isTrue();
-        assertThat(segmentResponse.getError().isPresent()).isFalse();
-        ExamSegment result = segmentResponse.getData().get();
+        assertThat(maybeExamSegment.isPresent()).isTrue();
+        ExamSegment result = maybeExamSegment.get();
         assertThat(result).isEqualToComparingFieldByFieldRecursively(mockSegment);
     }
 

@@ -10,6 +10,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.UUID;
 
 import tds.common.Response;
@@ -91,7 +92,7 @@ public class OnCompletedStatusExamChangeListenerTest {
 
         when(mockExamSegmentService.findByExamIdAndSegmentPosition(newExam.getId(),
             newExam.getCurrentSegmentPosition()))
-            .thenReturn(new Response<>(mockSegment));
+            .thenReturn(Optional.of(mockSegment));
         when(mockFieldTestService.findUsageInExam(newExam.getId()))
             .thenReturn(Arrays.asList(mockFirstFtItemGroup, mockSecondFtItemGroup));
 
@@ -113,7 +114,7 @@ public class OnCompletedStatusExamChangeListenerTest {
 
         when(mockExamSegmentService.findByExamIdAndSegmentPosition(newExam.getId(),
             newExam.getCurrentSegmentPosition()))
-            .thenReturn(new Response<>(mockSegment));
+            .thenReturn(Optional.of(mockSegment));
         when(mockFieldTestService.findUsageInExam(newExam.getId()))
             .thenReturn(Collections.emptyList());
 
