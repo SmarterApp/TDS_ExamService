@@ -667,7 +667,7 @@ public class ExamSegmentServiceImplTest {
     }
 
     @Test
-    public void shouldReturnOptionalWhenAnExamSegmentCannotBeFoundForExamIdAndSegmentPosition() {
+    public void shouldReturnEmptyWhenAnExamSegmentCannotBeFoundForExamIdAndSegmentPosition() {
         Exam mockExam = new ExamBuilder().build();
 
         when(mockExamSegmentQueryRepository.findByExamIdAndSegmentPosition(any(UUID.class), any(Integer.class)))
