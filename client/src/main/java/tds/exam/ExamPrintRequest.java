@@ -25,8 +25,8 @@ public class ExamPrintRequest {
     private String parameters;
     private String description;
     private Instant createdAt;
-    private Instant approvedAt;
-    private Instant deniedAt;
+    private Instant changedAt;
+    private ExamPrintRequestStatus status;
     private String reasonDenied;
 
     private ExamPrintRequest() {
@@ -36,10 +36,10 @@ public class ExamPrintRequest {
         this.createdAt = builder.createdAt;
         this.pagePosition = builder.pagePosition;
         this.itemPosition = builder.itemPosition;
-        this.approvedAt = builder.approvedAt;
+        this.changedAt = builder.changedAt;
         this.examId = builder.examId;
         this.parameters = builder.parameters;
-        this.deniedAt = builder.deniedAt;
+        this.status = builder.status;
         this.value = builder.value;
         this.id = builder.id;
         this.sessionId = builder.sessionId;
@@ -59,8 +59,8 @@ public class ExamPrintRequest {
         private String parameters;
         private String description;
         private Instant createdAt;
-        private Instant approvedAt;
-        private Instant deniedAt;
+        private Instant changedAt;
+        private ExamPrintRequestStatus status;
         private String reasonDenied;
 
         public Builder(UUID id) {
@@ -112,13 +112,13 @@ public class ExamPrintRequest {
             return this;
         }
 
-        public Builder withApprovedAt(Instant approvedAt) {
-            this.approvedAt = approvedAt;
+        public Builder withChangedAt(Instant changedAt) {
+            this.changedAt = changedAt;
             return this;
         }
 
-        public Builder withDeniedAt(Instant deniedAt) {
-            this.deniedAt = deniedAt;
+        public Builder withStatus(ExamPrintRequestStatus status) {
+            this.status = status;
             return this;
         }
 
@@ -131,10 +131,10 @@ public class ExamPrintRequest {
             this.createdAt = request.createdAt;
             this.pagePosition = request.pagePosition;
             this.itemPosition = request.itemPosition;
-            this.approvedAt = request.approvedAt;
+            this.changedAt = request.changedAt;
             this.examId = request.examId;
             this.parameters = request.parameters;
-            this.deniedAt = request.deniedAt;
+            this.status = request.status;
             this.value = request.value;
             this.id = request.id;
             this.sessionId = request.sessionId;
@@ -220,17 +220,17 @@ public class ExamPrintRequest {
     }
 
     /**
-     * @return If approved, the {@link org.joda.time.Instant} the request was approved by a proctor
+     * @return The {@link org.joda.time.Instant} of when the {@link tds.exam.ExamPrintRequestStatus} last changed
      */
-    public Instant getApprovedAt() {
-        return approvedAt;
+    public Instant getChangedAt() {
+        return changedAt;
     }
 
     /**
-     * @return If denied, the {@link org.joda.time.Instant} the request was denied by a proctor
+     * @return The {@link tds.exam.ExamPrintRequestStatus} of the {@link tds.exam.ExamPrintRequest}
      */
-    public Instant getDeniedAt() {
-        return deniedAt;
+    public ExamPrintRequestStatus getStatus() {
+        return status;
     }
 
     /**
@@ -255,8 +255,7 @@ public class ExamPrintRequest {
         if (value != null ? !value.equals(that.value) : that.value != null) return false;
         if (parameters != null ? !parameters.equals(that.parameters) : that.parameters != null) return false;
         if (description != null ? !description.equals(that.description) : that.description != null) return false;
-        if (approvedAt != null ? !approvedAt.equals(that.approvedAt) : that.approvedAt != null) return false;
-        if (deniedAt != null ? !deniedAt.equals(that.deniedAt) : that.deniedAt != null) return false;
+        if (status != null ? !status.equals(that.status) : that.status != null) return false;
         return reasonDenied != null ? reasonDenied.equals(that.reasonDenied) : that.reasonDenied == null;
     }
 
@@ -270,8 +269,8 @@ public class ExamPrintRequest {
         result = 31 * result + pagePosition;
         result = 31 * result + (parameters != null ? parameters.hashCode() : 0);
         result = 31 * result + (description != null ? description.hashCode() : 0);
-        result = 31 * result + (approvedAt != null ? approvedAt.hashCode() : 0);
-        result = 31 * result + (deniedAt != null ? deniedAt.hashCode() : 0);
+        result = 31 * result + (changedAt != null ? changedAt.hashCode() : 0);
+        result = 31 * result + (status != null ? status.hashCode() : 0);
         result = 31 * result + (reasonDenied != null ? reasonDenied.hashCode() : 0);
         return result;
     }

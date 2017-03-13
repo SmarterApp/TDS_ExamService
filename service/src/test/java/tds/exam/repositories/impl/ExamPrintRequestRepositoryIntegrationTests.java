@@ -18,6 +18,7 @@ import java.util.UUID;
 
 import tds.exam.Exam;
 import tds.exam.ExamPrintRequest;
+import tds.exam.ExamPrintRequestStatus;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.repositories.ExamCommandRepository;
 import tds.exam.repositories.ExamPrintRequestCommandRepository;
@@ -96,8 +97,8 @@ public class ExamPrintRequestRepositoryIntegrationTests {
             .withSessionId(sessionId)
             .withExamId(exam1.getId())
             .withCreatedAt(null)
-            .withDeniedAt(null)
-            .withApprovedAt(null)
+            .withChangedAt(null)
+            .withStatus(ExamPrintRequestStatus.SUBMITTED)
             .withType(ExamPrintRequest.REQUEST_TYPE_EMBOSS_ITEM)
             .build();
         ExamPrintRequest exam1Request2 = new ExamPrintRequest.Builder(UUID.randomUUID())
@@ -105,8 +106,8 @@ public class ExamPrintRequestRepositoryIntegrationTests {
             .withSessionId(sessionId)
             .withExamId(exam1.getId())
             .withCreatedAt(null)
-            .withDeniedAt(null)
-            .withApprovedAt(null)
+            .withChangedAt(null)
+            .withStatus(ExamPrintRequestStatus.SUBMITTED)
             .withType(ExamPrintRequest.REQUEST_TYPE_EMBOSS_PASSAGE)
             .build();
 
@@ -116,8 +117,8 @@ public class ExamPrintRequestRepositoryIntegrationTests {
             .withSessionId(sessionId)
             .withExamId(exam2.getId())
             .withCreatedAt(null)
-            .withDeniedAt(null)
-            .withApprovedAt(null)
+            .withChangedAt(null)
+            .withStatus(ExamPrintRequestStatus.SUBMITTED)
             .withType(ExamPrintRequest.REQUEST_TYPE_EMBOSS_PASSAGE)
             .build();
         // Should not be included in count - fulfilled
@@ -126,8 +127,8 @@ public class ExamPrintRequestRepositoryIntegrationTests {
             .withSessionId(sessionId)
             .withExamId(exam2.getId())
             .withCreatedAt(null)
-            .withDeniedAt(null)
-            .withApprovedAt(Instant.now().minus(99999))
+            .withChangedAt(Instant.now().minus(99999))
+            .withStatus(ExamPrintRequestStatus.APPROVED)
             .withType(ExamPrintRequest.REQUEST_TYPE_EMBOSS_PASSAGE)
             .build();
 
@@ -137,8 +138,8 @@ public class ExamPrintRequestRepositoryIntegrationTests {
             .withSessionId(diffSessionExam.getSessionId())
             .withExamId(diffSessionExam.getId())
             .withCreatedAt(null)
-            .withDeniedAt(null)
-            .withApprovedAt(null)
+            .withChangedAt(null)
+            .withStatus(ExamPrintRequestStatus.SUBMITTED)
             .withType(ExamPrintRequest.REQUEST_TYPE_EMBOSS_PASSAGE)
             .build();
 
@@ -173,8 +174,8 @@ public class ExamPrintRequestRepositoryIntegrationTests {
             .withSessionId(sessionId)
             .withExamId(exam1.getId())
             .withCreatedAt(Instant.now().minus(33333))
-            .withDeniedAt(null)
-            .withApprovedAt(Instant.now().minus(4444))
+            .withChangedAt(Instant.now().minus(4444))
+            .withStatus(ExamPrintRequestStatus.APPROVED)
             .withType(ExamPrintRequest.REQUEST_TYPE_EMBOSS_ITEM)
             .build();
         ExamPrintRequest exam1Request2 = new ExamPrintRequest.Builder(UUID.randomUUID())
@@ -182,8 +183,8 @@ public class ExamPrintRequestRepositoryIntegrationTests {
             .withSessionId(sessionId)
             .withExamId(exam1.getId())
             .withCreatedAt(Instant.now().minus(55555))
-            .withDeniedAt(null)
-            .withApprovedAt(Instant.now())
+            .withChangedAt(Instant.now())
+            .withStatus(ExamPrintRequestStatus.APPROVED)
             .withType(ExamPrintRequest.REQUEST_TYPE_EMBOSS_PASSAGE)
             .build();
         ExamPrintRequest exam1RequestNotApproved = new ExamPrintRequest.Builder(UUID.randomUUID())
@@ -191,8 +192,8 @@ public class ExamPrintRequestRepositoryIntegrationTests {
             .withSessionId(sessionId)
             .withExamId(exam1.getId())
             .withCreatedAt(Instant.now().minus(55555))
-            .withDeniedAt(null)
-            .withApprovedAt(null)
+            .withChangedAt(null)
+            .withStatus(ExamPrintRequestStatus.SUBMITTED)
             .withType(ExamPrintRequest.REQUEST_TYPE_EMBOSS_PASSAGE)
             .build();
 
@@ -202,18 +203,18 @@ public class ExamPrintRequestRepositoryIntegrationTests {
             .withSessionId(sessionId)
             .withExamId(exam2.getId())
             .withCreatedAt(Instant.now().minus(55555))
-            .withDeniedAt(null)
-            .withApprovedAt(Instant.now())
+            .withChangedAt(Instant.now())
+            .withStatus(ExamPrintRequestStatus.APPROVED)
             .withType(ExamPrintRequest.REQUEST_TYPE_EMBOSS_PASSAGE)
             .build();
-        // Should not be included in count - fulfilled
+        // Should not be included in count - denied
         ExamPrintRequest exam2DeniedRequest = new ExamPrintRequest.Builder(UUID.randomUUID())
             .fromExamPrintRequest(random(ExamPrintRequest.class))
             .withSessionId(sessionId)
             .withExamId(exam2.getId())
             .withCreatedAt(Instant.now())
-            .withDeniedAt(Instant.now())
-            .withApprovedAt(Instant.now().minus(99999))
+            .withChangedAt(Instant.now())
+            .withStatus(ExamPrintRequestStatus.DENIED)
             .withType(ExamPrintRequest.REQUEST_TYPE_EMBOSS_PASSAGE)
             .build();
 
@@ -223,8 +224,8 @@ public class ExamPrintRequestRepositoryIntegrationTests {
             .withSessionId(diffSessionExam.getSessionId())
             .withExamId(diffSessionExam.getId())
             .withCreatedAt(null)
-            .withDeniedAt(null)
-            .withApprovedAt(Instant.now())
+            .withStatus(ExamPrintRequestStatus.APPROVED)
+            .withChangedAt(Instant.now())
             .withType(ExamPrintRequest.REQUEST_TYPE_EMBOSS_PASSAGE)
             .build();
 
@@ -258,8 +259,8 @@ public class ExamPrintRequestRepositoryIntegrationTests {
             .withSessionId(sessionId)
             .withExamId(exam1.getId())
             .withCreatedAt(null)
-            .withDeniedAt(null)
-            .withApprovedAt(null)
+            .withChangedAt(null)
+            .withStatus(ExamPrintRequestStatus.SUBMITTED)
             .withType(ExamPrintRequest.REQUEST_TYPE_EMBOSS_ITEM)
             .build();
         ExamPrintRequest exam1Request2 = new ExamPrintRequest.Builder(UUID.randomUUID())
@@ -267,8 +268,8 @@ public class ExamPrintRequestRepositoryIntegrationTests {
             .withSessionId(sessionId)
             .withExamId(exam1.getId())
             .withCreatedAt(null)
-            .withDeniedAt(null)
-            .withApprovedAt(null)
+            .withChangedAt(null)
+            .withStatus(ExamPrintRequestStatus.SUBMITTED)
             .withType(ExamPrintRequest.REQUEST_TYPE_EMBOSS_PASSAGE)
             .build();
 
@@ -278,8 +279,8 @@ public class ExamPrintRequestRepositoryIntegrationTests {
             .withSessionId(sessionId)
             .withExamId(exam2.getId())
             .withCreatedAt(null)
-            .withDeniedAt(null)
-            .withApprovedAt(null)
+            .withChangedAt(null)
+            .withStatus(ExamPrintRequestStatus.SUBMITTED)
             .withType(ExamPrintRequest.REQUEST_TYPE_EMBOSS_PASSAGE)
             .build();
         // Should not be included in count - fulfilled
@@ -288,8 +289,8 @@ public class ExamPrintRequestRepositoryIntegrationTests {
             .withSessionId(sessionId)
             .withExamId(exam2.getId())
             .withCreatedAt(null)
-            .withDeniedAt(null)
-            .withApprovedAt(Instant.now().minus(99999))
+            .withStatus(ExamPrintRequestStatus.APPROVED)
+            .withChangedAt(Instant.now().minus(99999))
             .withType(ExamPrintRequest.REQUEST_TYPE_EMBOSS_PASSAGE)
             .build();
 
@@ -299,8 +300,8 @@ public class ExamPrintRequestRepositoryIntegrationTests {
             .withSessionId(diffSessionExam.getSessionId())
             .withExamId(diffSessionExam.getId())
             .withCreatedAt(null)
-            .withDeniedAt(null)
-            .withApprovedAt(null)
+            .withChangedAt(null)
+            .withStatus(ExamPrintRequestStatus.SUBMITTED)
             .withType(ExamPrintRequest.REQUEST_TYPE_EMBOSS_PASSAGE)
             .build();
 

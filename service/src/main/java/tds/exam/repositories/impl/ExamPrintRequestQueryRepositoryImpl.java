@@ -20,8 +20,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import tds.exam.Exam;
 import tds.exam.ExamPrintRequest;
+import tds.exam.ExamPrintRequestStatus;
 import tds.exam.repositories.ExamPrintRequestQueryRepository;
 
 import static tds.common.data.mapping.ResultSetMapperUtility.mapTimestampToJodaInstant;
@@ -30,6 +30,22 @@ import static tds.common.data.mapping.ResultSetMapperUtility.mapTimestampToJodaI
 public class ExamPrintRequestQueryRepositoryImpl implements ExamPrintRequestQueryRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
     private static final ExamPrintRequestRowMapper examPrintRequestRowMapper = new ExamPrintRequestRowMapper();
+
+    private static final String EXAM_PRINT_REQUEST_COLUMNS =
+        "SELECT \n" +
+            "   PR.id AS id, \n" +
+            "   PR.exam_id AS examId, \n" +
+            "   PR.session_id AS sessionId, \n" +
+            "   PR.type AS type, \n" +
+            "   PR.value AS value, \n" +
+            "   PR.item_position AS itemPosition, \n" +
+            "   PR.page_position AS pagePosition, \n" +
+            "   PR.parameters AS parameters,  \n" +
+            "   PR.description AS description, \n" +
+            "   PR.created_at AS createdAt, \n" +
+            "   PRE.status AS status, \n" +
+            "   PRE.created_at AS changedAt, \n" +
+            "   PRE.reason_denied AS reasonDenied \n";
 
     @Autowired
     public ExamPrintRequestQueryRepositoryImpl(@Qualifier("queryJdbcTemplate") final NamedParameterJdbcTemplate queryJdbcTemplate) {
@@ -43,7 +59,7 @@ public class ExamPrintRequestQueryRepositoryImpl implements ExamPrintRequestQuer
 
         final String SQL =
             "SELECT \n" +
-                "   PR.exam_id, \n" +
+                "   PR.exam_id AS examId, \n" +
                 "   COUNT(PR.id) AS requestCount \n" +
                 "FROM  \n" +
                 "   exam.exam_print_request PR \n" +
@@ -61,15 +77,14 @@ public class ExamPrintRequestQueryRepositoryImpl implements ExamPrintRequestQuer
                 "   AND last_event.id = PRE.id \n" +
                 "WHERE \n" +
                 "   exam_id IN (:examIds) \n" +
-                "   AND approved_at IS NULL \n" +
-                "   AND denied_at IS NULL \n" +
+                "   AND status = 'SUBMITTED' \n" +
                 "   AND session_id = :sessionId \n" +
                 "GROUP BY exam_id";
 
         return jdbcTemplate.query(SQL, params, (ResultSetExtractor<Map<UUID, Integer>>) rs -> {
             HashMap<UUID, Integer> examIdResponseCounts = new HashMap<>();
             while (rs.next()) {
-                examIdResponseCounts.put(UUID.fromString(rs.getString("exam_id")), rs.getInt("requestCount"));
+                examIdResponseCounts.put(UUID.fromString(rs.getString("examId")), rs.getInt("requestCount"));
             }
             return examIdResponseCounts;
         });
@@ -81,20 +96,7 @@ public class ExamPrintRequestQueryRepositoryImpl implements ExamPrintRequestQuer
             .addValue("sessionId", sessionId.toString());
 
         final String SQL =
-            "SELECT \n" +
-                "   PR.id, \n" +
-                "   PR.exam_id, \n" +
-                "   PR.session_id, \n" +
-                "   PR.type, \n" +
-                "   PR.value, \n" +
-                "   PR.item_position, \n" +
-                "   PR.page_position, \n" +
-                "   PR.parameters, \n" +
-                "   PR.description, \n" +
-                "   PR.created_at, \n" +
-                "   PRE.approved_at, \n" +
-                "   PRE.denied_at, \n" +
-                "   PRE.reason_denied \n" +
+            EXAM_PRINT_REQUEST_COLUMNS +
                 "FROM  \n" +
                 "   exam.exam_print_request PR \n" +
                 "JOIN ( \n" +
@@ -111,8 +113,7 @@ public class ExamPrintRequestQueryRepositoryImpl implements ExamPrintRequestQuer
                 "   AND last_event.id = PRE.id \n" +
                 "WHERE \n" +
                 "   exam_id = :examId \n" +
-                "   AND approved_at IS NULL \n" +
-                "   AND denied_at IS NULL \n" +
+                "   AND status = 'SUBMITTED' \n" +
                 "   AND session_id = :sessionId \n" +
                 "ORDER BY PR.created_at";
 
@@ -123,20 +124,7 @@ public class ExamPrintRequestQueryRepositoryImpl implements ExamPrintRequestQuer
     public Optional<ExamPrintRequest> findExamPrintRequest(final UUID id) {
         final SqlParameterSource params = new MapSqlParameterSource("id", id.toString());
         final String SQL =
-            "SELECT \n" +
-                "   PR.id, \n" +
-                "   PR.exam_id, \n" +
-                "   PR.session_id, \n" +
-                "   PR.type, \n" +
-                "   PR.value, \n" +
-                "   PR.item_position, \n" +
-                "   PR.page_position, \n" +
-                "   PR.parameters, \n" +
-                "   PR.description, \n" +
-                "   PR.created_at, \n" +
-                "   PRE.approved_at, \n" +
-                "   PRE.denied_at, \n" +
-                "   PRE.reason_denied \n" +
+            EXAM_PRINT_REQUEST_COLUMNS +
                 "FROM  \n" +
                 "   exam.exam_print_request PR \n" +
                 "JOIN ( \n" +
@@ -170,20 +158,7 @@ public class ExamPrintRequestQueryRepositoryImpl implements ExamPrintRequestQuer
         final SqlParameterSource params = new MapSqlParameterSource("sessionId", sessionId.toString());
 
         final String SQL =
-            "SELECT \n" +
-                "   PR.id, \n" +
-                "   PR.exam_id, \n" +
-                "   PR.session_id, \n" +
-                "   PR.type, \n" +
-                "   PR.value, \n" +
-                "   PR.item_position, \n" +
-                "   PR.page_position, \n" +
-                "   PR.parameters, \n" +
-                "   PR.description, \n" +
-                "   PR.created_at, \n" +
-                "   PRE.approved_at, \n" +
-                "   PRE.denied_at, \n" +
-                "   PRE.reason_denied \n" +
+            EXAM_PRINT_REQUEST_COLUMNS +
                 "FROM  \n" +
                 "   exam.exam_print_request PR \n" +
                 "JOIN ( \n" +
@@ -199,8 +174,7 @@ public class ExamPrintRequestQueryRepositoryImpl implements ExamPrintRequestQuer
                 "   ON last_event.exam_print_request_id = PRE.exam_print_request_id \n" +
                 "   AND last_event.id = PRE.id \n" +
                 "WHERE \n" +
-                "   approved_at IS NOT NULL \n" +
-                "   AND denied_at IS NULL \n" +
+                "   status = 'APPROVED' \n" +
                 "   AND session_id = :sessionId \n" +
                 "ORDER BY PR.exam_id, PR.created_at";
 
@@ -211,18 +185,18 @@ public class ExamPrintRequestQueryRepositoryImpl implements ExamPrintRequestQuer
         @Override
         public ExamPrintRequest mapRow(final ResultSet rs, final int i) throws SQLException {
             return new ExamPrintRequest.Builder(UUID.fromString(rs.getString("id")))
-                .withExamId(UUID.fromString(rs.getString("exam_id")))
-                .withSessionId(UUID.fromString(rs.getString("session_id")))
+                .withExamId(UUID.fromString(rs.getString("examId")))
+                .withSessionId(UUID.fromString(rs.getString("sessionId")))
                 .withType(rs.getString("type"))
                 .withValue(rs.getString("value"))
-                .withItemPosition(rs.getInt("item_position"))
-                .withPagePosition(rs.getInt("page_position"))
+                .withItemPosition(rs.getInt("itemPosition"))
+                .withPagePosition(rs.getInt("pagePosition"))
                 .withParameters(rs.getString("parameters"))
                 .withDescription(rs.getString("description"))
-                .withCreatedAt(mapTimestampToJodaInstant(rs, "created_at"))
-                .withApprovedAt(mapTimestampToJodaInstant(rs, "approved_at"))
-                .withDeniedAt(mapTimestampToJodaInstant(rs, "denied_at"))
-                .withReasonDenied(rs.getString("reason_denied"))
+                .withCreatedAt(mapTimestampToJodaInstant(rs, "createdAt"))
+                .withChangedAt(mapTimestampToJodaInstant(rs, "changedAt"))
+                .withStatus(ExamPrintRequestStatus.valueOf(rs.getString("status")))
+                .withReasonDenied(rs.getString("reasonDenied"))
                 .build();
         }
     }

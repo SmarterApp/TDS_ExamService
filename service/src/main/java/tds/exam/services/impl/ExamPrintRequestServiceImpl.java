@@ -11,6 +11,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import tds.exam.ExamPrintRequest;
+import tds.exam.ExamPrintRequestStatus;
 import tds.exam.repositories.ExamPrintRequestCommandRepository;
 import tds.exam.repositories.ExamPrintRequestQueryRepository;
 import tds.exam.services.ExamPrintRequestService;
@@ -44,31 +45,22 @@ public class ExamPrintRequestServiceImpl implements ExamPrintRequestService {
     }
 
     @Override
-    public void denyRequest(final UUID id, final String reason) {
-        final ExamPrintRequest request = new ExamPrintRequest.Builder(id)
-            .withDeniedAt(Instant.now())
-            .withReasonDenied(reason)
-            .build();
-
-        examPrintRequestCommandRepository.update(request);
-    }
-
-    @Override
-    public Optional<ExamPrintRequest> findAndApprovePrintRequest(final UUID id) {
+    public Optional<ExamPrintRequest> updateAndGetRequest(final ExamPrintRequestStatus status, final UUID id, final String reason) {
         final Optional<ExamPrintRequest> maybePrintRequest = examPrintRequestQueryRepository.findExamPrintRequest(id);
 
         if (!maybePrintRequest.isPresent()) {
             return Optional.empty();
         }
 
-        final ExamPrintRequest approvedRequest = new ExamPrintRequest.Builder(id)
+        final ExamPrintRequest deniedRequest = new ExamPrintRequest.Builder(id)
             .fromExamPrintRequest(maybePrintRequest.get())
-            .withApprovedAt(Instant.now())
+            .withStatus(status)
+            .withReasonDenied(reason)
             .build();
 
-        examPrintRequestCommandRepository.update(approvedRequest);
+        examPrintRequestCommandRepository.update(deniedRequest);
 
-        return Optional.of(approvedRequest);
+        return Optional.of(deniedRequest);
     }
 
     @Override

@@ -14,6 +14,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import tds.exam.ExamPrintRequest;
+import tds.exam.ExamPrintRequestStatus;
 import tds.exam.repositories.ExamPrintRequestCommandRepository;
 import tds.exam.repositories.ExamPrintRequestQueryRepository;
 import tds.exam.services.ExamPrintRequestService;
@@ -64,15 +65,18 @@ public class ExamPrintRequestServiceImplTest {
 
     @Test
     public void shouldDenyPrintRequest() {
-        final UUID id = UUID.randomUUID();
         final String denyReason = "You enjoyed the movie 'Cloud Atlas'";
-        examPrintRequestService.denyRequest(id, denyReason);
+        final ExamPrintRequest request = random(ExamPrintRequest.class);
+
+        when(mockExamPrintRequestQueryRepository.findExamPrintRequest(request.getId())).thenReturn(Optional.of(request));
+        examPrintRequestService.updateAndGetRequest(ExamPrintRequestStatus.DENIED, request.getId(), denyReason);
         verify(mockExamPrintRequestCommandRepository).update(examPrintRequestArgumentCaptor.capture());
         ExamPrintRequest printRequest = examPrintRequestArgumentCaptor.getValue();
 
-        assertThat(printRequest.getId()).isEqualTo(id);
+        assertThat(printRequest.getId()).isEqualTo(request.getId());
         assertThat(printRequest.getReasonDenied()).isEqualTo(denyReason);
-        assertThat(printRequest.getDeniedAt()).isNotNull();
+        assertThat(printRequest.getStatus()).isEqualTo(ExamPrintRequestStatus.DENIED);
+        assertThat(printRequest.getChangedAt()).isNotNull();
     }
 
     @Test
@@ -93,7 +97,7 @@ public class ExamPrintRequestServiceImplTest {
         final ExamPrintRequest request = random(ExamPrintRequest.class);
         when(mockExamPrintRequestQueryRepository.findExamPrintRequest(id)).thenReturn(Optional.of(request));
 
-        Optional<ExamPrintRequest> maybeApprovedRequest = examPrintRequestService.findAndApprovePrintRequest(id);
+        Optional<ExamPrintRequest> maybeApprovedRequest = examPrintRequestService.updateAndGetRequest(ExamPrintRequestStatus.APPROVED, id, null);
         assertThat(maybeApprovedRequest).isPresent();
 
         verify(mockExamPrintRequestQueryRepository).findExamPrintRequest(id);
@@ -101,7 +105,8 @@ public class ExamPrintRequestServiceImplTest {
 
         ExamPrintRequest approvedRequest = examPrintRequestArgumentCaptor.getValue();
         assertThat(approvedRequest.getId()).isEqualTo(request.getId());
-        assertThat(approvedRequest.getApprovedAt()).isNotNull();
+        assertThat(approvedRequest.getStatus()).isEqualTo(ExamPrintRequestStatus.APPROVED);
+        assertThat(approvedRequest.getChangedAt()).isNotNull();
     }
 
     @Test
@@ -110,7 +115,7 @@ public class ExamPrintRequestServiceImplTest {
         final ExamPrintRequest request = random(ExamPrintRequest.class);
         when(mockExamPrintRequestQueryRepository.findExamPrintRequest(id)).thenReturn(Optional.empty());
 
-        Optional<ExamPrintRequest> maybeApprovedRequest = examPrintRequestService.findAndApprovePrintRequest(id);
+        Optional<ExamPrintRequest> maybeApprovedRequest = examPrintRequestService.updateAndGetRequest(ExamPrintRequestStatus.APPROVED, id, null);
         assertThat(maybeApprovedRequest).isNotPresent();
 
         verify(mockExamPrintRequestQueryRepository).findExamPrintRequest(id);

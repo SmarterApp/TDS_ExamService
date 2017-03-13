@@ -16,6 +16,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import tds.exam.ExamPrintRequest;
+import tds.exam.ExamPrintRequestStatus;
 import tds.exam.services.ExamPrintRequestService;
 
 @RestController
@@ -45,17 +46,22 @@ public class ExamPrintRequestController {
     }
 
     @RequestMapping(value = "/deny/{id}", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void findUnfulfilledRequests(final @PathVariable UUID id, final @RequestBody String reason) {
-        examPrintRequestService.denyRequest(id, reason);
+    public ResponseEntity<ExamPrintRequest> denyRequest(final @PathVariable UUID id, final @RequestBody String reason) {
+        Optional<ExamPrintRequest> maybeExamPrintRequest = examPrintRequestService.updateAndGetRequest(ExamPrintRequestStatus.DENIED, id, reason);
+
+        if (!maybeExamPrintRequest.isPresent()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        return ResponseEntity.ok(maybeExamPrintRequest.get());
     }
 
     @RequestMapping(value = "/approve/{id}", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ExamPrintRequest> findAndApprovePrintRequest(final @PathVariable UUID id) {
-        Optional<ExamPrintRequest> maybeExamPrintRequest = examPrintRequestService.findAndApprovePrintRequest(id);
+        Optional<ExamPrintRequest> maybeExamPrintRequest = examPrintRequestService.updateAndGetRequest(ExamPrintRequestStatus.APPROVED, id, null);
 
         if (!maybeExamPrintRequest.isPresent()) {
-            return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
         return ResponseEntity.ok(maybeExamPrintRequest.get());

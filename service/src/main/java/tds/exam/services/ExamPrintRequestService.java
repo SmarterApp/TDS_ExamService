@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import tds.exam.ExamPrintRequest;
+import tds.exam.ExamPrintRequestStatus;
 
 /**
  * Service used to create, read, and update exam print and emboss requests
@@ -38,20 +39,14 @@ public interface ExamPrintRequestService {
     List<ExamPrintRequest> findUnfulfilledRequests(final UUID examId, final UUID sessionId);
 
     /**
-     * Denies the {@link tds.exam.ExamPrintRequest} with the provided reason.
+     * Updates and fetches the {@link tds.exam.ExamPrintRequest} with the provided reason.
      *
+     * @param status The {@link tds.exam.ExamPrintRequestStatus} of the request - either approved or denied
      * @param id     The id of the {@link tds.exam.ExamPrintRequest} being denied
      * @param reason The reason for the denial of the request
+     * @return The approved/denied {@link tds.exam.ExamPrintRequest}
      */
-    void denyRequest(final UUID id, final String reason);
-
-    /**
-     * Fetches and marks as approved the specified {@link tds.exam.ExamPrintRequest}
-     *
-     * @param id the identifier of the {@link tds.exam.ExamPrintRequest} to approve
-     * @return The approved {@link tds.exam.ExamPrintRequest}
-     */
-    Optional<ExamPrintRequest> findAndApprovePrintRequest(final UUID id);
+    Optional<ExamPrintRequest> updateAndGetRequest(final ExamPrintRequestStatus status, final UUID id, final String reason);
 
     /**
      * Retrieves a list of approved requests for the session.
