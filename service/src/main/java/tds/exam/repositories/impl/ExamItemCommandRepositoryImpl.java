@@ -87,7 +87,7 @@ public class ExamItemCommandRepositoryImpl implements ExamItemCommandRepository 
                         .addValue("sequence", response.getSequence())
                         .addValue("isValid", response.isValid())
                         .addValue("isSelected", response.isSelected())
-                        .addValue("createdAt", mapJodaInstantToTimestamp(response.getCreatedAt()));
+                        .addValue("createdAt", mapJodaInstantToTimestamp(Instant.now()));
 
                 // It's possible that a response has not yet been scored
                 if (response.getScore().isPresent()) {
