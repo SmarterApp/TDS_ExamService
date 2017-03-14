@@ -87,7 +87,7 @@ public class ExamAccommodation {
         }
 
         public Builder withCreatedAt(Instant createdAt) {
-            this.createdAt = createdAt;
+            this.createdAt = checkNotNull(createdAt, "createdAt cannot be null");
             return this;
         }
 

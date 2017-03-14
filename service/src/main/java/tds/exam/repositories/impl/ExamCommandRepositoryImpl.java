@@ -8,6 +8,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Timestamp;
 import java.util.stream.Stream;
 
 import tds.common.data.CreateRecordException;
@@ -89,7 +90,7 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
 
     @Override
     public void update(final Exam... exams) {
-        Instant now = org.joda.time.Instant.now();
+        Timestamp now = mapJodaInstantToTimestamp(org.joda.time.Instant.now());
 
         SqlParameterSource[] batchParameters = Stream.of(exams)
             .map(exam -> new MapSqlParameterSource("examId", exam.getId().toString())
@@ -101,7 +102,7 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
                 .addValue("maxItems", exam.getMaxItems())
                 .addValue("languageCode", exam.getLanguageCode())
                 .addValue("statusChangeReason", exam.getStatusChangeReason())
-                .addValue("changedAt", mapJodaInstantToTimestamp(now))
+                .addValue("changedAt", now)
                 .addValue("deletedAt", mapJodaInstantToTimestamp(exam.getDeletedAt()))
                 .addValue("completedAt", mapJodaInstantToTimestamp(exam.getCompletedAt()))
                 .addValue("scoredAt", mapJodaInstantToTimestamp(exam.getScoredAt()))
@@ -111,7 +112,7 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
                 .addValue("currentSegmentPosition", exam.getCurrentSegmentPosition())
                 .addValue("customAccommodations", exam.isCustomAccommodations())
                 .addValue("startedAt", mapJodaInstantToTimestamp(exam.getStartedAt()))
-                .addValue("createdAt", mapJodaInstantToTimestamp(Instant.now())))
+                .addValue("createdAt", now))
             .toArray(MapSqlParameterSource[]::new);
 
         final String SQL =
