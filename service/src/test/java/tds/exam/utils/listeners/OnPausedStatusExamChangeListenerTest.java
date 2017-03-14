@@ -7,6 +7,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.Optional;
+
 import tds.common.Response;
 import tds.common.entity.utils.ChangeListener;
 import tds.common.web.exceptions.NotFoundException;
@@ -51,7 +53,7 @@ public class OnPausedStatusExamChangeListenerTest {
 
         when(mockExamSegmentService.findByExamIdAndSegmentPosition(newExam.getId(),
             newExam.getCurrentSegmentPosition()))
-            .thenReturn(new Response<>(mockSegment));
+            .thenReturn(Optional.of(mockSegment));
 
         onPausedStatusExamChangeListener.accept(oldExam, newExam);
         verify(mockExamSegmentService).findByExamIdAndSegmentPosition(newExam.getId(),
@@ -94,7 +96,7 @@ public class OnPausedStatusExamChangeListenerTest {
 
         when(mockExamSegmentService.findByExamIdAndSegmentPosition(newExam.getId(),
             newExam.getCurrentSegmentPosition()))
-            .thenReturn(new Response<>(mockSegment));
+            .thenReturn(Optional.of(mockSegment));
 
         onPausedStatusExamChangeListener.accept(oldExam, newExam);
         verify(mockExamSegmentService).findByExamIdAndSegmentPosition(newExam.getId(),
@@ -116,7 +118,7 @@ public class OnPausedStatusExamChangeListenerTest {
 
         when(mockExamSegmentService.findByExamIdAndSegmentPosition(newExam.getId(),
             newExam.getCurrentSegmentPosition()))
-            .thenReturn(new Response<>(mockSegment));
+            .thenReturn(Optional.of(mockSegment));
 
         onPausedStatusExamChangeListener.accept(oldExam, newExam);
         verify(mockExamSegmentService).findByExamIdAndSegmentPosition(newExam.getId(),
@@ -124,8 +126,8 @@ public class OnPausedStatusExamChangeListenerTest {
         verify(mockExamSegmentService, never()).update(anyVararg());
     }
 
-    @Test(expected = NotFoundException.class)
-    public void shouldThrowNotFoundExceptionWhenExamSegmentCannotBeFound() {
+    @Test
+    public void shouldReturnEmptyWhenExamSegmentCannotBeFound() {
         Exam oldExam = new ExamBuilder().build();
         Exam newExam = new ExamBuilder()
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE), Instant.now())
@@ -133,7 +135,7 @@ public class OnPausedStatusExamChangeListenerTest {
 
         when(mockExamSegmentService.findByExamIdAndSegmentPosition(newExam.getId(),
             newExam.getCurrentSegmentPosition()))
-            .thenThrow(new NotFoundException("Could not find exam segment"));
+            .thenReturn(Optional.empty());
 
         onPausedStatusExamChangeListener.accept(oldExam, newExam);
         verify(mockExamSegmentService, never()).update(anyVararg());
