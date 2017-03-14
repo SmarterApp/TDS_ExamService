@@ -9,32 +9,55 @@ import tds.itemscoringengine.RubricContentSource;
 import tds.student.services.data.PageGroup;
 
 public interface ContentService {
-    // / <summary>
-    // / Load ITS document.
-    // / </summary>
-    // not required
-    IITSDocument getContent (String xmlFilePath, AccLookup accommodations) throws ReturnStatusException;
+    /**
+     * Retrieves the content
+     *
+     * @param path           path the the content
+     * @param accommodations the accommodations represented as a {@link tds.itemrenderer.data.AccLookup}
+     * @return {@link tds.itemrenderer.data.IITSDocument}
+     * @throws ReturnStatusException if the document cannot be found or parsed
+     */
+    IITSDocument getContent(final String path, final AccLookup accommodations) throws ReturnStatusException;
 
-    // / <summary>
-    // / Load ITS document.
-    // / </summary>
-    IITSDocument getItemContent (long bankKey, long itemKey, AccLookup
-        accommodations) throws ReturnStatusException;
+    /**
+     * Gets the item content
+     *
+     * @param bankKey        the bank key
+     * @param itemKey        the item key
+     * @param accommodations the accommodations represented as a {@link tds.itemrenderer.data.AccLookup}
+     * @return {@link tds.itemrenderer.data.IITSDocument}
+     * @throws ReturnStatusException if the documentat cannot be found or parsed
+     */
+    IITSDocument getItemContent(final long bankKey, final long itemKey, final AccLookup accommodations) throws ReturnStatusException;
 
-    // / <summary>
-    // / Load ITS content.
-    // / </summary>
-    IITSDocument getStimulusContent (long bankKey, long stimulusKey, AccLookup
-        accommodations) throws ReturnStatusException;
+    /**
+     * Gets the item content
+     *
+     * @param bankKey        the bank key
+     * @param stimulusKey    the stimulus key
+     * @param accommodations the accommodations represented as a {@link tds.itemrenderer.data.AccLookup}
+     * @return {@link tds.itemrenderer.data.IITSDocument}
+     * @throws ReturnStatusException if the documentat cannot be found or parsed
+     */
+    IITSDocument getStimulusContent(final long bankKey, final long stimulusKey, final AccLookup accommodations) throws ReturnStatusException;
 
-    // / <summary>
-    // / Given a ITS document get the machine rubric.
-    // / </summary>
-    // / <param name="itsDocument"></param>
-    // / <param name="language"></param>
-    // / <param name="rubricContentSource"></param>
-    // / <returns></returns>
-    ITSMachineRubric parseMachineRubric (IITSDocument itsDocument, String language, RubricContentSource rubricContentSource) throws ReturnStatusException;
+    /**
+     * Parses the machine rubric
+     *
+     * @param itsDocument         {@link tds.itemrenderer.data.IITSDocument}
+     * @param language            language to parse
+     * @param rubricContentSource the {@link tds.itemscoringengine.RubricContentSource}
+     * @return {@link tds.itemrenderer.data.ITSMachineRubric} for the document and language
+     * @throws ReturnStatusException if the rubric cannot be found or parsed
+     */
+    ITSMachineRubric parseMachineRubric(final IITSDocument itsDocument, final String language, final RubricContentSource rubricContentSource) throws ReturnStatusException;
 
-    void loadPageGroupDocuments (PageGroup pageGroup, AccLookup accLookup) throws ReturnStatusException;
+    /**
+     * Loads page group documents
+     *
+     * @param pageGroup the {@link tds.student.services.data.PageGroup}
+     * @param accLookup the accommodations as a {@link tds.itemrenderer.data.AccLookup}
+     * @throws ReturnStatusException
+     */
+    void loadPageGroupDocuments(final PageGroup pageGroup, final AccLookup accLookup) throws ReturnStatusException;
 }

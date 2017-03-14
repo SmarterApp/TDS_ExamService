@@ -38,6 +38,7 @@ import tds.itemscoringengine.ScorerInfo;
 import tds.itemscoringengine.ScoringStatus;
 import tds.itemscoringengine.WebProxyItemScorerCallback;
 import tds.score.configuration.ItemScoreSettings;
+import tds.score.model.ExamInstance;
 import tds.score.services.ItemScoringService;
 import tds.score.services.ResponseService;
 import tds.score.services.ScoreConfigService;
@@ -47,7 +48,6 @@ import tds.student.sql.data.IItemResponseUpdate;
 import tds.student.sql.data.ItemResponseUpdate;
 import tds.student.sql.data.ItemResponseUpdateStatus;
 import tds.student.sql.data.ItemScoringConfig;
-import tds.student.sql.data.OpportunityInstance;
 
 @Service
 public class ItemScoringServiceImpl implements ItemScoringService {
@@ -183,13 +183,13 @@ public class ItemScoringServiceImpl implements ItemScoringService {
      *
      * @throws ReturnStatusException
      */
-    private ItemResponseUpdateStatus updateResponse(OpportunityInstance oppInstance, IItemResponseUpdate responseUpdated, ItemScore score, Float itemDuration) throws ReturnStatusException {
+    private ItemResponseUpdateStatus updateResponse(ExamInstance examInstance, IItemResponseUpdate responseUpdated, ItemScore score, Float itemDuration) throws ReturnStatusException {
         StopWatch dbTimer = new StopWatch();
         dbTimer.start();
 
         ItemScoreInfo scoreInfoObj = score.getScoreInfo();
         ScoreRationale scoreRationaleObj = score.getScoreInfo().getRationale();
-        ReturnStatus updateStatus = responseService.updateScoredResponse(oppInstance, responseUpdated, scoreInfoObj.getPoints(), scoreInfoObj.getStatus().toString(), scoreRationaleObj.getMsg(),
+        ReturnStatus updateStatus = responseService.updateScoredResponse(examInstance, responseUpdated, scoreInfoObj.getPoints(), scoreInfoObj.getStatus().toString(), scoreRationaleObj.getMsg(),
             score.getScoreLatency(), itemDuration);
 
         dbTimer.stop();
@@ -202,7 +202,7 @@ public class ItemScoringServiceImpl implements ItemScoringService {
     }
 
     @Override
-    public List<ItemResponseUpdateStatus> updateResponses(OpportunityInstance oppInstance, List<ItemResponseUpdate> responsesUpdated, Float pageDuration) throws ReturnStatusException {
+    public List<ItemResponseUpdateStatus> updateResponses(ExamInstance examInstance, List<ItemResponseUpdate> responsesUpdated, Float pageDuration) throws ReturnStatusException {
         List<ItemResponseUpdateStatus> responseResults = new ArrayList<ItemResponseUpdateStatus>();
 
         for (ItemResponseUpdate responseUpdate : responsesUpdated) {
@@ -223,7 +223,7 @@ public class ItemScoringServiceImpl implements ItemScoringService {
             // problem
             if (score != null) {
                 // save response with error
-                updateStatus = updateResponse(oppInstance, responseUpdate, score, pageDuration);
+                updateStatus = updateResponse(examInstance, responseUpdate, score, pageDuration);
             } else {
                 // for asynchronous we need to save the score first indicating it
                 // is machine scorable and then submit to the scoring web site
@@ -233,16 +233,16 @@ public class ItemScoringServiceImpl implements ItemScoringService {
                             setMsg("Waiting for machine score.");
                         }
                     }, new ArrayList<ItemScoreInfo>(), null);
-                    updateStatus = updateResponse(oppInstance, responseUpdate, score, pageDuration);
+                    updateStatus = updateResponse(examInstance, responseUpdate, score, pageDuration);
 
                     // TODO: if score returned here ends up being
                     // ScoringStatus.ScoringError should we save this?
-                    score = scoreResponse(oppInstance.getKey(), responseUpdate, itsDoc);
+                    score = scoreResponse(examInstance.getExamId(), responseUpdate, itsDoc);
                 }
                 // for synchronous we need to score first and then save
                 else {
-                    score = scoreResponse(oppInstance.getKey(), responseUpdate, itsDoc);
-                    updateStatus = updateResponse(oppInstance, responseUpdate, score, pageDuration);
+                    score = scoreResponse(examInstance.getExamId(), responseUpdate, itsDoc);
+                    updateStatus = updateResponse(examInstance, responseUpdate, score, pageDuration);
                 }
             }
 

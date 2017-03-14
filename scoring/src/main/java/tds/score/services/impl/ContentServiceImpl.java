@@ -7,6 +7,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Optional;
 
 import tds.itemrenderer.ITSDocumentFactory;
@@ -14,32 +16,37 @@ import tds.itemrenderer.data.AccLookup;
 import tds.itemrenderer.data.IITSDocument;
 import tds.itemrenderer.data.ITSContent;
 import tds.itemrenderer.data.ITSMachineRubric;
+import tds.itemrenderer.processing.ItemDataReader;
 import tds.itemscoringengine.RubricContentSource;
 import tds.score.model.AccLookupWrapper;
 import tds.score.model.Item;
 import tds.score.services.ContentService;
+import tds.score.services.ItemService;
 import tds.student.services.data.ItemResponse;
 import tds.student.services.data.PageGroup;
 
 @Service
 public class ContentServiceImpl implements ContentService {
     private final ItemService itemService;
+    private final ItemDataReader itemDataReader;
 
     @Autowired
-    public ContentServiceImpl(final ItemService itemService) {
+    public ContentServiceImpl(final ItemService itemService, final ItemDataReader itemDataReader) {
         this.itemService = itemService;
+        this.itemDataReader = itemDataReader;
     }
 
     private static final Logger _logger = LoggerFactory.getLogger(ContentService.class);
 
+    @Override
     public IITSDocument getContent(String xmlFilePath, AccLookup accommodations) throws ReturnStatusException {
         return getContent(xmlFilePath, new AccLookupWrapper(accommodations));
     }
 
+    @Override
     public IITSDocument getItemContent(long bankKey, long itemKey, AccLookup accommodations) throws ReturnStatusException {
         try {
-//            String itemPath = itemBankService.getItemPath (bankKey, itemKey);
-            Optional<Item> maybeItem = itemService.findItem(bankKey, itemKey, -1);
+            Optional<Item> maybeItem = itemService.findItemByKey(bankKey, itemKey);
             if (!maybeItem.isPresent())
                 return null;
 
@@ -50,18 +57,16 @@ public class ContentServiceImpl implements ContentService {
         }
     }
 
+    @Override
     public IITSDocument getStimulusContent(long bankKey, long stimulusKey, AccLookup accommodations) throws ReturnStatusException {
-//        String stimulusPath = itemBankService.getStimulusPath (bankKey, stimulusKey);
-        Optional<Item> maybeItem = itemService.findItem(bankKey, -1, stimulusKey);
+        Optional<Item> maybeItem = itemService.findItemByStimulusKey(bankKey, stimulusKey);
         if (!maybeItem.isPresent())
             return null;
 
         return getContent(maybeItem.get().getStimulusPath(), accommodations);
     }
 
-    // / <summary>
-    // / Load all the documents for a page group.
-    // / </summary>
+    @Override
     public void loadPageGroupDocuments(PageGroup pageGroup, AccLookup accLookup) throws ReturnStatusException {
         try {
             pageGroup.setDocument(getContent(pageGroup.getFilePath(), accLookup));
@@ -74,11 +79,7 @@ public class ContentServiceImpl implements ContentService {
         }
     }
 
-    // / <summary>
-    // / This parses the machine rubric from an ITS document.
-    // / </summary>
-    // / <returns>Returns either the data or a path for the rubric depending on
-    // the source.</returns>
+    @Override
     public ITSMachineRubric parseMachineRubric(IITSDocument itsDocument, String language, RubricContentSource rubricContentSource) throws ReturnStatusException {
         ITSMachineRubric machineRubric = null;
         // if the source is item bank then parse the answer key attribute
@@ -104,9 +105,15 @@ public class ContentServiceImpl implements ContentService {
     }
 
     private IITSDocument getContent(String xmlFilePath, AccLookupWrapper accommodations) throws ReturnStatusException {
-        if (StringUtils.isEmpty(xmlFilePath))
+        if (StringUtils.isEmpty(xmlFilePath)) {
             return null;
+        }
 
-        return ITSDocumentFactory.load(xmlFilePath, accommodations.getValue(), true);
+        try {
+            URI uri = new URI(xmlFilePath);
+            return ITSDocumentFactory.load(uri, accommodations.getValue(), itemDataReader, true);
+        } catch (URISyntaxException e) {
+            throw new ReturnStatusException(e);
+        }
     }
 }
