@@ -28,6 +28,7 @@ import tds.exam.services.ExamSegmentService;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -60,7 +61,7 @@ public class ExamSegmentControllerIntegrationTests {
             .withSegmentPosition(2)
             .build();
         List<ExamSegment> mockExamSegments = Arrays.asList(seg1, seg2);
-        when(mockExamSegmentService.findExamSegments(examId, sessionId, browserId)).thenReturn(new Response<>(mockExamSegments));
+        when(mockExamSegmentService.findExamSegments(examId)).thenReturn(mockExamSegments);
 
         http.perform(get(new URI(String.format("/exam/segments/%s", examId)))
             .param("sessionId", sessionId.toString())
@@ -72,7 +73,7 @@ public class ExamSegmentControllerIntegrationTests {
             .andExpect(jsonPath("data[1].segmentPosition", is(2)))
             .andExpect(jsonPath("data[1].segmentKey", is("seg2")));
 
-        verify(mockExamSegmentService).findExamSegments(examId, sessionId, browserId);
+        verify(mockExamSegmentService).findExamSegments(examId);
     }
 
     @Test
@@ -81,7 +82,7 @@ public class ExamSegmentControllerIntegrationTests {
         final UUID sessionId = UUID.randomUUID();
         final UUID browserId = UUID.randomUUID();
         ValidationError error = new ValidationError("ruh", "roh");
-        when(mockExamSegmentService.findExamSegments(examId, sessionId, browserId)).thenReturn(new Response<>(error));
+
 
         http.perform(get(new URI(String.format("/exam/segments/%s", examId)))
             .param("sessionId", sessionId.toString())
@@ -91,7 +92,7 @@ public class ExamSegmentControllerIntegrationTests {
             .andExpect(jsonPath("error.code", is("ruh")))
             .andExpect(jsonPath("error.message", is("roh")));
 
-        verify(mockExamSegmentService).findExamSegments(examId, sessionId, browserId);
+        verifyZeroInteractions(mockExamSegmentService.findExamSegments(examId));
     }
 
     @Test
@@ -99,7 +100,7 @@ public class ExamSegmentControllerIntegrationTests {
         final UUID examId = UUID.randomUUID();
         final UUID sessionId = UUID.randomUUID();
         final UUID browserId = UUID.randomUUID();
-        when(mockExamSegmentService.findExamSegments(examId, sessionId, browserId)).thenReturn(new Response(new ArrayList<>()));
+        when(mockExamSegmentService.findExamSegments(examId)).thenReturn(new ArrayList<>());
 
         http.perform(get(new URI(String.format("/exam/segments/%s", examId)))
             .param("sessionId", sessionId.toString())
@@ -108,7 +109,7 @@ public class ExamSegmentControllerIntegrationTests {
             .andExpect(status().isNoContent())
             .andExpect(jsonPath("data", Matchers.hasSize(0)));
 
-        verify(mockExamSegmentService).findExamSegments(examId, sessionId, browserId);
+        verify(mockExamSegmentService).findExamSegments(examId);
     }
 
     @Test

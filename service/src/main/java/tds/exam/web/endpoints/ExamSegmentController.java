@@ -19,9 +19,10 @@ import tds.common.ValidationError;
 import tds.common.web.resources.NoContentResponseResource;
 import tds.exam.ExamSegment;
 import tds.exam.services.ExamSegmentService;
+import tds.exam.utils.VerifyAccess;
 
 @RestController
-@RequestMapping("/exam/segments")
+@RequestMapping("/exam")
 public class ExamSegmentController {
     private final ExamSegmentService examSegmentService;
 
@@ -30,22 +31,13 @@ public class ExamSegmentController {
         this.examSegmentService = examSegmentService;
     }
 
-    @RequestMapping(value = "/{examId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<Response<List<ExamSegment>>> getExamSegments(@PathVariable final UUID examId,
-                                                                @RequestParam final UUID browserId,
-                                                                @RequestParam final UUID sessionId) {
-        Response<List<ExamSegment>> examSegmentsResponse = examSegmentService.findExamSegments(examId, sessionId, browserId);
-
-        if (examSegmentsResponse.getError().isPresent()) {
-            return new ResponseEntity<>(examSegmentsResponse, HttpStatus.UNPROCESSABLE_ENTITY);
-        } else if (examSegmentsResponse.getData().isPresent() && examSegmentsResponse.getData().get().isEmpty()) {
-            return new ResponseEntity<>(examSegmentsResponse, HttpStatus.NO_CONTENT);
-        }
-
-        return ResponseEntity.ok(examSegmentsResponse);
+    @VerifyAccess()
+    @RequestMapping(value = "/{examId}/segments", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<List<ExamSegment>> getExamSegments(@PathVariable final UUID examId) {
+        return ResponseEntity.ok(examSegmentService.findExamSegments(examId));
     }
 
-    @RequestMapping(value = "/{examId}/exit/{segmentPosition}", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/{examId}/segments/{segmentPosition}/exit", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<NoContentResponseResource> exitSegment(@PathVariable final UUID examId,
                                                           @PathVariable final int segmentPosition) {
         Optional<ValidationError> maybeError = examSegmentService.exitSegment(examId, segmentPosition);

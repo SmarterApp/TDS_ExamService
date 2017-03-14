@@ -32,6 +32,7 @@ import tds.exam.ExpandableExam;
 import tds.exam.OpenExamRequest;
 import tds.exam.SegmentApprovalRequest;
 import tds.exam.services.ExamService;
+import tds.exam.utils.VerifyAccess;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
@@ -56,6 +57,7 @@ public class ExamController {
     }
 
     @RequestMapping(method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    @VerifyAccess
     ResponseEntity<Response<Exam>> openExam(@RequestBody final OpenExamRequest openExamRequest) {
         Response<Exam> exam = examService.openExam(openExamRequest);
 

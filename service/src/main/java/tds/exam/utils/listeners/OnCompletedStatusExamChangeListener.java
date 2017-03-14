@@ -52,10 +52,10 @@ public class OnCompletedStatusExamChangeListener implements ChangeListener<Exam>
 
         // CommonDLL#_OnStatus_Completed_SP, line 1425: Update the exam to indicate this segment is not permeable,
         // meaning the segment cannot be accessed/visited again.  Legacy code sets isPermeable to -1 for all segments
-        Response<List<ExamSegment>> examSegmentsResponse = examSegmentService.findExamSegments(newExam.getId(), newExam.getSessionId(), newExam.getBrowserId());
+        List<ExamSegment> examSegments = examSegmentService.findExamSegments(newExam.getId());
 
-        if (examSegmentsResponse.getData().isPresent()) {
-            List<ExamSegment> examSegments = examSegmentsResponse.getData().get().stream()
+        if (!examSegments.isEmpty()) {
+            List<ExamSegment> filteredSegments = examSegments.stream()
                 .filter(examSegment -> examSegment.isPermeable())
                 .map(examSegment -> ExamSegment.Builder
                     .fromSegment(examSegment)
@@ -64,7 +64,7 @@ public class OnCompletedStatusExamChangeListener implements ChangeListener<Exam>
                 )
                 .collect(Collectors.toList());
 
-            examSegmentService.update(examSegments.toArray(new ExamSegment[examSegments.size()]));
+            examSegmentService.update(filteredSegments.toArray(new ExamSegment[filteredSegments.size()]));
         }
 
         // CommonDLL#_OnStatus_Completed_SP, line 1430: insert the final version of the student's attributes and

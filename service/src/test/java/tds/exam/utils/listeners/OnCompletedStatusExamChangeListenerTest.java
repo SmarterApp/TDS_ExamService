@@ -91,13 +91,13 @@ public class OnCompletedStatusExamChangeListenerTest {
             .withSessionId(UUID.randomUUID())
             .build();
 
-        when(mockExamSegmentService.findExamSegments(newExam.getId(), newExam.getSessionId(), newExam.getBrowserId()))
-            .thenReturn(new Response<>(Arrays.asList(mockSegment)));
+        when(mockExamSegmentService.findExamSegments(newExam.getId()))
+            .thenReturn(Arrays.asList(mockSegment));
         when(mockFieldTestService.findUsageInExam(newExam.getId()))
             .thenReturn(Arrays.asList(mockFirstFtItemGroup, mockSecondFtItemGroup));
 
         onCompletedExamStatusChangeListener.accept(oldExam, newExam);
-        verify(mockExamSegmentService).findExamSegments(newExam.getId(), newExam.getSessionId(), newExam.getBrowserId());
+        verify(mockExamSegmentService).findExamSegments(newExam.getId());
         verify(mockFieldTestService).findUsageInExam(newExam.getId());
     }
 
@@ -111,13 +111,13 @@ public class OnCompletedStatusExamChangeListenerTest {
             .withExamId(newExam.getId())
             .build();
 
-        when(mockExamSegmentService.findExamSegments(newExam.getId(), newExam.getSessionId(), newExam.getBrowserId()))
-            .thenReturn(new Response<>(Arrays.asList(mockSegment)));
+        when(mockExamSegmentService.findExamSegments(newExam.getId()))
+            .thenReturn(Arrays.asList(mockSegment));
         when(mockFieldTestService.findUsageInExam(newExam.getId()))
             .thenReturn(Collections.emptyList());
 
         onCompletedExamStatusChangeListener.accept(oldExam, newExam);
-        verify(mockExamSegmentService).findExamSegments(newExam.getId(), newExam.getSessionId(), newExam.getBrowserId());
+        verify(mockExamSegmentService).findExamSegments(newExam.getId());
         verify(mockFieldTestService).findUsageInExam(newExam.getId());
     }
 
@@ -154,10 +154,10 @@ public class OnCompletedStatusExamChangeListenerTest {
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_COMPLETED, ExamStatusStage.IN_PROGRESS), Instant.now())
             .build();
 
-        when(mockExamSegmentService.findExamSegments(newExam.getId(), newExam.getSessionId(), newExam.getBrowserId()))
-            .thenReturn(new Response<>(new ArrayList<>()));
+        when(mockExamSegmentService.findExamSegments(newExam.getId()))
+            .thenReturn(new ArrayList<>());
 
         onCompletedExamStatusChangeListener.accept(oldExam, newExam);
-        verify(mockExamSegmentService).findExamSegments(any(UUID.class), any(UUID.class), any(UUID.class));
+        verify(mockExamSegmentService).findExamSegments(any(UUID.class));
     }
 }
