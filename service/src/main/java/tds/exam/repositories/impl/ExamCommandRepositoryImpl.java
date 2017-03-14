@@ -40,7 +40,8 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
             .addValue("assessmentWindowId", exam.getAssessmentWindowId())
             .addValue("assessmentAlgorithm", exam.getAssessmentAlgorithm())
             .addValue("segmented", exam.isSegmented())
-            .addValue("joinedAt", mapJodaInstantToTimestamp(exam.getDateJoined()));
+            .addValue("joinedAt", mapJodaInstantToTimestamp(exam.getDateJoined()))
+            .addValue("createdAt", mapJodaInstantToTimestamp(Instant.now()));
 
         String examInsertSQL = "INSERT INTO exam \n" +
             "(\n" +
@@ -56,7 +57,8 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
             "  assessment_window_id,\n" +
             "  assessment_algorithm,\n" +
             "  segmented,\n" +
-            "  joined_at \n" +
+            "  joined_at, \n" +
+            "  created_at \n" +
             ")\n" +
             "VALUES\n" +
             "(\n" +
@@ -72,7 +74,8 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
             "  :assessmentWindowId,\n" +
             "  :assessmentAlgorithm,\n" +
             "  :segmented,\n" +
-            "  :joinedAt \n" +
+            "  :joinedAt, \n" +
+            "  :createdAt \n" +
             ");";
 
         int insertCount = jdbcTemplate.update(examInsertSQL, examParameters);
@@ -107,7 +110,8 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
                 .addValue("waitingForSegmentApprovalPosition", exam.getWaitingForSegmentApprovalPosition())
                 .addValue("currentSegmentPosition", exam.getCurrentSegmentPosition())
                 .addValue("customAccommodations", exam.isCustomAccommodations())
-                .addValue("startedAt", mapJodaInstantToTimestamp(exam.getStartedAt())))
+                .addValue("startedAt", mapJodaInstantToTimestamp(exam.getStartedAt()))
+                .addValue("createdAt", mapJodaInstantToTimestamp(Instant.now())))
             .toArray(MapSqlParameterSource[]::new);
 
         final String SQL =
@@ -130,7 +134,8 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
                 "waiting_for_segment_approval_position, \n" +
                 "current_segment_position, \n" +
                 "custom_accommodations, \n" +
-                "abnormal_starts \n" +
+                "abnormal_starts, \n" +
+                "created_at \n" +
                 ") \n" +
                 "VALUES \n" +
                 "( \n" +
@@ -152,7 +157,8 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
                 ":waitingForSegmentApprovalPosition,\n" +
                 ":currentSegmentPosition, \n" +
                 ":customAccommodations, \n" +
-                ":abnormalStarts \n" +
+                ":abnormalStarts, \n" +
+                ":createdAt \n" +
                 ")";
 
         jdbcTemplate.batchUpdate(SQL, batchParameters);

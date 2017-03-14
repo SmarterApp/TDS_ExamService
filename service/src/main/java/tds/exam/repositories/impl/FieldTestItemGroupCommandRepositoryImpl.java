@@ -1,5 +1,6 @@
 package tds.exam.repositories.impl;
 
+import org.joda.time.Instant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -40,7 +41,8 @@ public class FieldTestItemGroupCommandRepositoryImpl implements FieldTestItemGro
                 "   group_key, \n" +
                 "   block_id, \n" +
                 "   session_id, \n" +
-                "   language_code \n" +
+                "   language_code, \n" +
+                "   created_at \n" +
                 ") \n " +
                 "VALUES ( \n" +
                 "   :examId, \n" +
@@ -52,7 +54,8 @@ public class FieldTestItemGroupCommandRepositoryImpl implements FieldTestItemGro
                 "   :groupKey, \n" +
                 "   :blockId, \n" +
                 "   :sessionId, \n" +
-                "   :languageCode \n" +
+                "   :languageCode, \n" +
+                "   :createdAt \n" +
                 ")";
 
         fieldTestItemGroups.forEach(fieldTestItemGroup -> {
@@ -65,7 +68,8 @@ public class FieldTestItemGroupCommandRepositoryImpl implements FieldTestItemGro
                 .addValue("groupKey", fieldTestItemGroup.getGroupKey())
                 .addValue("blockId", fieldTestItemGroup.getBlockId())
                 .addValue("sessionId", getBytesFromUUID(fieldTestItemGroup.getSessionId()))
-                .addValue("languageCode", fieldTestItemGroup.getLanguageCode());
+                .addValue("languageCode", fieldTestItemGroup.getLanguageCode())
+                .addValue("createdAt", ResultSetMapperUtility.mapJodaInstantToTimestamp(Instant.now()));
 
             KeyHolder keyHolder = new GeneratedKeyHolder();
             jdbcTemplate.update(ftItemGroupSQL, parameterSources, keyHolder);
@@ -82,19 +86,22 @@ public class FieldTestItemGroupCommandRepositoryImpl implements FieldTestItemGro
                 .addValue("deletedAt", ResultSetMapperUtility.mapInstantToTimestamp(fieldTestItemGroup.getDeletedAt()))
                 .addValue("positionAdministered", fieldTestItemGroup.getPositionAdministered())
                 .addValue("administeredAt", ResultSetMapperUtility.mapInstantToTimestamp(fieldTestItemGroup.getAdministeredAt()))
+                .addValue("createdAt", ResultSetMapperUtility.mapJodaInstantToTimestamp(Instant.now()))
             ).toArray(SqlParameterSource[]::new);
         final String SQL =
             "INSERT INTO field_test_item_group_event ( \n" +
                 "   field_test_item_group_id, \n" +
                 "   deleted_at, \n" +
                 "   position_administered, \n" +
-                "   administered_at \n" +
+                "   administered_at, \n" +
+                "   created_at \n" +
                 ") \n" +
                 "VALUES ( \n" +
                 "   :id, \n" +
                 "   :deletedAt, \n" +
                 "   :positionAdministered, \n" +
-                "   :administeredAt \n" +
+                "   :administeredAt, \n" +
+                "   :createdAt \n" +
                 ")";
 
         jdbcTemplate.batchUpdate(SQL, parameterSources);

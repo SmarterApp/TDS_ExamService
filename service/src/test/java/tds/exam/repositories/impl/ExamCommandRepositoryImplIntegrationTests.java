@@ -95,6 +95,8 @@ public class ExamCommandRepositoryImplIntegrationTests {
         assertThat(savedExam.getWaitingForSegmentApprovalPosition()).isEqualTo(exam.getWaitingForSegmentApprovalPosition());
         assertThat(savedExam.getCurrentSegmentPosition()).isEqualTo(exam.getCurrentSegmentPosition());
         assertThat(savedExam.isCustomAccommodations()).isEqualTo(exam.isCustomAccommodations());
+        assertThat(savedExam.getCreatedAt()).isNotNull();
+        assertThat(savedExam.getCreatedAt()).isGreaterThan(now);
     }
 
     @Test
@@ -131,6 +133,7 @@ public class ExamCommandRepositoryImplIntegrationTests {
         Exam updatedExam = maybeUpdatedExam.get();
         assertThat(updatedExam.getStatus()).isEqualTo(pausedStatus);
         assertThat(updatedExam.getStatusChangedAt()).isEqualTo(pausedStatusDate);
+        assertThat(updatedExam.getCreatedAt()).isNotNull();
     }
 
     @Test
@@ -160,11 +163,13 @@ public class ExamCommandRepositoryImplIntegrationTests {
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.IN_USE), Instant.now().plus(50000))
             .withStatusChangeReason("unit test")
             .withAttempts(500)
+            .withCreatedAt(null)
             .build());
         examsWithChanges.add(new Exam.Builder().fromExam(mockSecondExam)
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_STARTED, ExamStatusStage.IN_USE), Instant.now().plus(55000))
             .withStatusChangeReason("unit test 2")
             .withMaxItems(600)
+            .withCreatedAt(null)
             .build());
 
         examCommandRepository.update(examsWithChanges.toArray(new Exam[examsWithChanges.size()]));
@@ -178,6 +183,7 @@ public class ExamCommandRepositoryImplIntegrationTests {
         assertThat(mockFirstExamAfterUpdate.getStatusChangedAt().getMillis()).isGreaterThan(mockFirstExam.getStatusChangedAt().getMillis());
         assertThat(mockFirstExamAfterUpdate.getAttempts()).isEqualTo(500);
         assertThat(mockFirstExamAfterUpdate.getStatusChangeReason()).isEqualTo("unit test");
+        assertThat(mockFirstExamAfterUpdate.getCreatedAt()).isNotNull();
 
         // Verify the second exam was updated
         Optional<Exam> maybeMockSecondExamAfterUpdate = examQueryRepository.getExamById(mockSecondExam.getId());
@@ -188,5 +194,6 @@ public class ExamCommandRepositoryImplIntegrationTests {
         assertThat(mockSecondExamAfterUpdate.getStatusChangedAt().getMillis()).isGreaterThan(mockSecondExam.getStatusChangedAt().getMillis());
         assertThat(mockSecondExamAfterUpdate.getMaxItems()).isEqualTo(600);
         assertThat(mockSecondExamAfterUpdate.getStatusChangeReason()).isEqualTo("unit test 2");
+        assertThat(mockSecondExamAfterUpdate.getCreatedAt()).isNotNull();
     }
 }

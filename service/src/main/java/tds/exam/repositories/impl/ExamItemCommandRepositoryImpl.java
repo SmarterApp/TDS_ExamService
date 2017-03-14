@@ -1,5 +1,6 @@
 package tds.exam.repositories.impl;
 
+import org.joda.time.Instant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -9,11 +10,12 @@ import org.springframework.stereotype.Repository;
 
 import java.util.stream.Stream;
 
-import tds.common.data.mapping.ResultSetMapperUtility;
 import tds.exam.ExamItem;
 import tds.exam.ExamItemResponse;
 import tds.exam.ExamItemResponseScore;
 import tds.exam.repositories.ExamItemCommandRepository;
+
+import static tds.common.data.mapping.ResultSetMapperUtility.mapJodaInstantToTimestamp;
 
 @Repository
 public class ExamItemCommandRepositoryImpl implements ExamItemCommandRepository {
@@ -38,7 +40,8 @@ public class ExamItemCommandRepositoryImpl implements ExamItemCommandRepository 
                 .addValue("isRequired", examItem.isRequired())
                 .addValue("isMarkedForReview", examItem.isMarkedForReview())
                 .addValue("itemFilePath", examItem.getItemFilePath())
-                .addValue("stimulusFilePath", examItem.getStimulusFilePath().orNull()))
+                .addValue("stimulusFilePath", examItem.getStimulusFilePath().orNull())
+                .addValue("createdAt", mapJodaInstantToTimestamp(Instant.now())))
             .toArray(MapSqlParameterSource[]::new);
 
         final String SQL =
@@ -54,7 +57,8 @@ public class ExamItemCommandRepositoryImpl implements ExamItemCommandRepository 
                 "   is_required, \n" +
                 "   is_marked_for_review, \n" +
                 "   item_file_path, \n" +
-                "   stimulus_file_path) \n" +
+                "   stimulus_file_path, \n" +
+                "   created_at) \n" +
                 "VALUES( " +
                 "   :id, \n" +
                 "   :itemKey, \n" +
@@ -67,7 +71,8 @@ public class ExamItemCommandRepositoryImpl implements ExamItemCommandRepository 
                 "   :isRequired, \n" +
                 "   :isMarkedForReview, \n" +
                 "   :itemFilePath, \n" +
-                "   :stimulusFilePath)";
+                "   :stimulusFilePath, \n" +
+                "   :createdAt)";
 
         jdbcTemplate.batchUpdate(SQL, batchParameters);
     }
@@ -82,7 +87,7 @@ public class ExamItemCommandRepositoryImpl implements ExamItemCommandRepository 
                         .addValue("sequence", response.getSequence())
                         .addValue("isValid", response.isValid())
                         .addValue("isSelected", response.isSelected())
-                        .addValue("createdAt", ResultSetMapperUtility.mapJodaInstantToTimestamp(response.getCreatedAt()));
+                        .addValue("createdAt", mapJodaInstantToTimestamp(response.getCreatedAt()));
 
                 // It's possible that a response has not yet been scored
                 if (response.getScore().isPresent()) {
@@ -91,7 +96,7 @@ public class ExamItemCommandRepositoryImpl implements ExamItemCommandRepository 
                         .addValue("scoringStatus", score.getScoringStatus().toString())
                         .addValue("scoringRationale", score.getScoringRationale())
                         .addValue("scoringDimensions", score.getScoringDimensionsXml())
-                        .addValue("scoredAt", ResultSetMapperUtility.mapJodaInstantToTimestamp(score.getScoredAt()
+                        .addValue("scoredAt", mapJodaInstantToTimestamp(score.getScoredAt()
                             .orNull()));
                 } else {
                     sqlParameterSource.addValue("score", null)

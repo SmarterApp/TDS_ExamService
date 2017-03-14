@@ -8,7 +8,9 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import tds.exam.ExamAccommodation;
@@ -27,24 +29,34 @@ public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodation
 
     @Override
     public void insert(final List<ExamAccommodation> accommodations) {
-        String SQL = "INSERT INTO exam_accommodation(exam_id, id, segment_key, type, code, description, allow_change, value, segment_position) \n" +
-            "VALUES(:examId, :id, :segmentKey, :type, :code, :description, :allowChange, :value, :segmentPosition)";
+        String SQL = "INSERT INTO exam_accommodation(exam_id, id, segment_key, type, code, description, allow_change, value, segment_position, created_at) \n" +
+            "VALUES(:examId, :id, :segmentKey, :type, :code, :description, :allowChange, :value, :segmentPosition, :createdAt)";
 
-        SqlParameterSource[] parameters = accommodations.stream().map(examAccommodation ->
-            new MapSqlParameterSource("examId", examAccommodation.getExamId().toString())
-                .addValue("id", examAccommodation.getId().toString())
-                .addValue("segmentKey", examAccommodation.getSegmentKey())
-                .addValue("type", examAccommodation.getType())
-                .addValue("code", examAccommodation.getCode())
-                .addValue("allowChange", examAccommodation.isAllowChange())
-                .addValue("value", examAccommodation.getValue())
-                .addValue("segmentPosition", examAccommodation.getSegmentPosition())
-                .addValue("description", examAccommodation.getDescription())).toArray(SqlParameterSource[]::new);
+        Instant createdAt = Instant.now();
+        List<ExamAccommodation> createdAccommodations = new ArrayList<>();
+        SqlParameterSource[] parameters = accommodations.stream()
+            .map(examAccommodation -> {
+                createdAccommodations.add(ExamAccommodation.Builder
+                    .fromExamAccommodation(examAccommodation)
+                    .withCreatedAt(createdAt)
+                    .build());
 
+                return new MapSqlParameterSource("examId", examAccommodation.getExamId().toString())
+                    .addValue("id", examAccommodation.getId().toString())
+                    .addValue("segmentKey", examAccommodation.getSegmentKey())
+                    .addValue("type", examAccommodation.getType())
+                    .addValue("code", examAccommodation.getCode())
+                    .addValue("allowChange", examAccommodation.isAllowChange())
+                    .addValue("value", examAccommodation.getValue())
+                    .addValue("segmentPosition", examAccommodation.getSegmentPosition())
+                    .addValue("description", examAccommodation.getDescription())
+                    .addValue("createdAt", mapJodaInstantToTimestamp(createdAt));
+            })
+            .toArray(SqlParameterSource[]::new);
 
         jdbcTemplate.batchUpdate(SQL, parameters);
 
-        update(accommodations.toArray(new ExamAccommodation[accommodations.size()]));
+        update(createdAccommodations.toArray(new ExamAccommodation[createdAccommodations.size()]));
     }
 
     @Override
@@ -59,14 +71,16 @@ public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodation
             "deleted_at, " +
             "selectable," +
             "custom," +
-            "total_type_count) \n" +
+            "total_type_count," +
+            "created_at) \n" +
             "VALUES(" +
             ":examAccommodationId, " +
             ":deniedAt, " +
             ":deletedAt, " +
             ":selectable," +
             ":custom," +
-            ":totalTypeCount);";
+            ":totalTypeCount," +
+            ":createdAt);";
 
         SqlParameterSource[] parameterSources = new SqlParameterSource[examAccommodations.length];
 
@@ -77,7 +91,8 @@ public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodation
                 .addValue("selectable", examAccommodation.isSelectable())
                 .addValue("totalTypeCount", examAccommodation.getTotalTypeCount())
                 .addValue("custom", examAccommodation.isCustom())
-                .addValue("deletedAt", mapJodaInstantToTimestamp(examAccommodation.getDeletedAt()));
+                .addValue("deletedAt", mapJodaInstantToTimestamp(examAccommodation.getDeletedAt()))
+                .addValue("createdAt", mapJodaInstantToTimestamp(Instant.now()));
 
             parameterSources[i] = parameters;
         }
