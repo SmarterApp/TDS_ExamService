@@ -9,8 +9,8 @@
 
     <modules>
         <module>client</module>
-        <module>service</module>
         <module>scoring</module>
+        <module>service</module>
     </modules>
 
     <parent>
