@@ -1,10 +1,12 @@
 package tds.exam.services;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import tds.assessment.Assessment;
 import tds.common.Response;
+import tds.common.ValidationError;
 import tds.exam.Exam;
 import tds.exam.ExamSegment;
 
@@ -39,7 +41,7 @@ public interface ExamSegmentService {
      * @param segmentPosition The position/sequence of the {@link tds.exam.ExamSegment} to find
      * @return The {@link tds.exam.ExamSegment} for the specified exam id and position
      */
-    Response<ExamSegment> findByExamIdAndSegmentPosition(final UUID examId, final int segmentPosition);
+    Optional<ExamSegment> findByExamIdAndSegmentPosition(final UUID examId, final int segmentPosition);
 
     /**
      * Update a one or more {@link tds.exam.ExamSegment}s with new values.
@@ -47,4 +49,12 @@ public interface ExamSegmentService {
      * @param examSegments The {@link tds.exam.ExamSegment}s to update
      */
     void update(final ExamSegment... examSegments);
+
+    /**
+     * Marks an {@link tds.exam.ExamSegment} as exited
+     *
+     * @param examId          The exam id of the {@link tds.exam.ExamSegment} to exit
+     * @param segmentPosition The segment position of the {@link tds.exam.ExamSegment} to exit
+     */
+    Optional<ValidationError> exitSegment(final UUID examId, final int segmentPosition);
 }

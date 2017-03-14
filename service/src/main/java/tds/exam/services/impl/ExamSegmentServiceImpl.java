@@ -1,5 +1,6 @@
 package tds.exam.services.impl;
 
+import org.joda.time.Instant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,11 +20,13 @@ import tds.assessment.Item;
 import tds.assessment.Segment;
 import tds.common.Algorithm;
 import tds.common.Response;
+import tds.common.ValidationError;
 import tds.common.web.exceptions.NotFoundException;
 import tds.exam.Exam;
 import tds.exam.ExamApproval;
 import tds.exam.ExamInfo;
 import tds.exam.ExamSegment;
+import tds.exam.error.ValidationErrorCode;
 import tds.exam.models.SegmentPoolInfo;
 import tds.exam.repositories.ExamSegmentCommandRepository;
 import tds.exam.repositories.ExamSegmentQueryRepository;
@@ -35,22 +38,22 @@ import tds.exam.services.SegmentPoolService;
 
 @Service
 public class ExamSegmentServiceImpl implements ExamSegmentService {
-    private final ExamSegmentCommandRepository commandRepository;
-    private final ExamSegmentQueryRepository queryRepository;
+    private final ExamSegmentCommandRepository examSegmentCommandRepository;
+    private final ExamSegmentQueryRepository examSegmentQueryRepository;
     private final SegmentPoolService segmentPoolService;
     private final FormSelector formSelector;
     private final FieldTestService fieldTestService;
     private final ExamApprovalService examApprovalService;
 
     @Autowired
-    public ExamSegmentServiceImpl(final ExamSegmentCommandRepository commandRepository,
-                                  final ExamSegmentQueryRepository queryRepository,
+    public ExamSegmentServiceImpl(final ExamSegmentCommandRepository examSegmentCommandRepository,
+                                  final ExamSegmentQueryRepository examSegmentQueryRepository,
                                   final SegmentPoolService segmentPoolService,
                                   final FormSelector formSelector,
                                   final FieldTestService fieldTestService,
                                   final ExamApprovalService examApprovalService) {
-        this.commandRepository = commandRepository;
-        this.queryRepository = queryRepository;
+        this.examSegmentCommandRepository = examSegmentCommandRepository;
+        this.examSegmentQueryRepository = examSegmentQueryRepository;
         this.segmentPoolService = segmentPoolService;
         this.fieldTestService = fieldTestService;
         this.formSelector = formSelector;
@@ -160,7 +163,7 @@ public class ExamSegmentServiceImpl implements ExamSegmentService {
             throw new IllegalStateException("There are no items available in the item pool for any segment.");
         }
         /* Lines [4753-4764] */
-        commandRepository.insert(examSegments);
+        examSegmentCommandRepository.insert(examSegments);
 
         return totalItems;
     }
@@ -177,19 +180,34 @@ public class ExamSegmentServiceImpl implements ExamSegmentService {
             return new Response<>(approval.getError().get());
         }
 
-        return new Response<>(queryRepository.findByExamId(examId));
+        return new Response<>(examSegmentQueryRepository.findByExamId(examId));
     }
 
     @Override
-    public Response<ExamSegment> findByExamIdAndSegmentPosition(final UUID examId, final int segmentPosition) {
-        ExamSegment segment = queryRepository.findByExamIdAndSegmentPosition(examId, segmentPosition)
-            .orElseThrow(() -> new NotFoundException(String.format("Could not find an exam segment for exam id %s and segment position %d", examId, segmentPosition)));
-
-        return new Response<>(segment);
+    public Optional<ExamSegment> findByExamIdAndSegmentPosition(final UUID examId, final int segmentPosition) {
+        return examSegmentQueryRepository.findByExamIdAndSegmentPosition(examId, segmentPosition);
     }
 
     @Override
     public void update(final ExamSegment... examSegments) {
-        commandRepository.update(Arrays.asList(examSegments));
+        examSegmentCommandRepository.update(Arrays.asList(examSegments));
+    }
+
+    @Override
+    public Optional<ValidationError> exitSegment(final UUID examId, final int segmentPosition) {
+        Optional<ExamSegment> maybeExamSegment = examSegmentQueryRepository.findByExamIdAndSegmentPosition(examId, segmentPosition);
+
+        if (!maybeExamSegment.isPresent()) {
+            return Optional.of(new ValidationError(ValidationErrorCode.EXAM_SEGMENT_DOES_NOT_EXIST, "The exam segment does not exist"));
+        }
+
+        ExamSegment updatedExamSegment = new ExamSegment.Builder()
+            .fromSegment(maybeExamSegment.get())
+            .withExitedAt(Instant.now())
+            .build();
+
+        examSegmentCommandRepository.update(updatedExamSegment);
+
+        return Optional.empty();
     }
 }

@@ -177,23 +177,24 @@ public class ExamQueryRepositoryImplIntegrationTests {
 
     @Test
     public void shouldReturnLastPausedDate() {
-        Instant pausedAt = Instant.now().minus(99999);
+        Instant now = Instant.now();
+        Instant pausedAt = now.minus(99999);
+
         Exam exam = new ExamBuilder()
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE), pausedAt)
-            .withChangedAt(pausedAt)
             .build();
         examCommandRepository.insert(exam);
 
         Exam approvedExam = new Exam.Builder()
             .fromExam(exam)
-            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.IN_PROGRESS), Instant.now().minus(5000))
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.IN_PROGRESS), now.minus(5000))
             .build();
 
         examCommandRepository.update(approvedExam);
 
         Optional<Instant> maybeLastTimePaused = examQueryRepository.findLastStudentActivity(exam.getId());
         assertThat(maybeLastTimePaused).isPresent();
-        assertThat(maybeLastTimePaused.get()).isEqualTo(pausedAt);
+        assertThat(maybeLastTimePaused.get()).isGreaterThanOrEqualTo(now);
     }
     
     @Test
@@ -238,7 +239,6 @@ public class ExamQueryRepositoryImplIntegrationTests {
 
         Exam exam = new ExamBuilder()
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE), pausedAt)
-            .withChangedAt(pausedAt)
             .build();
         examCommandRepository.insert(exam);
 
@@ -246,7 +246,7 @@ public class ExamQueryRepositoryImplIntegrationTests {
 
         Optional<Instant> maybeLastTimeStudentResponded = examQueryRepository.findLastStudentActivity(exam.getId());
         assertThat(maybeLastTimeStudentResponded).isPresent();
-        assertThat(maybeLastTimeStudentResponded.get()).isEqualTo(lastResponseSubmittedAt);
+        assertThat(maybeLastTimeStudentResponded.get()).isGreaterThanOrEqualTo(lastResponseSubmittedAt);
     }
 
     @Test
@@ -266,7 +266,7 @@ public class ExamQueryRepositoryImplIntegrationTests {
 
         Optional<Instant> maybeLastTimeStudentResponded = examQueryRepository.findLastStudentActivity(exam.getId());
         assertThat(maybeLastTimeStudentResponded).isPresent();
-        assertThat(maybeLastTimeStudentResponded.get()).isEqualTo(pageCreatedAt);
+        assertThat(maybeLastTimeStudentResponded.get()).isGreaterThanOrEqualTo(pageCreatedAt);
     }
 
     private void insertTestDataForResponses(Instant pageCreatedAt, Instant lastResponseSubmittedAt, Instant earlierResponseSubmittedAt, Exam exam) {
