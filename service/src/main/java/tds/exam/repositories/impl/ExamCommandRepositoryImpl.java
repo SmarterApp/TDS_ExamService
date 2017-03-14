@@ -90,7 +90,7 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
 
     @Override
     public void update(final Exam... exams) {
-        Timestamp now = mapJodaInstantToTimestamp(org.joda.time.Instant.now());
+        final Timestamp now = mapJodaInstantToTimestamp(org.joda.time.Instant.now());
 
         SqlParameterSource[] batchParameters = Stream.of(exams)
             .map(exam -> new MapSqlParameterSource("examId", exam.getId().toString())

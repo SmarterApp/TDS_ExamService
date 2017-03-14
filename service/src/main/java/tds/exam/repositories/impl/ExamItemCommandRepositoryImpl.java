@@ -8,6 +8,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Timestamp;
 import java.util.stream.Stream;
 
 import tds.exam.ExamItem;
@@ -28,6 +29,7 @@ public class ExamItemCommandRepositoryImpl implements ExamItemCommandRepository 
 
     @Override
     public void insert(final ExamItem... examItems) {
+        final Timestamp createdAt = mapJodaInstantToTimestamp(Instant.now());
         final SqlParameterSource[] batchParameters = Stream.of(examItems)
             .map(examItem -> new MapSqlParameterSource("id", examItem.getId().toString())
                 .addValue("itemKey", examItem.getItemKey())
@@ -41,7 +43,7 @@ public class ExamItemCommandRepositoryImpl implements ExamItemCommandRepository 
                 .addValue("isMarkedForReview", examItem.isMarkedForReview())
                 .addValue("itemFilePath", examItem.getItemFilePath())
                 .addValue("stimulusFilePath", examItem.getStimulusFilePath().orNull())
-                .addValue("createdAt", mapJodaInstantToTimestamp(Instant.now())))
+                .addValue("createdAt", createdAt))
             .toArray(MapSqlParameterSource[]::new);
 
         final String SQL =
@@ -79,6 +81,7 @@ public class ExamItemCommandRepositoryImpl implements ExamItemCommandRepository 
 
     @Override
     public void insertResponses(final ExamItemResponse... responses) {
+        final Timestamp createdAt = mapJodaInstantToTimestamp(Instant.now());
         final SqlParameterSource[] batchParameters = Stream.of(responses)
             .map(response -> {
                 MapSqlParameterSource sqlParameterSource =
@@ -87,7 +90,7 @@ public class ExamItemCommandRepositoryImpl implements ExamItemCommandRepository 
                         .addValue("sequence", response.getSequence())
                         .addValue("isValid", response.isValid())
                         .addValue("isSelected", response.isSelected())
-                        .addValue("createdAt", mapJodaInstantToTimestamp(Instant.now()));
+                        .addValue("createdAt", createdAt);
 
                 // It's possible that a response has not yet been scored
                 if (response.getScore().isPresent()) {

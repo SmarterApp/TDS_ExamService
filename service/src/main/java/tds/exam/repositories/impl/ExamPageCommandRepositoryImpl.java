@@ -8,6 +8,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Timestamp;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -28,6 +29,7 @@ public class ExamPageCommandRepositoryImpl implements ExamPageCommandRepository 
 
     @Override
     public void insert(final ExamPage... examPages) {
+        final Timestamp createdAt = mapJodaInstantToTimestamp(Instant.now());
         final String examPageSQL =
             "INSERT INTO \n" +
                 "exam_page (\n" +
@@ -54,7 +56,7 @@ public class ExamPageCommandRepositoryImpl implements ExamPageCommandRepository 
                 .addValue("segmentKey", examPage.getSegmentKey())
                 .addValue("itemGroupKey", examPage.getItemGroupKey())
                 .addValue("groupItemsRequired", examPage.isGroupItemsRequired())
-                .addValue("createdAt", mapJodaInstantToTimestamp(Instant.now())))
+                .addValue("createdAt", createdAt))
             .toArray(SqlParameterSource[]::new);
 
         jdbcTemplate.batchUpdate(examPageSQL, parameters);
@@ -91,6 +93,7 @@ public class ExamPageCommandRepositoryImpl implements ExamPageCommandRepository 
 
     @Override
     public void update(final ExamPage... examPages) {
+        final Timestamp createdAt = mapJodaInstantToTimestamp(Instant.now());
         final String updatePageSQL =
             "INSERT INTO exam_page_event (exam_page_id, deleted_at, started_at, created_at) \n" +
                 "VALUES (:examPageId, :deletedAt, :startedAt, :createdAt)";
@@ -99,7 +102,7 @@ public class ExamPageCommandRepositoryImpl implements ExamPageCommandRepository 
             new MapSqlParameterSource("examPageId", examPage.getId().toString())
                 .addValue("startedAt", mapJodaInstantToTimestamp(examPage.getStartedAt()))
                 .addValue("deletedAt", mapJodaInstantToTimestamp(examPage.getDeletedAt()))
-                .addValue("createdAt", mapJodaInstantToTimestamp(Instant.now())))
+                .addValue("createdAt", createdAt))
             .toArray(SqlParameterSource[]::new);
 
         jdbcTemplate.batchUpdate(updatePageSQL, parameters);

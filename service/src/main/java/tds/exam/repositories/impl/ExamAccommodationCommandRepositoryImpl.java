@@ -110,7 +110,7 @@ public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodation
                 .build())
             .collect(Collectors.toList());
 
-        updateEvent(mapJodaInstantToTimestamp(Instant.now()),
+        updateEvent(mapJodaInstantToTimestamp(deletedAt),
             accommodationsToDelete.toArray(new ExamAccommodation[accommodationsToDelete.size()]));
     }
 }

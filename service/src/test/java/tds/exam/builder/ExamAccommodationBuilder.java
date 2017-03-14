@@ -25,7 +25,7 @@ public class ExamAccommodationBuilder {
     private String code = SampleData.DEFAULT_ACCOMMODATION_CODE;
     private String description = "description";
     private Instant deniedAt = null;
-    private Instant createdAt = null;
+    private Instant createdAt = Instant.now();
     private Instant deletedAt = null;
     private boolean selectable = false;
     private boolean allowChange = false;
