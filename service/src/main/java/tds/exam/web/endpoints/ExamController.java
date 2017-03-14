@@ -57,7 +57,6 @@ public class ExamController {
     }
 
     @RequestMapping(method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-    @VerifyAccess
     ResponseEntity<Response<Exam>> openExam(@RequestBody final OpenExamRequest openExamRequest) {
         Response<Exam> exam = examService.openExam(openExamRequest);
 
