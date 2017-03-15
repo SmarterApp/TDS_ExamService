@@ -7,6 +7,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Timestamp;
 import java.util.stream.Stream;
 
 import tds.common.data.mapping.ResultSetMapperUtility;
@@ -24,12 +25,13 @@ public class ExamineeCommandRepositoryImpl implements ExamineeCommandRepository 
 
     @Override
     public void insertAttributes(final ExamineeAttribute... attributes) {
+        final Timestamp createdAt = ResultSetMapperUtility.mapJodaInstantToTimestamp(Instant.now());
         final SqlParameterSource[] batchParameters = Stream.of(attributes)
             .map(attribute -> new MapSqlParameterSource("examId", attribute.getExamId().toString())
                 .addValue("context", attribute.getContext().toString())
                 .addValue("attributeName", attribute.getName())
                 .addValue("attributeValue", attribute.getValue())
-                .addValue("createdAt", ResultSetMapperUtility.mapJodaInstantToTimestamp(Instant.now())))
+                .addValue("createdAt", createdAt))
             .toArray(MapSqlParameterSource[]::new);
 
         final String SQL =
@@ -51,13 +53,14 @@ public class ExamineeCommandRepositoryImpl implements ExamineeCommandRepository 
 
     @Override
     public void insertRelationships(final ExamineeRelationship... relationships) {
+        final Timestamp createdAt = ResultSetMapperUtility.mapJodaInstantToTimestamp(Instant.now());
         final SqlParameterSource[] batchParameters = Stream.of(relationships)
             .map(relationship -> new MapSqlParameterSource("examId", relationship.getExamId().toString())
                 .addValue("attributeName", relationship.getName())
                 .addValue("attributeValue", relationship.getValue())
                 .addValue("attributeRelationship", relationship.getType())
                 .addValue("context", relationship.getContext().toString())
-                .addValue("createdAt", ResultSetMapperUtility.mapJodaInstantToTimestamp(Instant.now())))
+                .addValue("createdAt", createdAt))
             .toArray(MapSqlParameterSource[]::new);
 
         final String SQL =

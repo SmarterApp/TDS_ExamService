@@ -1,6 +1,7 @@
 package tds.exam.web.endpoints;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.joda.time.Instant;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,6 +68,7 @@ public class ExamItemControllerIntegrationTests {
         ExamPage mockNextExamPage = new ExamPageBuilder()
             .withExamId(examInfo.getExamId())
             .withPagePosition(2)
+            .withCreatedAt(Instant.now().minus(20000L))
             .withExamItems(mockExamItems)
             .build();
 

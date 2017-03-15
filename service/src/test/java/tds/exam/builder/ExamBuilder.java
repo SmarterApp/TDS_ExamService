@@ -29,6 +29,7 @@ public class ExamBuilder {
     private Instant startedAt = null;
     private Instant completedAt = null;
     private Instant expiresAt = null;
+    private Instant createdAt = null;
     private ExamStatusCode status = new ExamStatusCode(STATUS_PENDING);
     private Instant statusChangeDate = Instant.now();
     private String subject = "ELA";
@@ -82,6 +83,7 @@ public class ExamBuilder {
             .withCustomAccommodation(customAccommodations)
             .withResumptions(resumptions)
             .withRestartsAndResumptions(restartsAndResumptions)
+            .withCreatedAt(createdAt)
             .build();
     }
 
@@ -187,6 +189,11 @@ public class ExamBuilder {
 
     public ExamBuilder withExpiresAt(Instant expiresAt) {
         this.expiresAt = expiresAt;
+        return this;
+    }
+
+    public ExamBuilder withCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
         return this;
     }
 

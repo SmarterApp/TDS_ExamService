@@ -126,18 +126,19 @@ public class ExamItemCommandRepositoryImplIntegrationTests {
 
         final String insertSegmentSQL =
             "INSERT INTO exam_segment(exam_id, segment_key, segment_id, segment_position, created_at)" +
-                "VALUES (:examId, 'segment-key-1', 'segment-id-1', 1, CURRENT_TIMESTAMP )";
+                "VALUES (:examId, 'segment-key-1', 'segment-id-1', 1, UTC_TIMESTAMP() )";
         final String insertPageSQL =
-            "INSERT INTO exam_page (id, page_position, exam_segment_key, item_group_key, exam_id) " +
-                "VALUES (805, 1, 'segment-key-1', 'GroupKey1', :examId), (806, 2, 'segment-key-1', 'GroupKey2', :examId)";
+            "INSERT INTO exam_page (id, page_position, exam_segment_key, item_group_key, exam_id, created_at) " +
+                "VALUES (805, 1, 'segment-key-1', 'GroupKey1', :examId, UTC_TIMESTAMP()), (806, 2, 'segment-key-1', 'GroupKey2', :examId, UTC_TIMESTAMP())";
         final String insertPageEventSQL = // Create two pages, second page is deleted
-            "INSERT INTO exam_page_event (exam_page_id, started_at, deleted_at) VALUES (805, now(), NULL), (806, now(), now())";
+            "INSERT INTO exam_page_event (exam_page_id, started_at, deleted_at, created_at) " +
+                "VALUES (805, now(), NULL, UTC_TIMESTAMP()), (806, UTC_TIMESTAMP(), UTC_TIMESTAMP(), UTC_TIMESTAMP())";
         final String insertItemSQL = // Two items on first page, 1 item on deleted (second) page
-            "INSERT INTO exam_item (id, item_key, assessment_item_bank_key, assessment_item_key, item_type, exam_page_id, position, item_file_Path)" +
+            "INSERT INTO exam_item (id, item_key, assessment_item_bank_key, assessment_item_key, item_type, exam_page_id, position, item_file_Path, created_at)" +
                 "VALUES " +
-                "(:item1Id, '187-1234', 187, 1234, 'MS', 805, 1, '/path/to/item/187-1234.xml')," +
-                "(:item2Id, '187-1235', 187, 1235, 'MS', 805, 2, '/path/to/item/187-1235.xml')," +
-                "(:item3Id, '187-1236', 187, 1236, 'ER', 806, 3, '/path/to/item/187-1236.xml')";
+                "(:item1Id, '187-1234', 187, 1234, 'MS', 805, 1, '/path/to/item/187-1234.xml', UTC_TIMESTAMP())," +
+                "(:item2Id, '187-1235', 187, 1235, 'MS', 805, 2, '/path/to/item/187-1235.xml', UTC_TIMESTAMP())," +
+                "(:item3Id, '187-1236', 187, 1236, 'ER', 806, 3, '/path/to/item/187-1236.xml', UTC_TIMESTAMP())";
 
         jdbcTemplate.update(insertSegmentSQL, testParams);
         jdbcTemplate.update(insertPageSQL, testParams);
