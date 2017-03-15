@@ -29,7 +29,7 @@ public class ExamSegmentController {
         this.examSegmentService = examSegmentService;
     }
 
-    @VerifyAccess()
+    @VerifyAccess
     @RequestMapping(value = "/{examId}/segments", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<List<ExamSegment>> getExamSegments(@PathVariable final UUID examId) {
         return ResponseEntity.ok(examSegmentService.findExamSegments(examId));

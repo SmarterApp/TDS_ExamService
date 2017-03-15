@@ -17,8 +17,12 @@ import tds.exam.web.annotations.VerifyAccess;
 import tds.exam.web.exceptions.ValidationException;
 
 public class VerifyAccessInterceptor extends HandlerInterceptorAdapter {
-    @Autowired
     private ExamApprovalService examApprovalService;
+
+    @Autowired
+    public VerifyAccessInterceptor(final ExamApprovalService examApprovalService) {
+        this.examApprovalService = examApprovalService;
+    }
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
