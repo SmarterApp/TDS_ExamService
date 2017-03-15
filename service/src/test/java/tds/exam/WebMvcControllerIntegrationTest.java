@@ -13,13 +13,13 @@ import java.lang.annotation.Target;
 
 import tds.common.configuration.JacksonObjectMapperConfiguration;
 import tds.common.configuration.SecurityConfiguration;
-import tds.common.web.advice.ExceptionAdvice;
 import tds.exam.configuration.web.InterceptorConfiguration;
+import tds.exam.web.advice.ExamExceptionAdvice;
 
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @WebMvcTest(excludeFilters = {@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = {InterceptorConfiguration.class})})
-@Import({ExceptionAdvice.class, JacksonObjectMapperConfiguration.class, SecurityConfiguration.class})
+@Import({ExamExceptionAdvice.class, JacksonObjectMapperConfiguration.class, SecurityConfiguration.class})
 public @interface WebMvcControllerIntegrationTest {
     @AliasFor(
         annotation = WebMvcTest.class,

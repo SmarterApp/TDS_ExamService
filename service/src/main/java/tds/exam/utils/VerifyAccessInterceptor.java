@@ -10,11 +10,10 @@ import java.util.Map;
 import java.util.UUID;
 
 import tds.common.Response;
-import tds.common.ValidationError;
-import tds.common.web.exceptions.ValidationException;
 import tds.exam.ExamApproval;
 import tds.exam.ExamInfo;
 import tds.exam.services.ExamApprovalService;
+import tds.exam.web.exceptions.ValidationException;
 
 public class VerifyAccessInterceptor extends HandlerInterceptorAdapter {
     @Autowired
@@ -56,8 +55,7 @@ public class VerifyAccessInterceptor extends HandlerInterceptorAdapter {
         Response<ExamApproval> approval = examApprovalService.getApproval(new ExamInfo(examId, sessionId, browserId));
 
         if (approval.getError().isPresent()) {
-            ValidationError validationError = approval.getError().get();
-            throw new ValidationException(validationError.getCode(), String.format("VerifyAccess: %s", validationError.getMessage()));
+            throw new ValidationException(approval.getError().get());
         }
 
         return true;
