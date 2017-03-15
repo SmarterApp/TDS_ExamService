@@ -51,7 +51,6 @@ public class ExamPrintRequestRepositoryIntegrationTests {
     private ExamPageCommandRepository examPageCommandRepository;
     private ExamItemCommandRepository examItemCommandRepository;
 
-
     @Before
     public void setUp() {
         examPrintRequestQueryRepository = new ExamPrintRequestQueryRepositoryImpl(commandJdbcTemplate);
