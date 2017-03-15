@@ -6,11 +6,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.FilterType;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -20,12 +16,9 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.UUID;
 
-import tds.common.configuration.JacksonObjectMapperConfiguration;
-import tds.common.configuration.SecurityConfiguration;
-import tds.common.web.advice.ExceptionAdvice;
 import tds.exam.ExamPrintRequest;
 import tds.exam.ExamPrintRequestStatus;
-import tds.exam.configuration.web.InterceptorConfiguration;
+import tds.exam.WebMvcControllerIntegrationTest;
 import tds.exam.services.ExamPrintRequestService;
 
 import static io.github.benas.randombeans.api.EnhancedRandom.random;
@@ -40,9 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
-@WebMvcTest(controllers = ExamPrintRequestController.class, excludeFilters = {@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = {InterceptorConfiguration.class})})
-@Import({ExceptionAdvice.class, JacksonObjectMapperConfiguration.class, SecurityConfiguration.class})
-//@WebMvcControllerIntegrationTest(controllers = ExamPrintRequestController.class)
+@WebMvcControllerIntegrationTest(controllers = ExamPrintRequestController.class)
 public class ExamPrintRequestControllerIntegrationTests {
     @Autowired
     private MockMvc http;

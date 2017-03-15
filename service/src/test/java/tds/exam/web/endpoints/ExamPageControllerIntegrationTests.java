@@ -3,34 +3,27 @@ package tds.exam.web.endpoints;
 import org.joda.time.Instant;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.FilterType;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import tds.common.Response;
-import tds.common.ValidationError;
-import tds.common.configuration.JacksonObjectMapperConfiguration;
-import tds.common.configuration.SecurityConfiguration;
-import tds.common.web.advice.ExceptionAdvice;
-import tds.exam.ExamInfo;
-import tds.exam.ExamItem;
-import tds.exam.ExamItemResponse;
-import tds.exam.ExamPage;
-import tds.exam.builder.ExamItemBuilder;
-import tds.exam.builder.ExamPageBuilder;
-import tds.exam.configuration.web.InterceptorConfiguration;
-import tds.exam.error.ValidationErrorCode;
-import tds.exam.services.ExamPageService;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+
+import tds.common.Response;
+import tds.common.ValidationError;
+import tds.exam.ExamInfo;
+import tds.exam.ExamItem;
+import tds.exam.ExamItemResponse;
+import tds.exam.ExamPage;
+import tds.exam.WebMvcControllerIntegrationTest;
+import tds.exam.builder.ExamItemBuilder;
+import tds.exam.builder.ExamPageBuilder;
+import tds.exam.error.ValidationErrorCode;
+import tds.exam.services.ExamPageService;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.Matchers.isA;
@@ -41,9 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
-@WebMvcTest(controllers = ExamPageController.class, excludeFilters = {@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = {InterceptorConfiguration.class})})
-@Import({ExceptionAdvice.class, JacksonObjectMapperConfiguration.class, SecurityConfiguration.class})
-//@WebMvcControllerIntegrationTest(controllers = ExamPageController.class)
+@WebMvcControllerIntegrationTest(controllers = ExamPageController.class)
 public class ExamPageControllerIntegrationTests {
     @Autowired
     private MockMvc http;
