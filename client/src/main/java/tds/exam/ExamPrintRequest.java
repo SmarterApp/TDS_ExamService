@@ -28,6 +28,7 @@ public class ExamPrintRequest {
     private Instant changedAt;
     private ExamPrintRequestStatus status;
     private String reasonDenied;
+    private String itemResponse;
 
     private ExamPrintRequest() {
     }
@@ -46,6 +47,7 @@ public class ExamPrintRequest {
         this.type = builder.type;
         this.reasonDenied = builder.reasonDenied;
         this.description = builder.description;
+        this.itemResponse = builder.itemResponse;
     }
 
     public static final class Builder {
@@ -62,6 +64,7 @@ public class ExamPrintRequest {
         private Instant changedAt;
         private ExamPrintRequestStatus status;
         private String reasonDenied;
+        private String itemResponse;
 
         public Builder(UUID id) {
             this.id = id;
@@ -127,6 +130,11 @@ public class ExamPrintRequest {
             return this;
         }
 
+        public Builder withItemResponse(String itemResponse) {
+            this.itemResponse = itemResponse;
+            return this;
+        }
+
         public Builder fromExamPrintRequest(ExamPrintRequest request) {
             this.createdAt = request.createdAt;
             this.pagePosition = request.pagePosition;
@@ -141,6 +149,7 @@ public class ExamPrintRequest {
             this.type = request.type;
             this.reasonDenied = request.reasonDenied;
             this.description = request.description;
+            this.itemResponse = request.itemResponse;
             return this;
         }
 
@@ -238,6 +247,13 @@ public class ExamPrintRequest {
      */
     public String getReasonDenied() {
         return reasonDenied;
+    }
+
+    /**
+     * @return The current item response for a "PRINTITEM" request.
+     */
+    public String getItemResponse() {
+        return itemResponse;
     }
 
     @Override

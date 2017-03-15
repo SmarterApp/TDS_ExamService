@@ -32,8 +32,7 @@ public class ExamPrintRequestQueryRepositoryImpl implements ExamPrintRequestQuer
     private static final ExamPrintRequestRowMapper examPrintRequestRowMapper = new ExamPrintRequestRowMapper();
 
     private static final String EXAM_PRINT_REQUEST_COLUMNS =
-        "SELECT \n" +
-            "   PR.id AS id, \n" +
+        "   PR.id AS id, \n" +
             "   PR.exam_id AS examId, \n" +
             "   PR.session_id AS sessionId, \n" +
             "   PR.type AS type, \n" +
@@ -96,7 +95,9 @@ public class ExamPrintRequestQueryRepositoryImpl implements ExamPrintRequestQuer
             .addValue("sessionId", sessionId.toString());
 
         final String SQL =
-            EXAM_PRINT_REQUEST_COLUMNS +
+            "SELECT \n" +
+                "NULL as itemResponse, \n" +
+                EXAM_PRINT_REQUEST_COLUMNS +
                 "FROM  \n" +
                 "   exam.exam_print_request PR \n" +
                 "JOIN ( \n" +
@@ -124,7 +125,9 @@ public class ExamPrintRequestQueryRepositoryImpl implements ExamPrintRequestQuer
     public Optional<ExamPrintRequest> findExamPrintRequest(final UUID id) {
         final SqlParameterSource params = new MapSqlParameterSource("id", id.toString());
         final String SQL =
-            EXAM_PRINT_REQUEST_COLUMNS +
+            "SELECT \n" +
+                "IR.response AS itemResponse, \n" +
+                EXAM_PRINT_REQUEST_COLUMNS +
                 "FROM  \n" +
                 "   exam.exam_print_request PR \n" +
                 "JOIN ( \n" +
@@ -136,11 +139,23 @@ public class ExamPrintRequestQueryRepositoryImpl implements ExamPrintRequestQuer
                 "   GROUP BY exam_print_request_id \n" +
                 ") last_event \n" +
                 "   ON PR.id = last_event.exam_print_request_id \n" +
-                "JOIN exam.exam_print_request_event PRE \n" +
+                "JOIN exam_print_request_event PRE \n" +
                 "   ON last_event.exam_print_request_id = PRE.exam_print_request_id \n" +
                 "   AND last_event.id = PRE.id \n" +
+                "LEFT JOIN exam_page P\n" +
+                "   ON P.exam_id = PR.exam_id\n" +
+                "LEFT JOIN exam_page_event PE\n" +
+                "   ON PE.exam_page_id = P.id\n" +
+                "LEFT JOIN exam_item I\n" +
+                "   ON I.exam_page_id = P.id\n" +
+                "   AND PR.item_position = I.position\n" +
+                "LEFT JOIN exam.exam_item_response IR\n" +
+                "   ON IR.exam_item_id = I.id \n" +
                 "WHERE \n" +
-                "   PR.id = :id";
+                "   PR.id = :id \n" +
+                "   AND PE.deleted_at IS NULL \n" +
+                "ORDER BY \n" +
+                "   IR.id DESC LIMIT 1";
 
         Optional<ExamPrintRequest> maybeExamPrintRequest;
 
@@ -158,7 +173,9 @@ public class ExamPrintRequestQueryRepositoryImpl implements ExamPrintRequestQuer
         final SqlParameterSource params = new MapSqlParameterSource("sessionId", sessionId.toString());
 
         final String SQL =
-            EXAM_PRINT_REQUEST_COLUMNS +
+            "SELECT \n" +
+                "NULL as itemResponse, \n" +
+                EXAM_PRINT_REQUEST_COLUMNS +
                 "FROM  \n" +
                 "   exam.exam_print_request PR \n" +
                 "JOIN ( \n" +
@@ -197,6 +214,7 @@ public class ExamPrintRequestQueryRepositoryImpl implements ExamPrintRequestQuer
                 .withChangedAt(mapTimestampToJodaInstant(rs, "changedAt"))
                 .withStatus(ExamPrintRequestStatus.valueOf(rs.getString("status")))
                 .withReasonDenied(rs.getString("reasonDenied"))
+                .withItemResponse(rs.getString("itemResponse"))
                 .build();
         }
     }
