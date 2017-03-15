@@ -30,7 +30,7 @@ import tds.exam.error.ValidationErrorCode;
 import tds.exam.services.ExamApprovalService;
 import tds.exam.services.ExamPageService;
 import tds.exam.services.ExamService;
-import tds.exam.utils.VerifyAccessInterceptor;
+import tds.exam.web.interceptors.VerifyAccessInterceptor;
 
 import static io.github.benas.randombeans.api.EnhancedRandom.random;
 import static org.hamcrest.CoreMatchers.is;

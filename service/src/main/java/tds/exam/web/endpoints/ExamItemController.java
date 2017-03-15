@@ -15,7 +15,7 @@ import tds.common.Response;
 import tds.exam.ExamItemResponse;
 import tds.exam.ExamPage;
 import tds.exam.services.ExamItemService;
-import tds.exam.utils.VerifyAccess;
+import tds.exam.web.annotations.VerifyAccess;
 
 @RestController
 @RequestMapping("/exam")

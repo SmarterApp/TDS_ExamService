@@ -1,4 +1,4 @@
-package tds.exam.utils;
+package tds.exam.web.interceptors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.method.HandlerMethod;
@@ -13,6 +13,7 @@ import tds.common.Response;
 import tds.exam.ExamApproval;
 import tds.exam.ExamInfo;
 import tds.exam.services.ExamApprovalService;
+import tds.exam.web.annotations.VerifyAccess;
 import tds.exam.web.exceptions.ValidationException;
 
 public class VerifyAccessInterceptor extends HandlerInterceptorAdapter {

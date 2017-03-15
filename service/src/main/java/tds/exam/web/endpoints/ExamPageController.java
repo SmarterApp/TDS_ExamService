@@ -14,7 +14,7 @@ import java.util.UUID;
 import tds.common.Response;
 import tds.exam.ExamPage;
 import tds.exam.services.ExamPageService;
-import tds.exam.utils.VerifyAccess;
+import tds.exam.web.annotations.VerifyAccess;
 
 @RestController
 @RequestMapping("/exam")
