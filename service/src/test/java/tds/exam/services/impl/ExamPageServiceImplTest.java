@@ -14,26 +14,18 @@ import java.util.Optional;
 import java.util.UUID;
 
 import tds.common.Response;
-import tds.common.ValidationError;
-import tds.exam.ExamApproval;
-import tds.exam.ExamInfo;
 import tds.exam.ExamItem;
 import tds.exam.ExamItemResponse;
 import tds.exam.ExamPage;
-import tds.exam.ExamStatusCode;
-import tds.exam.ExamStatusStage;
 import tds.exam.builder.ExamItemBuilder;
 import tds.exam.builder.ExamPageBuilder;
-import tds.exam.error.ValidationErrorCode;
 import tds.exam.repositories.ExamPageCommandRepository;
 import tds.exam.repositories.ExamPageQueryRepository;
-import tds.exam.services.ExamApprovalService;
 import tds.exam.services.ExamPageService;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -45,16 +37,12 @@ public class ExamPageServiceImplTest {
     @Mock
     private ExamPageQueryRepository mockExamPageQueryRepository;
 
-    @Mock
-    private ExamApprovalService mockExamApprovalService;
-
     private ExamPageService examPageService;
 
     @Before
     public void setUp() {
         examPageService = new ExamPageServiceImpl(mockExamPageQueryRepository,
-            mockExamPageCommandRepository,
-            mockExamApprovalService);
+            mockExamPageCommandRepository);
     }
 
     @Test
@@ -123,19 +111,10 @@ public class ExamPageServiceImplTest {
             .withExamItems(mockExamItems)
             .build();
 
-        ExamInfo mockExamInfo = new ExamInfo(mockExamId, mockSessionId, mockBrowserId);
-
-        ExamApproval mockExamApproval = new ExamApproval(mockExamId,
-            new ExamStatusCode(ExamStatusCode.STATUS_STARTED, ExamStatusStage.IN_PROGRESS),
-            null);
-
-        when(mockExamApprovalService.getApproval(mockExamInfo))
-            .thenReturn(new Response<>(mockExamApproval));
         when(mockExamPageQueryRepository.findPageWithItems(mockExamId, mockExamPage.getPagePosition()))
             .thenReturn(Optional.of(mockExamPage));
 
-        Response<ExamPage> examPageResponse = examPageService.getPage(mockExamInfo, mockExamPage.getPagePosition());
-        verify(mockExamApprovalService).getApproval(mockExamInfo);
+        Response<ExamPage> examPageResponse = examPageService.getPage(mockExamId, mockExamPage.getPagePosition());
         verify(mockExamPageQueryRepository).findPageWithItems(mockExamPage.getExamId(), mockExamPage.getPagePosition());
         verify(mockExamPageCommandRepository).update(any(ExamPage[].class));
 
@@ -146,27 +125,23 @@ public class ExamPageServiceImplTest {
         assertThat(examPage).isEqualToComparingFieldByFieldRecursively(mockExamPage);
     }
 
-    @Test
-    public void shouldNotGetAnExamPageWhenTheApprovalRequestIsDeniedBecauseSessionIsClosed() {
-        UUID mockExamId = UUID.randomUUID();
-        UUID mockSessionId = UUID.randomUUID();
-        UUID mockBrowserId = UUID.randomUUID();
-        ExamInfo mockExamInfo = new ExamInfo(mockExamId,
-            mockSessionId,
-            mockBrowserId);
-
-        Response<ExamApproval> mockApprovalFailure =
-            new Response<>(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_SESSION_CLOSED,
-                "The session is not available for testing, please check with your test administrator."));
-
-        when(mockExamApprovalService.getApproval(mockExamInfo))
-            .thenReturn(mockApprovalFailure);
-
-        Response<ExamPage> examPageResponse = examPageService.getPage(mockExamInfo, 1);
-        verify(mockExamApprovalService).getApproval(mockExamInfo);
-        verifyZeroInteractions(mockExamPageQueryRepository);
-
-        assertThat(examPageResponse.getError().isPresent()).isTrue();
-        assertThat(examPageResponse.getData().isPresent()).isFalse();
-    }
+//    @Test
+//    public void shouldNotGetAnExamPageWhenTheApprovalRequestIsDeniedBecauseSessionIsClosed() {
+//        UUID mockExamId = UUID.randomUUID();
+//        UUID mockSessionId = UUID.randomUUID();
+//        UUID mockBrowserId = UUID.randomUUID();
+//        ExamInfo mockExamInfo = new ExamInfo(mockExamId,
+//            mockSessionId,
+//            mockBrowserId);
+//
+//        Response<ExamApproval> mockApprovalFailure =
+//            new Response<>(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_SESSION_CLOSED,
+//                "The session is not available for testing, please check with your test administrator."));
+//
+//        Response<ExamPage> examPageResponse = examPageService.getPage(mockExamId, 1);
+//        verifyZeroInteractions(mockExamPageQueryRepository);
+//
+//        assertThat(examPageResponse.getError().isPresent()).isTrue();
+//        assertThat(examPageResponse.getData().isPresent()).isFalse();
+//    }
 }

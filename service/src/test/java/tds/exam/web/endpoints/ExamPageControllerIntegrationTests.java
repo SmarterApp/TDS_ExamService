@@ -61,8 +61,7 @@ public class ExamPageControllerIntegrationTests {
             UUID.randomUUID(),
             UUID.randomUUID());
 
-        ArgumentCaptor<ExamInfo> approvalRequestArgumentCaptor = ArgumentCaptor.forClass(ExamInfo.class);
-        when(mockExamPageService.getPage(isA(ExamInfo.class), isA(Integer.class)))
+        when(mockExamPageService.getPage(isA(UUID.class), isA(Integer.class)))
             .thenReturn(new Response<>(mockExamPage));
 
         http.perform(get("/exam/{id}/page/{position}", mockExamPage.getExamId(), mockExamPage.getPagePosition())
@@ -92,7 +91,7 @@ public class ExamPageControllerIntegrationTests {
             .andExpect(jsonPath("data.examItems[0].itemFilePath", is(mockExamItem.getItemFilePath())))
             .andExpect(jsonPath("data.examItems[0].stimulusFilePath", is(mockExamItem.getStimulusFilePath().get())));
 
-        verify(mockExamPageService).getPage(approvalRequestArgumentCaptor.capture(), isA(Integer.class));
+        verify(mockExamPageService).getPage(mockExamPage.getExamId(), mockExamPage.getPagePosition());
     }
 
     @Test
@@ -115,8 +114,7 @@ public class ExamPageControllerIntegrationTests {
             UUID.randomUUID(),
             UUID.randomUUID());
 
-        ArgumentCaptor<ExamInfo> approvalRequestArgumentCaptor = ArgumentCaptor.forClass(ExamInfo.class);
-        when(mockExamPageService.getPage(isA(ExamInfo.class), isA(Integer.class)))
+        when(mockExamPageService.getPage(isA(UUID.class), isA(Integer.class)))
             .thenReturn(new Response<>(examPage));
 
         http.perform(get("/exam/{id}/page/{position}", examPage.getExamId(), examPage.getPagePosition())
@@ -149,7 +147,7 @@ public class ExamPageControllerIntegrationTests {
             .andExpect(jsonPath("data.examItems[0].response.valid", is(response.isValid())))
             .andExpect(jsonPath("data.examItems[0].response.examItemId", is(response.getExamItemId().toString())));
 
-        verify(mockExamPageService).getPage(approvalRequestArgumentCaptor.capture(), isA(Integer.class));
+        verify(mockExamPageService).getPage(examPage.getExamId(), examPage.getPagePosition());
     }
 
     @Test
@@ -158,8 +156,7 @@ public class ExamPageControllerIntegrationTests {
             UUID.randomUUID(),
             UUID.randomUUID());
 
-        ArgumentCaptor<ExamInfo> approvalRequestArgumentCaptor = ArgumentCaptor.forClass(ExamInfo.class);
-        when(mockExamPageService.getPage(isA(ExamInfo.class), isA(Integer.class)))
+        when(mockExamPageService.getPage(isA(UUID.class), isA(Integer.class)))
             .thenReturn(new Response<>(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_SESSION_CLOSED, "session is closed")));
 
         http.perform(get("/exam/{id}/page/{position}", examInfo.getExamId(), 1)
@@ -171,6 +168,6 @@ public class ExamPageControllerIntegrationTests {
             .andExpect(jsonPath("error.code", is("sessionClosed")))
             .andExpect(jsonPath("error.message", is("session is closed")));
 
-        verify(mockExamPageService).getPage(approvalRequestArgumentCaptor.capture(), isA(Integer.class));
+        verify(mockExamPageService).getPage(examInfo.getExamId(), 1);
     }
 }

@@ -63,15 +63,15 @@ public class ExamSegmentControllerIntegrationTests {
         List<ExamSegment> mockExamSegments = Arrays.asList(seg1, seg2);
         when(mockExamSegmentService.findExamSegments(examId)).thenReturn(mockExamSegments);
 
-        http.perform(get(new URI(String.format("/exam/segments/%s", examId)))
+        http.perform(get(new URI(String.format("/exam/%s/segments", examId)))
             .param("sessionId", sessionId.toString())
             .param("browserId", browserId.toString())
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("data[0].segmentPosition", is(1)))
-            .andExpect(jsonPath("data[0].segmentKey", is("seg1")))
-            .andExpect(jsonPath("data[1].segmentPosition", is(2)))
-            .andExpect(jsonPath("data[1].segmentKey", is("seg2")));
+            .andExpect(jsonPath("[0].segmentPosition", is(1)))
+            .andExpect(jsonPath("[0].segmentKey", is("seg1")))
+            .andExpect(jsonPath("[1].segmentPosition", is(2)))
+            .andExpect(jsonPath("[1].segmentKey", is("seg2")));
 
         verify(mockExamSegmentService).findExamSegments(examId);
     }
@@ -84,7 +84,7 @@ public class ExamSegmentControllerIntegrationTests {
         ValidationError error = new ValidationError("ruh", "roh");
 
 
-        http.perform(get(new URI(String.format("/exam/segments/%s", examId)))
+        http.perform(get(new URI(String.format("/exam/%s/segments", examId)))
             .param("sessionId", sessionId.toString())
             .param("browserId", browserId.toString())
             .contentType(MediaType.APPLICATION_JSON))
@@ -96,18 +96,18 @@ public class ExamSegmentControllerIntegrationTests {
     }
 
     @Test
-    public void shouldReturnNoContentForNoExamSegmentsPresent() throws Exception {
+    public void shouldReturnEmptyListForNoExamSegmentsPresent() throws Exception {
         final UUID examId = UUID.randomUUID();
         final UUID sessionId = UUID.randomUUID();
         final UUID browserId = UUID.randomUUID();
         when(mockExamSegmentService.findExamSegments(examId)).thenReturn(new ArrayList<>());
 
-        http.perform(get(new URI(String.format("/exam/segments/%s", examId)))
+        http.perform(get(new URI(String.format("/exam/%s/segments", examId)))
             .param("sessionId", sessionId.toString())
             .param("browserId", browserId.toString())
             .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isNoContent())
-            .andExpect(jsonPath("data", Matchers.hasSize(0)));
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", Matchers.hasSize(0)));
 
         verify(mockExamSegmentService).findExamSegments(examId);
     }
@@ -118,7 +118,7 @@ public class ExamSegmentControllerIntegrationTests {
         final int segmentPosition = 1;
         when(mockExamSegmentService.exitSegment(examId, segmentPosition)).thenReturn(Optional.empty());
 
-        http.perform(put(new URI(String.format("/exam/segments/%s/exit/%d", examId, segmentPosition)))
+        http.perform(put(new URI(String.format("/exam/%s/segments/%d/exit", examId, segmentPosition)))
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isNoContent());
 
@@ -132,7 +132,7 @@ public class ExamSegmentControllerIntegrationTests {
         when(mockExamSegmentService.exitSegment(examId, segmentPosition))
             .thenReturn(Optional.of(new ValidationError("waffles", "burritos")));
 
-        http.perform(put(new URI(String.format("/exam/segments/%s/exit/%d", examId, segmentPosition)))
+        http.perform(put(new URI(String.format("/exam/%s/segments/%d/exit", examId, segmentPosition)))
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isUnprocessableEntity());
 

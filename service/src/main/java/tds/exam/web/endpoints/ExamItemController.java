@@ -7,16 +7,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
 
 import tds.common.Response;
-import tds.exam.ExamInfo;
 import tds.exam.ExamItemResponse;
 import tds.exam.ExamPage;
 import tds.exam.services.ExamItemService;
+import tds.exam.utils.VerifyAccess;
 
 @RestController
 @RequestMapping("/exam")
@@ -28,15 +27,12 @@ public class ExamItemController {
         this.examItemService = examItemService;
     }
 
-    //@RequestMapping(value = "/{id}/page/{position}/responses", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @PostMapping("/{id}/page/{position}/responses")
+    @VerifyAccess
     ResponseEntity<Response<ExamPage>> insertResponses(@PathVariable final UUID id,
                                                        @PathVariable final int position,
-                                                       @RequestParam final UUID sessionId,
-                                                       @RequestParam final UUID browserId,
                                                        @RequestBody final ExamItemResponse[] responses) {
-        ExamInfo examInfo = new ExamInfo(id, sessionId, browserId);
-        Response<ExamPage> nextPage = examItemService.insertResponses(examInfo,
+        Response<ExamPage> nextPage = examItemService.insertResponses(id,
             position,
             responses);
 

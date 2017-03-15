@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableSet;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
@@ -30,9 +31,12 @@ import tds.exam.ExamStatusStage;
 import tds.exam.ExpandableExam;
 import tds.exam.SegmentApprovalRequest;
 import tds.exam.builder.ExamBuilder;
+import tds.exam.configuration.web.InterceptorConfiguration;
 import tds.exam.error.ValidationErrorCode;
+import tds.exam.services.ExamApprovalService;
 import tds.exam.services.ExamPageService;
 import tds.exam.services.ExamService;
+import tds.exam.utils.VerifyAccessInterceptor;
 
 import static io.github.benas.randombeans.api.EnhancedRandom.random;
 import static org.hamcrest.CoreMatchers.is;
@@ -64,6 +68,12 @@ public class ExamControllerIntegrationTests {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @MockBean
+    private VerifyAccessInterceptor mockVerifyAccessInterceptor;
+
+    @MockBean
+    private ExamApprovalService mockExamApprovalService;
 
     @Test
     public void shouldReturnExam() throws Exception {

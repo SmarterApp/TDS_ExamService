@@ -70,7 +70,7 @@ public class ExamItemControllerIntegrationTests {
             .withExamItems(mockExamItems)
             .build();
 
-        when(mockExamItemService.insertResponses(isA(ExamInfo.class),
+        when(mockExamItemService.insertResponses(isA(UUID.class),
             isA(Integer.class),
             any(ExamItemResponse[].class)))
             .thenReturn(new Response<>(mockNextExamPage));
