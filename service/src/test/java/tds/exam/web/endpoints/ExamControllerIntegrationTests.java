@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -30,6 +32,7 @@ import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
 import tds.exam.ExpandableExam;
 import tds.exam.SegmentApprovalRequest;
+import tds.exam.WebMvcControllerIntegrationTest;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.configuration.web.InterceptorConfiguration;
 import tds.exam.error.ValidationErrorCode;
@@ -54,8 +57,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
-@WebMvcTest(ExamController.class)
+@WebMvcTest(controllers = ExamController.class, excludeFilters = {@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = {InterceptorConfiguration.class})})
 @Import({ExceptionAdvice.class, JacksonObjectMapperConfiguration.class, SecurityConfiguration.class})
+//@WebMvcControllerIntegrationTest(controllers = ExamController.class)
 public class ExamControllerIntegrationTests {
     @Autowired
     private MockMvc http;
