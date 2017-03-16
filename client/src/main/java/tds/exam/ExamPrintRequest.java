@@ -1,5 +1,6 @@
 package tds.exam;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.joda.time.Instant;
 
 import java.util.UUID;
@@ -7,6 +8,7 @@ import java.util.UUID;
 /**
  * Represents a request to print or emboss and exam item, passage, or page.
  */
+@JsonIgnoreProperties(value={"approved", "denied"}, allowGetters=true)
 public class ExamPrintRequest {
     public static final String REQUEST_TYPE_EMBOSS_ITEM = "EMBOSSITEM";
     public static final String REQUEST_TYPE_EMBOSS_PASSAGE = "EMBOSSPASSAGE";
@@ -254,6 +256,20 @@ public class ExamPrintRequest {
      */
     public String getItemResponse() {
         return itemResponse;
+    }
+
+    /**
+     * @return {@code true} if the request is approved, false otherwise
+     */
+    public boolean isApproved() {
+        return status == ExamPrintRequestStatus.APPROVED;
+    }
+
+    /**
+     * @return {@code true} if the request is denied, false otherwise
+     */
+    public boolean isDenied() {
+        return status == ExamPrintRequestStatus.APPROVED;
     }
 
     @Override

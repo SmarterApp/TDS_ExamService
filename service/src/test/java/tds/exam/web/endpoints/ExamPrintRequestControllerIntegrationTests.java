@@ -21,8 +21,11 @@ import java.util.UUID;
 import tds.common.configuration.JacksonObjectMapperConfiguration;
 import tds.common.configuration.SecurityConfiguration;
 import tds.common.web.advice.ExceptionAdvice;
+import tds.exam.Exam;
 import tds.exam.ExamPrintRequest;
 import tds.exam.ExamPrintRequestStatus;
+import tds.exam.ExpandableExamPrintRequest;
+import tds.exam.builder.ExamBuilder;
 import tds.exam.services.ExamPrintRequestService;
 
 import static io.github.benas.randombeans.api.EnhancedRandom.random;
@@ -147,37 +150,45 @@ public class ExamPrintRequestControllerIntegrationTests {
     }
 
     @Test
-    public void shouldApproveAndFindPrintRequest() throws Exception {
+    public void shouldApproveAndFindExpandablePrintRequest() throws Exception {
         final UUID id = UUID.randomUUID();
         final ExamPrintRequest examPrintRequest = new ExamPrintRequest.Builder(id)
             .fromExamPrintRequest(random(ExamPrintRequest.class))
             .build();
+        final Exam exam = new ExamBuilder().build();
+        final ExpandableExamPrintRequest expandableExamPrintRequest = new ExpandableExamPrintRequest.Builder(examPrintRequest)
+            .withExam(exam)
+            .build();
 
-        when(mockExamPrintRequestService.updateAndGetRequest(ExamPrintRequestStatus.APPROVED, id, null)).thenReturn(Optional.of(examPrintRequest));
+        when(mockExamPrintRequestService.updateAndGetRequest(ExamPrintRequestStatus.APPROVED, id, null,
+            ExpandableExamPrintRequest.EXPANDABLE_PARAMS_PRINT_REQUEST_WITH_EXAM)).thenReturn(Optional.of(expandableExamPrintRequest));
 
         http.perform(put("/exam/print/approve/{id}", id)
-            .contentType(MediaType.APPLICATION_JSON))
+            .contentType(MediaType.APPLICATION_JSON)
+            .param("embed", ExpandableExamPrintRequest.EXPANDABLE_PARAMS_PRINT_REQUEST_WITH_EXAM))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("id", is(examPrintRequest.getId().toString())))
-            .andExpect(jsonPath("sessionId", is(examPrintRequest.getSessionId().toString())))
-            .andExpect(jsonPath("type", is(examPrintRequest.getType())))
-            .andExpect(jsonPath("value", is(examPrintRequest.getValue())))
-            .andExpect(jsonPath("reasonDenied", is(examPrintRequest.getReasonDenied())))
-            .andExpect(jsonPath("description", is(examPrintRequest.getDescription())))
-            .andExpect(jsonPath("itemPosition", is(examPrintRequest.getItemPosition())))
-            .andExpect(jsonPath("pagePosition", is(examPrintRequest.getPagePosition())))
-            .andExpect(jsonPath("examId", is(examPrintRequest.getExamId().toString())));
+            .andExpect(jsonPath("examPrintRequest.id", is(examPrintRequest.getId().toString())))
+            .andExpect(jsonPath("examPrintRequest.sessionId", is(examPrintRequest.getSessionId().toString())))
+            .andExpect(jsonPath("examPrintRequest.type", is(examPrintRequest.getType())))
+            .andExpect(jsonPath("examPrintRequest.value", is(examPrintRequest.getValue())))
+            .andExpect(jsonPath("examPrintRequest.reasonDenied", is(examPrintRequest.getReasonDenied())))
+            .andExpect(jsonPath("examPrintRequest.description", is(examPrintRequest.getDescription())))
+            .andExpect(jsonPath("examPrintRequest.itemPosition", is(examPrintRequest.getItemPosition())))
+            .andExpect(jsonPath("examPrintRequest.pagePosition", is(examPrintRequest.getPagePosition())))
+            .andExpect(jsonPath("examPrintRequest.examId", is(examPrintRequest.getExamId().toString())))
+            .andExpect(jsonPath("exam.id", is(exam.getId().toString())));
 
-        verify(mockExamPrintRequestService).updateAndGetRequest(ExamPrintRequestStatus.APPROVED, id, null);
+        verify(mockExamPrintRequestService).updateAndGetRequest(ExamPrintRequestStatus.APPROVED, id, null,
+            ExpandableExamPrintRequest.EXPANDABLE_PARAMS_PRINT_REQUEST_WITH_EXAM);
     }
 
     @Test
     public void shouldReturnNotFoundErrorForNoRequestFound() throws Exception {
         final UUID id = UUID.randomUUID();
-        when(mockExamPrintRequestService.updateAndGetRequest(ExamPrintRequestStatus.APPROVED, id, null)).thenReturn(Optional.empty());
+        when(mockExamPrintRequestService.updateAndGetRequest(ExamPrintRequestStatus.APPROVED, id, null, null)).thenReturn(Optional.empty());
         http.perform(put("/exam/print/approve/{id}", id)
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isNotFound());
-        verify(mockExamPrintRequestService).updateAndGetRequest(ExamPrintRequestStatus.APPROVED, id, null);
+        verify(mockExamPrintRequestService).updateAndGetRequest(ExamPrintRequestStatus.APPROVED, id, null, null);
     }
 }

@@ -1,5 +1,6 @@
 package tds.exam.services.impl;
 
+import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -9,19 +10,25 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import tds.exam.ExamPrintRequest;
 import tds.exam.ExamPrintRequestStatus;
+import tds.exam.ExpandableExamPrintRequest;
 import tds.exam.repositories.ExamPrintRequestCommandRepository;
 import tds.exam.repositories.ExamPrintRequestQueryRepository;
 import tds.exam.services.ExamPrintRequestService;
+import tds.exam.services.ExpandableExamMapper;
+import tds.exam.services.ExpandableExamPrintRequestMapper;
 
 import static io.github.benas.randombeans.api.EnhancedRandom.random;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -37,12 +44,15 @@ public class ExamPrintRequestServiceImplTest {
     private ExamPrintRequestCommandRepository mockExamPrintRequestCommandRepository;
 
     @Captor
-    ArgumentCaptor<ExamPrintRequest> examPrintRequestArgumentCaptor;
+    private ArgumentCaptor<ExamPrintRequest> examPrintRequestArgumentCaptor;
+
+    private Collection<ExpandableExamPrintRequestMapper> mockExpandableExamPrintRequestMappers;
 
     @Before
     public void setup() {
+        mockExpandableExamPrintRequestMappers = Arrays.asList(mock(ExpandableExamPrintRequestMapper.class));
         examPrintRequestService = new ExamPrintRequestServiceImpl(mockExamPrintRequestCommandRepository,
-            mockExamPrintRequestQueryRepository);
+            mockExamPrintRequestQueryRepository, mockExpandableExamPrintRequestMappers);
     }
 
     @Test
@@ -112,7 +122,6 @@ public class ExamPrintRequestServiceImplTest {
     @Test
     public void shouldReturnEmptyAndNotApproveForNoExamPrintRequestFound() {
         final UUID id = UUID.randomUUID();
-        final ExamPrintRequest request = random(ExamPrintRequest.class);
         when(mockExamPrintRequestQueryRepository.findExamPrintRequest(id)).thenReturn(Optional.empty());
 
         Optional<ExamPrintRequest> maybeApprovedRequest = examPrintRequestService.updateAndGetRequest(ExamPrintRequestStatus.APPROVED, id, null);
@@ -120,5 +129,26 @@ public class ExamPrintRequestServiceImplTest {
 
         verify(mockExamPrintRequestQueryRepository).findExamPrintRequest(id);
         verify(mockExamPrintRequestCommandRepository, never()).update(isA(ExamPrintRequest.class));
+    }
+
+    @Test
+    public void shouldFindExpandableExamPrintRequest() {
+        final UUID id = UUID.randomUUID();
+        final ExamPrintRequest request = random(ExamPrintRequest.class);
+        when(mockExamPrintRequestQueryRepository.findExamPrintRequest(id)).thenReturn(Optional.of(request));
+
+
+        Optional<ExpandableExamPrintRequest> maybeApprovedRequest = examPrintRequestService.updateAndGetRequest(ExamPrintRequestStatus.APPROVED, id, null,
+            ExpandableExamPrintRequest.EXPANDABLE_PARAMS_PRINT_REQUEST_WITH_EXAM);
+
+        verify(mockExamPrintRequestQueryRepository).findExamPrintRequest(id);
+        verify(mockExamPrintRequestCommandRepository).update(examPrintRequestArgumentCaptor.capture());
+        mockExpandableExamPrintRequestMappers.forEach(mockMapper -> verify(mockMapper).updateExpandableMapper(any(), any(), any()));
+
+        ExamPrintRequest approvedRequest = examPrintRequestArgumentCaptor.getValue();
+        assertThat(approvedRequest.getId()).isEqualTo(request.getId());
+        assertThat(approvedRequest.getStatus()).isEqualTo(ExamPrintRequestStatus.APPROVED);
+        assertThat(approvedRequest.getChangedAt()).isNotNull();
+        assertThat(maybeApprovedRequest.get().getExamPrintRequest()).isEqualTo(approvedRequest);
     }
 }
