@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -17,6 +18,7 @@ import java.util.UUID;
 
 import tds.exam.ExamPrintRequest;
 import tds.exam.ExamPrintRequestStatus;
+import tds.exam.ExpandableExamPrintRequest;
 import tds.exam.services.ExamPrintRequestService;
 
 @RestController
@@ -57,8 +59,9 @@ public class ExamPrintRequestController {
     }
 
     @RequestMapping(value = "/approve/{id}", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ExamPrintRequest> findAndApprovePrintRequest(final @PathVariable UUID id) {
-        Optional<ExamPrintRequest> maybeExamPrintRequest = examPrintRequestService.updateAndGetRequest(ExamPrintRequestStatus.APPROVED, id, null);
+    public ResponseEntity<ExpandableExamPrintRequest> findAndApprovePrintRequest(final @PathVariable UUID id,
+                                                                                 final @RequestParam(required=false) String... embed) {
+        Optional<ExpandableExamPrintRequest> maybeExamPrintRequest = examPrintRequestService.updateAndGetRequest(ExamPrintRequestStatus.APPROVED, id, null, embed);
 
         if (!maybeExamPrintRequest.isPresent()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);

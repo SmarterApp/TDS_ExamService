@@ -8,6 +8,8 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,46 +29,57 @@ public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodation
 
     @Override
     public void insert(final List<ExamAccommodation> accommodations) {
-        String SQL = "INSERT INTO exam_accommodation(exam_id, id, segment_key, type, code, description, allow_change, value, segment_position) \n" +
-            "VALUES(:examId, :id, :segmentKey, :type, :code, :description, :allowChange, :value, :segmentPosition)";
+        String SQL = "INSERT INTO exam_accommodation(exam_id, id, segment_key, type, code, description, allow_change, value, segment_position, created_at) \n" +
+            "VALUES(:examId, :id, :segmentKey, :type, :code, :description, :allowChange, :value, :segmentPosition, :createdAt)";
 
-        SqlParameterSource[] parameters = accommodations.stream().map(examAccommodation ->
-            new MapSqlParameterSource("examId", examAccommodation.getExamId().toString())
-                .addValue("id", examAccommodation.getId().toString())
-                .addValue("segmentKey", examAccommodation.getSegmentKey())
-                .addValue("type", examAccommodation.getType())
-                .addValue("code", examAccommodation.getCode())
-                .addValue("allowChange", examAccommodation.isAllowChange())
-                .addValue("value", examAccommodation.getValue())
-                .addValue("segmentPosition", examAccommodation.getSegmentPosition())
-                .addValue("description", examAccommodation.getDescription())).toArray(SqlParameterSource[]::new);
+        Timestamp createdAt = mapJodaInstantToTimestamp(Instant.now());
+        List<ExamAccommodation> createdAccommodations = new ArrayList<>();
+        SqlParameterSource[] parameters = accommodations.stream()
+            .map(examAccommodation -> {
+                createdAccommodations.add(ExamAccommodation.Builder
+                    .fromExamAccommodation(examAccommodation)
+                    .build());
 
+                return new MapSqlParameterSource("examId", examAccommodation.getExamId().toString())
+                    .addValue("id", examAccommodation.getId().toString())
+                    .addValue("segmentKey", examAccommodation.getSegmentKey())
+                    .addValue("type", examAccommodation.getType())
+                    .addValue("code", examAccommodation.getCode())
+                    .addValue("allowChange", examAccommodation.isAllowChange())
+                    .addValue("value", examAccommodation.getValue())
+                    .addValue("segmentPosition", examAccommodation.getSegmentPosition())
+                    .addValue("description", examAccommodation.getDescription())
+                    .addValue("createdAt", createdAt);
+            })
+            .toArray(SqlParameterSource[]::new);
 
         jdbcTemplate.batchUpdate(SQL, parameters);
 
-        update(accommodations.toArray(new ExamAccommodation[accommodations.size()]));
+        update(createdAccommodations.toArray(new ExamAccommodation[createdAccommodations.size()]));
     }
 
     @Override
     public void update(final ExamAccommodation... examAccommodation) {
-        updateEvent(examAccommodation);
+        updateEvent(mapJodaInstantToTimestamp(Instant.now()), examAccommodation);
     }
 
-    private void updateEvent(final ExamAccommodation... examAccommodations) {
+    private void updateEvent( final Timestamp createdAt, final ExamAccommodation... examAccommodations) {
         String SQL = "INSERT INTO exam_accommodation_event(" +
             "exam_accommodation_id, " +
             "denied_at, " +
             "deleted_at, " +
             "selectable," +
             "custom," +
-            "total_type_count) \n" +
+            "total_type_count," +
+            "created_at) \n" +
             "VALUES(" +
             ":examAccommodationId, " +
             ":deniedAt, " +
             ":deletedAt, " +
             ":selectable," +
             ":custom," +
-            ":totalTypeCount);";
+            ":totalTypeCount," +
+            ":createdAt);";
 
         SqlParameterSource[] parameterSources = new SqlParameterSource[examAccommodations.length];
 
@@ -77,7 +90,8 @@ public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodation
                 .addValue("selectable", examAccommodation.isSelectable())
                 .addValue("totalTypeCount", examAccommodation.getTotalTypeCount())
                 .addValue("custom", examAccommodation.isCustom())
-                .addValue("deletedAt", mapJodaInstantToTimestamp(examAccommodation.getDeletedAt()));
+                .addValue("deletedAt", mapJodaInstantToTimestamp(examAccommodation.getDeletedAt()))
+                .addValue("createdAt", createdAt);
 
             parameterSources[i] = parameters;
         }
@@ -96,6 +110,7 @@ public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodation
                 .build())
             .collect(Collectors.toList());
 
-        updateEvent(accommodationsToDelete.toArray(new ExamAccommodation[accommodationsToDelete.size()]));
+        updateEvent(mapJodaInstantToTimestamp(deletedAt),
+            accommodationsToDelete.toArray(new ExamAccommodation[accommodationsToDelete.size()]));
     }
 }

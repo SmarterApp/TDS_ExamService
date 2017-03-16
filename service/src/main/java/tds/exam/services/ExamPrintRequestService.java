@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import tds.exam.ExamPrintRequest;
 import tds.exam.ExamPrintRequestStatus;
+import tds.exam.ExpandableExamPrintRequest;
 
 /**
  * Service used to create, read, and update exam print and emboss requests
@@ -47,6 +48,18 @@ public interface ExamPrintRequestService {
      * @return The approved/denied {@link tds.exam.ExamPrintRequest}
      */
     Optional<ExamPrintRequest> updateAndGetRequest(final ExamPrintRequestStatus status, final UUID id, final String reason);
+
+    /**
+     * Updates and fetches and {@link tds.exam.ExpandableExamPrintRequest} with the specified additional parameters
+     *
+     * @param status The {@link tds.exam.ExamPrintRequestStatus} of the request - either approved or denied
+     * @param id     The id of the {@link tds.exam.ExamPrintRequest} being denied
+     * @param reason The reason for the denial of the request
+     * @param embed  Optional embedded parameters for retrieving additional data
+     * @return The approved/denied {@link tds.exam.ExamPrintRequest}
+     */
+    Optional<ExpandableExamPrintRequest> updateAndGetRequest(final ExamPrintRequestStatus status, final UUID id, final String reason,
+                                                             final String... embed);
 
     /**
      * Retrieves a list of approved requests for the session.

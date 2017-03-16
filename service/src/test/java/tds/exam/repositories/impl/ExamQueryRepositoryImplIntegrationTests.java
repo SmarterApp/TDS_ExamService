@@ -277,15 +277,15 @@ public class ExamQueryRepositoryImplIntegrationTests {
 
         final String insertSegmentSQL =
             "INSERT INTO exam_segment(exam_id, segment_key, segment_id, segment_position, created_at)" +
-                "VALUES (:examId, 'segment-key-1', 'segment-id-1', 1, CURRENT_TIMESTAMP)";
+                "VALUES (:examId, 'segment-key-1', 'segment-id-1', 1, UTC_TIMESTAMP())";
         final String insertPageSQL =
             "INSERT INTO exam_page (id, page_position, exam_segment_key, item_group_key, exam_id, created_at) " +
                 "VALUES (805, 1, 'segment-key-1', 'GroupKey1', :examId, :pageCreatedAt)";
         final String insertPageEventSQL =
-            "INSERT INTO exam_page_event (exam_page_id, started_at) VALUES (805, now())";
+            "INSERT INTO exam_page_event (exam_page_id, started_at, created_at) VALUES (805, UTC_TIMESTAMP(), UTC_TIMESTAMP())";
         final String insertItemSQL =
-            "INSERT INTO exam_item (id, item_key, assessment_item_bank_key, assessment_item_key, item_type, exam_page_id, position, item_file_path)" +
-                "VALUES (2112, '187-1234', 187, 1234, 'MS', 805, 1, '/path/to/item/187-1234.xml')";
+            "INSERT INTO exam_item (id, item_key, assessment_item_bank_key, assessment_item_key, item_type, exam_page_id, position, item_file_path, created_at)" +
+                "VALUES (2112, '187-1234', 187, 1234, 'MS', 805, 1, '/path/to/item/187-1234.xml', UTC_TIMESTAMP())";
         final String insertResponsesSQL =
             "INSERT INTO exam_item_response (id, exam_item_id, response, sequence, created_at) " +
                 "VALUES " +
