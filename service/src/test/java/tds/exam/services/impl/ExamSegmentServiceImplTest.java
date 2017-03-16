@@ -596,37 +596,8 @@ public class ExamSegmentServiceImplTest {
     }
 
     @Test
-    public void shouldReturnValidationErrorForFailedVerifyAccessFindExamSegments() {
-        UUID examId = UUID.randomUUID();
-        UUID sessionId = UUID.randomUUID();
-        UUID browserId = UUID.randomUUID();
-        ExamSegment seg1 = new ExamSegment.Builder()
-            .withSegmentKey("seg1")
-            .withExamId(examId)
-            .withSegmentPosition(1)
-            .build();
-        ExamSegment seg2 = new ExamSegment.Builder()
-            .withSegmentKey("seg2")
-            .withExamId(examId)
-            .withSegmentPosition(2)
-            .build();
-        ExamInfo examInfo = new ExamInfo(examId, sessionId, browserId);
-
-        when(mockExamApprovalService.getApproval(examInfo)).thenReturn(new Response<>(new ValidationError("Oh", "no")));
-        when(mockExamSegmentQueryRepository.findByExamId(examId)).thenReturn(Arrays.asList(seg1, seg2));
-        Response<List<ExamSegment>> response = examSegmentService.findExamSegments(examId, sessionId, browserId);
-        verify(mockExamApprovalService).getApproval(examInfo);
-        verify(mockExamSegmentQueryRepository, never()).findByExamId(examId);
-
-        assertThat(response.getError().isPresent()).isTrue();
-        assertThat(response.getData().isPresent()).isFalse();
-    }
-
-    @Test
     public void shouldReturnExamSegmentsForExamId() {
         UUID examId = UUID.randomUUID();
-        UUID sessionId = UUID.randomUUID();
-        UUID browserId = UUID.randomUUID();
         ExamSegment seg1 = new ExamSegment.Builder()
             .withSegmentKey("seg1")
             .withExamId(examId)
@@ -637,18 +608,12 @@ public class ExamSegmentServiceImplTest {
             .withExamId(examId)
             .withSegmentPosition(2)
             .build();
-        ExamInfo examInfo = new ExamInfo(examId, sessionId, browserId);
-        ExamApproval mockExamApproval = new ExamApproval(examId, new ExamStatusCode(ExamStatusCode.STATUS_APPROVED), "reason");
 
-        when(mockExamApprovalService.getApproval(examInfo)).thenReturn(new Response<>(mockExamApproval));
         when(mockExamSegmentQueryRepository.findByExamId(examId)).thenReturn(Arrays.asList(seg1, seg2));
-        Response<List<ExamSegment>> response = examSegmentService.findExamSegments(examId, sessionId, browserId);
-        verify(mockExamApprovalService).getApproval(examInfo);
+        List<ExamSegment> examSegments = examSegmentService.findExamSegments(examId);
         verify(mockExamSegmentQueryRepository).findByExamId(examId);
 
-        assertThat(response.getError().isPresent()).isFalse();
-        assertThat(response.getData().isPresent()).isTrue();
-        assertThat(response.getData().get()).hasSize(2);
+        assertThat(examSegments).hasSize(2);
     }
 
     @Test

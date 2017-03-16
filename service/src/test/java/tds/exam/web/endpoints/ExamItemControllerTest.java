@@ -54,8 +54,8 @@ public class ExamItemControllerTest {
             .withExamItems(mockExamItems)
             .build();
 
-        ArgumentCaptor<ExamInfo> approvalRequestArgumentCaptor = ArgumentCaptor.forClass(ExamInfo.class);
-        when(mockExamItemService.insertResponses(isA(ExamInfo.class),
+
+        when(mockExamItemService.insertResponses(isA(UUID.class),
             isA(Integer.class),
             any(ExamItemResponse[].class)))
             .thenReturn(new Response<>(mockNextExamPage));
@@ -64,12 +64,9 @@ public class ExamItemControllerTest {
 
         ResponseEntity<Response<ExamPage>> result = examItemController.insertResponses(mockExamInfo.getExamId(),
             1,
-            mockExamInfo.getSessionId(),
-            mockExamInfo.getBrowserId(),
             responses);
-        verify(mockExamItemService).insertResponses(approvalRequestArgumentCaptor.capture(), isA(Integer.class), any(ExamItemResponse[].class));
-
-        assertThat(approvalRequestArgumentCaptor.getValue()).isEqualTo(mockExamInfo);
+        verify(mockExamItemService).insertResponses(isA(UUID.class), isA(Integer.class), any(ExamItemResponse[].class));
+        
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(result.getBody().getData().isPresent()).isTrue();
         assertThat(result.getBody().getError().isPresent()).isFalse();

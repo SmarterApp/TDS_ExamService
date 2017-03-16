@@ -169,18 +169,8 @@ public class ExamSegmentServiceImpl implements ExamSegmentService {
     }
 
     @Override
-    public Response<List<ExamSegment>> findExamSegments(final UUID examId, final UUID sessionId, final UUID browserId) {
-        /* This method is a port of the legacy OpportunityRepository.getOpportunitySegments() [241] and
-        *  StudentDLL.T_GetOpportunitySegments_SP [10212]*/
-        ExamInfo examInfo = new ExamInfo(examId, sessionId, browserId);
-        /* ValidateItemsAccess_FN() in StudentDLL [10214] */
-        Response<ExamApproval> approval = examApprovalService.getApproval(examInfo);
-
-        if (approval.getError().isPresent()) {
-            return new Response<>(approval.getError().get());
-        }
-
-        return new Response<>(examSegmentQueryRepository.findByExamId(examId));
+    public List<ExamSegment> findExamSegments(final UUID examId) {
+        return examSegmentQueryRepository.findByExamId(examId);
     }
 
     @Override

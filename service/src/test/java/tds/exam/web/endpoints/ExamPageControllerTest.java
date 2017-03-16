@@ -63,14 +63,12 @@ public class ExamPageControllerTest {
             .withExamItems(mockExamItems)
             .build());
 
-        ArgumentCaptor<ExamInfo> approvalRequestArgumentCaptor = ArgumentCaptor.forClass(ExamInfo.class);
-        when(mockExamPageService.getPage(isA(ExamInfo.class), isA(Integer.class)))
+        when(mockExamPageService.getPage(isA(UUID.class), isA(Integer.class)))
             .thenReturn(mockExamPageResponse);
 
-        ResponseEntity<Response<ExamPage>> result = controller.getPage(examId, pageNumber, sessionId, browserId);
-        verify(mockExamPageService).getPage(approvalRequestArgumentCaptor.capture(), isA(Integer.class));
+        ResponseEntity<Response<ExamPage>> result = controller.getPage(examId, pageNumber);
+        verify(mockExamPageService).getPage(examId, pageNumber);
 
-        assertThat(approvalRequestArgumentCaptor.getValue()).isEqualTo(mockExamInfo);
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(result.getBody().getData().isPresent()).isTrue();
         assertThat(result.getBody().getError().isPresent()).isFalse();
