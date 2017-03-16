@@ -1,31 +1,39 @@
 package tds.exam.services.impl;
 
-import org.joda.time.Instant;
+import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import tds.exam.ExamPrintRequest;
 import tds.exam.ExamPrintRequestStatus;
+import tds.exam.ExpandableExamPrintRequest;
 import tds.exam.repositories.ExamPrintRequestCommandRepository;
 import tds.exam.repositories.ExamPrintRequestQueryRepository;
 import tds.exam.services.ExamPrintRequestService;
+import tds.exam.services.ExpandableExamPrintRequestMapper;
 
 @Service
 public class ExamPrintRequestServiceImpl implements ExamPrintRequestService {
     private final ExamPrintRequestCommandRepository examPrintRequestCommandRepository;
     private final ExamPrintRequestQueryRepository examPrintRequestQueryRepository;
+    private final Collection<ExpandableExamPrintRequestMapper> expandableExamPrintRequestMappers;
 
     @Autowired
     public ExamPrintRequestServiceImpl(final ExamPrintRequestCommandRepository examPrintRequestCommandRepository,
-                                       final ExamPrintRequestQueryRepository examPrintRequestQueryRepository) {
+                                       final ExamPrintRequestQueryRepository examPrintRequestQueryRepository,
+                                       final Collection<ExpandableExamPrintRequestMapper> expandableExamPrintRequestMappers) {
         this.examPrintRequestCommandRepository = examPrintRequestCommandRepository;
         this.examPrintRequestQueryRepository = examPrintRequestQueryRepository;
+        this.expandableExamPrintRequestMappers = expandableExamPrintRequestMappers;
     }
 
     @Override
@@ -52,15 +60,40 @@ public class ExamPrintRequestServiceImpl implements ExamPrintRequestService {
             return Optional.empty();
         }
 
-        final ExamPrintRequest deniedRequest = new ExamPrintRequest.Builder(id)
+        final ExamPrintRequest updatedRequest = new ExamPrintRequest.Builder(id)
             .fromExamPrintRequest(maybePrintRequest.get())
             .withStatus(status)
             .withReasonDenied(reason)
             .build();
 
-        examPrintRequestCommandRepository.update(deniedRequest);
+        examPrintRequestCommandRepository.update(updatedRequest);
 
-        return Optional.of(deniedRequest);
+        return Optional.of(updatedRequest);
+    }
+
+    @Override
+    public Optional<ExpandableExamPrintRequest> updateAndGetRequest(final ExamPrintRequestStatus status, final UUID id, final String reason,
+                                                                    final String... embed) {
+        final Set<String> expandableExamAttributes = (embed == null ? new HashSet<>() : Sets.newHashSet(embed));
+        final Optional<ExamPrintRequest> maybePrintRequest = examPrintRequestQueryRepository.findExamPrintRequest(id);
+
+        if (!maybePrintRequest.isPresent()) {
+            return Optional.empty();
+        }
+
+        final ExamPrintRequest updatedRequest = new ExamPrintRequest.Builder(id)
+            .fromExamPrintRequest(maybePrintRequest.get())
+            .withStatus(status)
+            .withReasonDenied(reason)
+            .build();
+
+        examPrintRequestCommandRepository.update(updatedRequest);
+
+        ExpandableExamPrintRequest.Builder builder = new ExpandableExamPrintRequest.Builder(updatedRequest);
+
+        expandableExamPrintRequestMappers.forEach(mapper -> mapper.updateExpandableMapper(expandableExamAttributes, builder, updatedRequest.getExamId()));
+
+        return Optional.of(builder.build());
     }
 
     @Override
