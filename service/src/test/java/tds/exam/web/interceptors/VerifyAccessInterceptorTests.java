@@ -44,6 +44,9 @@ public class VerifyAccessInterceptorTests {
     @MockBean
     private HandlerMethod mockHandlerMethod;
 
+    @MockBean
+    private VerifyAccess mockVerifyAccess;
+
     @Captor
     ArgumentCaptor<ExamInfo> examInfoArgumentCaptor;
 
@@ -51,6 +54,9 @@ public class VerifyAccessInterceptorTests {
     public void setup() {
         verifyAccessInterceptor = new VerifyAccessInterceptor(mockExamApprovalService);
         mockResponse = new MockHttpServletResponse();
+
+        when(mockVerifyAccess.sessionParamName()).thenReturn("sessionId");
+        when(mockVerifyAccess.browserParamName()).thenReturn("browserId");
     }
 
     @Test
@@ -77,8 +83,7 @@ public class VerifyAccessInterceptorTests {
         request.setRequestURI(String.format("/bad/%s", examId));
         request.setMethod("GET");
 
-        VerifyAccess verifyAccess = mock(VerifyAccess.class);
-        when(mockHandlerMethod.getMethodAnnotation(VerifyAccess.class)).thenReturn(verifyAccess);
+        when(mockHandlerMethod.getMethodAnnotation(VerifyAccess.class)).thenReturn(mockVerifyAccess);
 
         verifyAccessInterceptor.preHandle(request, mockResponse, mockHandlerMethod);
     }
@@ -89,8 +94,7 @@ public class VerifyAccessInterceptorTests {
         request.setRequestURI("/exam/1234");
         request.setMethod("GET");
 
-        VerifyAccess verifyAccess = mock(VerifyAccess.class);
-        when(mockHandlerMethod.getMethodAnnotation(VerifyAccess.class)).thenReturn(verifyAccess);
+        when(mockHandlerMethod.getMethodAnnotation(VerifyAccess.class)).thenReturn(mockVerifyAccess);
 
         verifyAccessInterceptor.preHandle(request, mockResponse, mockHandlerMethod);
     }
@@ -98,13 +102,16 @@ public class VerifyAccessInterceptorTests {
     @Test
     public void shouldSuccessfullyVerifyAccess() throws Exception {
         UUID examId = UUID.randomUUID();
+        UUID browserId = UUID.randomUUID();
+        UUID sessionId = UUID.randomUUID();
 
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setRequestURI(String.format("/exam/%s/segments", examId));
         request.setMethod("GET");
+        request.setParameter("sessionId", sessionId.toString());
+        request.setParameter("browserId", browserId.toString());
 
-        VerifyAccess verifyAccess = mock(VerifyAccess.class);
-        when(mockHandlerMethod.getMethodAnnotation(VerifyAccess.class)).thenReturn(verifyAccess);
+        when(mockHandlerMethod.getMethodAnnotation(VerifyAccess.class)).thenReturn(mockVerifyAccess);
 
         ExamApproval mockExamApproval = new ExamApproval(examId,
             new ExamStatusCode(STATUS_APPROVED,
@@ -121,14 +128,16 @@ public class VerifyAccessInterceptorTests {
     @Test(expected = ValidationException.class)
     public void shouldThrowValidationExceptionWhenAprovalFails() throws Exception {
         UUID examId = UUID.randomUUID();
+        UUID browserId = UUID.randomUUID();
+        UUID sessionId = UUID.randomUUID();
 
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setRequestURI(String.format("/exam/%s/segments", examId));
         request.setMethod("GET");
+        request.setParameter("sessionId", sessionId.toString());
+        request.setParameter("browserId", browserId.toString());
 
-        VerifyAccess verifyAccess = mock(VerifyAccess.class);
-
-        when(mockHandlerMethod.getMethodAnnotation(VerifyAccess.class)).thenReturn(verifyAccess);
+        when(mockHandlerMethod.getMethodAnnotation(VerifyAccess.class)).thenReturn(mockVerifyAccess);
 
         Response mockApprovalResponse = new Response<>(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_BROWSER_ID_MISMATCH, "message"));
         when(mockExamApprovalService.getApproval(isA(ExamInfo.class))).thenReturn(mockApprovalResponse);
@@ -148,9 +157,8 @@ public class VerifyAccessInterceptorTests {
         request.setParameter("sessId", sessionId.toString());
         request.setParameter("browserId", browserId.toString());
 
-        VerifyAccess verifyAccess = mock(VerifyAccess.class);
-        when(verifyAccess.sessionParamName()).thenReturn("sessId");
-        when(mockHandlerMethod.getMethodAnnotation(VerifyAccess.class)).thenReturn(verifyAccess);
+        when(mockVerifyAccess.sessionParamName()).thenReturn("sessId");
+        when(mockHandlerMethod.getMethodAnnotation(VerifyAccess.class)).thenReturn(mockVerifyAccess);
 
         ExamApproval mockExamApproval = new ExamApproval(examId,
             new ExamStatusCode(STATUS_APPROVED,
@@ -165,6 +173,36 @@ public class VerifyAccessInterceptorTests {
 
         ExamInfo examInfo = examInfoArgumentCaptor.getValue();
         assertThat(examInfo.getSessionId()).isEqualTo(sessionId);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldThrowWhenNullBrowserId() throws Exception {
+        UUID examId = UUID.randomUUID();
+        UUID sessionId = UUID.randomUUID();
+
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRequestURI(String.format("/exam/%s/segments", examId));
+        request.setMethod("GET");
+        request.setParameter("sessionId", sessionId.toString());
+
+        when(mockHandlerMethod.getMethodAnnotation(VerifyAccess.class)).thenReturn(mockVerifyAccess);
+
+        verifyAccessInterceptor.preHandle(request, mockResponse, mockHandlerMethod);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldThrowWhenNullSessionId() throws Exception {
+        UUID examId = UUID.randomUUID();
+        UUID browserId = UUID.randomUUID();
+
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRequestURI(String.format("/exam/%s/segments", examId));
+        request.setMethod("GET");
+        request.setParameter("browserId", browserId.toString());
+
+        when(mockHandlerMethod.getMethodAnnotation(VerifyAccess.class)).thenReturn(mockVerifyAccess);
+
+        verifyAccessInterceptor.preHandle(request, mockResponse, mockHandlerMethod);
     }
 }
 

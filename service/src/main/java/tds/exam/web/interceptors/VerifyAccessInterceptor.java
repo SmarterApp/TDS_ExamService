@@ -24,13 +24,12 @@ import tds.exam.web.exceptions.ValidationException;
 public class VerifyAccessInterceptor extends HandlerInterceptorAdapter {
     private ExamApprovalService examApprovalService;
 
-    @Autowired
     public VerifyAccessInterceptor(final ExamApprovalService examApprovalService) {
         this.examApprovalService = examApprovalService;
     }
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws ValidationException, IllegalArgumentException {
         if (!(handler instanceof HandlerMethod)) {
             return true;
         }
@@ -59,6 +58,10 @@ public class VerifyAccessInterceptor extends HandlerInterceptorAdapter {
 
         if (parameters.containsKey(verifyAccessAnnotation.browserParamName())) {
             browserId = UUID.fromString(parameters.get(verifyAccessAnnotation.browserParamName())[0]);
+        }
+
+        if (sessionId == null || browserId == null) {
+            throw new IllegalArgumentException("VerifyAccess: The browser and session IDs are required.");
         }
 
         Response<ExamApproval> approval = examApprovalService.getApproval(new ExamInfo(examId, sessionId, browserId));

@@ -2,6 +2,9 @@ package tds.exam.web.exceptions;
 
 import tds.common.ValidationError;
 
+/**
+ * Exception used to throw a ValisdationError instead of passing it back in the response
+ */
 public class ValidationException extends Exception {
     private String code;
     private String message;
