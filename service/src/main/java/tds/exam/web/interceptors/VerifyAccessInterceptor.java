@@ -16,6 +16,11 @@ import tds.exam.services.ExamApprovalService;
 import tds.exam.web.annotations.VerifyAccess;
 import tds.exam.web.exceptions.ValidationException;
 
+/**
+ * Verifies access for a user based on the ExamId, BrowserId and SessionId.
+ * This is used when a controller endpoint uses the {@link tds.exam.web.annotations.VerifyAccess} annotation
+ * The controller URL must follow the convention /exam/{examId}/[path]?sessionId=xxx&browserId=yyy
+ */
 public class VerifyAccessInterceptor extends HandlerInterceptorAdapter {
     private ExamApprovalService examApprovalService;
 
@@ -37,9 +42,8 @@ public class VerifyAccessInterceptor extends HandlerInterceptorAdapter {
         }
 
         // @VerifyAccess will only work on URLs that follow the convention /exam/{examId}/...., otherwise the examId won't be found
-        //  providing flexibility to work with /exam/{examId} and /exams/{examId since the plural is more RESTful
         String[] pathParts = request.getRequestURI().split("/");
-        if (!pathParts[1].equals("exam") && !pathParts[1].equals("exams")) {
+        if (!pathParts[1].equals("exam")) {
             throw new IllegalArgumentException(String.format("VerifyAccess: Exam ID could not be found for url %s.", request.getRequestURI()));
         }
 

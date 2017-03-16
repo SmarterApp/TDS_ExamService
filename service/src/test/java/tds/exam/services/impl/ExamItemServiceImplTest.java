@@ -129,65 +129,6 @@ public class ExamItemServiceImplTest {
         assertThat(nextPage.getPagePosition()).isEqualTo(mockCurrentExamPage.getPagePosition() + 1);
     }
 
-//    @Test
-//    public void shouldNotInsertAResponseAndReturnValidationErrorBecauseApprovalIsDenied() {
-//        ExamInfo examInfo = new ExamInfo(UUID.randomUUID(),
-//            UUID.randomUUID(),
-//            UUID.randomUUID());
-//        int currentPagePosition = 1;
-//        ExamItemResponse response = new ExamItemResponseBuilder().build();
-//
-//        Exam mockExam = new ExamBuilder()
-//            .withId(examInfo.getExamId())
-//            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_STARTED, ExamStatusStage.IN_PROGRESS), Instant.now())
-//            .build();
-//        ValidationError mockApprovalFailure = new ValidationError(ValidationErrorCode.EXAM_APPROVAL_SESSION_CLOSED,
-//            "The session is not available for testing, please check with your test administrator.");
-//
-//        when(mockExamQueryRepository.getExamById(examInfo.getExamId()))
-//            .thenReturn(Optional.of(mockExam));
-//
-//        Response<ExamPage> nextPageResponse = examItemService.insertResponses(examInfo.getExamId(), currentPagePosition, response);
-//        verify(mockExamQueryRepository).getExamById(examInfo.getExamId());
-//
-//        assertThat(nextPageResponse.getData().isPresent()).isFalse();
-//        assertThat(nextPageResponse.getError().isPresent()).isTrue();
-//
-//        ValidationError error = nextPageResponse.getError().get();
-//        assertThat(error.getCode()).isEqualTo(mockApprovalFailure.getCode());
-//        assertThat(error.getMessage()).isEqualTo(mockApprovalFailure.getMessage());
-//    }
-
-//    @Test
-//    public void shouldNotInsertAResponseAndReturnValidationErrorBecasueExamIsNotInStartedOrReviewStatus() {
-//        ExamInfo examInfo = new ExamInfo(UUID.randomUUID(),
-//            UUID.randomUUID(),
-//            UUID.randomUUID());
-//        int currentPagePosition = 1;
-//        ExamItemResponse response = new ExamItemResponseBuilder().build();
-//
-//        Exam mockExam = new ExamBuilder()
-//            .withId(examInfo.getExamId())
-//            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_PENDING, ExamStatusStage.IN_PROGRESS), Instant.now())
-//            .build();
-//
-//        when(mockExamApprovalService.verifyAccess(isA(ExamInfo.class), isA(Exam.class)))
-//            .thenReturn(Optional.empty());
-//        when(mockExamQueryRepository.getExamById(examInfo.getExamId()))
-//            .thenReturn(Optional.of(mockExam));
-//
-//        Response<ExamPage> nextPageResponse = examItemService.insertResponses(examInfo, currentPagePosition, response);
-//        verify(mockExamApprovalService).verifyAccess(isA(ExamInfo.class), isA(Exam.class));
-//        verify(mockExamQueryRepository).getExamById(examInfo.getExamId());
-//
-//        assertThat(nextPageResponse.getData().isPresent()).isFalse();
-//        assertThat(nextPageResponse.getError().isPresent()).isTrue();
-//
-//        ValidationError error = nextPageResponse.getError().get();
-//        assertThat(error.getCode()).isEqualTo(ValidationErrorCode.EXAM_INTERRUPTED);
-//        assertThat(error.getMessage()).isEqualTo("Your test opportunity has been interrupted. Please check with your Test Administrator to resume your test.");
-//    }
-
     @Test(expected = NotFoundException.class)
     public void shouldThrowNotFoundExceptionWhenExamDoesNotExist() {
         UUID mockExamId = UUID.randomUUID();

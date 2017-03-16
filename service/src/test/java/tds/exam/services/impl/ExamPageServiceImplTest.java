@@ -124,24 +124,4 @@ public class ExamPageServiceImplTest {
         ExamPage examPage = examPageResponse.getData().get();
         assertThat(examPage).isEqualToComparingFieldByFieldRecursively(mockExamPage);
     }
-
-//    @Test
-//    public void shouldNotGetAnExamPageWhenTheApprovalRequestIsDeniedBecauseSessionIsClosed() {
-//        UUID mockExamId = UUID.randomUUID();
-//        UUID mockSessionId = UUID.randomUUID();
-//        UUID mockBrowserId = UUID.randomUUID();
-//        ExamInfo mockExamInfo = new ExamInfo(mockExamId,
-//            mockSessionId,
-//            mockBrowserId);
-//
-//        Response<ExamApproval> mockApprovalFailure =
-//            new Response<>(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_SESSION_CLOSED,
-//                "The session is not available for testing, please check with your test administrator."));
-//
-//        Response<ExamPage> examPageResponse = examPageService.getPage(mockExamId, 1);
-//        verifyZeroInteractions(mockExamPageQueryRepository);
-//
-//        assertThat(examPageResponse.getError().isPresent()).isTrue();
-//        assertThat(examPageResponse.getData().isPresent()).isFalse();
-//    }
 }

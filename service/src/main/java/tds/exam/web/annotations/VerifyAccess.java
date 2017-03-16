@@ -10,6 +10,15 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 public @interface VerifyAccess {
+    /**
+     * The paramter name used to send the sessionId UUID in the HTTP Request.  Defaults to "sessionId"
+     * @return Paramter name
+     */
     String sessionParamName() default "sessionId";
+
+    /**
+     * The paramter name used to send the browserId UUID in the HTTP Request.  Defaults to "browserId"
+     * @return Paramter name
+     */
     String browserParamName() default "browserId";
 }
