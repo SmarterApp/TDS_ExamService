@@ -20,36 +20,30 @@
         <java.version>1.8</java.version>
         <assertj.version>3.4.1</assertj.version>
         <item-scoring.version>1.1.0-SNAPSHOT</item-scoring.version>
-        <item-renderer.version>3.0.0-SNAPSHOT</item-renderer.version>
+        <item-renderer.version>3.0.4</item-renderer.version>
+        <tds-student-common.version>3.0.0</tds-student-common.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.opentestsystem.delivery</groupId>
-            <artifactId>student.library</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <artifactId>student-library</artifactId>
+            <version>${tds-student-common.version}</version>
             <exclusions>
-                <exclusion>
-                    <groupId>org.opentestsystem.delivery</groupId>
-                    <artifactId>tds-exam-client</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.opentestsystem.shared</groupId>
-                    <artifactId>shared-tr-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.opentestsystem.delivery</groupId>
-                    <artifactId>item-renderer</artifactId>
-                </exclusion>
                 <exclusion>
                     <groupId>org.opentestsystem.delivery</groupId>
                     <artifactId>tds-dll-api</artifactId>
                 </exclusion>
                 <exclusion>
-                    <groupId>org.opentestsystem.delivery</groupId>
-                    <artifactId>item-scoring-api</artifactId>
+                    <groupId>org.opentestsystem.shared</groupId>
+                    <artifactId>shared-tr-api</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>4.3.2.RELEASE</version>
         </dependency>
         <dependency>
             <groupId>com.amazonaws</groupId>
@@ -72,11 +66,35 @@
             <groupId>org.opentestsystem.delivery</groupId>
             <artifactId>item-renderer</artifactId>
             <version>${item-renderer.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-context</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-mock</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.tomcat</groupId>
+                    <artifactId>el-api</artifactId>
+                </exclusion>
+            </exclusions>            
         </dependency>
         <dependency>
             <groupId>org.opentestsystem.delivery</groupId>
             <artifactId>item-scoring-engine</artifactId>
             <version>${item-scoring.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.opentestsystem.delivery</groupId>
+                    <artifactId>qtiscoringengine</artifactId>
+                </exclusion> 
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-context</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <!-- END of the block for dependency check -->
 
