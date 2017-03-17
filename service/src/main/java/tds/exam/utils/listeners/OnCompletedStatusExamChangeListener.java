@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 import tds.common.Response;
 import tds.common.entity.utils.ChangeListener;
@@ -51,15 +51,20 @@ public class OnCompletedStatusExamChangeListener implements ChangeListener<Exam>
         }
 
         // CommonDLL#_OnStatus_Completed_SP, line 1425: Update the exam to indicate this segment is not permeable,
-        // meaning the segment cannot be accessed/visited again.  Legacy code sets isPermeable to -1
-        Optional<ExamSegment> maybeExamSegment = examSegmentService.findByExamIdAndSegmentPosition(newExam.getId(),
-            newExam.getCurrentSegmentPosition());
+        // meaning the segment cannot be accessed/visited again.  Legacy code sets isPermeable to -1 for all segments
+        List<ExamSegment> examSegments = examSegmentService.findExamSegments(newExam.getId());
 
-        if (maybeExamSegment.isPresent()) {
-            examSegmentService.update(ExamSegment.Builder
-                .fromSegment(maybeExamSegment.get())
-                .withPermeable(false)
-                .build());
+        if (!examSegments.isEmpty()) {
+            List<ExamSegment> filteredSegments = examSegments.stream()
+                .filter(examSegment -> examSegment.isPermeable())
+                .map(examSegment -> ExamSegment.Builder
+                    .fromSegment(examSegment)
+                    .withPermeable(false)
+                    .build()
+                )
+                .collect(Collectors.toList());
+
+            examSegmentService.update(filteredSegments.toArray(new ExamSegment[filteredSegments.size()]));
         }
 
         // CommonDLL#_OnStatus_Completed_SP, line 1430: insert the final version of the student's attributes and

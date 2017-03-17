@@ -4,18 +4,19 @@ import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Optional;
+import java.util.List;
 import java.util.UUID;
 
-import tds.common.Response;
 import tds.common.entity.utils.ChangeListener;
-import tds.common.web.exceptions.NotFoundException;
 import tds.exam.Exam;
 import tds.exam.ExamSegment;
 import tds.exam.ExamStatusCode;
@@ -27,6 +28,7 @@ import tds.exam.services.ExamSegmentService;
 import tds.exam.services.ExamineeService;
 import tds.exam.services.FieldTestService;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -42,6 +44,9 @@ public class OnCompletedStatusExamChangeListenerTest {
 
     @Mock
     private ExamineeService mockExamineeService;
+
+    @Captor
+    private ArgumentCaptor<ExamSegment> examSegmentsArgumentCaptor;
 
     private ChangeListener<Exam> onCompletedExamStatusChangeListener;
 
@@ -60,6 +65,18 @@ public class OnCompletedStatusExamChangeListenerTest {
             .build();
         ExamSegment mockSegment = new ExamSegmentBuilder()
             .withExamId(newExam.getId())
+            .withIsPermeable(true)
+            .withSegmentId("segment1")
+            .build();
+        ExamSegment mockSegment2 = new ExamSegmentBuilder()
+            .withExamId(newExam.getId())
+            .withIsPermeable(false)
+            .withSegmentId("segment2")
+            .build();
+        ExamSegment mockSegment3 = new ExamSegmentBuilder()
+            .withExamId(newExam.getId())
+            .withIsPermeable(true)
+            .withSegmentId("segment3")
             .build();
         FieldTestItemGroup mockFirstFtItemGroup = new FieldTestItemGroup.Builder()
             .withExamId(newExam.getId())
@@ -90,16 +107,24 @@ public class OnCompletedStatusExamChangeListenerTest {
             .withSessionId(UUID.randomUUID())
             .build();
 
-        when(mockExamSegmentService.findByExamIdAndSegmentPosition(newExam.getId(),
-            newExam.getCurrentSegmentPosition()))
-            .thenReturn(Optional.of(mockSegment));
+        when(mockExamSegmentService.findExamSegments(newExam.getId()))
+            .thenReturn(Arrays.asList(mockSegment, mockSegment2, mockSegment3));
         when(mockFieldTestService.findUsageInExam(newExam.getId()))
             .thenReturn(Arrays.asList(mockFirstFtItemGroup, mockSecondFtItemGroup));
 
         onCompletedExamStatusChangeListener.accept(oldExam, newExam);
-        verify(mockExamSegmentService).findByExamIdAndSegmentPosition(newExam.getId(),
-            newExam.getCurrentSegmentPosition());
+        verify(mockExamSegmentService).findExamSegments(newExam.getId());
         verify(mockFieldTestService).findUsageInExam(newExam.getId());
+        verify(mockExamSegmentService).update(examSegmentsArgumentCaptor.capture());
+
+        List<ExamSegment> examSegments = examSegmentsArgumentCaptor.getAllValues();
+
+        //ExamSegment[] examSegments = examSegmentsArgumentCaptor.getValue();
+        assertThat(examSegments).hasSize(2);
+        assertThat(examSegments.get(0).isPermeable()).isFalse();
+        assertThat(examSegments.get(0).getSegmentId()).isEqualTo("segment1");
+        assertThat(examSegments.get(1).isPermeable()).isFalse();
+        assertThat(examSegments.get(1).getSegmentId()).isEqualTo("segment3");
     }
 
     @Test
@@ -112,15 +137,13 @@ public class OnCompletedStatusExamChangeListenerTest {
             .withExamId(newExam.getId())
             .build();
 
-        when(mockExamSegmentService.findByExamIdAndSegmentPosition(newExam.getId(),
-            newExam.getCurrentSegmentPosition()))
-            .thenReturn(Optional.of(mockSegment));
+        when(mockExamSegmentService.findExamSegments(newExam.getId()))
+            .thenReturn(Arrays.asList(mockSegment));
         when(mockFieldTestService.findUsageInExam(newExam.getId()))
             .thenReturn(Collections.emptyList());
 
         onCompletedExamStatusChangeListener.accept(oldExam, newExam);
-        verify(mockExamSegmentService).findByExamIdAndSegmentPosition(newExam.getId(),
-            newExam.getCurrentSegmentPosition());
+        verify(mockExamSegmentService).findExamSegments(newExam.getId());
         verify(mockFieldTestService).findUsageInExam(newExam.getId());
     }
 
@@ -150,20 +173,17 @@ public class OnCompletedStatusExamChangeListenerTest {
         verifyZeroInteractions(mockFieldTestService);
     }
 
-    @Test(expected = NotFoundException.class)
-    public void shouldThrowNotFoundExceptionWhenExamSegmentCannotBeFound() {
+    @Test
+    public void shouldSucceedWhenExamSegmentsCannotBeFound() {
         Exam oldExam = new ExamBuilder().build();
         Exam newExam = new ExamBuilder()
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_COMPLETED, ExamStatusStage.IN_PROGRESS), Instant.now())
             .build();
 
-        when(mockExamSegmentService.findByExamIdAndSegmentPosition(newExam.getId(),
-            newExam.getCurrentSegmentPosition()))
-            .thenThrow(new NotFoundException("Could not find exam segment"));
+        when(mockExamSegmentService.findExamSegments(newExam.getId()))
+            .thenReturn(new ArrayList<>());
 
         onCompletedExamStatusChangeListener.accept(oldExam, newExam);
-        verify(mockExamSegmentService).findByExamIdAndSegmentPosition(any(UUID.class), any(Integer.class));
-        verifyZeroInteractions(mockExamineeService);
-        verifyZeroInteractions(mockFieldTestService);
+        verify(mockExamSegmentService).findExamSegments(any(UUID.class));
     }
 }

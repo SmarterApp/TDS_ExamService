@@ -4,9 +4,7 @@ import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -18,12 +16,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import tds.common.Response;
 import tds.common.ValidationError;
-import tds.common.configuration.JacksonObjectMapperConfiguration;
-import tds.common.configuration.SecurityConfiguration;
-import tds.common.web.advice.ExceptionAdvice;
 import tds.exam.ExamSegment;
+import tds.exam.WebMvcControllerIntegrationTest;
 import tds.exam.services.ExamSegmentService;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -35,8 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
-@WebMvcTest(ExamSegmentController.class)
-@Import({ExceptionAdvice.class, JacksonObjectMapperConfiguration.class, SecurityConfiguration.class})
+@WebMvcControllerIntegrationTest(controllers = ExamSegmentController.class)
 public class ExamSegmentControllerIntegrationTests {
     @Autowired
     private MockMvc http;
@@ -60,55 +54,55 @@ public class ExamSegmentControllerIntegrationTests {
             .withSegmentPosition(2)
             .build();
         List<ExamSegment> mockExamSegments = Arrays.asList(seg1, seg2);
-        when(mockExamSegmentService.findExamSegments(examId, sessionId, browserId)).thenReturn(new Response<>(mockExamSegments));
+        when(mockExamSegmentService.findExamSegments(examId)).thenReturn(mockExamSegments);
 
-        http.perform(get(new URI(String.format("/exam/segments/%s", examId)))
+        http.perform(get(new URI(String.format("/exam/%s/segments", examId)))
             .param("sessionId", sessionId.toString())
             .param("browserId", browserId.toString())
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("data[0].segmentPosition", is(1)))
-            .andExpect(jsonPath("data[0].segmentKey", is("seg1")))
-            .andExpect(jsonPath("data[1].segmentPosition", is(2)))
-            .andExpect(jsonPath("data[1].segmentKey", is("seg2")));
+            .andExpect(jsonPath("[0].segmentPosition", is(1)))
+            .andExpect(jsonPath("[0].segmentKey", is("seg1")))
+            .andExpect(jsonPath("[1].segmentPosition", is(2)))
+            .andExpect(jsonPath("[1].segmentKey", is("seg2")));
 
-        verify(mockExamSegmentService).findExamSegments(examId, sessionId, browserId);
+        verify(mockExamSegmentService).findExamSegments(examId);
     }
 
+//    @Test
+//    public void shouldReturnErrorResponseForValidationErrorPresent() throws Exception {
+//        final UUID examId = UUID.randomUUID();
+//        final UUID sessionId = UUID.randomUUID();
+//        final UUID browserId = UUID.randomUUID();
+//        ValidationError error = new ValidationError("ruh", "roh");
+//
+//
+//        http.perform(get(new URI(String.format("/exam/%s/segments", examId)))
+//            .param("sessionId", sessionId.toString())
+//            .param("browserId", browserId.toString())
+//            .contentType(MediaType.APPLICATION_JSON))
+//            .andExpect(status().isUnprocessableEntity())
+//            .andExpect(jsonPath("error.code", is("ruh")))
+//            .andExpect(jsonPath("error.message", is("roh")));
+//
+//        verifyZeroInteractions(mockExamSegmentService.findExamSegments(examId));
+//    }
+
     @Test
-    public void shouldReturnErrorResponseForValidationErrorPresent() throws Exception {
+    public void shouldReturnEmptyListForNoExamSegmentsPresent() throws Exception {
         final UUID examId = UUID.randomUUID();
         final UUID sessionId = UUID.randomUUID();
         final UUID browserId = UUID.randomUUID();
-        ValidationError error = new ValidationError("ruh", "roh");
-        when(mockExamSegmentService.findExamSegments(examId, sessionId, browserId)).thenReturn(new Response<>(error));
+        when(mockExamSegmentService.findExamSegments(examId)).thenReturn(new ArrayList<>());
 
-        http.perform(get(new URI(String.format("/exam/segments/%s", examId)))
+        http.perform(get(new URI(String.format("/exam/%s/segments", examId)))
             .param("sessionId", sessionId.toString())
             .param("browserId", browserId.toString())
             .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isUnprocessableEntity())
-            .andExpect(jsonPath("error.code", is("ruh")))
-            .andExpect(jsonPath("error.message", is("roh")));
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", Matchers.hasSize(0)));
 
-        verify(mockExamSegmentService).findExamSegments(examId, sessionId, browserId);
-    }
-
-    @Test
-    public void shouldReturnNoContentForNoExamSegmentsPresent() throws Exception {
-        final UUID examId = UUID.randomUUID();
-        final UUID sessionId = UUID.randomUUID();
-        final UUID browserId = UUID.randomUUID();
-        when(mockExamSegmentService.findExamSegments(examId, sessionId, browserId)).thenReturn(new Response(new ArrayList<>()));
-
-        http.perform(get(new URI(String.format("/exam/segments/%s", examId)))
-            .param("sessionId", sessionId.toString())
-            .param("browserId", browserId.toString())
-            .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isNoContent())
-            .andExpect(jsonPath("data", Matchers.hasSize(0)));
-
-        verify(mockExamSegmentService).findExamSegments(examId, sessionId, browserId);
+        verify(mockExamSegmentService).findExamSegments(examId);
     }
 
     @Test
@@ -117,7 +111,7 @@ public class ExamSegmentControllerIntegrationTests {
         final int segmentPosition = 1;
         when(mockExamSegmentService.exitSegment(examId, segmentPosition)).thenReturn(Optional.empty());
 
-        http.perform(put(new URI(String.format("/exam/segments/%s/exit/%d", examId, segmentPosition)))
+        http.perform(put(new URI(String.format("/exam/%s/segments/%d/exit", examId, segmentPosition)))
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isNoContent());
 
@@ -131,7 +125,7 @@ public class ExamSegmentControllerIntegrationTests {
         when(mockExamSegmentService.exitSegment(examId, segmentPosition))
             .thenReturn(Optional.of(new ValidationError("waffles", "burritos")));
 
-        http.perform(put(new URI(String.format("/exam/segments/%s/exit/%d", examId, segmentPosition)))
+        http.perform(put(new URI(String.format("/exam/%s/segments/%d/exit", examId, segmentPosition)))
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isUnprocessableEntity());
 

@@ -145,12 +145,10 @@ public class ExamPageRepositoryIntegrationTests {
         }
 
         // ...and responds to the first item
-        Instant responseCreatedAt = Instant.now();
         ExamItemResponse mockResponseForFirstItem = new ExamItemResponseBuilder()
             .withExamItemId(examPage.getExamItems().get(0).getId())
             .withResponse("first item response")
             .withSequence(1)
-            .withCreatedAt(responseCreatedAt)
             .build();
 
         examItemCommandRepository.insertResponses(mockResponseForFirstItem);
@@ -181,7 +179,7 @@ public class ExamPageRepositoryIntegrationTests {
         assertThat(firstItemResponse.getExamItemId()).isEqualTo(firstExamItem.getId());
         assertThat(firstItemResponse.getResponse()).isEqualTo("first item response");
         assertThat(firstItemResponse.getSequence()).isEqualTo(1);
-        assertThat(firstItemResponse.getCreatedAt()).isEqualTo(responseCreatedAt);
+        assertThat(firstItemResponse.getCreatedAt()).isNotNull();
 
         ExamItem secondExamItem = examPage.getExamItems().get(1);
         assertThat(secondExamItem).isEqualToComparingFieldByField(mockSecondExamItem);

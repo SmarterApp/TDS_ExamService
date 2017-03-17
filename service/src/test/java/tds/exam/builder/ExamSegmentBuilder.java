@@ -30,7 +30,7 @@ public class ExamSegmentBuilder {
     private Instant exitedAt;
     private Set<String> itemPool = new HashSet<>(Arrays.asList("187-1234", "187-5678"));
     private int poolCount = 2;
-    private Instant createdAt = Instant.now().minus(10000L);
+    private Instant createdAt;
 
     public ExamSegment build() {
         return new ExamSegment.Builder()

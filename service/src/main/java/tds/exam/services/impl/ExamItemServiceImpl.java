@@ -35,7 +35,6 @@ public class ExamItemServiceImpl implements ExamItemService {
     private final ExamPageCommandRepository examPageCommandRepository;
     private final ExamPageQueryRepository examPageQueryRepository;
     private final ExamQueryRepository examQueryRepository;
-    private final ExamApprovalService examApprovalService;
     private final ExamItemResponseScoringService examItemResponseScoringService;
 
     @Autowired
@@ -44,27 +43,21 @@ public class ExamItemServiceImpl implements ExamItemService {
                                final ExamPageCommandRepository examPageCommandRepository,
                                final ExamPageQueryRepository examPageQueryRepository,
                                final ExamQueryRepository examQueryRepository,
-                               final ExamApprovalService examApprovalService,
                                final ExamItemResponseScoringService examItemResponseScoringService) {
         this.examItemQueryRepository = examItemQueryRepository;
         this.examItemCommandRepository = examItemCommandRepository;
         this.examPageCommandRepository = examPageCommandRepository;
         this.examPageQueryRepository = examPageQueryRepository;
         this.examQueryRepository = examQueryRepository;
-        this.examApprovalService = examApprovalService;
         this.examItemResponseScoringService = examItemResponseScoringService;
     }
 
     @Transactional
     @Override
-    public Response<ExamPage> insertResponses(final ExamInfo request, final int mostRecentPagePosition, final ExamItemResponse... responses) {
-        Exam exam = examQueryRepository.getExamById(request.getExamId())
-            .orElseThrow(() -> new NotFoundException(String.format("Could not find an exam for exam id %s", request.getExamId())));
+    public Response<ExamPage> insertResponses(final UUID examId, final int mostRecentPagePosition, final ExamItemResponse... responses) {
+        Exam exam = examQueryRepository.getExamById(examId)
+            .orElseThrow(() -> new NotFoundException(String.format("Could not find an exam for exam id %s", examId)));
 
-        Optional<ValidationError> maybeValidationError = examApprovalService.verifyAccess(request, exam);
-        if (maybeValidationError.isPresent()) {
-            return new Response<>(maybeValidationError.get());
-        }
 
         // RULE:  An exam must be in the "started" or "review" status for responses to be saved.  Legacy rule location:
         // StudentDLL.T_UpdateScoredResponse_common, line 2031
@@ -74,8 +67,8 @@ public class ExamItemServiceImpl implements ExamItemService {
         }
 
         // Get the current page, which will be used as the basis for creating the next page
-        ExamPage currentPage = examPageQueryRepository.find(request.getExamId(), mostRecentPagePosition)
-            .orElseThrow(() -> new NotFoundException(String.format("Could not find exam page for id %s and position %d", request.getExamId(), mostRecentPagePosition)));
+        ExamPage currentPage = examPageQueryRepository.find(examId, mostRecentPagePosition)
+            .orElseThrow(() -> new NotFoundException(String.format("Could not find exam page for id %s and position %d", examId, mostRecentPagePosition)));
 
         // Score each response
         // TODO:  Revisit this once scoring logic has been ported over; getting a score may be more complex and/or require more data

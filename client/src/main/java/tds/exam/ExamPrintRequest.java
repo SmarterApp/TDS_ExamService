@@ -1,5 +1,6 @@
 package tds.exam;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.joda.time.Instant;
 
 import java.util.UUID;
@@ -7,6 +8,7 @@ import java.util.UUID;
 /**
  * Represents a request to print or emboss and exam item, passage, or page.
  */
+@JsonIgnoreProperties(value={"approved", "denied"}, allowGetters=true)
 public class ExamPrintRequest {
     public static final String REQUEST_TYPE_EMBOSS_ITEM = "EMBOSSITEM";
     public static final String REQUEST_TYPE_EMBOSS_PASSAGE = "EMBOSSPASSAGE";
@@ -28,6 +30,7 @@ public class ExamPrintRequest {
     private Instant changedAt;
     private ExamPrintRequestStatus status;
     private String reasonDenied;
+    private String itemResponse;
 
     private ExamPrintRequest() {
     }
@@ -46,6 +49,7 @@ public class ExamPrintRequest {
         this.type = builder.type;
         this.reasonDenied = builder.reasonDenied;
         this.description = builder.description;
+        this.itemResponse = builder.itemResponse;
     }
 
     public static final class Builder {
@@ -62,6 +66,7 @@ public class ExamPrintRequest {
         private Instant changedAt;
         private ExamPrintRequestStatus status;
         private String reasonDenied;
+        private String itemResponse;
 
         public Builder(UUID id) {
             this.id = id;
@@ -127,6 +132,11 @@ public class ExamPrintRequest {
             return this;
         }
 
+        public Builder withItemResponse(String itemResponse) {
+            this.itemResponse = itemResponse;
+            return this;
+        }
+
         public Builder fromExamPrintRequest(ExamPrintRequest request) {
             this.createdAt = request.createdAt;
             this.pagePosition = request.pagePosition;
@@ -141,6 +151,7 @@ public class ExamPrintRequest {
             this.type = request.type;
             this.reasonDenied = request.reasonDenied;
             this.description = request.description;
+            this.itemResponse = request.itemResponse;
             return this;
         }
 
@@ -238,6 +249,27 @@ public class ExamPrintRequest {
      */
     public String getReasonDenied() {
         return reasonDenied;
+    }
+
+    /**
+     * @return The current item response for a "PRINTITEM" request.
+     */
+    public String getItemResponse() {
+        return itemResponse;
+    }
+
+    /**
+     * @return {@code true} if the request is approved, false otherwise
+     */
+    public boolean isApproved() {
+        return status == ExamPrintRequestStatus.APPROVED;
+    }
+
+    /**
+     * @return {@code true} if the request is denied, false otherwise
+     */
+    public boolean isDenied() {
+        return status == ExamPrintRequestStatus.APPROVED;
     }
 
     @Override

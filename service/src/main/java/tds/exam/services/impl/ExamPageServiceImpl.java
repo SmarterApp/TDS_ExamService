@@ -21,15 +21,12 @@ import tds.exam.services.ExamPageService;
 public class ExamPageServiceImpl implements ExamPageService {
     private final ExamPageCommandRepository examPageCommandRepository;
     private final ExamPageQueryRepository examPageQueryRepository;
-    private final ExamApprovalService examApprovalService;
 
     @Autowired
     public ExamPageServiceImpl(final ExamPageQueryRepository examPageQueryRepository,
-                               final ExamPageCommandRepository examPageCommandRepository,
-                               final ExamApprovalService examApprovalService) {
+                               final ExamPageCommandRepository examPageCommandRepository) {
         this.examPageCommandRepository = examPageCommandRepository;
         this.examPageQueryRepository = examPageQueryRepository;
-        this.examApprovalService = examApprovalService;
     }
 
     @Transactional
@@ -50,15 +47,9 @@ public class ExamPageServiceImpl implements ExamPageService {
     }
 
     @Override
-    public Response<ExamPage> getPage(final ExamInfo request, final int pageNumber) {
-        Response<ExamApproval> approval = examApprovalService.getApproval(request);
-
-        if (approval.getError().isPresent()) {
-            return new Response<>(approval.getError().get());
-        }
-
-        ExamPage examPage = examPageQueryRepository.findPageWithItems(request.getExamId(), pageNumber)
-            .orElseThrow(() -> new NotFoundException(String.format("Could not find an exam page for exam id %s and page number/position %s", request.getExamId(), pageNumber)));
+    public Response<ExamPage> getPage(final UUID examId, final int pageNumber) {
+        ExamPage examPage = examPageQueryRepository.findPageWithItems(examId, pageNumber)
+            .orElseThrow(() -> new NotFoundException(String.format("Could not find an exam page for exam id %s and page number/position %s", examId, pageNumber)));
 
         // Update the exam page to record the started_at time, which can be used for measuring the amount of time a
         // student spends responding to items on a page.  Consider the time this page of items was fetched from the
