@@ -39,10 +39,10 @@ import tds.itemscoringengine.ScoringStatus;
 import tds.itemscoringengine.WebProxyItemScorerCallback;
 import tds.score.configuration.ItemScoreSettings;
 import tds.score.model.ExamInstance;
+import tds.score.services.ContentService;
 import tds.score.services.ItemScoringService;
 import tds.score.services.ResponseService;
 import tds.score.services.ScoreConfigService;
-import tds.student.services.abstractions.IContentService;
 import tds.student.sql.data.IItemResponseScorable;
 import tds.student.sql.data.IItemResponseUpdate;
 import tds.student.sql.data.ItemResponseUpdate;
@@ -54,14 +54,14 @@ public class ItemScoringServiceImpl implements ItemScoringService {
     private static final Logger LOG = LoggerFactory.getLogger(ItemScoringService.class);
 
     private final ScoreConfigService scoreConfigService;
-    private final IContentService contentService;
+    private final ContentService contentService;
     private final IItemScorerManager itemScorer;
     private final ItemScoreSettings itemScoreSettings;
     private final ResponseService responseService;
 
     public ItemScoringServiceImpl(final ResponseService responseService,
                                   final ScoreConfigService scoreConfigService,
-                                  final IContentService contentService,
+                                  final ContentService contentService,
                                   final IItemScorerManager itemScorer,
                                   final ItemScoreSettings itemScoreSettings) {
         this.responseService = responseService;
