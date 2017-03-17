@@ -4,7 +4,6 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>tds-exam-scoring</artifactId>
-    <version>0.0.2-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>tds-exam-scoring</name>
@@ -13,7 +12,7 @@
     <parent>
         <groupId>org.opentestsystem.delivery</groupId>
         <artifactId>tds-exam</artifactId>
-        <version>0.0.2-SNAPSHOT</version>
+        <version>0.0.4-SNAPSHOT</version>
     </parent>
 
     <properties>
