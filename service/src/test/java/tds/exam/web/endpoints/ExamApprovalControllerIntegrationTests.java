@@ -4,25 +4,24 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.UUID;
+
 import tds.common.Response;
 import tds.common.ValidationError;
-import tds.common.configuration.JacksonObjectMapperConfiguration;
 import tds.common.configuration.SecurityConfiguration;
 import tds.common.web.advice.ExceptionAdvice;
 import tds.exam.ExamApproval;
 import tds.exam.ExamInfo;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
+import tds.exam.WebMvcControllerIntegrationTest;
 import tds.exam.error.ValidationErrorCode;
 import tds.exam.services.ExamApprovalService;
-
-import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.Matchers.isA;
@@ -33,8 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
-@WebMvcTest(ExamApprovalController.class)
-@Import({ExceptionAdvice.class, JacksonObjectMapperConfiguration.class, SecurityConfiguration.class})
+@WebMvcControllerIntegrationTest(controllers = ExamApprovalController.class)
 public class ExamApprovalControllerIntegrationTests {
     @Autowired
     private MockMvc http;

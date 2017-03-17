@@ -16,12 +16,12 @@ public interface ExamItemService {
     /**
      * Persist one or more {@link tds.exam.ExamItemResponse}s
      *
-     * @param request                The data required to verify the requester can fetch the requested page
+     * @param examId                 The ID of the exam
      * @param mostRecentPagePosition The last page number that has responses
      * @param responses              The collection of the {@link tds.exam.ExamItemResponse}s to persist
      * @return The next {@link tds.exam.ExamPage} that has {@link tds.exam.ExamItem}s that require student responses
      */
-    Response<ExamPage> insertResponses(final ExamInfo request, final int mostRecentPagePosition, final ExamItemResponse... responses);
+    Response<ExamPage> insertResponses(final UUID examId, final int mostRecentPagePosition, final ExamItemResponse... responses);
 
     /**
      * Fetches the highest exam position - the position of the {@link tds.exam.ExamItem} that

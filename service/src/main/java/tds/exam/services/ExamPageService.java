@@ -36,10 +36,10 @@ public interface ExamPageService {
     /**
      * Fetch an {@link tds.exam.ExamPage} for the specified {@link tds.exam.Exam} id and page number.
      *
-     * @param request    The data required to verify the requester can fetch the requested page
+     * @param examId     The exam ID
      * @param pageNumber The page number (1-based) of the page to return
      * @return An {@link tds.exam.ExamPage} containing a collection of {@link tds.exam.ExamItem}s that
      * should be displayed
      */
-    Response<ExamPage> getPage(final ExamInfo request, final int pageNumber);
+    Response<ExamPage> getPage(final UUID examId, final int pageNumber);
 }

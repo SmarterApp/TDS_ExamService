@@ -11,18 +11,28 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 import tds.exam.Exam;
+import tds.exam.ExamItem;
+import tds.exam.ExamItemResponse;
+import tds.exam.ExamPage;
 import tds.exam.ExamPrintRequest;
 import tds.exam.ExamPrintRequestStatus;
+import tds.exam.ExamSegment;
 import tds.exam.builder.ExamBuilder;
+import tds.exam.builder.ExamItemBuilder;
+import tds.exam.builder.ExamSegmentBuilder;
 import tds.exam.repositories.ExamCommandRepository;
+import tds.exam.repositories.ExamItemCommandRepository;
+import tds.exam.repositories.ExamPageCommandRepository;
 import tds.exam.repositories.ExamPrintRequestCommandRepository;
 import tds.exam.repositories.ExamPrintRequestQueryRepository;
+import tds.exam.repositories.ExamSegmentCommandRepository;
 
 import static io.github.benas.randombeans.api.EnhancedRandom.random;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,16 +47,22 @@ public class ExamPrintRequestRepositoryIntegrationTests {
     private ExamPrintRequestQueryRepository examPrintRequestQueryRepository;
     private ExamPrintRequestCommandRepository examPrintRequestCommandRepository;
     private ExamCommandRepository examCommandRepository;
+    private ExamSegmentCommandRepository examSegmentCommandRepository;
+    private ExamPageCommandRepository examPageCommandRepository;
+    private ExamItemCommandRepository examItemCommandRepository;
 
     @Before
     public void setUp() {
         examPrintRequestQueryRepository = new ExamPrintRequestQueryRepositoryImpl(commandJdbcTemplate);
         examPrintRequestCommandRepository = new ExamPrintRequestCommandRepositoryImpl(commandJdbcTemplate);
         examCommandRepository = new ExamCommandRepositoryImpl(commandJdbcTemplate);
+        examSegmentCommandRepository = new ExamSegmentCommandRepositoryImpl(commandJdbcTemplate);
+        examPageCommandRepository = new ExamPageCommandRepositoryImpl(commandJdbcTemplate);
+        examItemCommandRepository = new ExamItemCommandRepositoryImpl(commandJdbcTemplate);
     }
 
     @Test
-    public void shouldReturnExamPrintRequest() {
+    public void shouldReturnExamPrintRequestNoResponses() {
         Exam exam = new ExamBuilder().build();
         examCommandRepository.insert(exam);
 
@@ -60,6 +76,70 @@ public class ExamPrintRequestRepositoryIntegrationTests {
         Optional<ExamPrintRequest> maybeRequest = examPrintRequestQueryRepository.findExamPrintRequest(request.getId());
         assertThat(maybeRequest).isPresent();
         assertThat(maybeRequest.get()).isEqualTo(request);
+    }
+
+    @Test
+    public void shouldReturnExamPrintRequestWithMultipleResponses() {
+        Exam exam = new ExamBuilder().build();
+        examCommandRepository.insert(exam);
+
+        ExamSegment segment = new ExamSegmentBuilder()
+            .withExamId(exam.getId())
+            .build();
+
+        examSegmentCommandRepository.insert(Arrays.asList(segment));
+
+        ExamPage page = new ExamPage.Builder()
+            .fromExamPage(random(ExamPage.class))
+            .withExamId(exam.getId())
+            .withDeletedAt(null)
+            .withSegmentKey(segment.getSegmentKey())
+            .withItemGroupKey("itemgroupkey1")
+            .build();
+
+        examPageCommandRepository.insert(page);
+
+        ExamItem itemWithoutResponses = new ExamItemBuilder()
+            .withId(UUID.randomUUID())
+            .withExamPageId(page.getId())
+            .withPosition(1)
+            .withItemKey("itemkey1")
+            .build();
+        ExamItem itemWithResponses = new ExamItemBuilder()
+            .withId(UUID.randomUUID())
+            .withExamPageId(page.getId())
+            .withPosition(2)
+            .withItemKey("itemkey2")
+            .build();
+        examItemCommandRepository.insert(itemWithoutResponses, itemWithResponses);
+
+        ExamItemResponse examItemResponse1 = new ExamItemResponse.Builder()
+            .fromExamItemResponse(random(ExamItemResponse.class))
+            .withCreatedAt(Instant.now().minus(20000))
+            .withExamItemId(itemWithResponses.getId())
+            .build();
+
+        examItemCommandRepository.insertResponses(examItemResponse1);
+
+        ExamItemResponse examItemResponse2 = new ExamItemResponse.Builder()
+            .fromExamItemResponse(random(ExamItemResponse.class))
+            .withExamItemId(itemWithResponses.getId())
+            .build();
+
+        examItemCommandRepository.insertResponses(examItemResponse2);
+
+        ExamPrintRequest request = new ExamPrintRequest.Builder(UUID.randomUUID())
+            .fromExamPrintRequest(random(ExamPrintRequest.class))
+            .withExamId(exam.getId())
+            .withItemPosition(itemWithResponses.getPosition())
+            .build();
+
+        examPrintRequestCommandRepository.insert(request);
+
+        Optional<ExamPrintRequest> maybeRequest = examPrintRequestQueryRepository.findExamPrintRequest(request.getId());
+        assertThat(maybeRequest).isPresent();
+        assertThat(maybeRequest.get()).isEqualTo(request);
+        assertThat(maybeRequest.get().getItemResponse()).isEqualTo(examItemResponse2.getResponse());
     }
 
     @Test

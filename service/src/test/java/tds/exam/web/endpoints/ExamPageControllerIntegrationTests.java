@@ -3,31 +3,27 @@ package tds.exam.web.endpoints;
 import org.joda.time.Instant;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import tds.common.Response;
-import tds.common.ValidationError;
-import tds.common.configuration.JacksonObjectMapperConfiguration;
-import tds.common.configuration.SecurityConfiguration;
-import tds.common.web.advice.ExceptionAdvice;
-import tds.exam.ExamInfo;
-import tds.exam.ExamItem;
-import tds.exam.ExamItemResponse;
-import tds.exam.ExamPage;
-import tds.exam.builder.ExamItemBuilder;
-import tds.exam.builder.ExamPageBuilder;
-import tds.exam.error.ValidationErrorCode;
-import tds.exam.services.ExamPageService;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+
+import tds.common.Response;
+import tds.common.ValidationError;
+import tds.exam.ExamInfo;
+import tds.exam.ExamItem;
+import tds.exam.ExamItemResponse;
+import tds.exam.ExamPage;
+import tds.exam.WebMvcControllerIntegrationTest;
+import tds.exam.builder.ExamItemBuilder;
+import tds.exam.builder.ExamPageBuilder;
+import tds.exam.error.ValidationErrorCode;
+import tds.exam.services.ExamPageService;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.Matchers.isA;
@@ -38,8 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
-@WebMvcTest(ExamPageController.class)
-@Import({ExceptionAdvice.class, JacksonObjectMapperConfiguration.class, SecurityConfiguration.class})
+@WebMvcControllerIntegrationTest(controllers = ExamPageController.class)
 public class ExamPageControllerIntegrationTests {
     @Autowired
     private MockMvc http;
@@ -61,8 +56,7 @@ public class ExamPageControllerIntegrationTests {
             UUID.randomUUID(),
             UUID.randomUUID());
 
-        ArgumentCaptor<ExamInfo> approvalRequestArgumentCaptor = ArgumentCaptor.forClass(ExamInfo.class);
-        when(mockExamPageService.getPage(isA(ExamInfo.class), isA(Integer.class)))
+        when(mockExamPageService.getPage(isA(UUID.class), isA(Integer.class)))
             .thenReturn(new Response<>(mockExamPage));
 
         http.perform(get("/exam/{id}/page/{position}", mockExamPage.getExamId(), mockExamPage.getPagePosition())
@@ -92,7 +86,7 @@ public class ExamPageControllerIntegrationTests {
             .andExpect(jsonPath("data.examItems[0].itemFilePath", is(mockExamItem.getItemFilePath())))
             .andExpect(jsonPath("data.examItems[0].stimulusFilePath", is(mockExamItem.getStimulusFilePath().get())));
 
-        verify(mockExamPageService).getPage(approvalRequestArgumentCaptor.capture(), isA(Integer.class));
+        verify(mockExamPageService).getPage(mockExamPage.getExamId(), mockExamPage.getPagePosition());
     }
 
     @Test
@@ -115,8 +109,7 @@ public class ExamPageControllerIntegrationTests {
             UUID.randomUUID(),
             UUID.randomUUID());
 
-        ArgumentCaptor<ExamInfo> approvalRequestArgumentCaptor = ArgumentCaptor.forClass(ExamInfo.class);
-        when(mockExamPageService.getPage(isA(ExamInfo.class), isA(Integer.class)))
+        when(mockExamPageService.getPage(isA(UUID.class), isA(Integer.class)))
             .thenReturn(new Response<>(examPage));
 
         http.perform(get("/exam/{id}/page/{position}", examPage.getExamId(), examPage.getPagePosition())
@@ -149,7 +142,7 @@ public class ExamPageControllerIntegrationTests {
             .andExpect(jsonPath("data.examItems[0].response.valid", is(response.isValid())))
             .andExpect(jsonPath("data.examItems[0].response.examItemId", is(response.getExamItemId().toString())));
 
-        verify(mockExamPageService).getPage(approvalRequestArgumentCaptor.capture(), isA(Integer.class));
+        verify(mockExamPageService).getPage(examPage.getExamId(), examPage.getPagePosition());
     }
 
     @Test
@@ -158,8 +151,7 @@ public class ExamPageControllerIntegrationTests {
             UUID.randomUUID(),
             UUID.randomUUID());
 
-        ArgumentCaptor<ExamInfo> approvalRequestArgumentCaptor = ArgumentCaptor.forClass(ExamInfo.class);
-        when(mockExamPageService.getPage(isA(ExamInfo.class), isA(Integer.class)))
+        when(mockExamPageService.getPage(isA(UUID.class), isA(Integer.class)))
             .thenReturn(new Response<>(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_SESSION_CLOSED, "session is closed")));
 
         http.perform(get("/exam/{id}/page/{position}", examInfo.getExamId(), 1)
@@ -171,6 +163,6 @@ public class ExamPageControllerIntegrationTests {
             .andExpect(jsonPath("error.code", is("sessionClosed")))
             .andExpect(jsonPath("error.message", is("session is closed")));
 
-        verify(mockExamPageService).getPage(approvalRequestArgumentCaptor.capture(), isA(Integer.class));
+        verify(mockExamPageService).getPage(examInfo.getExamId(), 1);
     }
 }

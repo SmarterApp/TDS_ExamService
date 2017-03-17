@@ -9,6 +9,7 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 
 import tds.exam.ExamPrintRequest;
+import tds.exam.ExamPrintRequestStatus;
 import tds.exam.repositories.ExamPrintRequestCommandRepository;
 
 import static tds.common.data.mapping.ResultSetMapperUtility.mapJodaInstantToTimestamp;
@@ -69,7 +70,7 @@ public class ExamPrintRequestCommandRepositoryImpl implements ExamPrintRequestCo
     @Override
     public void update(final ExamPrintRequest examPrintRequest) {
         final SqlParameterSource params = new MapSqlParameterSource("examRequestId", examPrintRequest.getId().toString())
-            .addValue("status", examPrintRequest.getStatus().name())
+            .addValue("status", examPrintRequest.getStatus() != null ? examPrintRequest.getStatus().name() : ExamPrintRequestStatus.SUBMITTED.name())
             .addValue("createdAt", mapJodaInstantToTimestamp(Instant.now()))
             .addValue("reasonDenied", examPrintRequest.getReasonDenied());
 

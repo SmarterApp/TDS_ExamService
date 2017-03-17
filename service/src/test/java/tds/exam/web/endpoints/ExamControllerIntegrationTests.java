@@ -6,9 +6,7 @@ import com.google.common.collect.ImmutableSet;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -21,18 +19,18 @@ import java.util.Set;
 import java.util.UUID;
 
 import tds.common.ValidationError;
-import tds.common.configuration.JacksonObjectMapperConfiguration;
-import tds.common.configuration.SecurityConfiguration;
-import tds.common.web.advice.ExceptionAdvice;
 import tds.exam.Exam;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
 import tds.exam.ExpandableExam;
 import tds.exam.SegmentApprovalRequest;
+import tds.exam.WebMvcControllerIntegrationTest;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.error.ValidationErrorCode;
+import tds.exam.services.ExamApprovalService;
 import tds.exam.services.ExamPageService;
 import tds.exam.services.ExamService;
+import tds.exam.web.interceptors.VerifyAccessInterceptor;
 
 import static io.github.benas.randombeans.api.EnhancedRandom.random;
 import static org.hamcrest.CoreMatchers.is;
@@ -50,9 +48,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
-@WebMvcTest(ExamController.class)
-@Import({ExceptionAdvice.class, JacksonObjectMapperConfiguration.class, SecurityConfiguration.class})
+@WebMvcControllerIntegrationTest(controllers = ExamController.class)
 public class ExamControllerIntegrationTests {
+
     @Autowired
     private MockMvc http;
 
@@ -64,6 +62,12 @@ public class ExamControllerIntegrationTests {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @MockBean
+    private VerifyAccessInterceptor mockVerifyAccessInterceptor;
+
+    @MockBean
+    private ExamApprovalService mockExamApprovalService;
 
     @Test
     public void shouldReturnExam() throws Exception {
