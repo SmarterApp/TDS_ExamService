@@ -14,7 +14,6 @@ import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -26,7 +25,6 @@ import java.util.UUID;
 import tds.accommodation.Accommodation;
 import tds.assessment.Assessment;
 import tds.assessment.AssessmentWindow;
-import tds.common.Algorithm;
 import tds.common.Response;
 import tds.common.ValidationError;
 import tds.common.entity.utils.ChangeListener;
@@ -51,11 +49,9 @@ import tds.exam.builder.OpenExamRequestBuilder;
 import tds.exam.builder.SessionBuilder;
 import tds.exam.builder.StudentBuilder;
 import tds.exam.error.ValidationErrorCode;
-import tds.exam.models.Ability;
 import tds.exam.repositories.ExamCommandRepository;
 import tds.exam.repositories.ExamQueryRepository;
 import tds.exam.repositories.ExamStatusQueryRepository;
-import tds.exam.repositories.HistoryQueryRepository;
 import tds.exam.services.AssessmentService;
 import tds.exam.services.ConfigService;
 import tds.exam.services.ExamAccommodationService;
@@ -102,9 +98,6 @@ public class ExamServiceImplTest {
 
     @Mock
     private ExamCommandRepository mockExamCommandRepository;
-
-    @Mock
-    private HistoryQueryRepository mockHistoryRepository;
 
     @Mock
     private SessionService mockSessionService;
@@ -155,7 +148,6 @@ public class ExamServiceImplTest {
 
         examService = new ExamServiceImpl(
             mockExamQueryRepository,
-            mockHistoryRepository,
             mockSessionService,
             mockStudentService,
             mockExamSegmentService,
@@ -812,151 +804,6 @@ public class ExamServiceImplTest {
     }
 
     @Test
-    public void shouldGetInitialAbilityFromScoresForSameAssessment() {
-        final UUID sessionId = UUID.randomUUID();
-        final UUID thisExamId = UUID.randomUUID();
-        final String assessmentId = "SBAC ELA 3-ELA-3";
-        final String clientName = "SBAC_TEST1";
-        final long studentId = 9898L;
-        final double assessmentAbilityVal = 99D;
-
-        Exam thisExam = createExam(sessionId, thisExamId, assessmentId, clientName, studentId);
-        Assessment assessment = new AssessmentBuilder()
-            .withSubject("ELA")
-            .build();
-
-        Ability sameAssessmentAbility = new Ability(
-            UUID.randomUUID(), assessmentId, 1, java.time.Instant.now(), assessmentAbilityVal);
-        Ability differentAssessmentAbility = new Ability(
-            UUID.randomUUID(), assessmentId, 1, java.time.Instant.now(), 50D);
-
-        List<Ability> abilities = new ArrayList<>();
-        abilities.add(sameAssessmentAbility);
-        abilities.add(differentAssessmentAbility);
-        when(mockExamQueryRepository.findAbilities(thisExamId, clientName, "ELA", studentId)).thenReturn(abilities);
-
-        Optional<Double> maybeAbilityReturned = examService.getInitialAbility(thisExam, assessment);
-
-        assertThat(maybeAbilityReturned.get()).isEqualTo(assessmentAbilityVal);
-    }
-
-    @Test
-    public void shouldGetInitialAbilityFromHistoryWithoutSlopeIntercept() {
-        final UUID sessionId = UUID.randomUUID();
-        final UUID thisExamId = UUID.randomUUID();
-        final String assessmentId = "SBAC ELA 3-ELA-3";
-        final String clientName = "SBAC_TEST4";
-        final long studentId = 9897L;
-
-        Assessment assessment = new AssessmentBuilder()
-            .withSubject("ELA")
-            .withAssessmentId(assessmentId)
-            .withAbilitySlope(1)
-            .withAbilityIntercept(0)
-            .withInitialAbilityBySubject(true)
-            .build();
-        // Null slope/intercept for this test case
-
-        Exam thisExam = createExam(sessionId, thisExamId, assessmentId, clientName, studentId);
-        List<Ability> abilities = new ArrayList<>();
-        Optional<Double> maybeAbility = Optional.of(66D);
-
-        when(mockExamQueryRepository.findAbilities(thisExamId, clientName, "ELA", studentId)).thenReturn(abilities);
-        when(mockHistoryRepository.findAbilityFromHistoryForSubjectAndStudent(clientName, "ELA", studentId))
-            .thenReturn(maybeAbility);
-        Optional<Double> maybeAbilityReturned = examService.getInitialAbility(thisExam, assessment);
-        verify(mockHistoryRepository).findAbilityFromHistoryForSubjectAndStudent(clientName, "ELA", studentId);
-        assertThat(maybeAbilityReturned.get()).isEqualTo(maybeAbility.get());
-    }
-
-    @Test
-    public void shouldGetInitialAbilityFromItembank() {
-        final UUID sessionId = UUID.randomUUID();
-        final UUID thisExamId = UUID.randomUUID();
-        final String assessmentId = "SBAC ELA 3-ELA-3";
-        final String clientName = "SBAC_TEST6";
-        final long studentId = 9898L;
-        final float assessmentAbilityVal = 99F;
-
-        Assessment assessment = new Assessment();
-        assessment.setKey("(SBAC)SBAC ELA 3-ELA-3-Spring-2112a");
-        assessment.setAssessmentId(assessmentId);
-        assessment.setSelectionAlgorithm(Algorithm.FIXED_FORM);
-        assessment.setStartAbility(assessmentAbilityVal);
-
-        Exam thisExam = createExam(sessionId, thisExamId, assessmentId, clientName, studentId);
-
-        List<Ability> abilities = new ArrayList<>();
-        when(mockExamQueryRepository.findAbilities(thisExamId, clientName, "ELA", studentId)).thenReturn(abilities);
-        when(mockHistoryRepository.findAbilityFromHistoryForSubjectAndStudent(clientName, "ELA", studentId))
-            .thenReturn(Optional.empty());
-        when(mockAssessmentService.findAssessment(thisExam.getClientName(), thisExam.getAssessmentId())).thenReturn(Optional.of(assessment));
-        Optional<Double> maybeAbilityReturned = examService.getInitialAbility(thisExam, assessment);
-        assertThat(maybeAbilityReturned.get()).isEqualTo(assessmentAbilityVal);
-    }
-
-    @Test
-    public void shouldGetInitialAbilityFromHistoryWithSlopeIntercept() {
-        final UUID sessionId = UUID.randomUUID();
-        final UUID thisExamId = UUID.randomUUID();
-        final String assessmentId = "SBAC ELA 3-ELA-3";
-        final String clientName = "SBAC_TEST3";
-        final long studentId = 9898L;
-        final float slope = 2f;
-        final float intercept = 1f;
-
-        Exam thisExam = createExam(sessionId, thisExamId, assessmentId, clientName, studentId);
-
-        Assessment assessment = new AssessmentBuilder()
-            .withSubject("ELA")
-            .withAbilitySlope(slope)
-            .withAbilityIntercept(intercept)
-            .withInitialAbilityBySubject(true)
-            .build();
-
-        List<Ability> abilities = new ArrayList<>();
-        Optional<Double> maybeAbility = Optional.of(66D);
-        when(mockExamQueryRepository.findAbilities(thisExamId, clientName, "ELA", studentId)).thenReturn(abilities);
-        when(mockHistoryRepository.findAbilityFromHistoryForSubjectAndStudent(clientName, "ELA", studentId))
-            .thenReturn(maybeAbility);
-        Optional<Double> maybeAbilityReturned = examService.getInitialAbility(thisExam, assessment);
-        // y=mx+b
-        double abilityCalculated = maybeAbility.get() * slope + intercept;
-        assertThat(maybeAbilityReturned.get()).isEqualTo((float) abilityCalculated);
-    }
-
-    @Test
-    public void shouldGetInitialAbilityFromScoresForDifferentAssessment() {
-        final UUID sessionId = UUID.randomUUID();
-        final UUID thisExamId = UUID.randomUUID();
-        final String assessmentId = "SBAC ELA 3-ELA-3";
-        final String clientName = "SBAC_TEST2";
-        final long studentId = 9899L;
-        final double assessmentAbilityVal = 75D;
-
-
-        Exam thisExam = createExam(sessionId, thisExamId, assessmentId, clientName, studentId);
-
-        Ability sameAssessmentAbility = new Ability(
-            UUID.randomUUID(), "assessmentid-2", 1, java.time.Instant.now(), assessmentAbilityVal);
-        Ability differentAssessmentAbility = new Ability(
-            UUID.randomUUID(), "assessmentid-2", 1, java.time.Instant.now(), 50D);
-
-        Assessment assessment = new AssessmentBuilder()
-            .withAssessmentId(assessmentId)
-            .withInitialAbilityBySubject(true)
-            .withSubject("ELA")
-            .build();
-
-        List<Ability> abilities = new ArrayList<>();
-        abilities.add(sameAssessmentAbility);
-        abilities.add(differentAssessmentAbility);
-        when(mockExamQueryRepository.findAbilities(thisExamId, clientName, "ELA", studentId)).thenReturn(abilities);
-        Optional<Double> maybeAbilityReturned = examService.getInitialAbility(thisExam, assessment);
-        assertThat(maybeAbilityReturned.get()).isEqualTo(assessmentAbilityVal);
-    }
-
-    @Test
     public void shouldPauseAnExam() {
         UUID examId = UUID.randomUUID();
         Exam mockExam = new Exam.Builder()
@@ -1436,19 +1283,5 @@ public class ExamServiceImplTest {
 
         verify(mockExamApprovalService).getApproval(new ExamInfo(exam.getId(), request.getSessionId(), request.getBrowserId()));
         verify(mockExamCommandRepository, never()).update(isA(Exam.class));
-    }
-
-    private Exam createExam(UUID sessionId, UUID thisExamId, String assessmentId, String clientName, long studentId) {
-        return new Exam.Builder()
-            .withId(thisExamId)
-            .withClientName(clientName)
-            .withSessionId(sessionId)
-            .withAssessmentId(assessmentId)
-            .withSubject("ELA")
-            .withStudentId(studentId)
-            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, OPEN), Instant.now())
-            .withChangedAt(Instant.now())
-            .withScoredAt(Instant.now())
-            .build();
     }
 }

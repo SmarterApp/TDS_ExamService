@@ -3,7 +3,6 @@ package tds.exam.services;
 import java.util.Optional;
 import java.util.UUID;
 
-import tds.assessment.Assessment;
 import tds.common.Response;
 import tds.common.ValidationError;
 import tds.exam.Exam;
@@ -40,15 +39,6 @@ public interface ExamService {
      * @return {@link tds.common.Response<tds.exam.Exam>} containing the exam's configuration or errors.
      */
     Response<ExamConfiguration> startExam(final UUID examId);
-
-    /**
-     * Retrieves the initial ability value for an {@link Exam}.
-     *
-     * @param exam       the exam to retrieve an ability for.
-     * @param assessment the {@link tds.assessment.Assessment} associated with the exam
-     * @return the initial ability for an {@link Exam}.
-     */
-    Optional<Double> getInitialAbility(final Exam exam, final Assessment assessment);
 
     /**
      * Change the {@link tds.exam.Exam}'s status to a new status.
