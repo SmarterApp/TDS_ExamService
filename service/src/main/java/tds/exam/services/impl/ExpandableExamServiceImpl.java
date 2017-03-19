@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -32,7 +33,7 @@ public class ExpandableExamServiceImpl implements ExpandableExamService {
     @Override
     public List<ExpandableExam> findExamsBySessionId(final UUID sessionId, final Set<String> invalidStatuses,
                                                      final String... embed) {
-        final Set<String> expandableExamAttributes = Sets.newHashSet(embed);
+        final Set<String> expandableExamAttributes = embed == null ? new HashSet<>() : Sets.newHashSet(embed);
         final List<Exam> exams = examQueryRepository.findAllExamsInSessionWithoutStatus(sessionId, invalidStatuses);
         final Map<UUID, ExpandableExam.Builder> examBuilders = exams.stream()
             .collect(Collectors.toMap(Exam::getId, ExpandableExam.Builder::new));
