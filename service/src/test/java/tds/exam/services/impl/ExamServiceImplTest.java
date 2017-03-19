@@ -1,6 +1,5 @@
 package tds.exam.services.impl;
 
-import com.google.common.collect.Sets;
 import org.assertj.core.util.Lists;
 import org.joda.time.Days;
 import org.joda.time.Instant;
@@ -17,7 +16,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -43,7 +41,6 @@ import tds.exam.ExamInfo;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
 import tds.exam.ExamineeContext;
-import tds.exam.ExpandableExam;
 import tds.exam.OpenExamRequest;
 import tds.exam.SegmentApprovalRequest;
 import tds.exam.builder.AssessmentBuilder;
@@ -68,7 +65,6 @@ import tds.exam.services.ExamPageService;
 import tds.exam.services.ExamSegmentService;
 import tds.exam.services.ExamService;
 import tds.exam.services.ExamineeService;
-import tds.exam.services.ExpandableExamMapper;
 import tds.exam.services.SessionService;
 import tds.exam.services.StudentService;
 import tds.exam.services.TimeLimitConfigurationService;
@@ -80,9 +76,7 @@ import tds.student.Student;
 import static io.github.benas.randombeans.api.EnhancedRandom.random;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -151,9 +145,6 @@ public class ExamServiceImplTest {
     @Mock
     private ChangeListener<Exam> mockOnCompletedExamChangeListener;
 
-    private Collection<ExpandableExamMapper> mockExamMappers;
-
-
     @Captor
     private ArgumentCaptor<Exam> examArgumentCaptor;
 
@@ -161,7 +152,6 @@ public class ExamServiceImplTest {
 
     @Before
     public void setUp() {
-        mockExamMappers = Arrays.asList(mock(ExpandableExamMapper.class), mock(ExpandableExamMapper.class));
 
         examService = new ExamServiceImpl(
             mockExamQueryRepository,
@@ -179,8 +169,7 @@ public class ExamServiceImplTest {
             mockExamAccommodationService,
             mockExamApprovalService,
             mockExamineeService,
-            Arrays.asList(mockOnCompletedExamChangeListener),
-            mockExamMappers);
+            Collections.singletonList(mockOnCompletedExamChangeListener));
 
 
         // Calls to get formatted message are throughout the exam service
@@ -1358,41 +1347,7 @@ public class ExamServiceImplTest {
         verify(mockExamCommandRepository, times(0)).update(Matchers.<Exam>anyVararg());
     }
 
-    @Test
-    public void shouldReturnExpandableExams() {
-        UUID sessionId = UUID.randomUUID();
-        Exam exam1 = new ExamBuilder().build();
-        Exam exam2 = new ExamBuilder().build();
-        final Set<String> invalidStatuses = Sets.newHashSet(
-            ExamStatusCode.STATUS_PENDING,
-            ExamStatusCode.STATUS_SUSPENDED,
-            ExamStatusCode.STATUS_DENIED
-        );
 
-        when(mockExamQueryRepository.findAllExamsInSessionWithoutStatus(eq(sessionId), any())).thenReturn(Arrays.asList(exam1, exam2));
-
-        List<ExpandableExam> expandableExams = examService.findExamsBySessionId(sessionId, invalidStatuses,
-            ExpandableExam.EXPANDABLE_PARAMS_EXAM_ACCOMMODATIONS);
-
-        verify(mockExamQueryRepository).findAllExamsInSessionWithoutStatus(eq(sessionId), any());
-        mockExamMappers.forEach(mockMapper -> verify(mockMapper).updateExpandableMapper(any(), any(), any()));
-
-        assertThat(expandableExams).hasSize(2);
-
-        ExpandableExam expExam1 = null;
-        ExpandableExam expExam2 = null;
-
-        for (ExpandableExam expandableExam : expandableExams) {
-            if (expandableExam.getExam().getId().equals(exam1.getId())) {
-                expExam1 = expandableExam;
-            } else if (expandableExam.getExam().getId().equals(exam2.getId())) {
-                expExam2 = expandableExam;
-            }
-        }
-
-        assertThat(expExam1.getExam()).isEqualTo(exam1);
-        assertThat(expExam2.getExam()).isEqualTo(exam2);
-    }
 
     @Test
     public void shouldMarkExamAsWaitingForSegmentEntryApproval() {

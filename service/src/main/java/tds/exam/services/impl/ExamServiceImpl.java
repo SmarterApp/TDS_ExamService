@@ -1,6 +1,5 @@
 package tds.exam.services.impl;
 
-import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.Minutes;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,17 +9,14 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import tds.assessment.Assessment;
 import tds.assessment.AssessmentWindow;
@@ -39,7 +35,6 @@ import tds.exam.ExamInfo;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
 import tds.exam.ExamineeContext;
-import tds.exam.ExpandableExam;
 import tds.exam.OpenExamRequest;
 import tds.exam.SegmentApprovalRequest;
 import tds.exam.error.ValidationErrorCode;
@@ -57,7 +52,6 @@ import tds.exam.services.ExamPageService;
 import tds.exam.services.ExamSegmentService;
 import tds.exam.services.ExamService;
 import tds.exam.services.ExamineeService;
-import tds.exam.services.ExpandableExamMapper;
 import tds.exam.services.SessionService;
 import tds.exam.services.StudentService;
 import tds.exam.services.TimeLimitConfigurationService;
@@ -99,7 +93,6 @@ class ExamServiceImpl implements ExamService {
     private final ExamAccommodationService examAccommodationService;
     private final ExamApprovalService examApprovalService;
     private final ExamineeService examineeService;
-    private final Collection<ExpandableExamMapper> expandableExamMappers;
 
     private final Set<String> statusesThatCanTransitionToPaused;
 
@@ -121,8 +114,7 @@ class ExamServiceImpl implements ExamService {
                            ExamAccommodationService examAccommodationService,
                            ExamApprovalService examApprovalService,
                            ExamineeService examineeService,
-                           Collection<ChangeListener<Exam>> examStatusChangeListeners,
-                           Collection<ExpandableExamMapper> expandableExamMappers) {
+                           Collection<ChangeListener<Exam>> examStatusChangeListeners) {
         this.examQueryRepository = examQueryRepository;
         this.historyQueryRepository = historyQueryRepository;
         this.sessionService = sessionService;
@@ -139,7 +131,6 @@ class ExamServiceImpl implements ExamService {
         this.examApprovalService = examApprovalService;
         this.examineeService = examineeService;
         this.examStatusChangeListeners = examStatusChangeListeners;
-        this.expandableExamMappers = expandableExamMappers;
 
         // From CommondDLL._IsValidStatusTransition_FN(): a collection of all the statuses that can transition to
         // "paused".  That is, each of these status values has a nested switch statement that contains the "paused"
@@ -323,26 +314,6 @@ class ExamServiceImpl implements ExamService {
         }
     }
 
-    @Override
-    public List<ExpandableExam> findExamsBySessionId(final UUID sessionId, final Set<String> invalidStatuses,
-                                                     final String... embed) {
-        final Set<String> expandableExamAttributes = Sets.newHashSet(embed);
-        final List<Exam> exams = examQueryRepository.findAllExamsInSessionWithoutStatus(sessionId, invalidStatuses);
-        final Map<UUID, ExpandableExam.Builder> examBuilders = exams.stream()
-            .collect(Collectors.toMap(Exam::getId, exam -> new ExpandableExam.Builder(exam)));
-        final UUID[] examIds = examBuilders.keySet().toArray(new UUID[examBuilders.size()]);
-
-        if (examIds.length == 0) {
-            return new ArrayList<>();
-        }
-
-        expandableExamMappers.forEach(mapper -> mapper.updateExpandableMapper(expandableExamAttributes, examBuilders, sessionId));
-
-        // Build each exam and return
-        return examBuilders.values().stream()
-            .map(builders -> builders.build())
-            .collect(Collectors.toList());
-    }
 
     @Override
     public Optional<ValidationError> waitForSegmentApproval(final UUID examId, final SegmentApprovalRequest request) {
