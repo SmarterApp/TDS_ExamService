@@ -14,7 +14,7 @@ import tds.exam.Exam;
 import tds.exam.ExamPrintRequest;
 import tds.exam.ExpandableExamPrintRequest;
 import tds.exam.builder.ExamBuilder;
-import tds.exam.repositories.ExamQueryRepository;
+import tds.exam.services.ExamService;
 import tds.exam.services.ExpandableExamPrintRequestMapper;
 
 import static io.github.benas.randombeans.api.EnhancedRandom.random;
@@ -22,7 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ExpandableExamPrintRequestMappersTest {
+public class ExpandableExamPrintRequestMapperTest {
     private ExpandableExamPrintRequestMapper examExpandableExamPrintRequestMapper;
 
     private final Set<String> expandableAttributes = ImmutableSet.of(
@@ -30,11 +30,11 @@ public class ExpandableExamPrintRequestMappersTest {
     );
 
     @Mock
-    private ExamQueryRepository mockExamQueryRepository;
+    private ExamService mockExamService;
 
     @Before
     public void setup() {
-        examExpandableExamPrintRequestMapper = new ExamExpandableExamPrintRequestMapper(mockExamQueryRepository);
+        examExpandableExamPrintRequestMapper = new ExamExpandableExamPrintRequestMapper(mockExamService);
     }
 
     @Test
@@ -43,10 +43,10 @@ public class ExpandableExamPrintRequestMappersTest {
         ExpandableExamPrintRequest.Builder builder = new ExpandableExamPrintRequest.Builder(request);
         Exam exam = new ExamBuilder().build();
 
-        when(mockExamQueryRepository.getExamById(request.getExamId())).thenReturn(Optional.of(exam));
+        when(mockExamService.findExam(request.getExamId())).thenReturn(Optional.of(exam));
         examExpandableExamPrintRequestMapper.updateExpandableMapper(expandableAttributes, builder, request.getExamId());
 
-        verify(mockExamQueryRepository).getExamById(request.getExamId());
+        verify(mockExamService).findExam(request.getExamId());
     }
 
     @Test(expected = IllegalStateException.class)
@@ -54,7 +54,7 @@ public class ExpandableExamPrintRequestMappersTest {
         ExamPrintRequest request = random(ExamPrintRequest.class);
         ExpandableExamPrintRequest.Builder builder = new ExpandableExamPrintRequest.Builder(request);
 
-        when(mockExamQueryRepository.getExamById(request.getExamId())).thenReturn(Optional.empty());
+        when(mockExamService.findExam(request.getExamId())).thenReturn(Optional.empty());
         examExpandableExamPrintRequestMapper.updateExpandableMapper(expandableAttributes, builder, request.getExamId());
     }
 

@@ -36,7 +36,7 @@ public class ExpandableExamControllerTest {
     }
 
     @Test
-    public void a() {
+    public void shouldFindExpandableExamsForSession() {
         UUID sessionId = UUID.randomUUID();
         Set<String> statuses = Sets.newHashSet(ExamStatusCode.STATUS_APPROVED);
         String embed = "something";

@@ -30,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @RunWith(SpringRunner.class)
 @WebMvcControllerIntegrationTest(controllers = ExpandableExamController.class)
-public class ExpandableExamControllerIntegrationTest {
+public class ExpandableExamControllerIntegrationTests {
     @Autowired
     private MockMvc http;
 
