@@ -19,14 +19,9 @@ import tds.assessment.Form;
 import tds.assessment.Item;
 import tds.assessment.Segment;
 import tds.common.Algorithm;
-import tds.common.Response;
 import tds.common.ValidationError;
-import tds.common.web.exceptions.NotFoundException;
 import tds.exam.Exam;
-import tds.exam.ExamApproval;
-import tds.exam.ExamInfo;
 import tds.exam.ExamSegment;
-import tds.exam.ExamStatusCode;
 import tds.exam.builder.AssessmentBuilder;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.builder.ExamSegmentBuilder;
@@ -36,7 +31,6 @@ import tds.exam.error.ValidationErrorCode;
 import tds.exam.models.SegmentPoolInfo;
 import tds.exam.repositories.ExamSegmentCommandRepository;
 import tds.exam.repositories.ExamSegmentQueryRepository;
-import tds.exam.services.ExamApprovalService;
 import tds.exam.services.FieldTestService;
 import tds.exam.services.FormSelector;
 import tds.exam.services.SegmentPoolService;
@@ -68,9 +62,6 @@ public class ExamSegmentServiceImplTest {
     @Mock
     private FormSelector mockFormSelector;
 
-    @Mock
-    private ExamApprovalService mockExamApprovalService;
-
     @Captor
     private ArgumentCaptor<List<ExamSegment>> examSegmentsCaptor;
 
@@ -80,7 +71,7 @@ public class ExamSegmentServiceImplTest {
     @Before
     public void setUp() {
         examSegmentService = new ExamSegmentServiceImpl(mockExamSegmentCommandRepository, mockExamSegmentQueryRepository,
-            mockSegmentPoolService, mockFormSelector, mockFieldTestService, mockExamApprovalService);
+            mockSegmentPoolService, mockFormSelector, mockFieldTestService);
     }
 
     @Test(expected = IllegalStateException.class)
@@ -686,34 +677,17 @@ public class ExamSegmentServiceImplTest {
     @Test
     public void shouldReturnTrueForAllSegmentsSatisfied() {
         final UUID examId = UUID.randomUUID();
-        final ExamSegment segment1 = new ExamSegment.Builder()
-            .fromSegment(random(ExamSegment.class))
-            .withSatisfied(true)
-            .build();
-        final ExamSegment segment2 = new ExamSegment.Builder()
-          .fromSegment(random(ExamSegment.class))
-          .withSatisfied(true)
-          .build();
-
-        when(mockExamSegmentQueryRepository.findByExamId(examId)).thenReturn(Arrays.asList(segment1, segment2));
+        when(mockExamSegmentQueryRepository.findCountOfUnsatisfiedSegments(examId)).thenReturn(0);
         assertThat(examSegmentService.checkIfSegmentsCompleted(examId)).isTrue();
-        verify(mockExamSegmentQueryRepository).findByExamId(examId);
+        verify(mockExamSegmentQueryRepository).findCountOfUnsatisfiedSegments(examId);
     }
 
     @Test
-    public void shouldReturnFalseForAllSegmentsSatisfied() {
+    public void shouldReturnFalseForSegmentsUnsatisfied() {
         final UUID examId = UUID.randomUUID();
-        final ExamSegment segment1 = new ExamSegment.Builder()
-          .fromSegment(random(ExamSegment.class))
-          .withSatisfied(true)
-          .build();
-        final ExamSegment segment2 = new ExamSegment.Builder()
-          .fromSegment(random(ExamSegment.class))
-          .withSatisfied(false)
-          .build();
 
-        when(mockExamSegmentQueryRepository.findByExamId(examId)).thenReturn(Arrays.asList(segment1, segment2));
+        when(mockExamSegmentQueryRepository.findCountOfUnsatisfiedSegments(examId)).thenReturn(1);
         assertThat(examSegmentService.checkIfSegmentsCompleted(examId)).isFalse();
-        verify(mockExamSegmentQueryRepository).findByExamId(examId);
+        verify(mockExamSegmentQueryRepository).findCountOfUnsatisfiedSegments(examId);
     }
 }
