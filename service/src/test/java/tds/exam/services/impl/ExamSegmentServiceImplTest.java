@@ -682,4 +682,38 @@ public class ExamSegmentServiceImplTest {
         verify(mockExamSegmentQueryRepository).findByExamIdAndSegmentPosition(examId, segmentPosition);
         verify(mockExamSegmentCommandRepository, never()).update(isA(ExamSegment.class));
     }
+
+    @Test
+    public void shouldReturnTrueForAllSegmentsSatisfied() {
+        final UUID examId = UUID.randomUUID();
+        final ExamSegment segment1 = new ExamSegment.Builder()
+            .fromSegment(random(ExamSegment.class))
+            .withSatisfied(true)
+            .build();
+        final ExamSegment segment2 = new ExamSegment.Builder()
+          .fromSegment(random(ExamSegment.class))
+          .withSatisfied(true)
+          .build();
+
+        when(mockExamSegmentQueryRepository.findByExamId(examId)).thenReturn(Arrays.asList(segment1, segment2));
+        assertThat(examSegmentService.checkIfSegmentsCompleted(examId)).isTrue();
+        verify(mockExamSegmentQueryRepository).findByExamId(examId);
+    }
+
+    @Test
+    public void shouldReturnFalseForAllSegmentsSatisfied() {
+        final UUID examId = UUID.randomUUID();
+        final ExamSegment segment1 = new ExamSegment.Builder()
+          .fromSegment(random(ExamSegment.class))
+          .withSatisfied(true)
+          .build();
+        final ExamSegment segment2 = new ExamSegment.Builder()
+          .fromSegment(random(ExamSegment.class))
+          .withSatisfied(false)
+          .build();
+
+        when(mockExamSegmentQueryRepository.findByExamId(examId)).thenReturn(Arrays.asList(segment1, segment2));
+        assertThat(examSegmentService.checkIfSegmentsCompleted(examId)).isFalse();
+        verify(mockExamSegmentQueryRepository).findByExamId(examId);
+    }
 }

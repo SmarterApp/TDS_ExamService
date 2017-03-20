@@ -200,4 +200,10 @@ public class ExamSegmentServiceImpl implements ExamSegmentService {
 
         return Optional.empty();
     }
+
+    @Override
+    public boolean checkIfSegmentsCompleted(final UUID examId) {
+        return !examSegmentQueryRepository.findByExamId(examId).stream()
+            .anyMatch(segment -> !segment.isSatisfied());
+    }
 }
