@@ -19,18 +19,13 @@ import tds.assessment.Form;
 import tds.assessment.Item;
 import tds.assessment.Segment;
 import tds.common.Algorithm;
-import tds.common.Response;
 import tds.common.ValidationError;
-import tds.common.web.exceptions.NotFoundException;
 import tds.exam.Exam;
-import tds.exam.ExamApproval;
-import tds.exam.ExamInfo;
 import tds.exam.ExamSegment;
 import tds.exam.error.ValidationErrorCode;
 import tds.exam.models.SegmentPoolInfo;
 import tds.exam.repositories.ExamSegmentCommandRepository;
 import tds.exam.repositories.ExamSegmentQueryRepository;
-import tds.exam.services.ExamApprovalService;
 import tds.exam.services.ExamSegmentService;
 import tds.exam.services.FieldTestService;
 import tds.exam.services.FormSelector;
@@ -43,21 +38,18 @@ public class ExamSegmentServiceImpl implements ExamSegmentService {
     private final SegmentPoolService segmentPoolService;
     private final FormSelector formSelector;
     private final FieldTestService fieldTestService;
-    private final ExamApprovalService examApprovalService;
 
     @Autowired
     public ExamSegmentServiceImpl(final ExamSegmentCommandRepository examSegmentCommandRepository,
                                   final ExamSegmentQueryRepository examSegmentQueryRepository,
                                   final SegmentPoolService segmentPoolService,
                                   final FormSelector formSelector,
-                                  final FieldTestService fieldTestService,
-                                  final ExamApprovalService examApprovalService) {
+                                  final FieldTestService fieldTestService) {
         this.examSegmentCommandRepository = examSegmentCommandRepository;
         this.examSegmentQueryRepository = examSegmentQueryRepository;
         this.segmentPoolService = segmentPoolService;
         this.fieldTestService = fieldTestService;
         this.formSelector = formSelector;
-        this.examApprovalService = examApprovalService;
     }
 
     /*
@@ -199,5 +191,10 @@ public class ExamSegmentServiceImpl implements ExamSegmentService {
         examSegmentCommandRepository.update(updatedExamSegment);
 
         return Optional.empty();
+    }
+
+    @Override
+    public boolean checkIfSegmentsCompleted(final UUID examId) {
+        return examSegmentQueryRepository.findCountOfUnsatisfiedSegments(examId) == 0;
     }
 }

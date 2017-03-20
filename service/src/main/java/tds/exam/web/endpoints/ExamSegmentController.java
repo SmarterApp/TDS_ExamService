@@ -35,6 +35,11 @@ public class ExamSegmentController {
         return ResponseEntity.ok(examSegmentService.findExamSegments(examId));
     }
 
+    @RequestMapping(value ="/{examId}/segments/completed", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<Boolean> checkIfSegmentsCompleted(@PathVariable final UUID examId) {
+        return ResponseEntity.ok(examSegmentService.checkIfSegmentsCompleted(examId));
+    }
+
     @RequestMapping(value = "/{examId}/segments/{segmentPosition}/exit", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<NoContentResponseResource> exitSegment(@PathVariable final UUID examId,
                                                           @PathVariable final int segmentPosition) {
