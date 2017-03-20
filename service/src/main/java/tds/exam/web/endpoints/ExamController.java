@@ -15,9 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 import tds.common.Response;
@@ -28,7 +26,6 @@ import tds.exam.Exam;
 import tds.exam.ExamConfiguration;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
-import tds.exam.ExpandableExam;
 import tds.exam.OpenExamRequest;
 import tds.exam.SegmentApprovalRequest;
 import tds.exam.services.ExamService;
@@ -105,15 +102,6 @@ public class ExamController {
         return new ResponseEntity<>(headers, HttpStatus.NO_CONTENT);
     }
 
-    @RequestMapping(value = "/session/{sessionId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<List<ExpandableExam>> findExamsForSessionId(@PathVariable final UUID sessionId,
-                                                               @RequestParam(required = false) final Set<String> statusNot,
-                                                               @RequestParam(required = false) final String... embed) {
-        final List<ExpandableExam> exams = examService.findExamsBySessionId(sessionId, statusNot, embed);
-
-        return ResponseEntity.ok(exams);
-    }
-
     @RequestMapping(value = "/{examId}/pause", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<NoContentResponseResource> pauseExam(@PathVariable final UUID examId) {
         final Optional<ValidationError> maybeStatusTransitionFailure = examService.updateExamStatus(examId,
@@ -133,7 +121,7 @@ public class ExamController {
 
     @RequestMapping(value = "/pause/{sessionId}", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void pauseExamsInSession(@PathVariable final UUID sessionId) {
+    void pauseExamsInSession(@PathVariable final UUID sessionId) {
         examService.pauseAllExamsInSession(sessionId);
     }
 

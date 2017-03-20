@@ -230,9 +230,9 @@ public class ExamPrintRequestRepositoryIntegrationTests {
         examPrintRequestCommandRepository.insert(diffSessionExamRequest);
 
         List<ExamPrintRequest> exam1Requests = examPrintRequestQueryRepository.findUnfulfilledRequests(exam1.getId(), sessionId);
-        assertThat(exam1Requests).containsExactly(exam1Request1, exam1Request2);
+        assertThat(exam1Requests).containsExactlyInAnyOrder(exam1Request1, exam1Request2);
         List<ExamPrintRequest> exam2Requests = examPrintRequestQueryRepository.findUnfulfilledRequests(exam2.getId(), sessionId);
-        assertThat(exam2Requests).containsExactly(exam2Request);
+        assertThat(exam2Requests).containsExactlyInAnyOrder(exam2Request);
     }
 
     @Test
