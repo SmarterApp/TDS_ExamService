@@ -298,6 +298,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                     .withCreatedAt(now)
                     .build();
             })
+            .filter(examAccommodation -> !existingExamAccommodations.contains(examAccommodation))
             .distinct()
             .collect(Collectors.toSet());
 
