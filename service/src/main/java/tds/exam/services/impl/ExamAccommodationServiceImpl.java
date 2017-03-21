@@ -327,6 +327,16 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
         List<ExamAccommodation> examAccommodationsToDelete = new ArrayList<>();
 
         for (ExamAccommodation examAccommodation : accommodationsToAdd) {
+            // Check if the same accommodation type/value combination exists. If so, we can skip adding/deleting:
+            Optional<ExamAccommodation> identicalExamAccommodation = existingExamAccommodations.stream()
+                .filter(acc -> acc.equals(examAccommodation))
+                .findFirst();
+
+            if (identicalExamAccommodation.isPresent()) {
+                // No need to do anything if the exact same accommodation already exists.
+                continue;
+            }
+
             // Find an existing accommodation for the same type
             //  This might have the same code or not, so can't use contains since it checks for equality
             Optional<ExamAccommodation> existingAccommodation = existingExamAccommodations.stream()
