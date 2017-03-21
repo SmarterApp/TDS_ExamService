@@ -431,6 +431,118 @@ public class ExamAccommodationServiceImplTest {
         verify(mockExamApprovalService).verifyAccess(examInfo, exam);
         verify(mockSessionService).findSessionById(exam.getSessionId());
     }
+
+    @Test
+    public void shouldSkipInsertOfDuplicateExamAccommodationPreviousExam() {
+        Assessment assessment = new AssessmentBuilder()
+            .build();
+
+        Exam exam = new ExamBuilder()
+            .withAssessmentId(assessment.getAssessmentId())
+            .withAssessmentKey(assessment.getKey())
+            .withStartedAt(null)
+            .build();
+
+        Accommodation englishLanguageAccommodation = new AccommodationBuilder()
+            .withCode("ENU")
+            .withType("Language")
+            .withValue("English")
+            .withSegmentPosition(0)
+            .withEntryControl(false)
+            .withAllowChange(true)
+            .withSelectable(true)
+            .withDefaultAccommodation(false)
+            .build();
+        Accommodation spanishLanguageAccommodation = new AccommodationBuilder()
+            .withCode("ESN")
+            .withType("Language")
+            .withValue("Spanish")
+            .withSegmentPosition(0)
+            .withEntryControl(false)
+            .withAllowChange(true)
+            .withSelectable(true)
+            .withDefaultAccommodation(false)
+            .build();
+        Accommodation audioControls1 = new AccommodationBuilder()
+            .withCode("TDS_APC_PSP")
+            .withType("Audio Playback Controls")
+            .withValue("Play Stop and Pause")
+            .withSegmentPosition(0)
+            .withEntryControl(false)
+            .withAllowChange(true)
+            .withSelectable(true)
+            .withDefaultAccommodation(false)
+            .build();
+
+        Accommodation audioControls2 = new AccommodationBuilder()
+            .withCode("TDS_APC_SCRUBBER")
+            .withType("Audio Playback Controls")
+            .withValue("Scrubber")
+            .withSegmentPosition(0)
+            .withEntryControl(false)
+            .withAllowChange(true)
+            .withSelectable(true)
+            .withDefaultAccommodation(true)
+            .build();
+
+        String studentAccCodes = "ELA;ELA:ESN;Language:ESN;ELA:TDS_APC_SCRUBBER;ELA:TDS_APC_PSP;";
+
+        List<Accommodation> assessmentAccommodations = Arrays.asList(englishLanguageAccommodation, spanishLanguageAccommodation, audioControls1, audioControls2);
+
+        ExamAccommodation englishExamAccommodation = new ExamAccommodation.Builder(UUID.randomUUID())
+            .withExamId(exam.getId())
+            .withCode("ENU")
+            .withType("Language")
+            .withDescription("English Language")
+            .withAllowChange(false)
+            .withSelectable(false)
+            .withValue("English")
+            .withSegmentPosition(0)
+            .withTotalTypeCount(2)
+            .withCreatedAt(Instant.now())
+            .build();
+
+        ExamAccommodation existingScrubberControl = new ExamAccommodation.Builder(UUID.randomUUID())
+            .withExamId(exam.getId())
+            .withCode("TDS_APC_SCRUBBER")
+            .withType("Audio Playback Controls")
+            .withDescription("Scrubber")
+            .withAllowChange(false)
+            .withSelectable(false)
+            .withDescription("Audio Controls")
+            .withValue("Scrubber")
+            .withSegmentPosition(0)
+            .withTotalTypeCount(2)
+            .withCreatedAt(Instant.now())
+            .build();
+
+        ExamAccommodation existingAudioPlaybackControl = new ExamAccommodation.Builder(UUID.randomUUID())
+            .withExamId(exam.getId())
+            .withCode("TDS_APC_PSP")
+            .withType("Audio Playback Controls")
+            .withDescription("Audio Controls")
+            .withAllowChange(false)
+            .withSelectable(false)
+            .withValue("Play Stop and Pause")
+            .withSegmentPosition(0)
+            .withTotalTypeCount(2)
+            .withCreatedAt(Instant.now())
+            .build();
+
+        when(mockAssessmentService.findAssessmentAccommodationsByAssessmentKey(exam.getClientName(), assessment.getKey())).thenReturn(assessmentAccommodations);
+        when(mockExamAccommodationQueryRepository.findAccommodations(exam.getId())).thenReturn(Arrays.asList(englishExamAccommodation, existingScrubberControl, existingAudioPlaybackControl));
+
+        examAccommodationService.initializeAccommodationsOnPreviousExam(exam, assessment, 0, false, studentAccCodes);
+
+        verify(mockExamAccommodationCommandRepository).insert(examAccommodationInsertCaptor.capture());
+        List<ExamAccommodation> insertedExamAccommodations = examAccommodationInsertCaptor.getValue();
+        assertThat(insertedExamAccommodations).hasSize(1);
+        ExamAccommodation insertedAccommodation = insertedExamAccommodations.get(0);
+        assertThat(insertedAccommodation.getType()).isEqualTo(spanishLanguageAccommodation.getType());
+        assertThat(insertedAccommodation.getCode()).isEqualTo(spanishLanguageAccommodation.getCode());
+        assertThat(insertedAccommodation.getSegmentPosition()).isEqualTo(spanishLanguageAccommodation.getSegmentPosition());
+
+    }
     
     @Test
     public void shouldReturnValidationErrorForProctoredSessionFound() {
