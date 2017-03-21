@@ -71,6 +71,10 @@ public class QaViewsIntegrationTests {
         queryView("qa_session_testopportunitysegment");
     }
 
+    @Test
+    public void shouldQuerySessionTesteeComment() {
+        queryView("qa_session_testeecomment");
+    }
 
     private void queryView(final String viewName) {
         jdbcTemplate.query("select * from " + viewName + " limit 0, 1", resultSet -> "success");
