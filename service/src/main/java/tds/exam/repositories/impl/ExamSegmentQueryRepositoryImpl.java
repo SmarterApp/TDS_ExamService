@@ -4,7 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
@@ -140,6 +142,39 @@ public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepositor
         }
 
         return maybeExamSegment;
+    }
+
+    @Override
+    public int findCountOfUnsatisfiedSegments(final UUID examId) {
+        final SqlParameterSource params = new MapSqlParameterSource("examId", examId.toString());
+        final String SQL =
+            "SELECT \n" +
+                "   COUNT(s.created_at) \n" +
+                "FROM \n" +
+                "   exam_segment s \n" +
+                "INNER JOIN ( \n" +
+                "   SELECT \n" +
+                "       exam_id, \n" +
+                "       segment_position, \n" +
+                "       MAX(id) AS id \n" +
+                "   FROM \n" +
+                "       exam_segment_event \n" +
+                "   WHERE exam_id = :examId \n" +
+                "   GROUP BY \n" +
+                "       exam_id, segment_position \n" +
+                ") last_event \n" +
+                "ON s.exam_id = last_event.exam_id AND \n" +
+                "   s.segment_position = last_event.segment_position \n" +
+                "INNER JOIN \n" +
+                "   exam_segment_event se \n" +
+                "ON \n" +
+                "   last_event.exam_id = se.exam_id AND \n" +
+                "   last_event.id = se.id \n" +
+                "WHERE \n" +
+                "   s.exam_id = :examId \n " +
+                "   AND se.satisfied = 0";
+
+        return jdbcTemplate.queryForObject(SQL, params, Integer.class);
     }
 
     private static Set<String> createItemsFromString(String itemListStr) {

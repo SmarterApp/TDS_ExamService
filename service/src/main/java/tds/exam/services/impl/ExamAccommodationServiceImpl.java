@@ -377,16 +377,6 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
             && StringUtils.equals(ea1.getSegmentKey(), ea2.getSegmentKey())
             && StringUtils.equals(ea1.getCode(), ea2.getCode())
             && StringUtils.equals(ea1.getValue(), ea2.getValue())
-            && StringUtils.equals(ea1.getType(), ea2.getType())
-            && ea1.getExamId().equals(ea2.getExamId())
-            && ea1.getTotalTypeCount() == ea2.getTotalTypeCount()
-            && isEqual(ea1.getDeniedAt(), ea2.getDeniedAt());
-    }
-
-    private static boolean isEqual(Instant instant, Instant instant2) {
-        return (instant == null && instant2 == null)
-            || !(instant != null && instant2 == null)
-            && instant != null
-            && instant.equals(instant2);
+            && StringUtils.equals(ea1.getType(), ea2.getType());
     }
 }

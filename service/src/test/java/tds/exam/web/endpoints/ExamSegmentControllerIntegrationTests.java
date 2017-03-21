@@ -131,4 +131,15 @@ public class ExamSegmentControllerIntegrationTests {
 
         verify(mockExamSegmentService).exitSegment(examId, segmentPosition);
     }
+
+    @Test
+    public void shouldCheckIfSegmentsAreSatisfied() throws Exception {
+        final UUID examId = UUID.randomUUID();
+        when(mockExamSegmentService.checkIfSegmentsCompleted(examId)).thenReturn(true);
+
+        http.perform(get(new URI(String.format("/exam/%s/segments/completed", examId)))
+          .contentType(MediaType.APPLICATION_JSON))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$", is(true)));
+    }
 }

@@ -1,6 +1,5 @@
 package tds.exam.services.impl;
 
-import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.Minutes;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,17 +9,14 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import tds.assessment.Assessment;
 import tds.assessment.AssessmentWindow;
@@ -39,15 +35,12 @@ import tds.exam.ExamInfo;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
 import tds.exam.ExamineeContext;
-import tds.exam.ExpandableExam;
 import tds.exam.OpenExamRequest;
 import tds.exam.SegmentApprovalRequest;
 import tds.exam.error.ValidationErrorCode;
-import tds.exam.models.Ability;
 import tds.exam.repositories.ExamCommandRepository;
 import tds.exam.repositories.ExamQueryRepository;
 import tds.exam.repositories.ExamStatusQueryRepository;
-import tds.exam.repositories.HistoryQueryRepository;
 import tds.exam.services.AssessmentService;
 import tds.exam.services.ConfigService;
 import tds.exam.services.ExamAccommodationService;
@@ -57,7 +50,6 @@ import tds.exam.services.ExamPageService;
 import tds.exam.services.ExamSegmentService;
 import tds.exam.services.ExamService;
 import tds.exam.services.ExamineeService;
-import tds.exam.services.ExpandableExamMapper;
 import tds.exam.services.SessionService;
 import tds.exam.services.StudentService;
 import tds.exam.services.TimeLimitConfigurationService;
@@ -88,7 +80,6 @@ class ExamServiceImpl implements ExamService {
     private final ExamCommandRepository examCommandRepository;
     private final ExamPageService examPageService;
     private final ExamItemService examItemService;
-    private final HistoryQueryRepository historyQueryRepository;
     private final SessionService sessionService;
     private final StudentService studentService;
     private final ExamSegmentService examSegmentService;
@@ -99,7 +90,6 @@ class ExamServiceImpl implements ExamService {
     private final ExamAccommodationService examAccommodationService;
     private final ExamApprovalService examApprovalService;
     private final ExamineeService examineeService;
-    private final Collection<ExpandableExamMapper> expandableExamMappers;
 
     private final Set<String> statusesThatCanTransitionToPaused;
 
@@ -107,7 +97,6 @@ class ExamServiceImpl implements ExamService {
 
     @Autowired
     public ExamServiceImpl(ExamQueryRepository examQueryRepository,
-                           HistoryQueryRepository historyQueryRepository,
                            SessionService sessionService,
                            StudentService studentService,
                            ExamSegmentService examSegmentService,
@@ -121,10 +110,8 @@ class ExamServiceImpl implements ExamService {
                            ExamAccommodationService examAccommodationService,
                            ExamApprovalService examApprovalService,
                            ExamineeService examineeService,
-                           Collection<ChangeListener<Exam>> examStatusChangeListeners,
-                           Collection<ExpandableExamMapper> expandableExamMappers) {
+                           Collection<ChangeListener<Exam>> examStatusChangeListeners) {
         this.examQueryRepository = examQueryRepository;
-        this.historyQueryRepository = historyQueryRepository;
         this.sessionService = sessionService;
         this.studentService = studentService;
         this.examSegmentService = examSegmentService;
@@ -139,7 +126,6 @@ class ExamServiceImpl implements ExamService {
         this.examApprovalService = examApprovalService;
         this.examineeService = examineeService;
         this.examStatusChangeListeners = examStatusChangeListeners;
-        this.expandableExamMappers = expandableExamMappers;
 
         // From CommondDLL._IsValidStatusTransition_FN(): a collection of all the statuses that can transition to
         // "paused".  That is, each of these status values has a nested switch statement that contains the "paused"
@@ -233,43 +219,6 @@ class ExamServiceImpl implements ExamService {
     }
 
     @Override
-    public Optional<Double> getInitialAbility(final Exam exam, final Assessment assessment) {
-        Optional<Double> ability = Optional.empty();
-        float slope = assessment.getAbilitySlope();
-        float intercept = assessment.getAbilityIntercept();
-        List<Ability> testAbilities = examQueryRepository.findAbilities(exam.getId(), exam.getClientName(),
-            assessment.getSubject(), exam.getStudentId());
-
-        // Attempt to retrieve the most recent ability for the current subject and assessment
-        Optional<Ability> initialAbility = getMostRecentTestAbilityForSameAssessment(testAbilities, exam.getAssessmentId());
-        if (initialAbility.isPresent()) {
-            ability = Optional.of(initialAbility.get().getScore());
-        } else if (assessment.isInitialAbilityBySubject()) {
-            // if no ability for a similar assessment was retrieved above, attempt to get the initial ability for another
-            // assessment of the same subject
-            initialAbility = getMostRecentTestAbilityForDifferentAssessment(testAbilities, exam.getAssessmentId());
-            if (initialAbility.isPresent()) {
-                ability = Optional.of(initialAbility.get().getScore());
-            } else {
-                // if no value was returned from the previous call, get the initial ability from the previous year
-                Optional<Double> initialAbilityFromHistory = historyQueryRepository.findAbilityFromHistoryForSubjectAndStudent(
-                    exam.getClientName(), exam.getSubject(), exam.getStudentId());
-
-                if (initialAbilityFromHistory.isPresent()) {
-                    ability = Optional.of(initialAbilityFromHistory.get() * slope + intercept);
-                }
-            }
-        }
-
-        // If the ability was not retrieved from any of the exam tables, query the assessment service
-        if (!ability.isPresent()) {
-            ability = Optional.of((double) assessment.getStartAbility());
-        }
-
-        return ability;
-    }
-
-    @Override
     public Optional<ValidationError> updateExamStatus(final UUID examId, final ExamStatusCode newStatus) {
         return updateExamStatus(examId, newStatus, null);
     }
@@ -323,26 +272,6 @@ class ExamServiceImpl implements ExamService {
         }
     }
 
-    @Override
-    public List<ExpandableExam> findExamsBySessionId(final UUID sessionId, final Set<String> invalidStatuses,
-                                                     final String... embed) {
-        final Set<String> expandableExamAttributes = Sets.newHashSet(embed);
-        final List<Exam> exams = examQueryRepository.findAllExamsInSessionWithoutStatus(sessionId, invalidStatuses);
-        final Map<UUID, ExpandableExam.Builder> examBuilders = exams.stream()
-            .collect(Collectors.toMap(Exam::getId, exam -> new ExpandableExam.Builder(exam)));
-        final UUID[] examIds = examBuilders.keySet().toArray(new UUID[examBuilders.size()]);
-
-        if (examIds.length == 0) {
-            return new ArrayList<>();
-        }
-
-        expandableExamMappers.forEach(mapper -> mapper.updateExpandableMapper(expandableExamAttributes, examBuilders, sessionId));
-
-        // Build each exam and return
-        return examBuilders.values().stream()
-            .map(builders -> builders.build())
-            .collect(Collectors.toList());
-    }
 
     @Override
     public Optional<ValidationError> waitForSegmentApproval(final UUID examId, final SegmentApprovalRequest request) {
@@ -608,44 +537,6 @@ class ExamServiceImpl implements ExamService {
         //and then updating status after accommodations
 
         return new Response<>(exam);
-    }
-
-    /**
-     * Gets the most recent {@link tds.exam.models.Ability} based on the dateScored value for the same assessment.
-     *
-     * @param abilityList  the list of {@link tds.exam.models.Ability}s to iterate through
-     * @param assessmentId The test key
-     * @return the {@link tds.exam.models.Ability} that lines up with the assessment id
-     */
-    private Optional<Ability> getMostRecentTestAbilityForSameAssessment(final List<Ability> abilityList, final String assessmentId) {
-        for (Ability ability : abilityList) {
-            if (assessmentId.equals(ability.getAssessmentId())) {
-                /* NOTE: The query that retrieves the list of abilities is sorted by the "date_scored" of the exam in
-                   descending order. Therefore we can assume the first match is the most recent */
-                return Optional.of(ability);
-            }
-        }
-
-        return Optional.empty();
-    }
-
-    /**
-     * Gets the most recent {@link tds.exam.models.Ability} based on the dateScored value for a different assessment.
-     *
-     * @param abilityList  the list of {@link tds.exam.models.Ability}s to iterate through
-     * @param assessmentId The test key
-     * @return the {@link tds.exam.models.Ability} that lines up with the assessment id
-     */
-    private Optional<Ability> getMostRecentTestAbilityForDifferentAssessment(final List<Ability> abilityList, final String assessmentId) {
-        for (Ability ability : abilityList) {
-            if (!assessmentId.equals(ability.getAssessmentId())) {
-                /* NOTE: The query that retrieves the list of abilities is sorted by the "date_scored" of the exam in
-                   descending order. Therefore we can assume the first match is the most recent */
-                return Optional.of(ability);
-            }
-        }
-
-        return Optional.empty();
     }
 
     private Response<Exam> openPreviousExam(final String clientName,
