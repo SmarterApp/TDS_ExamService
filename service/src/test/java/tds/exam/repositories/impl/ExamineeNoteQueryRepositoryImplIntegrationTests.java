@@ -33,12 +33,13 @@ public class ExamineeNoteQueryRepositoryImplIntegrationTests {
 
     private ExamineeNoteCommandRepository examineeNoteCommandRepository;
     private ExamineeNoteQueryRepository examineeNoteQueryRepository;
+    private ExamCommandRepository examCommandRepository;
 
     private final Exam mockExam = new ExamBuilder().build();
 
     @Before
     public void setup() {
-        ExamCommandRepository examCommandRepository = new ExamCommandRepositoryImpl(jdbcTemplate);
+        examCommandRepository = new ExamCommandRepositoryImpl(jdbcTemplate);
         examineeNoteCommandRepository = new ExamineeNoteCommandRepositoryImpl(jdbcTemplate);
         examineeNoteQueryRepository = new ExamineeNoteQueryRepositoryImpl(jdbcTemplate);
 
@@ -47,29 +48,6 @@ public class ExamineeNoteQueryRepositoryImplIntegrationTests {
 
     @Test
     public void shouldFindAnExamineeNoteForAnExam() {
-        ExamineeNote note = new ExamineeNote.Builder()
-            .withExamId(mockExam.getId())
-            .withContext(ExamineeNoteContext.EXAM)
-            .withNote("exam note")
-            .build();
-
-        examineeNoteCommandRepository.insert(note);
-
-        Optional<ExamineeNote> maybeResult = examineeNoteQueryRepository.findNoteInExamContext(mockExam.getId());
-
-        assertThat(maybeResult).isPresent();
-
-        ExamineeNote result = maybeResult.get();
-        assertThat(result.getId()).isGreaterThan(0L);
-        assertThat(result).isEqualToComparingOnlyGivenFields(note,
-            "examId",
-            "context",
-            "itemPosition",
-            "note");
-    }
-
-    @Test
-    public void shouldOnlyReturnExamScopedNoteWhenExamHasMultipleNotes() {
         ExamineeNote examNote = new ExamineeNote.Builder()
             .withExamId(mockExam.getId())
             .withContext(ExamineeNoteContext.EXAM)
@@ -85,6 +63,40 @@ public class ExamineeNoteQueryRepositoryImplIntegrationTests {
 
         examineeNoteCommandRepository.insert(examNote);
         examineeNoteCommandRepository.insert(itemNote);
+
+        Optional<ExamineeNote> maybeResult = examineeNoteQueryRepository.findNoteInExamContext(mockExam.getId());
+
+        assertThat(maybeResult).isPresent();
+
+        ExamineeNote result = maybeResult.get();
+        assertThat(result.getId()).isGreaterThan(0L);
+        assertThat(result).isEqualToComparingOnlyGivenFields(examNote,
+            "examId",
+            "context",
+            "itemPosition",
+            "note");
+    }
+
+    @Test
+    public void shouldOnlyReturnExamScopedNoteForTheSpecifiedExamId() {
+        Exam mockDifferentExam = new ExamBuilder().build();
+
+        ExamineeNote examNote = new ExamineeNote.Builder()
+            .withExamId(mockExam.getId())
+            .withContext(ExamineeNoteContext.EXAM)
+            .withNote("exam note")
+            .build();
+
+        ExamineeNote differentExamNote = new ExamineeNote.Builder()
+            .withExamId(mockDifferentExam.getId())
+            .withContext(ExamineeNoteContext.ITEM)
+            .withItemPosition(5)
+            .withNote("exam item note")
+            .build();
+
+        examCommandRepository.insert(mockDifferentExam);
+        examineeNoteCommandRepository.insert(examNote);
+        examineeNoteCommandRepository.insert(differentExamNote);
 
         Optional<ExamineeNote> maybeResult = examineeNoteQueryRepository.findNoteInExamContext(mockExam.getId());
 

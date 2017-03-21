@@ -74,13 +74,13 @@ public class ExamineeNote {
             return new ExamineeNote(this);
         }
 
-        public Builder fromExamineeNote(ExamineeNote examineeNote) {
-            id = examineeNote.id;
-            examId = examineeNote.examId;
-            context = examineeNote.context;
-            itemPosition = examineeNote.itemPosition;
-            note = examineeNote.note;
-            return this;
+        public static Builder fromExamineeNote(ExamineeNote examineeNote) {
+            return new ExamineeNote.Builder()
+                .withId(examineeNote.id)
+                .withExamId(examineeNote.examId)
+                .withContext(examineeNote.context)
+                .withItemPosition(examineeNote.itemPosition)
+                .withNote(examineeNote.note);
         }
     }
 

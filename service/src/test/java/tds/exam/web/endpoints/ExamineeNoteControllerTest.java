@@ -63,14 +63,14 @@ public class ExamineeNoteControllerTest {
     }
 
     @Test
-    public void shouldReturnNoContentSuccessWhenExamHasNoExamineeNote() {
+    public void shouldReturnNotFoundWhenExamHasNoExamineeNote() {
         when(mockExamineeNoteService.findNoteInExamContext(any(UUID.class)))
             .thenReturn(Optional.empty());
 
         ResponseEntity<ExamineeNote> result = controller.getNoteInExamContext(UUID.randomUUID());
         verify(mockExamineeNoteService).findNoteInExamContext(any(UUID.class));
 
-        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test

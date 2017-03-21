@@ -24,6 +24,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -65,7 +66,7 @@ public class ExamineeNoteControllerIntegrationTests {
     }
 
     @Test
-    public void shouldReturnNoContentSuccessForExamWithNoExamineeNote() throws Exception {
+    public void shouldReturnNotFoundForExamWithNoExamineeNote() throws Exception {
         ExamInfo examInfo = new ExamInfo(UUID.randomUUID(),
             UUID.randomUUID(),
             UUID.randomUUID());
@@ -77,7 +78,7 @@ public class ExamineeNoteControllerIntegrationTests {
             .contentType(MediaType.APPLICATION_JSON)
             .param("sessionid", examInfo.getSessionId().toString())
             .param("browserid", examInfo.getBrowserId().toString()))
-            .andExpect(status().isNoContent());
+            .andExpect(status().isNotFound());
         verify(mockExamineeNoteService).findNoteInExamContext(any(UUID.class));
     }
 
@@ -97,7 +98,7 @@ public class ExamineeNoteControllerIntegrationTests {
 
         doNothing().when(mockExamineeNoteService).insert(examineeNote);
 
-        http.perform(put("/exam/{id}/note", examInfo.getExamId())
+        http.perform(post("/exam/{id}/note", examInfo.getExamId())
             .contentType(MediaType.APPLICATION_JSON)
             .content(examineeNoteJson)
             .param("sessionid", examInfo.getSessionId().toString())

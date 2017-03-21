@@ -34,20 +34,19 @@ public class ExamineeNoteController {
     ResponseEntity<ExamineeNote> getNoteInExamContext(@PathVariable final UUID id) {
         Optional<ExamineeNote> maybeExamineeNote = examineeNoteService.findNoteInExamContext(id);
 
-        // It is possible that there is no note for an exam.  When that is the case, return a NO CONTENT response,
-        // indicating the call was successful but there was nothing to get.
+        // It is possible that there is no note for an exam.  When that is the case, return a NOT FOUND response - the
+        // caller can decide if that's an error condition
         return maybeExamineeNote.isPresent()
             ? ResponseEntity.ok(maybeExamineeNote.get())
-            : new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            : new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(value = "/{id}/note", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/{id}/note", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @VerifyAccess
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void insert(@PathVariable final UUID id,
                 @RequestBody final ExamineeNote note) {
-        final ExamineeNote examineeNote = new ExamineeNote.Builder()
-            .fromExamineeNote(note)
+        final ExamineeNote examineeNote = ExamineeNote.Builder.fromExamineeNote(note)
             .withExamId(id)
             .withNote(HtmlUtils.htmlEscape(note.getNote()))
             .build();
