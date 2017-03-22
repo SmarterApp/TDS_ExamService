@@ -289,7 +289,6 @@ public class ExamAccommodationServiceImplTest {
             .withAllowChange(false)
             .withSelectable(true)
             .build();
-
         Accommodation accommodationWithIncorrectSegmentPosition = new AccommodationBuilder()
             .withSegmentPosition(99)
             .withCode("ENU")
@@ -351,44 +350,25 @@ public class ExamAccommodationServiceImplTest {
         examAccommodationService.initializeAccommodationsOnPreviousExam(exam, assessment, 0, false, guestAccommodations);
 
         verify(mockExamAccommodationCommandRepository, times(1)).insert(examAccommodationInsertCaptor.capture());
-        verify(mockExamAccommodationCommandRepository, times(1)).delete(any());
 
         List<ExamAccommodation> examAccommodations = examAccommodationInsertCaptor.getValue();
 
-        assertThat(examAccommodations).hasSize(2);
+        assertThat(examAccommodations).hasSize(1);
 
-        ExamAccommodation testExamAccommodation = null;
-        ExamAccommodation englishExamAccommodation = null;
-
-        for (ExamAccommodation ea : examAccommodations) {
-            switch (ea.getCode()) {
-                case "ENU":
-                    englishExamAccommodation = ea;
-                    break;
-                case "TST":
-                    testExamAccommodation = ea;
-                    break;
-                default:
-                    fail("Unexpected exam accommodation with code " + ea.getCode());
-                    break;
-            }
-        }
+        ExamAccommodation testExamAccommodation = examAccommodations.get(0);
 
         assertThat(testExamAccommodation).isNotNull();
+        assertThat(testExamAccommodation.getExamId()).isEqualTo(exam.getId());
+        assertThat(testExamAccommodation.getCode()).isEqualTo("TST");
+        assertThat(testExamAccommodation.getType()).isEqualTo(testAccommodationThatShouldBePresent.getType());
+        assertThat(testExamAccommodation.getDescription()).isEqualTo(testAccommodationThatShouldBePresent.getValue());
+        assertThat(testExamAccommodation.getSegmentKey()).isEqualTo(testAccommodationThatShouldBePresent.getSegmentKey());
+        assertThat(testExamAccommodation.getSegmentPosition()).isEqualTo(0);
+        assertThat(testExamAccommodation.isAllowChange()).isTrue();
+        assertThat(testExamAccommodation.getValue()).isEqualTo(testAccommodationThatShouldBePresent.getValue());
+        assertThat(testExamAccommodation.isSelectable()).isTrue();
         assertThat(testExamAccommodation.isApproved()).isFalse();
-
-        assertThat(englishExamAccommodation).isNotNull();
-        assertThat(englishExamAccommodation.getExamId()).isEqualTo(exam.getId());
-        assertThat(englishExamAccommodation.getCode()).isEqualTo("ENU");
-        assertThat(englishExamAccommodation.getType()).isEqualTo(languageAccommodationThatShouldBePresent.getType());
-        assertThat(englishExamAccommodation.getDescription()).isEqualTo(languageAccommodationThatShouldBePresent.getValue());
-        assertThat(englishExamAccommodation.getSegmentKey()).isEqualTo(languageAccommodationThatShouldBePresent.getSegmentKey());
-        assertThat(englishExamAccommodation.getSegmentPosition()).isEqualTo(0);
-        assertThat(englishExamAccommodation.isAllowChange()).isTrue();
-        assertThat(englishExamAccommodation.getValue()).isEqualTo(languageAccommodationThatShouldBePresent.getValue());
-        assertThat(englishExamAccommodation.isSelectable()).isTrue();
-        assertThat(englishExamAccommodation.isApproved()).isTrue();
-        assertThat(englishExamAccommodation.isCustom()).isTrue();
+        assertThat(testExamAccommodation.isCustom()).isFalse();
     }
     
     @Test
