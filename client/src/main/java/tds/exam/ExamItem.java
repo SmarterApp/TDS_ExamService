@@ -93,6 +93,10 @@ public class ExamItem {
         }
 
         public Builder withPosition(int position) {
+            if (position < 1) {
+                throw new IllegalArgumentException("Item position must be greater than 0");
+            }
+
             this.position = position;
             return this;
         }
