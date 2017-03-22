@@ -134,14 +134,14 @@ public class ExamItemQueryRepositoryImpl implements ExamItemQueryRepository {
             "  R.scored_at \n" +
             "FROM exam_item I\n" +
             "JOIN exam_page P ON I.exam_page_id = P.id\n" +
+            "JOIN exam_page_event EPE ON P.id = EPE.exam_page_id \n" +
             "JOIN (\n" +
             "      SELECT\n" +
             "            exam_page_id,\n" +
             "            MAX(id) AS id\n" +
             "      FROM exam_page_event\n" +
-            "      WHERE deleted_at IS NULL\n" +
             "      GROUP BY exam_page_id\n" +
-            ") last_page_event ON I.exam_page_id = last_page_event.exam_page_id\n" +
+            ") last_page_event ON EPE.id = last_page_event.id\n" +
             "LEFT JOIN (\n" +
             "      SELECT\n" +
             "            exam_item_id,\n" +
@@ -152,7 +152,7 @@ public class ExamItemQueryRepositoryImpl implements ExamItemQueryRepository {
             "LEFT JOIN\n" +
             "      exam_item_response R ON last_response.exam_item_response_id = R.id\n" +
             "WHERE\n" +
-            "  P.exam_id = :examId AND I.position = :position";
+            "  P.exam_id = :examId AND I.position = :position AND EPE.deleted_at IS NULL";
 
         Optional<ExamItem> maybeExamItem;
         try {

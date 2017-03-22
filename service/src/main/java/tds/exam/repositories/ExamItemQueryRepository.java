@@ -28,5 +28,12 @@ public interface ExamItemQueryRepository {
      */
     Map<UUID, Integer> getResponseCounts(final UUID... examIds);
 
+    /**
+     * Fetches Exam Item and Response based on exam id and position
+     *
+     * @param examId   the exam UUID
+     * @param position the item position
+     * @return ExamItem if found otherwise empty.  ExamItemResponse will be empty if a response is not present
+     */
     Optional<ExamItem> findExamItemAndResponse(final UUID examId, int position);
 }
