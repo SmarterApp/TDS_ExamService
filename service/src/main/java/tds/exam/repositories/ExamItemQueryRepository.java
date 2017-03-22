@@ -1,7 +1,10 @@
 package tds.exam.repositories;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
+
+import tds.exam.ExamItem;
 
 /**
  * Handles data reads from the exam_item_response table
@@ -25,4 +28,5 @@ public interface ExamItemQueryRepository {
      */
     Map<UUID, Integer> getResponseCounts(final UUID... examIds);
 
+    Optional<ExamItem> findExamItemAndResponse(final UUID examId, int position);
 }
