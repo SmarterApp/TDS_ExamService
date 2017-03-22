@@ -100,5 +100,28 @@ public class ExamItemQueryRepositoryIntegrationTests {
         Optional<ExamItem> maybeExamItem = examItemQueryRepository.findExamItemAndResponse(mockExam.getId(), examItem.getPosition());
 
         assertThat(maybeExamItem).isPresent();
+
+        ExamItem fetchedItem = maybeExamItem.get();
+        assertThat(fetchedItem.getItemType()).isEqualTo(examItem.getItemType());
+        assertThat(fetchedItem.getAssessmentItemBankKey()).isEqualTo(examItem.getAssessmentItemBankKey());
+        assertThat(fetchedItem.getAssessmentItemKey()).isEqualTo(examItem.getAssessmentItemKey());
+        assertThat(fetchedItem.getExamPageId()).isEqualTo(examItem.getExamPageId());
+        assertThat(fetchedItem.getPosition()).isEqualTo(examItem.getPosition());
+
+        assertThat(fetchedItem.getResponse().isPresent()).isTrue();
+
+        ExamItemResponse response = fetchedItem.getResponse().get();
+
+        assertThat(response.getResponse()).isEqualTo("test");
+        assertThat(response.getSequence()).isEqualTo(1);
+        assertThat(response.getScore().isPresent()).isTrue();
+
+        ExamItemResponseScore score = response.getScore().get();
+
+        assertThat(score.getScore()).isEqualTo(1);
+        assertThat(score.getScoredAt().isPresent()).isTrue();
+        assertThat(score.getScoringDimensions().get()).isEqualTo(score.getScoringDimensionsXml());
+        assertThat(score.getScoringRationale()).isEqualTo("rationale");
+        assertThat(score.getScoringStatus()).isEqualTo(ExamScoringStatus.SCORED);
     }
 }

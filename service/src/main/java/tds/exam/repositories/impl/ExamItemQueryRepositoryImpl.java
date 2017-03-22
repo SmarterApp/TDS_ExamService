@@ -175,6 +175,7 @@ public class ExamItemQueryRepositoryImpl implements ExamItemQueryRepository {
                 .withExamPageId(UUID.fromString(rs.getString("exam_page_id")))
                 .withFieldTest(rs.getBoolean("is_fieldtest"))
                 .withRequired(rs.getBoolean("is_required"))
+                .withPosition(rs.getInt("position"))
                 .withMarkedForReview(rs.getBoolean("is_marked_for_review"));
 
             //Since there is a left join in the query this could not have a response
@@ -189,6 +190,7 @@ public class ExamItemQueryRepositoryImpl implements ExamItemQueryRepository {
                 //Means that the item has been scored
                 if(rs.getObject("scored_at") != null) {
                     ExamItemResponseScore score = new ExamItemResponseScore.Builder()
+                        .withScore(rs.getInt("score"))
                         .withScoringStatus(ExamScoringStatus.fromType(rs.getString("scoring_status")))
                         .withScoringRationale(rs.getString("scoring_rationale"))
                         .withScoringDimensions(rs.getString("scoring_dimensions"))
