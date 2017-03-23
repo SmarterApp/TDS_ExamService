@@ -48,6 +48,13 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
                 "   ea.allow_change, \n" +
                 "   ea.value, \n" +
                 "   ea.segment_position, \n" +
+                "   ea.visible, \n" +
+                "   ea.student_controlled, \n" +
+                "   ea.disabled_on_guest_session, \n" +
+                "   ea.default_accommodation, \n" +
+                "   ea.allow_combine, \n" +
+                "   ea.depends_on, \n" +
+                "   ea.sort_order, \n" +
                 "   eae.selectable, \n" +
                 "   eae.total_type_count, \n" +
                 "   eae.custom \n" +
@@ -105,6 +112,13 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
                 "   ea.created_at, \n" +
                 "   ea.allow_change, \n" +
                 "   ea.value, \n" +
+                "   ea.visible, \n" +
+                "   ea.student_controlled, \n" +
+                "   ea.disabled_on_guest_session, \n" +
+                "   ea.default_accommodation, \n" +
+                "   ea.allow_combine, \n" +
+                "   ea.depends_on, \n" +
+                "   ea.sort_order, \n" +
                 "   ea.segment_position, \n" +
                 "   eae.total_type_count, \n" +
                 "   eae.selectable, \n" +
@@ -152,6 +166,13 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
                 .withSegmentPosition(rs.getInt("segment_position"))
                 .withTotalTypeCount(rs.getInt("total_type_count"))
                 .withCustom(rs.getBoolean("custom"))
+                .withVisible(rs.getBoolean("visible"))
+                .withStudentControlled(rs.getBoolean("student_controlled"))
+                .withDisabledOnGuestSession(rs.getBoolean("disabled_on_guest_session"))
+                .withDefaultAccommodation(rs.getBoolean("default_accommodation"))
+                .withAllowCombine(rs.getBoolean("allow_combine"))
+                .withSortOrder(rs.getInt("sort_order"))
+                .withDependsOn(rs.getString("depends_on"))
                 .build();
         }
     }

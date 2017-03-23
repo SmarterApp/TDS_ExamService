@@ -28,6 +28,13 @@ public class ExamAccommodation {
     private Instant deletedAt;
     private int totalTypeCount;
     private boolean custom;
+    private boolean visible;
+    private boolean studentControlled;
+    private boolean disabledOnGuestSession;
+    private boolean defaultAccommodation;
+    private boolean allowCombine;
+    private int sortOrder;
+    private String dependsOn;
 
     /**
      * Private constructor for frameworks
@@ -48,9 +55,16 @@ public class ExamAccommodation {
         private boolean selectable;
         private boolean allowChange;
         private String value;
-        private int segmentPosition = 1;
+        private int segmentPosition;
         private int totalTypeCount;
         private boolean custom;
+        private boolean visible;
+        private boolean studentControlled;
+        private boolean disabledOnGuestSession;
+        private boolean defaultAccommodation;
+        private boolean allowCombine;
+        private int sortOrder;
+        private String dependsOn;
 
         public Builder(UUID id) {
             this.id = id;
@@ -126,6 +140,41 @@ public class ExamAccommodation {
             return this;
         }
 
+        public Builder withVisible(boolean visible) {
+            this.visible = visible;
+            return this;
+        }
+
+        public Builder withSortOrder(int sortOrder) {
+            this.sortOrder = sortOrder;
+            return this;
+        }
+
+        public Builder withDependsOn(String dependsOn) {
+            this.dependsOn = dependsOn;
+            return this;
+        }
+
+        public Builder withStudentControlled(boolean studentControlled) {
+            this.studentControlled = studentControlled;
+            return this;
+        }
+
+        public Builder withDisabledOnGuestSession(boolean disabledOnGuestSession) {
+            this.disabledOnGuestSession = disabledOnGuestSession;
+            return this;
+        }
+
+        public Builder withDefaultAccommodation(boolean defaultAccommodation) {
+            this.defaultAccommodation = defaultAccommodation;
+            return this;
+        }
+
+        public Builder withAllowCombine(boolean allowCombine) {
+            this.allowCombine = allowCombine;
+            return this;
+        }
+
         public static Builder fromExamAccommodation(final ExamAccommodation accommodation) {
             return new Builder(accommodation.getId())
                 .withExamId(accommodation.getExamId())
@@ -163,6 +212,13 @@ public class ExamAccommodation {
         segmentPosition = builder.segmentPosition;
         totalTypeCount = builder.totalTypeCount;
         custom = builder.custom;
+        visible = builder.visible;
+        studentControlled = builder.studentControlled;
+        disabledOnGuestSession = builder.disabledOnGuestSession;
+        defaultAccommodation = builder.defaultAccommodation;
+        allowCombine = builder.allowCombine;
+        sortOrder = builder.sortOrder;
+        dependsOn = builder.dependsOn;
     }
 
     /**
@@ -279,6 +335,55 @@ public class ExamAccommodation {
      */
     public boolean isCustom() {
         return custom;
+    }
+
+    /**
+     * @return {@code true} if the accommodation should be visible
+     */
+    public boolean isVisible() {
+        return visible;
+    }
+
+    /**
+     * @return The order position of the tool in the UI
+     */
+    public int getSortOrder() {
+        return sortOrder;
+    }
+
+    /**
+     * @return The toolname the {@link tds.exam.ExamAccommodation} depends on
+     */
+    public String getDependsOn() {
+        return dependsOn;
+    }
+
+    /**
+     * @return {@code true} if this accommodation is controlled by a student
+     */
+    public boolean isStudentControlled() {
+        return studentControlled;
+    }
+
+    /**
+     * @return {@code true} if this accommodation is disabled for guest sessions
+     */
+    public boolean isDisabledOnGuestSession() {
+        return disabledOnGuestSession;
+    }
+
+    /**
+     * @return {@code true} if this accommodation is enabled by default
+     */
+    public boolean isDefaultAccommodation() {
+        return defaultAccommodation;
+    }
+
+    /**
+     * @return {@code true} if this accommodation is allowed to be combined with other accommodations of this type
+     */
+    public boolean isAllowCombine() {
+        return allowCombine;
     }
 
     @Override

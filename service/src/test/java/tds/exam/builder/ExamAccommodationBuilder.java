@@ -29,6 +29,12 @@ public class ExamAccommodationBuilder {
     private Instant deletedAt = null;
     private boolean selectable = false;
     private boolean allowChange = false;
+    private boolean allowCombine = false;
+    private boolean visible = true;
+    private boolean disabledOnGuestSession = false;
+    private boolean studentControlled = false;
+    private boolean defaultAccommodation = true;
+    private String dependsOn = null;
     private String value = SampleData.DEFAULT_ACCOMMODATION_VALUE;
     private int segmentPosition = 1;
     private int totalTypeCount = 1;
@@ -50,6 +56,12 @@ public class ExamAccommodationBuilder {
             .withSegmentPosition(segmentPosition)
             .withTotalTypeCount(totalTypeCount)
             .withCustom(custom)
+            .withAllowCombine(allowCombine)
+            .withDefaultAccommodation(defaultAccommodation)
+            .withVisible(visible)
+            .withDisabledOnGuestSession(disabledOnGuestSession)
+            .withStudentControlled(studentControlled)
+            .withDependsOn(dependsOn)
             .build();
     }
 
@@ -115,6 +127,36 @@ public class ExamAccommodationBuilder {
 
     public ExamAccommodationBuilder withValue(String value) {
         this.value = value;
+        return this;
+    }
+
+    public ExamAccommodationBuilder withVisible(boolean visible) {
+        this.visible = visible;
+        return this;
+    }
+
+    public ExamAccommodationBuilder withDependsOn(String dependsOn) {
+        this.dependsOn = dependsOn;
+        return this;
+    }
+
+    public ExamAccommodationBuilder withStudentControlled(boolean studentControlled) {
+        this.studentControlled = studentControlled;
+        return this;
+    }
+
+    public ExamAccommodationBuilder withDisabledOnGuestSession(boolean disabledOnGuestSession) {
+        this.disabledOnGuestSession = disabledOnGuestSession;
+        return this;
+    }
+
+    public ExamAccommodationBuilder withDefaultAccommodation(boolean defaultAccommodation) {
+        this.defaultAccommodation = defaultAccommodation;
+        return this;
+    }
+
+    public ExamAccommodationBuilder withAllowCombine(boolean allowCombine) {
+        this.allowCombine = allowCombine;
         return this;
     }
 

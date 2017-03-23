@@ -267,6 +267,10 @@ public class ExamAccommodationServiceImplTest {
             .withAllowChange(true)
             .withSelectable(true)
             .withDefaultAccommodation(true)
+            .withDependsOnToolType("Language")
+            .withAllowCombine(true)
+            .withDisableOnGuestSession(false)
+            .withToolTypeSortOrder(3)
             .withTypeTotal(5)
             .build();
 
@@ -369,6 +373,11 @@ public class ExamAccommodationServiceImplTest {
         assertThat(testExamAccommodation.isSelectable()).isTrue();
         assertThat(testExamAccommodation.isApproved()).isFalse();
         assertThat(testExamAccommodation.isCustom()).isFalse();
+        assertThat(testExamAccommodation.getDependsOn()).isEqualTo("Language");
+        assertThat(testExamAccommodation.isAllowCombine()).isTrue();
+        assertThat(testExamAccommodation.isDefaultAccommodation()).isTrue();
+        assertThat(testExamAccommodation.isDisabledOnGuestSession()).isFalse();
+        assertThat(testExamAccommodation.getSortOrder()).isEqualTo(3);
     }
     
     @Test

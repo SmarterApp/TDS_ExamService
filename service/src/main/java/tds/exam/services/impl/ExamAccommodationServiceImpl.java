@@ -129,6 +129,13 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                 .withCustom(!accommodation.isDefaultAccommodation())
                 .withAllowChange(accommodation.isAllowChange())
                 .withSelectable(accommodation.isSelectable())
+                .withVisible(accommodation.isVisible())
+                .withStudentControlled(accommodation.isStudentControl())
+                .withDisabledOnGuestSession(accommodation.isDisableOnGuestSession())
+                .withDefaultAccommodation(accommodation.isDefaultAccommodation())
+                .withAllowCombine(accommodation.isAllowCombine())
+                .withDependsOn(accommodation.getDependsOnToolType())
+                .withSortOrder(accommodation.getToolTypeSortOrder())
                 .withCreatedAt(now)
                 .build();
 
@@ -301,6 +308,13 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                     .withSegmentPosition(segmentPosition)
                     .withTotalTypeCount(accommodation.getTypeTotal())
                     .withCustom(!accommodation.isDefaultAccommodation())
+                    .withVisible(accommodation.isVisible())
+                    .withStudentControlled(accommodation.isStudentControl())
+                    .withDisabledOnGuestSession(accommodation.isDisableOnGuestSession())
+                    .withDefaultAccommodation(accommodation.isDefaultAccommodation())
+                    .withAllowCombine(accommodation.isAllowCombine())
+                    .withDependsOn(accommodation.getDependsOnToolType())
+                    .withSortOrder(accommodation.getToolTypeSortOrder())
                     .withDeniedAt(deniedAt)
                     .withCreatedAt(now)
                     .build();
