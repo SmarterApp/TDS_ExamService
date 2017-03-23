@@ -29,8 +29,12 @@ public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodation
 
     @Override
     public void insert(final List<ExamAccommodation> accommodations) {
-        String SQL = "INSERT INTO exam_accommodation(exam_id, id, segment_key, type, code, description, allow_change, value, segment_position, created_at) \n" +
-            "VALUES(:examId, :id, :segmentKey, :type, :code, :description, :allowChange, :value, :segmentPosition, :createdAt)";
+        String SQL =
+            "INSERT INTO " +
+            "   exam_accommodation(exam_id, id, segment_key, type, code, description, allow_change, value, segment_position, " +
+            "   created_at, visible, student_controlled, disabled_on_guest_session, default_accommodation, allow_combine, sort_order, depends_on) \n" +
+            "VALUES(:examId, :id, :segmentKey, :type, :code, :description, :allowChange, :value, :segmentPosition, :createdAt," +
+            "   :visible, :studentControlled, :disabledOnGuestSession, :defaultAccommodation, :allowCombine, :sortOrder, :dependsOn)";
 
         Timestamp createdAt = mapJodaInstantToTimestamp(Instant.now());
         List<ExamAccommodation> createdAccommodations = new ArrayList<>();
@@ -44,6 +48,13 @@ public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodation
                     .addValue("id", examAccommodation.getId().toString())
                     .addValue("segmentKey", examAccommodation.getSegmentKey())
                     .addValue("type", examAccommodation.getType())
+                    .addValue("visible", examAccommodation.isVisible())
+                    .addValue("studentControlled", examAccommodation.isStudentControlled())
+                    .addValue("disabledOnGuestSession", examAccommodation.isDisabledOnGuestSession())
+                    .addValue("defaultAccommodation", examAccommodation.isDefaultAccommodation())
+                    .addValue("allowCombine", examAccommodation.isAllowCombine())
+                    .addValue("dependsOn", examAccommodation.getDependsOn())
+                    .addValue("sortOrder", examAccommodation.getSortOrder())
                     .addValue("code", examAccommodation.getCode())
                     .addValue("allowChange", examAccommodation.isAllowChange())
                     .addValue("value", examAccommodation.getValue())
