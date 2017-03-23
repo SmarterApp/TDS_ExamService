@@ -11,8 +11,10 @@ import java.util.Set;
 import java.util.UUID;
 
 import tds.exam.Exam;
+import tds.exam.ExamItem;
+import tds.exam.repositories.ExamItemCommandRepository;
+import tds.exam.repositories.ExamItemQueryRepository;
 import tds.exam.services.ConfigService;
-import tds.exam.services.ExamItemService;
 import tds.exam.services.ExamService;
 import tds.score.model.ExamInstance;
 import tds.score.services.ResponseService;
@@ -26,15 +28,18 @@ import static tds.exam.ExamStatusCode.STATUS_STARTED;
 
 public class ResponseServiceImpl implements ResponseService {
     private final ExamService examService;
-    private final ExamItemService examItemService;
     private final ConfigService configService;
+    private final ExamItemCommandRepository examItemCommandRepository;
+    private final ExamItemQueryRepository examItemQueryRepository;
+
     private static final Set<String> VALID_EXAM_STATUS_CODES = Sets.newHashSet(STATUS_STARTED, STATUS_REVIEW, STATUS_SEGMENT_ENTRY, STATUS_SEGMENT_EXIT);
 
     @Autowired
-    public ResponseServiceImpl(final ExamService examService, final ExamItemService examItemService, final ConfigService configService) {
+    public ResponseServiceImpl(final ExamService examService, final ConfigService configService, final ExamItemCommandRepository examItemCommandRepository, final ExamItemQueryRepository examItemQueryRepository) {
         this.examService = examService;
-        this.examItemService = examItemService;
         this.configService = configService;
+        this.examItemCommandRepository = examItemCommandRepository;
+        this.examItemQueryRepository = examItemQueryRepository;
     }
 
     @Transactional
@@ -59,6 +64,8 @@ public class ResponseServiceImpl implements ResponseService {
             String message = configService.getFormattedMessage(examInstance.getClientName(), "T_UpdateScoredResponse", "Your test opportunity has been interrupted. Please check with your Test Administrator to resume your test.");
             throw new ReturnStatusException(message);
         }
+
+        Optional<ExamItem > maybeItem = examItemQueryRepository.findExamItemAndResponse(examInstance.getExamId(), responseUpdate.getPosition());
 
 
 
