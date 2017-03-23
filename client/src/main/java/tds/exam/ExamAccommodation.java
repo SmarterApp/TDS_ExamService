@@ -55,7 +55,7 @@ public class ExamAccommodation {
         private boolean selectable;
         private boolean allowChange;
         private String value;
-        private int segmentPosition = 1;
+        private int segmentPosition;
         private int totalTypeCount;
         private boolean custom;
         private boolean visible;
@@ -174,7 +174,6 @@ public class ExamAccommodation {
             this.allowCombine = allowCombine;
             return this;
         }
-
 
         public static Builder fromExamAccommodation(final ExamAccommodation accommodation) {
             return new Builder(accommodation.getId())

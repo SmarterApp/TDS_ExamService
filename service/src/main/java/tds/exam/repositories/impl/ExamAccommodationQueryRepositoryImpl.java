@@ -167,6 +167,10 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
                 .withTotalTypeCount(rs.getInt("total_type_count"))
                 .withCustom(rs.getBoolean("custom"))
                 .withVisible(rs.getBoolean("visible"))
+                .withStudentControlled(rs.getBoolean("student_controlled"))
+                .withDisabledOnGuestSession(rs.getBoolean("disabled_on_guest_session"))
+                .withDefaultAccommodation(rs.getBoolean("default_accommodation"))
+                .withAllowCombine(rs.getBoolean("allow_combine"))
                 .withSortOrder(rs.getInt("sort_order"))
                 .withDependsOn(rs.getString("depends_on"))
                 .build();
