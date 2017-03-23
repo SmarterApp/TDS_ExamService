@@ -616,6 +616,31 @@ public class ExamAccommodationServiceImplTest {
         assertThat(seg2Acc.getSegmentPosition()).isEqualTo(2);
         assertThat(seg2Acc.getDeletedAt()).isNull();
     }
+
+    @Test
+    public void shouldCreateOtherExamAccommodations() {
+        final Exam exam = new ExamBuilder().build();
+        final String studentCodes = "ELA;ELA:ESN;Language:ESN;ELA:TDS_APC_SCRUBBER;ELA:TDS_APC_PSP;ELA:TDS_Other#test;";
+
+        when(mockAssessmentService.findAssessmentAccommodationsByAssessmentKey(any(), any())).thenReturn(new ArrayList<>());
+        examAccommodationService.initializeExamAccommodations(exam, studentCodes);
+        verify(mockExamAccommodationCommandRepository).insert(examAccommodationInsertCaptor.capture());
+        List<ExamAccommodation> insertedAccomms = examAccommodationInsertCaptor.getValue();
+        assertThat(insertedAccomms).hasSize(1);
+        ExamAccommodation otherExamAccomm = insertedAccomms.get(0);
+
+        assertThat(otherExamAccomm.getCode()).isEqualTo("TDS_Other");
+        assertThat(otherExamAccomm.getValue()).isEqualTo("test");
+        assertThat(otherExamAccomm.getType()).isEqualTo("Other");
+        assertThat(otherExamAccomm.getSegmentPosition()).isEqualTo(0);
+        assertThat(otherExamAccomm.getSegmentKey()).isEqualTo(exam.getAssessmentKey());
+        assertThat(otherExamAccomm.getDeletedAt()).isNull();
+        assertThat(otherExamAccomm.getExamId()).isEqualTo(exam.getId());
+        assertThat(otherExamAccomm.getDescription()).isEqualTo("test");
+        assertThat(otherExamAccomm.isAllowChange()).isFalse();
+        assertThat(otherExamAccomm.isSelectable()).isFalse();
+
+    }
     
     @Test
     public void shouldFindApprovedExamAccommodations() {

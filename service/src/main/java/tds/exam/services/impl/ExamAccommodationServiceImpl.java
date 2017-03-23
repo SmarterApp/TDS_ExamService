@@ -93,6 +93,13 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
             if (assessmentAccommodations.containsKey(code)) {
                 Accommodation accommodation = assessmentAccommodations.get(code);
                 studentAccommodations.put(accommodation.getType(), accommodation);
+            } else if (code.startsWith(OTHER_ACCOMMODATION_VALUE)) {
+                Accommodation otherAccommodation = new Accommodation.Builder()
+                    .withAccommodationType(OTHER_ACCOMMODATION_NAME)
+                    .withAccommodationCode(OTHER_ACCOMMODATION_CODE)
+                    .withAccommodationValue(StringUtils.substringAfter(code, OTHER_ACCOMMODATION_VALUE))
+                    .build();
+                studentAccommodations.put(OTHER_ACCOMMODATION_NAME, otherAccommodation);
             }
         });
 
