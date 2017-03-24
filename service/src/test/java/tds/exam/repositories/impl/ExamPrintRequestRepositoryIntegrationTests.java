@@ -399,4 +399,39 @@ public class ExamPrintRequestRepositoryIntegrationTests {
         assertThat(requestCounts.containsKey(diffSessionExam.getId())).isFalse();
     }
 
+    @Test
+    public void shouldGetCountOfUnfulfilledRequests() {
+        UUID sessionId = UUID.randomUUID();
+        Exam exam = new ExamBuilder().withSessionId(sessionId).build();
+        examCommandRepository.insert(exam);
+
+        ExamPrintRequest unfulfilledRequest = new ExamPrintRequest.Builder(UUID.randomUUID())
+            .fromExamPrintRequest(random(ExamPrintRequest.class))
+            .withSessionId(sessionId)
+            .withExamId(exam.getId())
+            .withCreatedAt(null)
+            .withChangedAt(null)
+            .withStatus(ExamPrintRequestStatus.SUBMITTED)
+            .withType(ExamPrintRequest.REQUEST_TYPE_EMBOSS_ITEM)
+            .withItemPosition(1)
+            .withPagePosition(3)
+            .build();
+
+        ExamPrintRequest fulfilledPrintRequest = new ExamPrintRequest.Builder(UUID.randomUUID())
+            .fromExamPrintRequest(random(ExamPrintRequest.class))
+            .withSessionId(sessionId)
+            .withExamId(exam.getId())
+            .withCreatedAt(null)
+            .withChangedAt(null)
+            .withStatus(ExamPrintRequestStatus.APPROVED)
+            .withType(ExamPrintRequest.REQUEST_TYPE_PRINT_ITEM)
+            .withItemPosition(1)
+            .withPagePosition(3)
+            .build();
+
+
+        examPrintRequestCommandRepository.insert(unfulfilledRequest);
+        examPrintRequestCommandRepository.insert(fulfilledPrintRequest);
+        assertThat(examPrintRequestQueryRepository.findCountOfUnfulfilledRequestsForExamAndItemPosition(exam.getId(), 1, 3)).isEqualTo(1);
+    }
 }
