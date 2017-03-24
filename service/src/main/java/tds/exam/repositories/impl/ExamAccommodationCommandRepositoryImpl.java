@@ -32,9 +32,9 @@ public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodation
         String SQL =
             "INSERT INTO " +
             "   exam_accommodation(exam_id, id, segment_key, type, code, description, allow_change, value, segment_position, " +
-            "   created_at, visible, student_controlled, disabled_on_guest_session, default_accommodation, allow_combine, sort_order, depends_on) \n" +
+            "   created_at, visible, student_controlled, disabled_on_guest_session, default_accommodation, allow_combine, sort_order, depends_on, functional) \n" +
             "VALUES(:examId, :id, :segmentKey, :type, :code, :description, :allowChange, :value, :segmentPosition, :createdAt," +
-            "   :visible, :studentControlled, :disabledOnGuestSession, :defaultAccommodation, :allowCombine, :sortOrder, :dependsOn)";
+            "   :visible, :studentControlled, :disabledOnGuestSession, :defaultAccommodation, :allowCombine, :sortOrder, :dependsOn, :functional)";
 
         Timestamp createdAt = mapJodaInstantToTimestamp(Instant.now());
         List<ExamAccommodation> createdAccommodations = new ArrayList<>();
@@ -60,6 +60,7 @@ public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodation
                     .addValue("value", examAccommodation.getValue())
                     .addValue("segmentPosition", examAccommodation.getSegmentPosition())
                     .addValue("description", examAccommodation.getDescription())
+                    .addValue("functional", examAccommodation.isFunctional())
                     .addValue("createdAt", createdAt);
             })
             .toArray(SqlParameterSource[]::new);

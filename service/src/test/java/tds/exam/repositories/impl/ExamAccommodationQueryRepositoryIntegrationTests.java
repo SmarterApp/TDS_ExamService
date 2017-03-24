@@ -59,6 +59,7 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
             .withDefaultAccommodation(true)
             .withDisabledOnGuestSession(true)
             .withStudentControlled(true)
+            .withFunctional(true)
             .withDependsOn("Language")
             .withAllowCombine(true)
             .build());
@@ -130,6 +131,7 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
         assertThat(firstExamAccommodation.getDependsOn()).isEqualTo("Language");
         assertThat(firstExamAccommodation.isVisible()).isTrue();
         assertThat(firstExamAccommodation.isStudentControlled()).isTrue();
+        assertThat(firstExamAccommodation.isFunctional()).isTrue();
 
         assertThat(secondAccommodation.getId()).isNotNull();
         assertThat(secondAccommodation.getExamId()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID);
