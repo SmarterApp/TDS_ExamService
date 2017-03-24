@@ -33,6 +33,7 @@ public class ExamAccommodation {
     private boolean disabledOnGuestSession;
     private boolean defaultAccommodation;
     private boolean allowCombine;
+    private boolean functional;
     private int sortOrder;
     private String dependsOn;
 
@@ -63,6 +64,7 @@ public class ExamAccommodation {
         private boolean disabledOnGuestSession;
         private boolean defaultAccommodation;
         private boolean allowCombine;
+        private boolean functional;
         private int sortOrder;
         private String dependsOn;
 
@@ -175,6 +177,11 @@ public class ExamAccommodation {
             return this;
         }
 
+        public Builder withFunctional(boolean functional) {
+            this.functional = functional;
+            return this;
+        }
+
         public static Builder fromExamAccommodation(final ExamAccommodation accommodation) {
             return new Builder(accommodation.getId())
                 .withExamId(accommodation.getExamId())
@@ -188,7 +195,15 @@ public class ExamAccommodation {
                 .withSelectable(accommodation.isSelectable())
                 .withAllowChange(accommodation.isAllowChange())
                 .withValue(accommodation.getValue())
-                .withCustom(accommodation.isCustom());
+                .withCustom(accommodation.isCustom())
+                .withVisible(accommodation.isVisible())
+                .withSortOrder(accommodation.getSortOrder())
+                .withDependsOn(accommodation.getDependsOn())
+                .withStudentControlled(accommodation.isStudentControlled())
+                .withDisabledOnGuestSession(accommodation.isDisabledOnGuestSession())
+                .withDefaultAccommodation(accommodation.isDefaultAccommodation())
+                .withAllowCombine(accommodation.isAllowCombine())
+                .withFunctional(accommodation.isFunctional());
         }
 
         public ExamAccommodation build() {
@@ -219,6 +234,7 @@ public class ExamAccommodation {
         allowCombine = builder.allowCombine;
         sortOrder = builder.sortOrder;
         dependsOn = builder.dependsOn;
+        functional = builder.functional;
     }
 
     /**
@@ -384,6 +400,13 @@ public class ExamAccommodation {
      */
     public boolean isAllowCombine() {
         return allowCombine;
+    }
+
+    /**
+     * @return {@code true} if this accommodation is functional and should be displayed on the student UI
+     */
+    public boolean isFunctional() {
+        return functional;
     }
 
     @Override

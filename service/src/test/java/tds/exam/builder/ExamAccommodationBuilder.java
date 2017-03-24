@@ -39,6 +39,7 @@ public class ExamAccommodationBuilder {
     private int segmentPosition = 1;
     private int totalTypeCount = 1;
     private boolean custom;
+    private boolean functional = false;
 
     public ExamAccommodation build() {
         return new ExamAccommodation.Builder(id)
@@ -62,6 +63,7 @@ public class ExamAccommodationBuilder {
             .withDisabledOnGuestSession(disabledOnGuestSession)
             .withStudentControlled(studentControlled)
             .withDependsOn(dependsOn)
+            .withFunctional(functional)
             .build();
     }
 
@@ -167,6 +169,11 @@ public class ExamAccommodationBuilder {
 
     public ExamAccommodationBuilder withTotalTypeCount(int totalTypeCount) {
         this.totalTypeCount = totalTypeCount;
+        return this;
+    }
+
+    public ExamAccommodationBuilder withFunctional(boolean functional) {
+        this.functional = functional;
         return this;
     }
 }

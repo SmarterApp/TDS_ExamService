@@ -1,5 +1,7 @@
 package tds.exam.services.impl;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.Instant;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,7 +90,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
 
         // Get the list of accommodations from the student package, for the particular Exam subject
         //  Take the accommodation code, lookup the accommodation and put into a Map by type for easy lookup
-        Map<String, Accommodation> studentAccommodations = new HashMap<>();
+        Multimap<String, Accommodation> studentAccommodations = ArrayListMultimap.create();
         splitAccommodationCodes(exam.getSubject(), studentAccommodationCodes).forEach(code -> {
             if (assessmentAccommodations.containsKey(code)) {
                 Accommodation accommodation = assessmentAccommodations.get(code);
@@ -136,6 +138,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                 .withAllowCombine(accommodation.isAllowCombine())
                 .withDependsOn(accommodation.getDependsOnToolType())
                 .withSortOrder(accommodation.getToolTypeSortOrder())
+                .withFunctional(accommodation.isFunctional())
                 .withCreatedAt(now)
                 .build();
 
@@ -315,6 +318,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                     .withAllowCombine(accommodation.isAllowCombine())
                     .withDependsOn(accommodation.getDependsOnToolType())
                     .withSortOrder(accommodation.getToolTypeSortOrder())
+                    .withFunctional(accommodation.isFunctional())
                     .withDeniedAt(deniedAt)
                     .withCreatedAt(now)
                     .build();

@@ -271,6 +271,7 @@ public class ExamAccommodationServiceImplTest {
             .withAllowCombine(true)
             .withDisableOnGuestSession(false)
             .withToolTypeSortOrder(3)
+            .withFunctional(true)
             .withTypeTotal(5)
             .build();
 
@@ -377,6 +378,7 @@ public class ExamAccommodationServiceImplTest {
         assertThat(testExamAccommodation.isAllowCombine()).isTrue();
         assertThat(testExamAccommodation.isDefaultAccommodation()).isTrue();
         assertThat(testExamAccommodation.isDisabledOnGuestSession()).isFalse();
+        assertThat(testExamAccommodation.isFunctional()).isTrue();
         assertThat(testExamAccommodation.getSortOrder()).isEqualTo(3);
     }
     

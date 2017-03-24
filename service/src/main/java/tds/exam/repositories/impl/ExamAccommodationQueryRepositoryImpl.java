@@ -55,6 +55,7 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
                 "   ea.allow_combine, \n" +
                 "   ea.depends_on, \n" +
                 "   ea.sort_order, \n" +
+                "   ea.functional, \n" +
                 "   eae.selectable, \n" +
                 "   eae.total_type_count, \n" +
                 "   eae.custom \n" +
@@ -119,6 +120,7 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
                 "   ea.allow_combine, \n" +
                 "   ea.depends_on, \n" +
                 "   ea.sort_order, \n" +
+                "   ea.functional, \n" +
                 "   ea.segment_position, \n" +
                 "   eae.total_type_count, \n" +
                 "   eae.selectable, \n" +
@@ -173,6 +175,7 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
                 .withAllowCombine(rs.getBoolean("allow_combine"))
                 .withSortOrder(rs.getInt("sort_order"))
                 .withDependsOn(rs.getString("depends_on"))
+                .withFunctional(rs.getBoolean("functional"))
                 .build();
         }
     }
