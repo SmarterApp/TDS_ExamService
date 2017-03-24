@@ -607,7 +607,7 @@ public class ExamAccommodationServiceImplTest {
         verify(mockExamQueryRepository).getExamById(exam.getId());
         verify(mockExamApprovalService).verifyAccess(examInfo, exam);
         verify(mockExamAccommodationQueryRepository).findApprovedAccommodations(exam.getId());
-        verify(mockAssessmentService, times(3)).findAssessmentAccommodationsByAssessmentKey(exam.getClientName(), exam.getAssessmentKey());
+        verify(mockAssessmentService).findAssessmentAccommodationsByAssessmentKey(exam.getClientName(), exam.getAssessmentKey());
         verify(mockSessionService).findSessionById(session.getId());
         verify(mockExamAccommodationCommandRepository, times(3)).insert(examAccommodationInsertCaptor.capture());
     

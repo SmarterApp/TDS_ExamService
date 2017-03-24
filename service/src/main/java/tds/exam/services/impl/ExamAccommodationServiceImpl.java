@@ -175,7 +175,11 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
         } else {
             //CommonDLL line 2590 - gets the accommodation codes based on guest accommodations and the accommodation family for the assessment
             Set<String> accommodationCodes = splitAccommodationCodes(assessment.getAccommodationFamily(), studentAccommodationCodes);
-            examAccommodations = initializePreviousAccommodations(exam, segmentPosition, restoreRts, examAccommodations, accommodationCodes, false);
+
+            // CommonDLL line 2593 fetches the key accommodations via CommonDLL.TestKeyAccommodations_FN which this call replicates.  The legacy application leverages
+            // temporary tables for most of its data structures which is unnecessary in this case so a collection is returned.
+            List<Accommodation> assessmentAccommodations = assessmentService.findAssessmentAccommodationsByAssessmentKey(exam.getClientName(), exam.getAssessmentKey());
+            examAccommodations = initializePreviousAccommodations(exam, segmentPosition, restoreRts, examAccommodations, accommodationCodes, assessmentAccommodations, false);
         }
 
         return examAccommodations;
@@ -216,10 +220,11 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
 
         // Get the list of current exam accomms in case we need to update them (for example, if a pre-initialized default was changed by the guest user)
         List<ExamAccommodation> currentAccommodations = examAccommodationQueryRepository.findApprovedAccommodations(examId);
-
+        List<Accommodation> assessmentAccommodations = assessmentService.findAssessmentAccommodationsByAssessmentKey(exam.getClientName(), exam.getAssessmentKey());
         // For each assessment and segments separately, initialize their respective accommodations
         request.getAccommodationCodes().forEach((segmentPosition, guestAccommodationCodes) ->
-            initializePreviousAccommodations(exam, segmentPosition, false, currentAccommodations, guestAccommodationCodes, true));
+            initializePreviousAccommodations(exam, segmentPosition, false, currentAccommodations, guestAccommodationCodes,
+                assessmentAccommodations, true));
 
         return Optional.empty();
     }
@@ -264,13 +269,10 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                                                                      boolean restoreRts,
                                                                      List<ExamAccommodation> existingExamAccommodations,
                                                                      Set<String> accommodationCodes,
+                                                                     List<Accommodation> assessmentAccommodations,
                                                                      boolean isGuestAccommodations) {
         //This method replaces CommonDLL._UpdateOpportunityAccommodations_SP.
         Instant now = Instant.now();
-
-        // CommonDLL line 2593 fetches the key accommodations via CommonDLL.TestKeyAccommodations_FN which this call replicates.  The legacy application leverages
-        // temporary tables for most of its data structures which is unnecessary in this case so a collection is returned.
-        List<Accommodation> assessmentAccommodations = assessmentService.findAssessmentAccommodationsByAssessmentKey(exam.getClientName(), exam.getAssessmentKey());
 
         /*
         This is the accumulation of many different queries on lines CommonDLL.UpdateOpportunityAccommodations_SP()
