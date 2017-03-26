@@ -39,14 +39,14 @@ public class ContentServiceImpl implements ContentService {
     private static final Logger _logger = LoggerFactory.getLogger(ContentService.class);
 
     @Override
-    public IITSDocument getContent(String xmlFilePath, AccLookup accommodations) throws ReturnStatusException {
+    public IITSDocument getContent(final String xmlFilePath, final AccLookup accommodations) throws ReturnStatusException {
         return getContent(xmlFilePath, new AccLookupWrapper(accommodations));
     }
 
     @Override
-    public IITSDocument getItemContent(long bankKey, long itemKey, AccLookup accommodations) throws ReturnStatusException {
+    public IITSDocument getItemContent(final String clientName, final long bankKey, final long itemKey, final AccLookup accommodations) throws ReturnStatusException {
         try {
-            Optional<Item> maybeItem = itemService.findItemByKey(bankKey, itemKey);
+            Optional<Item> maybeItem = itemService.findItemByKey(clientName, bankKey, itemKey);
             if (!maybeItem.isPresent())
                 return null;
 
@@ -58,8 +58,8 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public IITSDocument getStimulusContent(long bankKey, long stimulusKey, AccLookup accommodations) throws ReturnStatusException {
-        Optional<Item> maybeItem = itemService.findItemByStimulusKey(bankKey, stimulusKey);
+    public IITSDocument getStimulusContent(final String clientName, final long bankKey, final long stimulusKey, final AccLookup accommodations) throws ReturnStatusException {
+        Optional<Item> maybeItem = itemService.findItemByStimulusKey(clientName, bankKey, stimulusKey);
         if (!maybeItem.isPresent())
             return null;
 
@@ -67,7 +67,7 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public void loadPageGroupDocuments(PageGroup pageGroup, AccLookup accLookup) throws ReturnStatusException {
+    public void loadPageGroupDocuments(final PageGroup pageGroup, final AccLookup accLookup) throws ReturnStatusException {
         try {
             pageGroup.setDocument(getContent(pageGroup.getFilePath(), accLookup));
             for (ItemResponse itemResponse : pageGroup) {
@@ -80,7 +80,7 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public ITSMachineRubric parseMachineRubric(IITSDocument itsDocument, String language, RubricContentSource rubricContentSource) throws ReturnStatusException {
+    public ITSMachineRubric parseMachineRubric(final IITSDocument itsDocument, final String language, final RubricContentSource rubricContentSource) throws ReturnStatusException {
         ITSMachineRubric machineRubric = null;
         // if the source is item bank then parse the answer key attribute
         // NOTE: we use to get this from the response table

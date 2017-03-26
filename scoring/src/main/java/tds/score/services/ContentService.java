@@ -22,24 +22,26 @@ public interface ContentService {
     /**
      * Gets the item content
      *
+     * @param clientName     the client name
      * @param bankKey        the bank key
      * @param itemKey        the item key
      * @param accommodations the accommodations represented as a {@link tds.itemrenderer.data.AccLookup}
      * @return {@link tds.itemrenderer.data.IITSDocument}
      * @throws ReturnStatusException if the documentat cannot be found or parsed
      */
-    IITSDocument getItemContent(final long bankKey, final long itemKey, final AccLookup accommodations) throws ReturnStatusException;
+    IITSDocument getItemContent(final String clientName, final long bankKey, final long itemKey, final AccLookup accommodations) throws ReturnStatusException;
 
     /**
      * Gets the item content
      *
+     * @param clientName     the client name
      * @param bankKey        the bank key
      * @param stimulusKey    the stimulus key
      * @param accommodations the accommodations represented as a {@link tds.itemrenderer.data.AccLookup}
      * @return {@link tds.itemrenderer.data.IITSDocument}
      * @throws ReturnStatusException if the documentat cannot be found or parsed
      */
-    IITSDocument getStimulusContent(final long bankKey, final long stimulusKey, final AccLookup accommodations) throws ReturnStatusException;
+    IITSDocument getStimulusContent(final String clientName, final long bankKey, final long stimulusKey, final AccLookup accommodations) throws ReturnStatusException;
 
     /**
      * Parses the machine rubric
