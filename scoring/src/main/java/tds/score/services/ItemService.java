@@ -15,7 +15,7 @@ public interface ItemService {
      * @param stimulusKey the stimulus key
      * @return {@link tds.score.model.Item} if found otherwise empty
      */
-    Optional<Item> findItemByStimulusKey(final long bankKey, final long stimulusKey);
+    Optional<Item> findItemByStimulusKey(final String clientName, final long bankKey, final long stimulusKey);
 
     /**
      * Find the item by bank and item key
@@ -24,5 +24,5 @@ public interface ItemService {
      * @param itemKey the item key
      * @return {@link tds.score.model.Item} if found otherwise empty
      */
-    Optional<Item> findItemByKey(final long bankKey, final long itemKey);
+    Optional<Item> findItemByKey(final String clientName, final long bankKey, final long itemKey);
 }
