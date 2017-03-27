@@ -49,6 +49,7 @@ public class ExamBuilder {
     private String language = "English";
     private int resumptions = 5;
     private int restartsAndResumptions = 7;
+    private String browserUserAgent = "user agent";
 
     public Exam build() {
         return new Exam.Builder()
@@ -84,6 +85,7 @@ public class ExamBuilder {
             .withResumptions(resumptions)
             .withRestartsAndResumptions(restartsAndResumptions)
             .withCreatedAt(createdAt)
+            .withBrowserUserAgent(browserUserAgent)
             .build();
     }
 
@@ -253,6 +255,11 @@ public class ExamBuilder {
 
     public ExamBuilder withMaxItems(int maxItems) {
         this.maxItems = maxItems;
+        return this;
+    }
+
+    public ExamBuilder withBrowserUserAgent(String browserUserAgent) {
+        this.browserUserAgent = browserUserAgent;
         return this;
     }
 

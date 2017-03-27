@@ -36,9 +36,10 @@ public interface ExamService {
      * Starts a new or existing exam.
      *
      * @param examId The exam to start
+     * @param browserUserAgent The browser user agent string for the {@link tds.exam.Exam}
      * @return {@link tds.common.Response<tds.exam.Exam>} containing the exam's configuration or errors.
      */
-    Response<ExamConfiguration> startExam(final UUID examId);
+    Response<ExamConfiguration> startExam(final UUID examId, final String browserUserAgent);
 
     /**
      * Change the {@link tds.exam.Exam}'s status to a new status.

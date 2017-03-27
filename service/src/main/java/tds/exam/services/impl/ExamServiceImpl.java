@@ -297,7 +297,7 @@ class ExamServiceImpl implements ExamService {
 
     @Transactional
     @Override
-    public Response<ExamConfiguration> startExam(final UUID examId) {
+    public Response<ExamConfiguration> startExam(final UUID examId, final String browserUserAgent) {
         ExamConfiguration examConfig;
         Optional<Exam> maybeExam = examQueryRepository.getExamById(examId);
         if (!maybeExam.isPresent()) {
@@ -347,7 +347,7 @@ class ExamServiceImpl implements ExamService {
 
         if (exam.getStartedAt() == null) { // Start a new exam
             // Initialize the segments in the exam and get the testlength.
-            Exam initializedExam = initializeExam(exam, assessment);
+            Exam initializedExam = initializeExam(exam, assessment, browserUserAgent);
             /* StudentDLL [5367] and TestOppServiceImpl [167] */
             examConfig = initializeDefaultExamConfiguration(initializedExam, assessment, timeLimitConfiguration);
         } else { // Restart or resume the most recent exam
@@ -384,6 +384,7 @@ class ExamServiceImpl implements ExamService {
                 .withResumptions(resumptions)
                 .withRestartsAndResumptions(restartsAndResumptions)
                 .withStartedAt(now)
+                .withBrowserUserAgent(browserUserAgent)
                 .build();
 
             updateExam(exam, restartedExam);
@@ -395,7 +396,7 @@ class ExamServiceImpl implements ExamService {
         return new Response<>(examConfig);
     }
 
-    private Exam initializeExam(final Exam exam, final Assessment assessment) {
+    private Exam initializeExam(final Exam exam, final Assessment assessment, final String browserUserAgent) {
         /* TestOpportunityServiceImpl [435] + [470] */
         int testLength = examSegmentService.initializeExamSegments(exam, assessment);
         org.joda.time.Instant now = org.joda.time.Instant.now();
@@ -409,6 +410,7 @@ class ExamServiceImpl implements ExamService {
             .withRestartsAndResumptions(0)
             .withMaxItems(testLength)
             .withWaitingForSegmentApprovalPosition(-1)
+            .withBrowserUserAgent(browserUserAgent)
             .build();
 
         updateExam(exam, initializedExam);

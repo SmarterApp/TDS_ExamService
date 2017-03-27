@@ -53,6 +53,7 @@ public class ExamCommandRepositoryImplIntegrationTests {
         Exam exam = new ExamBuilder()
             .withJoinedAt(now)
             .withAbnormalStarts(5)
+            .withBrowserUserAgent("agent 007")
             .build();
         assertThat(examQueryRepository.getExamById(exam.getId())).isNotPresent();
 
@@ -97,6 +98,7 @@ public class ExamCommandRepositoryImplIntegrationTests {
         assertThat(savedExam.isCustomAccommodations()).isEqualTo(exam.isCustomAccommodations());
         assertThat(savedExam.getCreatedAt()).isNotNull();
         assertThat(savedExam.getCreatedAt()).isGreaterThan(now);
+        assertThat(savedExam.getBrowserUserAgent()).isEqualTo(exam.getBrowserUserAgent());
     }
 
     @Test

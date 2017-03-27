@@ -844,9 +844,10 @@ public class ExamServiceImplTest {
 
     @Test
     public void shouldReturnFailureExamConfigForNoExamFound() {
-        UUID examID = UUID.randomUUID();
+        final UUID examID = UUID.randomUUID();
+        final String browserUserAgent = "007";
         when(mockExamQueryRepository.getExamById(examID)).thenReturn(Optional.empty());
-        Response<ExamConfiguration> response = examService.startExam(examID);
+        Response<ExamConfiguration> response = examService.startExam(examID, browserUserAgent);
         assertThat(response.hasError()).isTrue();
         ValidationError error = response.getError().get();
         assertThat(error.getCode()).isEqualTo(ExamStatusCode.STATUS_FAILED);
@@ -855,11 +856,12 @@ public class ExamServiceImplTest {
 
     @Test
     public void shouldReturnFailureExamConfigForExamStatusNotApproved() {
-        Exam exam = new ExamBuilder()
+        final Exam exam = new ExamBuilder()
             .build();
+        final String browserUserAgent = "007";
         when(mockExamQueryRepository.getExamById(exam.getId())).thenReturn(Optional.of(exam));
         when(mockSessionService.findSessionById(exam.getSessionId())).thenReturn(Optional.empty());
-        Response<ExamConfiguration> response = examService.startExam(exam.getId());
+        Response<ExamConfiguration> response = examService.startExam(exam.getId(), browserUserAgent);
         assertThat(response.hasError()).isTrue();
         ValidationError error = response.getError().get();
         assertThat(error.getCode()).isEqualTo(ExamStatusCode.STATUS_FAILED);
@@ -868,12 +870,13 @@ public class ExamServiceImplTest {
 
     @Test
     public void shouldReturnFailureExamConfigForNoSessionFound() {
-        Exam exam = new ExamBuilder()
+        final String browserUserAgent = "007";
+        final Exam exam = new ExamBuilder()
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.OPEN), Instant.now())
             .build();
         when(mockExamQueryRepository.getExamById(exam.getId())).thenReturn(Optional.of(exam));
         when(mockSessionService.findSessionById(exam.getSessionId())).thenReturn(Optional.empty());
-        Response<ExamConfiguration> response = examService.startExam(exam.getId());
+        Response<ExamConfiguration> response = examService.startExam(exam.getId(), browserUserAgent);
         assertThat(response.hasError()).isTrue();
         ValidationError error = response.getError().get();
         assertThat(error.getCode()).isEqualTo(ExamStatusCode.STATUS_FAILED);
@@ -882,6 +885,7 @@ public class ExamServiceImplTest {
 
     @Test
     public void shouldReturnFailureExamConfigForNoAssessmentFound() {
+        final String browserUserAgent = "007";
         Session session = new SessionBuilder().build();
         Exam exam = new ExamBuilder()
             .withSessionId(session.getId())
@@ -911,7 +915,7 @@ public class ExamServiceImplTest {
         when(mockExamApprovalService.verifyAccess(isA(ExamInfo.class), isA(Exam.class)))
             .thenReturn(Optional.empty());
 
-        Response<ExamConfiguration> response = examService.startExam(exam.getId());
+        Response<ExamConfiguration> response = examService.startExam(exam.getId(), browserUserAgent);
 
         assertThat(response.hasError()).isTrue();
         ValidationError error = response.getError().get();
@@ -921,6 +925,7 @@ public class ExamServiceImplTest {
 
     @Test
     public void shouldStartNewExam() throws InterruptedException {
+        final String browserUserAgent = "007";
         Session session = new SessionBuilder().build();
         Instant now = org.joda.time.Instant.now().minus(5000);
         Instant approvedStatusDate = now.minus(5000);
@@ -957,7 +962,7 @@ public class ExamServiceImplTest {
         when(mockExamApprovalService.verifyAccess(isA(ExamInfo.class), isA(Exam.class)))
             .thenReturn(Optional.empty());
 
-        Response<ExamConfiguration> examConfigurationResponse = examService.startExam(exam.getId());
+        Response<ExamConfiguration> examConfigurationResponse = examService.startExam(exam.getId(), browserUserAgent);
 
         verify(mockExamQueryRepository).getExamById(exam.getId());
         verify(mockSessionService).findSessionById(exam.getSessionId());
@@ -987,10 +992,12 @@ public class ExamServiceImplTest {
         assertThat(updatedExam.getStatus().getCode()).isEqualTo(ExamStatusCode.STATUS_STARTED);
         assertThat(updatedExam.getStatusChangedAt()).isGreaterThan(approvedStatusDate);
         assertThat(updatedExam.getWaitingForSegmentApprovalPosition()).isEqualTo(-1);
+        assertThat(updatedExam.getBrowserUserAgent()).isEqualTo(browserUserAgent);
     }
 
     @Test
     public void shouldRestartExistingExamOutsideGracePeriodPausedExam() throws InterruptedException {
+        final String browserUserAgent = "007";
         Session session = new SessionBuilder().build();
         final Instant now = org.joda.time.Instant.now().minus(5000);
         final Instant approvedStatusDate = now.minus(5000);
@@ -1028,7 +1035,7 @@ public class ExamServiceImplTest {
         when(mockExamApprovalService.verifyAccess(isA(ExamInfo.class), isA(Exam.class)))
             .thenReturn(Optional.empty());
 
-        Response<ExamConfiguration> examConfigurationResponse = examService.startExam(exam.getId());
+        Response<ExamConfiguration> examConfigurationResponse = examService.startExam(exam.getId(), browserUserAgent);
 
         verify(mockExamQueryRepository).getExamById(exam.getId());
         verify(mockSessionService).findSessionById(exam.getSessionId());
@@ -1061,10 +1068,12 @@ public class ExamServiceImplTest {
         assertThat(updatedExam.getStatus().getStage()).isEqualTo(ExamStatusStage.IN_PROGRESS);
         assertThat(updatedExam.getStatus().getCode()).isEqualTo(ExamStatusCode.STATUS_STARTED);
         assertThat(updatedExam.getStatusChangedAt()).isGreaterThan(approvedStatusDate);
+        assertThat(updatedExam.getBrowserUserAgent()).isEqualTo(browserUserAgent);
     }
 
     @Test
     public void shouldResumeExistingExamWithinGracePeriodPausedExam() throws InterruptedException {
+        final String browserUserAgent = "007";
         Session session = new SessionBuilder().build();
         final Instant now = org.joda.time.Instant.now();
         final Instant approvedStatusDate = now.minus(5000);
@@ -1105,7 +1114,7 @@ public class ExamServiceImplTest {
         when(mockExamApprovalService.verifyAccess(isA(ExamInfo.class), isA(Exam.class)))
             .thenReturn(Optional.empty());
 
-        Response<ExamConfiguration> examConfigurationResponse = examService.startExam(exam.getId());
+        Response<ExamConfiguration> examConfigurationResponse = examService.startExam(exam.getId(), browserUserAgent);
 
         verify(mockExamQueryRepository).getExamById(exam.getId());
         verify(mockSessionService).findSessionById(exam.getSessionId());

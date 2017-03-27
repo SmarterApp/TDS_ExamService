@@ -44,6 +44,7 @@ public class Exam {
     private boolean customAccommodations;
     private int resumptions;
     private int restartsAndResumptions;
+    private String browserUserAgent;
 
     /**
      * Private constructor for frameworks
@@ -86,6 +87,7 @@ public class Exam {
         private boolean customAccommodations;
         private int resumptions;
         private int restartsAndResumptions;
+        private String browserUserAgent;
 
         public Builder withSegmented(boolean segmented) {
             this.segmented = segmented;
@@ -256,6 +258,11 @@ public class Exam {
             return this;
         }
 
+        public Builder withBrowserUserAgent(String browserUserAgent) {
+            this.browserUserAgent = browserUserAgent;
+            return this;
+        }
+
         public Builder fromExam(Exam exam) {
             id = exam.id;
             sessionId = exam.sessionId;
@@ -291,6 +298,7 @@ public class Exam {
             customAccommodations = exam.isCustomAccommodations();
             resumptions = exam.resumptions;
             restartsAndResumptions = exam.restartsAndResumptions;
+            browserUserAgent = exam.browserUserAgent;
             return this;
         }
 
@@ -334,6 +342,7 @@ public class Exam {
         languageCode = builder.languageCode;
         resumptions = builder.resumptions;
         restartsAndResumptions = builder.restartsAndResumptions;
+        browserUserAgent = builder.browserUserAgent;
     }
 
     /**
@@ -579,4 +588,10 @@ public class Exam {
         return restartsAndResumptions;
     }
 
+    /**
+     * @return a string containing browser user agent metadata
+     */
+    public String getBrowserUserAgent() {
+        return browserUserAgent;
+    }
 }

@@ -72,6 +72,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
         "ee.waiting_for_segment_approval_position, \n" +
         "ee.current_segment_position, \n" +
         "ee.custom_accommodations, \n" +
+        "ee.browser_user_agent, \n" +
         "e.created_at, \n" +
         "esc.description, \n" +
         "esc.status, \n" +
@@ -449,6 +450,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 .withWaitingForSegmentApprovalPosition(rs.getInt("waiting_for_segment_approval_position"))
                 .withCurrentSegmentPosition(rs.getInt("current_segment_position"))
                 .withCustomAccommodation(rs.getBoolean("custom_accommodations"))
+                .withBrowserUserAgent(rs.getString("browser_user_agent"))
                 .build();
         }
     }
