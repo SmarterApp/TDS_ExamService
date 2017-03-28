@@ -112,6 +112,7 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
                 .addValue("currentSegmentPosition", exam.getCurrentSegmentPosition())
                 .addValue("customAccommodations", exam.isCustomAccommodations())
                 .addValue("startedAt", mapJodaInstantToTimestamp(exam.getStartedAt()))
+                .addValue("browserUserAgent", exam.getBrowserUserAgent())
                 .addValue("createdAt", now))
             .toArray(MapSqlParameterSource[]::new);
 
@@ -136,6 +137,7 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
                 "current_segment_position, \n" +
                 "custom_accommodations, \n" +
                 "abnormal_starts, \n" +
+                "browser_user_agent, \n" +
                 "created_at \n" +
                 ") \n" +
                 "VALUES \n" +
@@ -159,6 +161,7 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
                 ":currentSegmentPosition, \n" +
                 ":customAccommodations, \n" +
                 ":abnormalStarts, \n" +
+                ":browserUserAgent, \n" +
                 ":createdAt \n" +
                 ")";
 

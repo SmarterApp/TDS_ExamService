@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -227,6 +226,21 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                 assessmentAccommodations, true));
 
         return Optional.empty();
+    }
+
+    @Override
+    @Transactional
+    public void denyAccommodations(final UUID examId, final Instant deniedAt) {
+        final List<ExamAccommodation> pendingAccommodations = examAccommodationQueryRepository.findAccommodations(examId);
+        final ExamAccommodation[] deniedAccommodations = pendingAccommodations.stream()
+            .map(accommodation ->
+                new ExamAccommodation.Builder(accommodation.getId())
+                    .fromExamAccommodation(accommodation)
+                    .withDeniedAt(deniedAt)
+                    .build())
+            .collect(Collectors.toList()).toArray(new ExamAccommodation[pendingAccommodations.size()]);
+
+        examAccommodationCommandRepository.update(deniedAccommodations);
     }
 
     private static String getOtherAccommodationValue(String formattedValue) {

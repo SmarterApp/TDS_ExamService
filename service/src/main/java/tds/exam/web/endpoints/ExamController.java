@@ -71,8 +71,8 @@ public class ExamController {
     }
 
     @RequestMapping(value = "/{examId}/start", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<Response<ExamConfiguration>> startExam(@PathVariable final UUID examId) {
-        Response<ExamConfiguration> examConfiguration = examService.startExam(examId);
+    ResponseEntity<Response<ExamConfiguration>> startExam(@PathVariable final UUID examId, @RequestBody final String browserUserAgent) {
+        Response<ExamConfiguration> examConfiguration = examService.startExam(examId, browserUserAgent);
 
         if (examConfiguration.hasError()) {
             return new ResponseEntity<>(examConfiguration, HttpStatus.UNPROCESSABLE_ENTITY);

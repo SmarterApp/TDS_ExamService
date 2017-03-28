@@ -40,6 +40,7 @@ import tds.exam.services.ExamApprovalService;
 import tds.exam.services.SessionService;
 import tds.session.Session;
 
+import static io.github.benas.randombeans.api.EnhancedRandom.random;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Matchers.any;
@@ -71,6 +72,9 @@ public class ExamAccommodationServiceImplTest {
 
     @Captor
     private ArgumentCaptor<List<ExamAccommodation>> examAccommodationInsertCaptor;
+
+    @Captor
+    private ArgumentCaptor<ExamAccommodation> examAccommodationUpdateCaptor;
 
     @Before
     public void setUp() {
@@ -651,6 +655,35 @@ public class ExamAccommodationServiceImplTest {
         assertThat(otherExamAccomm.isAllowChange()).isFalse();
         assertThat(otherExamAccomm.isSelectable()).isFalse();
 
+    }
+
+    @Test
+    public void shouldDenyAccommodations() {
+        final UUID examId = UUID.randomUUID();
+
+        ExamAccommodation examAcc1 = new ExamAccommodation.Builder(UUID.randomUUID())
+            .fromExamAccommodation(random(ExamAccommodation.class))
+            .withDeletedAt(null)
+            .withDeniedAt(null)
+            .build();
+        ExamAccommodation examAcc2 = new ExamAccommodation.Builder(UUID.randomUUID())
+            .fromExamAccommodation(random(ExamAccommodation.class))
+            .withDeletedAt(null)
+            .withDeniedAt(null)
+            .build();
+        final Instant deniedAt = Instant.now();
+
+        when(mockExamAccommodationQueryRepository.findAccommodations(examId)).thenReturn(Arrays.asList(examAcc1, examAcc2));
+        examAccommodationService.denyAccommodations(examId, deniedAt);
+        verify(mockExamAccommodationQueryRepository).findAccommodations(examId);
+        verify(mockExamAccommodationCommandRepository).update(examAccommodationUpdateCaptor.capture());
+
+        List<ExamAccommodation> examAccommodations = examAccommodationUpdateCaptor.getAllValues();
+        assertThat(examAccommodations).hasSize(2);
+
+        for (ExamAccommodation updatedAccomm : examAccommodations) {
+            assertThat(updatedAccomm.getDeniedAt()).isEqualTo(deniedAt);
+        }
     }
     
     @Test
