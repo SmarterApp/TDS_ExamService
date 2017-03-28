@@ -1,5 +1,7 @@
 package tds.exam.services;
 
+import org.joda.time.Instant;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -74,6 +76,7 @@ public interface ExamAccommodationService {
      * Denies all {@link tds.exam.ExamAccommodation}s for an exam
      *
      * @param examId The id of the exam for which to deny accommodations
+     * @param deniedAt
      */
-    void denyAccommodations(UUID examId);
+    void denyAccommodations(final UUID examId, final Instant deniedAt);
 }

@@ -33,6 +33,6 @@ public class OnDeniedStatusExamChangeListener implements ChangeListener<Exam> {
             return;
         }
 
-        examAccommodationService.denyAccommodations(newExam.getId());
+        examAccommodationService.denyAccommodations(newExam.getId(), newExam.getChangedAt());
     }
 }

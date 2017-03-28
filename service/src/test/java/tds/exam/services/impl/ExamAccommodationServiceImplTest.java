@@ -671,9 +671,10 @@ public class ExamAccommodationServiceImplTest {
             .withDeletedAt(null)
             .withDeniedAt(null)
             .build();
+        final Instant deniedAt = Instant.now();
 
         when(mockExamAccommodationQueryRepository.findAccommodations(examId)).thenReturn(Arrays.asList(examAcc1, examAcc2));
-        examAccommodationService.denyAccommodations(examId);
+        examAccommodationService.denyAccommodations(examId, deniedAt);
         verify(mockExamAccommodationQueryRepository).findAccommodations(examId);
         verify(mockExamAccommodationCommandRepository).update(examAccommodationUpdateCaptor.capture());
 
@@ -681,7 +682,7 @@ public class ExamAccommodationServiceImplTest {
         assertThat(examAccommodations).hasSize(2);
 
         for (ExamAccommodation updatedAccomm : examAccommodations) {
-            assertThat(updatedAccomm.getDeniedAt()).isNotNull();
+            assertThat(updatedAccomm.getDeniedAt()).isEqualTo(deniedAt);
         }
     }
     

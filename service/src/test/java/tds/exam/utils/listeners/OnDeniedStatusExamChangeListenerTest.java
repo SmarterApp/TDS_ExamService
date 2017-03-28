@@ -37,7 +37,7 @@ public class OnDeniedStatusExamChangeListenerTest {
             .build();
 
         onDeniedStatusExamChangeListener.accept(exam, deniedExam);
-        verify(mockExamAccommodationService).denyAccommodations(exam.getId());
+        verify(mockExamAccommodationService).denyAccommodations(exam.getId(), deniedExam.getChangedAt());
     }
 
     @Test
@@ -49,6 +49,6 @@ public class OnDeniedStatusExamChangeListenerTest {
             .build();
 
         onDeniedStatusExamChangeListener.accept(exam, deniedExam);
-        verify(mockExamAccommodationService, never()).denyAccommodations(exam.getId());
+        verify(mockExamAccommodationService, never()).denyAccommodations(exam.getId(), deniedExam.getChangedAt());
     }
 }
