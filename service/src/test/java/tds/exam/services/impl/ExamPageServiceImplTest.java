@@ -4,6 +4,7 @@ import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
@@ -81,8 +82,6 @@ public class ExamPageServiceImplTest {
     @Test
     public void shouldGetAnExamPageWithItems() {
         UUID mockExamId = UUID.randomUUID();
-        UUID mockSessionId = UUID.randomUUID();
-        UUID mockBrowserId = UUID.randomUUID();
 
         Instant respondedAtInstant = Instant.now().minus(200000);
         ExamItem mockFirstExamItem = new ExamItemBuilder()
@@ -123,5 +122,26 @@ public class ExamPageServiceImplTest {
 
         ExamPage examPage = examPageResponse.getData().get();
         assertThat(examPage).isEqualToComparingFieldByFieldRecursively(mockExamPage);
+    }
+
+    @Test
+    public void shouldFindExamPageById() {
+        ExamPage examPage = new ExamPageBuilder().build();
+
+        when(mockExamPageQueryRepository.find(examPage.getId())).thenReturn(Optional.of(examPage));
+
+        assertThat(examPageService.find(examPage.getId()).get()).isEqualTo(examPage);
+        verify(mockExamPageQueryRepository).find(examPage.getId());
+    }
+
+    @Test
+    public void shouldUpdateExamPage() {
+        ExamPage examPage = new ExamPageBuilder().build();
+        ArgumentCaptor<ExamPage> captor = ArgumentCaptor.forClass(ExamPage.class);
+
+        examPageService.update(examPage);
+        verify(mockExamPageCommandRepository).update(captor.capture());
+
+        assertThat(captor.getValue()).isEqualTo(examPage);
     }
 }

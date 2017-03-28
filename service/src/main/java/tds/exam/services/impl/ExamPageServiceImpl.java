@@ -5,16 +5,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import tds.common.Response;
 import tds.common.web.exceptions.NotFoundException;
-import tds.exam.ExamApproval;
-import tds.exam.ExamInfo;
 import tds.exam.ExamPage;
 import tds.exam.repositories.ExamPageCommandRepository;
 import tds.exam.repositories.ExamPageQueryRepository;
-import tds.exam.services.ExamApprovalService;
 import tds.exam.services.ExamPageService;
 
 @Service
@@ -57,5 +55,15 @@ public class ExamPageServiceImpl implements ExamPageService {
         examPageCommandRepository.update(examPage);
 
         return new Response<>(examPage);
+    }
+
+    @Override
+    public Optional<ExamPage> find(final UUID id) {
+        return examPageQueryRepository.find(id);
+    }
+
+    @Override
+    public void update(final ExamPage... examPages) {
+        examPageCommandRepository.update(examPages);
     }
 }

@@ -1,10 +1,10 @@
 package tds.exam.services;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import tds.common.Response;
-import tds.exam.ExamInfo;
 import tds.exam.ExamPage;
 
 /**
@@ -42,4 +42,18 @@ public interface ExamPageService {
      * should be displayed
      */
     Response<ExamPage> getPage(final UUID examId, final int pageNumber);
+
+    /**
+     * Finds an {@link tds.exam.ExamPage} by its id
+     *
+     * @param id the exam page id
+     * @return {@link tds.exam.ExamPage} if found otherwise empty
+     */
+    Optional<ExamPage> find(final UUID id);
+
+    /**
+     * Updates the exam page
+     * @param examPage exam pages to update
+     */
+    void update(ExamPage... examPage);
 }

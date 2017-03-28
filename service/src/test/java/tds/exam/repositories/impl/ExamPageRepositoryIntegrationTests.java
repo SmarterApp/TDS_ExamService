@@ -1,6 +1,5 @@
 package tds.exam.repositories.impl;
 
-import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -183,5 +182,37 @@ public class ExamPageRepositoryIntegrationTests {
 
         ExamItem secondExamItem = examPage.getExamItems().get(1);
         assertThat(secondExamItem).isEqualToComparingFieldByField(mockSecondExamItem);
+    }
+
+    @Test
+    public void shouldFindExamPageByExamIdAndPosition() {
+        Optional<ExamPage> maybeExamPage = examPageQueryRepository.find(mockExam.getId(), mockFirstExamItem.getPosition());
+        assertThat(maybeExamPage).isPresent();
+
+        ExamPage page = maybeExamPage.get();
+        assertThat(page.getId()).isEqualTo(mockExamPage.getId());
+        assertThat(page.getExamItems()).isEmpty();
+    }
+
+    @Test
+    public void shouldHandleExamPageNotFoundForExamIdAndPosition() {
+        Optional<ExamPage> maybeExamPage = examPageQueryRepository.find(mockExam.getId(), 99);
+        assertThat(maybeExamPage).isNotPresent();
+    }
+
+    @Test
+    public void shouldFindExamPageById() {
+        Optional<ExamPage> maybeExamPage = examPageQueryRepository.find(mockExamPage.getId());
+        assertThat(maybeExamPage).isPresent();
+
+        ExamPage page = maybeExamPage.get();
+        assertThat(page.getId()).isEqualTo(mockExamPage.getId());
+        assertThat(page.getExamItems()).isEmpty();
+    }
+
+    @Test
+    public void shouldHandleExamPageNotFoundForId() {
+        Optional<ExamPage> maybeExamPage = examPageQueryRepository.find(UUID.randomUUID());
+        assertThat(maybeExamPage).isNotPresent();
     }
 }

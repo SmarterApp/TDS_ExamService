@@ -3,6 +3,8 @@ package tds.exam;
 import com.google.common.base.Optional;
 import org.joda.time.Instant;
 
+import java.util.UUID;
+
 /**
  * Score and scoring metadata for the {@link tds.exam.ExamItemResponse}
  */
@@ -12,6 +14,9 @@ public class ExamItemResponseScore {
     private String scoringRationale;
     private String scoringDimensions;
     private Instant scoredAt;
+    private Instant scoreSentAt;
+    private UUID scoreMark;
+    private long scoreLatency;
 
     private ExamItemResponseScore() {
     }
@@ -22,6 +27,9 @@ public class ExamItemResponseScore {
         scoringRationale = builder.scoringRationale;
         scoringDimensions = builder.scoringDimensions;
         scoredAt = builder.scoredAt;
+        scoreMark = builder.scoreMark;
+        scoreSentAt = builder.scoreSentAt;
+        scoreLatency = builder.scoreLatency;
     }
 
     public static final class Builder {
@@ -30,6 +38,9 @@ public class ExamItemResponseScore {
         private String scoringRationale;
         private String scoringDimensions;
         private Instant scoredAt;
+        private UUID scoreMark;
+        private Instant scoreSentAt;
+        private long scoreLatency;
 
         public Builder withScore(int score) {
             this.score = score;
@@ -53,6 +64,21 @@ public class ExamItemResponseScore {
 
         public Builder withScoredAt(Instant scoredAt) {
             this.scoredAt = scoredAt;
+            return this;
+        }
+
+        public Builder withScoreMark(final UUID scoreMark) {
+            this.scoreMark = scoreMark;
+            return this;
+        }
+
+        public Builder withScoreSentAt(final Instant scoreSentAt) {
+            this.scoreSentAt = scoreSentAt;
+            return this;
+        }
+
+        public Builder withScoreLatency(final long scoreLatency) {
+            this.scoreLatency = scoreLatency;
             return this;
         }
 
@@ -107,26 +133,30 @@ public class ExamItemResponseScore {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
         if (this == o) return true;
-        if (!(o instanceof ExamItemResponseScore)) return false;
+        if (o == null || getClass() != o.getClass()) return false;
 
-        ExamItemResponseScore that = (ExamItemResponseScore) o;
+        final ExamItemResponseScore that = (ExamItemResponseScore) o;
 
-        if (getScore() != that.getScore()) return false;
-        if (getScoringStatus() != that.getScoringStatus()) return false;
-        if (!getScoringRationale().equals(that.getScoringRationale())) return false;
-        if (!getScoringDimensions().equals(that.getScoringDimensions())) return false;
-        return getScoredAt().equals(that.getScoredAt());
+        if (score != that.score) return false;
+        if (scoringStatus != that.scoringStatus) return false;
+        if (scoringRationale != null ? !scoringRationale.equals(that.scoringRationale) : that.scoringRationale != null)
+            return false;
+        if (scoringDimensions != null ? !scoringDimensions.equals(that.scoringDimensions) : that.scoringDimensions != null)
+            return false;
+        if (scoredAt != null ? !scoredAt.equals(that.scoredAt) : that.scoredAt != null) return false;
+        return scoreMark != null ? scoreMark.equals(that.scoreMark) : that.scoreMark == null;
     }
 
     @Override
     public int hashCode() {
-        int result = getScore();
-        result = 31 * result + getScoringStatus().hashCode();
-        result = 31 * result + getScoringRationale().hashCode();
-        result = 31 * result + getScoringDimensions().hashCode();
-        result = 31 * result + getScoredAt().hashCode();
+        int result = score;
+        result = 31 * result + (scoringStatus != null ? scoringStatus.hashCode() : 0);
+        result = 31 * result + (scoringRationale != null ? scoringRationale.hashCode() : 0);
+        result = 31 * result + (scoringDimensions != null ? scoringDimensions.hashCode() : 0);
+        result = 31 * result + (scoredAt != null ? scoredAt.hashCode() : 0);
+        result = 31 * result + (scoreMark != null ? scoreMark.hashCode() : 0);
         return result;
     }
 }

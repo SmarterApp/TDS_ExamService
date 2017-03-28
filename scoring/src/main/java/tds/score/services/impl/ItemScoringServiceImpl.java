@@ -189,8 +189,10 @@ public class ItemScoringServiceImpl implements ItemScoringService {
 
         ItemScoreInfo scoreInfoObj = score.getScoreInfo();
         ScoreRationale scoreRationaleObj = score.getScoreInfo().getRationale();
+
+        //TODO - revisit the to long value
         ReturnStatus updateStatus = responseService.updateScoredResponse(examInstance, responseUpdated, scoreInfoObj.getPoints(), scoreInfoObj.getStatus().toString(), scoreRationaleObj.getMsg(),
-            score.getScoreLatency(), itemDuration);
+            score.getScoreLatency(), itemDuration.longValue());
 
         dbTimer.stop();
 
