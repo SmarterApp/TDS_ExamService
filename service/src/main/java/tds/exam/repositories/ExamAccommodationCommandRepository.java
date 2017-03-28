@@ -1,6 +1,7 @@
 package tds.exam.repositories;
 
 import java.util.List;
+import java.util.UUID;
 
 import tds.exam.ExamAccommodation;
 

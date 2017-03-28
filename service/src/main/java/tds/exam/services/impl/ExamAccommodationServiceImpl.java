@@ -229,6 +229,20 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
         return Optional.empty();
     }
 
+    @Override
+    public void denyAccommodations(final UUID examId) {
+        final List<ExamAccommodation> pendingAccommodations = examAccommodationQueryRepository.findAccommodations(examId);
+        final ExamAccommodation[] deniedAccommodations = pendingAccommodations.stream()
+            .map(accommodation ->
+                new ExamAccommodation.Builder(accommodation.getId())
+                    .fromExamAccommodation(accommodation)
+                    .withDeniedAt(Instant.now())
+                    .build())
+            .collect(Collectors.toList()).toArray(new ExamAccommodation[pendingAccommodations.size()]);
+
+        examAccommodationCommandRepository.update(deniedAccommodations);
+    }
+
     private static String getOtherAccommodationValue(String formattedValue) {
         return formattedValue.substring("TDS_Other#".length());
     }

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import tds.exam.ExamAccommodation;
@@ -31,10 +32,10 @@ public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodation
     public void insert(final List<ExamAccommodation> accommodations) {
         String SQL =
             "INSERT INTO " +
-            "   exam_accommodation(exam_id, id, segment_key, type, code, description, allow_change, value, segment_position, " +
-            "   created_at, visible, student_controlled, disabled_on_guest_session, default_accommodation, allow_combine, sort_order, depends_on, functional) \n" +
-            "VALUES(:examId, :id, :segmentKey, :type, :code, :description, :allowChange, :value, :segmentPosition, :createdAt," +
-            "   :visible, :studentControlled, :disabledOnGuestSession, :defaultAccommodation, :allowCombine, :sortOrder, :dependsOn, :functional)";
+                "   exam_accommodation(exam_id, id, segment_key, type, code, description, allow_change, value, segment_position, " +
+                "   created_at, visible, student_controlled, disabled_on_guest_session, default_accommodation, allow_combine, sort_order, depends_on, functional) \n" +
+                "VALUES(:examId, :id, :segmentKey, :type, :code, :description, :allowChange, :value, :segmentPosition, :createdAt," +
+                "   :visible, :studentControlled, :disabledOnGuestSession, :defaultAccommodation, :allowCombine, :sortOrder, :dependsOn, :functional)";
 
         Timestamp createdAt = mapJodaInstantToTimestamp(Instant.now());
         List<ExamAccommodation> createdAccommodations = new ArrayList<>();
@@ -75,7 +76,7 @@ public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodation
         updateEvent(mapJodaInstantToTimestamp(Instant.now()), examAccommodation);
     }
 
-    private void updateEvent( final Timestamp createdAt, final ExamAccommodation... examAccommodations) {
+    private void updateEvent(final Timestamp createdAt, final ExamAccommodation... examAccommodations) {
         String SQL = "INSERT INTO exam_accommodation_event(" +
             "exam_accommodation_id, " +
             "denied_at, " +
