@@ -28,11 +28,10 @@
         <joda-time.version>2.9.5</joda-time.version>
         <spring.cloud.config.version>1.2.3.RELEASE</spring.cloud.config.version>
 
-        <tds-common.version>0.0.5</tds-common.version>
+        <tds-common.version>0.0.6</tds-common.version>
         <tds-common-legacy.version>0.0.5</tds-common-legacy.version>
-        <tds-exam-client.version>0.0.1-SNAPSHOT</tds-exam-client.version>
         <tds-session.version>0.0.2</tds-session.version>
-        <tds-assessment-client.version>0.0.4</tds-assessment-client.version>
+        <tds-assessment-client.version>0.0.6</tds-assessment-client.version>
         <tds-student-client.version>0.0.1</tds-student-client.version>
         <tds-config-client.version>0.0.2</tds-config-client.version>
 
