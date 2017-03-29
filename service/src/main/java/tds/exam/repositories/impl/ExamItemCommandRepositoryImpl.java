@@ -98,9 +98,8 @@ public class ExamItemCommandRepositoryImpl implements ExamItemCommandRepository 
                     sqlParameterSource.addValue("score", score.getScore())
                         .addValue("scoringStatus", score.getScoringStatus().toString())
                         .addValue("scoringRationale", score.getScoringRationale())
-                        .addValue("scoringDimensions", score.getScoringDimensionsXml())
-                        .addValue("scoredAt", mapJodaInstantToTimestamp(score.getScoredAt()
-                            .orNull()));
+                        .addValue("scoringDimensions", score.getScoringDimensions())
+                        .addValue("scoredAt", mapJodaInstantToTimestamp(score.getScoredAt()));
                 } else {
                     sqlParameterSource.addValue("score", null)
                         .addValue("scoringStatus", null)

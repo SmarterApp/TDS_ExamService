@@ -123,7 +123,8 @@ public class ResponseServiceImpl implements ResponseService {
         }
 
         ExamItem existingExamItem = maybeItem.get();
-        ExamItemResponse.Builder updatedResponseBuilder = new ExamItemResponse.Builder().fromExamItemResponse(existingExamItem.getResponse().get());
+        ExamItemResponse.Builder updatedResponseBuilder = ExamItemResponse.Builder
+            .fromExamItemResponse(existingExamItem.getResponse().get());
         ExamItemResponseScore.Builder updatedScoreBuilder = new ExamItemResponseScore.Builder();
         final Instant now = Instant.now();
         if (responseUpdate.getValue() != null || DbComparator.lessThan(score, 0)) {
@@ -178,12 +179,56 @@ public class ResponseServiceImpl implements ResponseService {
     }
 
     @Override
-    public ReturnStatus updateItemScore(final UUID oppKey,
+    public ReturnStatus updateItemScore(final UUID examId,
                                         final IItemResponseScorable responseScorable,
-                                        final int score, final String scoreStatus,
+                                        final int score,
+                                        final String scoreStatus,
                                         final String scoreRationale,
                                         final String scoreDimensions) throws ReturnStatusException {
-        return null;
+        ReturnStatus returnStatus = new ReturnStatus("updated");
+        Optional<ExamItem> maybeItem = examItemQueryRepository.findExamItemAndResponse(examId, responseScorable.getPosition());
+        if(!maybeItem.isPresent()) {
+            throw new ReturnStatusException(String.format("The item does not exist at this position in this test opportunity: Position = %d; examId = %s; testeeresponse._efk_ItemKey found is %s",
+                responseScorable.getPosition(), examId, maybeItem.map(ExamItem::getItemKey).orElse("null")));
+        }
+
+        ExamItem existingItem = maybeItem.get();
+
+        //This simulates the conditional in StudentDLL.S_UpdateItemScore_SP (line 10009) comparing scoreMark and Sequence which will not match in our system
+        //if the item does not have a response or score
+        if(existingItem.getResponse().isPresent()
+            && existingItem.getResponse().get().getScore().isPresent()
+            && DbComparator.isEqual(responseScorable.getScoreMark(), existingItem.getResponse().get().getScore().get().getScoreMark())
+            && DbComparator.isEqual(responseScorable.getSequence(), existingItem.getResponse().get().getSequence())) {
+
+            Instant now = Instant.now();
+            ExamItemResponse existingResponse = existingItem.getResponse().get();
+            ExamItemResponseScore existingScore = existingItem.getResponse().get().getScore().get();
+
+            ExamItemResponseScore updatedScore = ExamItemResponseScore.Builder
+                .fromExamItemResponseScore(existingScore)
+                .withScoredAt(now)
+                .withScoreLatency(now.getMillis() - existingScore.getScoreSentAt().getMillis())
+                .withScore(score)
+                .withScoringStatus(ExamScoringStatus.fromType(scoreStatus))
+                .withScoringRationale(scoreRationale)
+                .withScoringDimensions(scoreDimensions)
+                .build();
+
+            ExamItemResponse updatedResponse = ExamItemResponse.Builder
+                .fromExamItemResponse(existingResponse)
+                .withScore(updatedScore)
+                .build();
+
+            examItemCommandRepository.insertResponses(updatedResponse);
+
+        } else {
+            returnStatus.setStatus("failed");
+            returnStatus.setAppKey("No such item: " + responseScorable.getPosition());
+            returnStatus.setContext("UpdateItemScore");
+        }
+
+        return returnStatus;
     }
 
     //Pulled directly from StudentDLL

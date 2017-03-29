@@ -86,7 +86,7 @@ public class ExamItemQueryRepositoryIntegrationTests {
             .withSequence(1)
             .build();
 
-        ExamItemResponse examItemScoredResponse = new ExamItemResponse.Builder()
+        ExamItemResponse examItemScoredResponse = ExamItemResponse.Builder
             .fromExamItemResponse(examItemResponse)
             .withScore(new ExamItemResponseScore.Builder()
                 .withScore(1)
@@ -121,8 +121,8 @@ public class ExamItemQueryRepositoryIntegrationTests {
         ExamItemResponseScore score = response.getScore().get();
 
         assertThat(score.getScore()).isEqualTo(1);
-        assertThat(score.getScoredAt().isPresent()).isTrue();
-        assertThat(score.getScoringDimensions().get()).isEqualTo(score.getScoringDimensionsXml());
+        assertThat(score.getScoredAt()).isNotNull();
+        assertThat(score.getScoringDimensions()).isEqualTo("dimensions");
         assertThat(score.getScoringRationale()).isEqualTo("rationale");
         assertThat(score.getScoringStatus()).isEqualTo(ExamScoringStatus.SCORED);
     }

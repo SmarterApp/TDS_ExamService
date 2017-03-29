@@ -1,6 +1,5 @@
 package tds.exam;
 
-import com.google.common.base.Optional;
 import org.joda.time.Instant;
 
 import java.util.UUID;
@@ -85,6 +84,18 @@ public class ExamItemResponseScore {
         public ExamItemResponseScore build() {
             return new ExamItemResponseScore(this);
         }
+
+        public static Builder fromExamItemResponseScore(ExamItemResponseScore itemScore) {
+            return new Builder()
+                .withScoringDimensions(itemScore.scoringDimensions)
+                .withScore(itemScore.score)
+                .withScoreMark(itemScore.scoreMark)
+                .withScoredAt(itemScore.scoredAt)
+                .withScoreLatency(itemScore.scoreLatency)
+                .withScoreSentAt(itemScore.scoreSentAt)
+                .withScoringRationale(itemScore.scoringRationale)
+                .withScoringStatus(itemScore.scoringStatus);
+        }
     }
 
     /**
@@ -112,24 +123,27 @@ public class ExamItemResponseScore {
      * @return The scoring dimensions associated with this {@link tds.exam.ExamItemResponse}'s
      * {@link tds.exam.ExamItemResponseScore}
      */
-    public Optional<String> getScoringDimensions() {
-        return Optional.fromNullable(scoringDimensions);
+    public String getScoringDimensions() {
+        return scoringDimensions;
     }
 
     /**
      * @return The date/time when the {@link tds.exam.ExamItemResponse} was scored
      */
-    public Optional<Instant> getScoredAt() {
-        return Optional.fromNullable(scoredAt);
+    public Instant getScoredAt() {
+        return scoredAt;
     }
 
-    /**
-     * @return A string representing an XML fragment for this {@link tds.exam.ExamItemResponse}'s scoring dimensions.
-     */
-    public String getScoringDimensionsXml() {
-        // Output of StudentDLL.buildSCoreInfoNode(), called on line 1907.  When StudentDLL.T_UpdateScoredResponse_SP is
-        // called (line 1907), the scoreDimension attribute is always set to "overall"
-        return String.format("<ScoreInfo scorePoint=\"%d\" scoreDimension=\"overall\" scoreStatus=\"%s\"><SubScoreList /></ScoreInfo>", score, scoringStatus);
+    public Instant getScoreSentAt() {
+        return scoreSentAt;
+    }
+
+    public UUID getScoreMark() {
+        return scoreMark;
+    }
+
+    public long getScoreLatency() {
+        return scoreLatency;
     }
 
     @Override

@@ -48,16 +48,16 @@ public class ExamItemResponse {
         private ExamItemResponseScore score;
         private Instant createdAt;
 
-        public Builder fromExamItemResponse(ExamItemResponse examItemResponse) {
-            id = examItemResponse.id;
-            examItemId = examItemResponse.examItemId;
-            response = examItemResponse.response;
-            sequence = examItemResponse.sequence;
-            valid = examItemResponse.valid;
-            selected = examItemResponse.selected;
-            score = examItemResponse.score;
-            createdAt = examItemResponse.createdAt;
-            return this;
+        public static Builder fromExamItemResponse(ExamItemResponse examItemResponse) {
+            return new Builder()
+                .withId(examItemResponse.id)
+                .withExamItemId(examItemResponse.examItemId)
+                .withResponse(examItemResponse.response)
+                .withSequence(examItemResponse.sequence)
+                .withValid(examItemResponse.valid)
+                .withSelected(examItemResponse.selected)
+                .withScore(examItemResponse.score)
+                .withCreatedAt(examItemResponse.createdAt);
         }
 
 
