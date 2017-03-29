@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.Optional;
+import java.util.UUID;
 
 import tds.exam.Exam;
 import tds.exam.ExamItem;
@@ -86,15 +87,21 @@ public class ExamItemQueryRepositoryIntegrationTests {
             .withSequence(1)
             .build();
 
+        ExamItemResponseScore initialScore = new ExamItemResponseScore.Builder()
+            .withScore(1)
+            .withScoredAt(Instant.now())
+            .withScoringDimensions("dimensions")
+            .withScoringRationale("rationale")
+            .withScoringStatus(ExamScoringStatus.SCORED)
+            .withScoreLatency(1000)
+            .withScoreSentAt(Instant.now().minus(10000))
+            .withScoredAt(Instant.now())
+            .withScoreMark(UUID.randomUUID())
+            .build();
+
         ExamItemResponse examItemScoredResponse = ExamItemResponse.Builder
             .fromExamItemResponse(examItemResponse)
-            .withScore(new ExamItemResponseScore.Builder()
-                .withScore(1)
-                .withScoredAt(Instant.now())
-                .withScoringDimensions("dimensions")
-                .withScoringRationale("rationale")
-                .withScoringStatus(ExamScoringStatus.SCORED)
-                .build())
+            .withScore(initialScore)
             .build();
 
         examItemCommandRepository.insertResponses(examItemResponse, examItemScoredResponse);
@@ -125,6 +132,10 @@ public class ExamItemQueryRepositoryIntegrationTests {
         assertThat(score.getScoringDimensions()).isEqualTo("dimensions");
         assertThat(score.getScoringRationale()).isEqualTo("rationale");
         assertThat(score.getScoringStatus()).isEqualTo(ExamScoringStatus.SCORED);
+        assertThat(score.getScoreLatency()).isEqualTo(1000);
+        assertThat(score.getScoreSentAt()).isEqualTo(initialScore.getScoreSentAt());
+        assertThat(score.getScoredAt()).isEqualTo(initialScore.getScoredAt());
+        assertThat(score.getScoreMark()).isEqualTo(initialScore.getScoreMark());
     }
 
     @Test

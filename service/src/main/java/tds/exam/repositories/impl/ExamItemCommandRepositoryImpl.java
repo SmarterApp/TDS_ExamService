@@ -99,13 +99,20 @@ public class ExamItemCommandRepositoryImpl implements ExamItemCommandRepository 
                         .addValue("scoringStatus", score.getScoringStatus().toString())
                         .addValue("scoringRationale", score.getScoringRationale())
                         .addValue("scoringDimensions", score.getScoringDimensions())
-                        .addValue("scoredAt", mapJodaInstantToTimestamp(score.getScoredAt()));
+                        .addValue("scoredAt", mapJodaInstantToTimestamp(score.getScoredAt()))
+                        .addValue("scoreSentAt", mapJodaInstantToTimestamp(score.getScoreSentAt()))
+                        .addValue("scoreMark", score.getScoreMark() != null ? score.getScoreMark().toString() : null)
+                        .addValue("scoreLatency", score.getScoreLatency());
                 } else {
+                    //This is necessary because we always include the values in the query
                     sqlParameterSource.addValue("score", null)
                         .addValue("scoringStatus", null)
                         .addValue("scoringRationale", null)
                         .addValue("scoringDimensions", null)
-                        .addValue("scoredAt", null);
+                        .addValue("scoredAt", null)
+                        .addValue("scoreSentAt", null)
+                        .addValue("scoreMark", null)
+                        .addValue("scoreLatency", 0);
                 }
 
                 return sqlParameterSource;
@@ -124,6 +131,9 @@ public class ExamItemCommandRepositoryImpl implements ExamItemCommandRepository 
                 "   scoring_rationale, \n" +
                 "   scoring_dimensions, \n" +
                 "   created_at, \n" +
+                "   score_sent_at, \n" +
+                "   score_latency, \n" +
+                "   score_mark, \n" +
                 "   scored_at) \n" +
                 "VALUES ( \n" +
                 "   :examItemId, \n" +
@@ -136,6 +146,9 @@ public class ExamItemCommandRepositoryImpl implements ExamItemCommandRepository 
                 "   :scoringRationale, \n" +
                 "   :scoringDimensions, \n" +
                 "   :createdAt, \n" +
+                "   :scoreSentAt, \n" +
+                "   :scoreLatency, \n" +
+                "   :scoreMark, \n" +
                 "   :scoredAt)";
 
         jdbcTemplate.batchUpdate(SQL, batchParameters);

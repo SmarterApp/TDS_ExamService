@@ -1,5 +1,6 @@
 package tds.exam.repositories.impl;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -131,7 +132,10 @@ public class ExamItemQueryRepositoryImpl implements ExamItemQueryRepository {
             "  R.scoring_status,\n" +
             "  R.scoring_rationale,\n" +
             "  R.scoring_dimensions,\n" +
-            "  R.scored_at \n" +
+            "  R.scored_at, \n" +
+            "  R.score_sent_at, \n" +
+            "  R.score_latency, \n" +
+            "  R.score_mark \n" +
             "FROM exam_item I\n" +
             "JOIN exam_page P ON I.exam_page_id = P.id\n" +
             "JOIN exam_page_event EPE ON P.id = EPE.exam_page_id \n" +
@@ -195,6 +199,9 @@ public class ExamItemQueryRepositoryImpl implements ExamItemQueryRepository {
                         .withScoringRationale(rs.getString("scoring_rationale"))
                         .withScoringDimensions(rs.getString("scoring_dimensions"))
                         .withScoredAt(ResultSetMapperUtility.mapTimestampToJodaInstant(rs, "scored_at"))
+                        .withScoreSentAt(ResultSetMapperUtility.mapTimestampToJodaInstant(rs, "score_sent_at"))
+                        .withScoreMark(StringUtils.isNotEmpty(rs.getString("score_mark")) ? UUID.fromString(rs.getString("score_mark")) : null)
+                        .withScoreLatency(rs.getLong("score_latency"))
                         .build();
 
                     responseBuilder.withScore(score);
