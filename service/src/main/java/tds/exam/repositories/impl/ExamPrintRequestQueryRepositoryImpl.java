@@ -198,6 +198,39 @@ public class ExamPrintRequestQueryRepositoryImpl implements ExamPrintRequestQuer
         return jdbcTemplate.query(SQL, params, examPrintRequestRowMapper);
     }
 
+    @Override
+    public int findCountOfUnfulfilledRequestsForExamAndItemPosition(final UUID examId, final int itemPosition, final int pagePosition) {
+        final SqlParameterSource params = new MapSqlParameterSource("examId", examId.toString())
+            .addValue("itemPosition", itemPosition)
+            .addValue("pagePosition", pagePosition);
+
+        final String SQL =
+            "SELECT \n" +
+                "   COUNT(PR.id) \n" +
+                "FROM  \n" +
+                "   exam.exam_print_request PR \n" +
+                "JOIN ( \n" +
+                "   SELECT \n" +
+                "       exam_print_request_id, \n" +
+                "       MAX(id) AS id \n" +
+                "   FROM \n" +
+                "       exam.exam_print_request_event \n" +
+                "   GROUP BY exam_print_request_id \n" +
+                ") last_event \n" +
+                "   ON PR.id = last_event.exam_print_request_id \n" +
+                "JOIN exam.exam_print_request_event PRE \n" +
+                "   ON last_event.exam_print_request_id = PRE.exam_print_request_id \n" +
+                "   AND last_event.id = PRE.id \n" +
+                "WHERE \n" +
+                "   PRE.status = 'SUBMITTED' \n" +
+                "   AND PR.exam_id = :examId \n" +
+                "   AND PR.item_position = :itemPosition \n" +
+                "   AND PR.page_position = :pagePosition \n" +
+                "ORDER BY PR.exam_id, PR.created_at";
+
+        return jdbcTemplate.queryForObject(SQL, params, Integer.class);
+    }
+
     private static class ExamPrintRequestRowMapper implements RowMapper<ExamPrintRequest> {
         @Override
         public ExamPrintRequest mapRow(final ResultSet rs, final int i) throws SQLException {

@@ -1,5 +1,7 @@
 package tds.exam.repositories.impl;
 
+import io.github.benas.randombeans.EnhancedRandomBuilder;
+import io.github.benas.randombeans.api.EnhancedRandom;
 import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.Test;
@@ -393,5 +395,39 @@ public class ExamSegmentRepositoryImplIntegrationTests {
         assertThat(retSegment2.getPoolCount()).isEqualTo(poolCount);
         assertThat(retSegment2.isPermeable()).isEqualTo(true);
         assertThat(retSegment2.isSatisfied()).isEqualTo(false);
+    }
+
+    @Test
+    public void shouldReturnCountOfUnsatisfiedSegments() {
+        EnhancedRandom rand = EnhancedRandomBuilder.aNewEnhancedRandomBuilder().stringLengthRange(3, 10).build();
+
+        ExamSegment satisfiedSegment1 = new ExamSegment.Builder()
+            .fromSegment(rand.nextObject(ExamSegment.class))
+            .withExamId(exam.getId())
+            .withSatisfied(true)
+            .build();
+        ExamSegment satisfiedSegment2 = new ExamSegment.Builder()
+            .fromSegment(rand.nextObject(ExamSegment.class))
+            .withExamId(exam.getId())
+            .withSatisfied(true)
+            .build();
+        ExamSegment unsatisfiedSegment = new ExamSegment.Builder()
+            .fromSegment(rand.nextObject(ExamSegment.class))
+            .withExamId(exam.getId())
+            .withSatisfied(false)
+            .build();
+
+        commandRepository.insert(Arrays.asList(satisfiedSegment1, satisfiedSegment2, unsatisfiedSegment));
+
+        assertThat(queryRepository.findCountOfUnsatisfiedSegments(exam.getId())).isEqualTo(1);
+
+        ExamSegment nowSatisfiedSegment = new ExamSegment.Builder()
+            .fromSegment(unsatisfiedSegment)
+            .withExamId(exam.getId())
+            .withSatisfied(true)
+            .build();
+        commandRepository.update(nowSatisfiedSegment);
+
+        assertThat(queryRepository.findCountOfUnsatisfiedSegments(exam.getId())).isEqualTo(0);
     }
 }

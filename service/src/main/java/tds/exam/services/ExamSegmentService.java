@@ -55,4 +55,12 @@ public interface ExamSegmentService {
      * @param segmentPosition The segment position of the {@link tds.exam.ExamSegment} to exit
      */
     Optional<ValidationError> exitSegment(final UUID examId, final int segmentPosition);
+
+    /**
+     * Checks if all the segments for the exam are completed/"satisfied"
+     *
+     * @param examId The id of the {@link tds.exam.Exam} to check for
+     * @return
+     */
+    boolean checkIfSegmentsCompleted(final UUID examId);
 }

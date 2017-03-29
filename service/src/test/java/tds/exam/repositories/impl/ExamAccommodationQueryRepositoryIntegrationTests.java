@@ -55,6 +55,13 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
             .withSegmentPosition(5)
             .withTotalTypeCount(5)
             .withCustom(true)
+            .withVisible(true)
+            .withDefaultAccommodation(true)
+            .withDisabledOnGuestSession(true)
+            .withStudentControlled(true)
+            .withFunctional(true)
+            .withDependsOn("Language")
+            .withAllowCombine(true)
             .build());
 
         // Accommodation in second segment that is denied
@@ -118,6 +125,13 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
         assertThat(firstExamAccommodation.getCreatedAt()).isLessThan(Instant.now());
         assertThat(firstExamAccommodation.isApproved()).isTrue();
         assertThat(firstExamAccommodation.isCustom()).isTrue();
+        assertThat(firstExamAccommodation.isAllowCombine()).isTrue();
+        assertThat(firstExamAccommodation.isDefaultAccommodation()).isTrue();
+        assertThat(firstExamAccommodation.isDisabledOnGuestSession()).isTrue();
+        assertThat(firstExamAccommodation.getDependsOn()).isEqualTo("Language");
+        assertThat(firstExamAccommodation.isVisible()).isTrue();
+        assertThat(firstExamAccommodation.isStudentControlled()).isTrue();
+        assertThat(firstExamAccommodation.isFunctional()).isTrue();
 
         assertThat(secondAccommodation.getId()).isNotNull();
         assertThat(secondAccommodation.getExamId()).isEqualTo(ExamAccommodationBuilder.SampleData.DEFAULT_EXAM_ID);

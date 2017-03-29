@@ -1,5 +1,7 @@
 package tds.exam.services.impl;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.Instant;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -88,11 +89,18 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
 
         // Get the list of accommodations from the student package, for the particular Exam subject
         //  Take the accommodation code, lookup the accommodation and put into a Map by type for easy lookup
-        Map<String, Accommodation> studentAccommodations = new HashMap<>();
+        Multimap<String, Accommodation> studentAccommodations = ArrayListMultimap.create();
         splitAccommodationCodes(exam.getSubject(), studentAccommodationCodes).forEach(code -> {
             if (assessmentAccommodations.containsKey(code)) {
                 Accommodation accommodation = assessmentAccommodations.get(code);
                 studentAccommodations.put(accommodation.getType(), accommodation);
+            } else if (code.startsWith(OTHER_ACCOMMODATION_VALUE)) {
+                Accommodation otherAccommodation = new Accommodation.Builder()
+                    .withAccommodationType(OTHER_ACCOMMODATION_NAME)
+                    .withAccommodationCode(OTHER_ACCOMMODATION_CODE)
+                    .withAccommodationValue(StringUtils.substringAfter(code, OTHER_ACCOMMODATION_VALUE))
+                    .build();
+                studentAccommodations.put(OTHER_ACCOMMODATION_NAME, otherAccommodation);
             }
         });
 
@@ -122,6 +130,14 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                 .withCustom(!accommodation.isDefaultAccommodation())
                 .withAllowChange(accommodation.isAllowChange())
                 .withSelectable(accommodation.isSelectable())
+                .withVisible(accommodation.isVisible())
+                .withStudentControlled(accommodation.isStudentControl())
+                .withDisabledOnGuestSession(accommodation.isDisableOnGuestSession())
+                .withDefaultAccommodation(accommodation.isDefaultAccommodation())
+                .withAllowCombine(accommodation.isAllowCombine())
+                .withDependsOn(accommodation.getDependsOnToolType())
+                .withSortOrder(accommodation.getToolTypeSortOrder())
+                .withFunctional(accommodation.isFunctional())
                 .withCreatedAt(now)
                 .build();
 
@@ -158,7 +174,11 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
         } else {
             //CommonDLL line 2590 - gets the accommodation codes based on guest accommodations and the accommodation family for the assessment
             Set<String> accommodationCodes = splitAccommodationCodes(assessment.getAccommodationFamily(), studentAccommodationCodes);
-            examAccommodations = initializePreviousAccommodations(exam, segmentPosition, restoreRts, examAccommodations, accommodationCodes, false);
+
+            // CommonDLL line 2593 fetches the key accommodations via CommonDLL.TestKeyAccommodations_FN which this call replicates.  The legacy application leverages
+            // temporary tables for most of its data structures which is unnecessary in this case so a collection is returned.
+            List<Accommodation> assessmentAccommodations = assessmentService.findAssessmentAccommodationsByAssessmentKey(exam.getClientName(), exam.getAssessmentKey());
+            examAccommodations = initializePreviousAccommodations(exam, segmentPosition, restoreRts, examAccommodations, accommodationCodes, assessmentAccommodations, false);
         }
 
         return examAccommodations;
@@ -199,12 +219,28 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
 
         // Get the list of current exam accomms in case we need to update them (for example, if a pre-initialized default was changed by the guest user)
         List<ExamAccommodation> currentAccommodations = examAccommodationQueryRepository.findApprovedAccommodations(examId);
-
+        List<Accommodation> assessmentAccommodations = assessmentService.findAssessmentAccommodationsByAssessmentKey(exam.getClientName(), exam.getAssessmentKey());
         // For each assessment and segments separately, initialize their respective accommodations
         request.getAccommodationCodes().forEach((segmentPosition, guestAccommodationCodes) ->
-            initializePreviousAccommodations(exam, segmentPosition, false, currentAccommodations, guestAccommodationCodes, true));
+            initializePreviousAccommodations(exam, segmentPosition, false, currentAccommodations, guestAccommodationCodes,
+                assessmentAccommodations, true));
 
         return Optional.empty();
+    }
+
+    @Override
+    @Transactional
+    public void denyAccommodations(final UUID examId, final Instant deniedAt) {
+        final List<ExamAccommodation> pendingAccommodations = examAccommodationQueryRepository.findAccommodations(examId);
+        final ExamAccommodation[] deniedAccommodations = pendingAccommodations.stream()
+            .map(accommodation ->
+                new ExamAccommodation.Builder(accommodation.getId())
+                    .fromExamAccommodation(accommodation)
+                    .withDeniedAt(deniedAt)
+                    .build())
+            .collect(Collectors.toList()).toArray(new ExamAccommodation[pendingAccommodations.size()]);
+
+        examAccommodationCommandRepository.update(deniedAccommodations);
     }
 
     private static String getOtherAccommodationValue(String formattedValue) {
@@ -247,13 +283,10 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                                                                      boolean restoreRts,
                                                                      List<ExamAccommodation> existingExamAccommodations,
                                                                      Set<String> accommodationCodes,
+                                                                     List<Accommodation> assessmentAccommodations,
                                                                      boolean isGuestAccommodations) {
         //This method replaces CommonDLL._UpdateOpportunityAccommodations_SP.
         Instant now = Instant.now();
-
-        // CommonDLL line 2593 fetches the key accommodations via CommonDLL.TestKeyAccommodations_FN which this call replicates.  The legacy application leverages
-        // temporary tables for most of its data structures which is unnecessary in this case so a collection is returned.
-        List<Accommodation> assessmentAccommodations = assessmentService.findAssessmentAccommodationsByAssessmentKey(exam.getClientName(), exam.getAssessmentKey());
 
         /*
         This is the accumulation of many different queries on lines CommonDLL.UpdateOpportunityAccommodations_SP()
@@ -294,10 +327,19 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                     .withSegmentPosition(segmentPosition)
                     .withTotalTypeCount(accommodation.getTypeTotal())
                     .withCustom(!accommodation.isDefaultAccommodation())
+                    .withVisible(accommodation.isVisible())
+                    .withStudentControlled(accommodation.isStudentControl())
+                    .withDisabledOnGuestSession(accommodation.isDisableOnGuestSession())
+                    .withDefaultAccommodation(accommodation.isDefaultAccommodation())
+                    .withAllowCombine(accommodation.isAllowCombine())
+                    .withDependsOn(accommodation.getDependsOnToolType())
+                    .withSortOrder(accommodation.getToolTypeSortOrder())
+                    .withFunctional(accommodation.isFunctional())
                     .withDeniedAt(deniedAt)
                     .withCreatedAt(now)
                     .build();
             })
+            .filter(examAccommodation -> !existingExamAccommodations.contains(examAccommodation))
             .distinct()
             .collect(Collectors.toSet());
 

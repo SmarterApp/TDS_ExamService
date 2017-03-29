@@ -45,4 +45,14 @@ public interface ExamPrintRequestQueryRepository {
      * @return A {@link List<tds.exam.ExamPrintRequest>} that have been approved
      */
     List<ExamPrintRequest> findApprovedRequests(final UUID sessionId);
+
+    /**
+     * Retrieves a count of unfulfilled requests for a given exam and item position
+     *
+     * @param examId       The id of the exam for the {@link tds.exam.ExamPrintRequest}s
+     * @param itemPosition The item position of the request to check for
+     * @param pagePosition The page position of the request to check for
+     * @return
+     */
+    int findCountOfUnfulfilledRequestsForExamAndItemPosition(final UUID examId, final int itemPosition, final int pagePosition);
 }

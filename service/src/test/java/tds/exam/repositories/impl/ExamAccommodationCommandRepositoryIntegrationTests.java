@@ -1,5 +1,7 @@
 package tds.exam.repositories.impl;
 
+import io.github.benas.randombeans.EnhancedRandomBuilder;
+import io.github.benas.randombeans.api.EnhancedRandom;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,7 +18,6 @@ import java.util.List;
 import java.util.UUID;
 
 import tds.exam.ExamAccommodation;
-import tds.exam.builder.ExamAccommodationBuilder;
 import tds.exam.repositories.ExamAccommodationCommandRepository;
 import tds.exam.repositories.ExamAccommodationQueryRepository;
 
@@ -70,18 +71,27 @@ public class ExamAccommodationCommandRepositoryIntegrationTests {
     }
 
     private List<ExamAccommodation> insertExamAccommodations(UUID examId) {
+        EnhancedRandom rand = EnhancedRandomBuilder.aNewEnhancedRandomBuilder().stringLengthRange(3, 10).build();
         List<ExamAccommodation> mockExamAccommodations = new ArrayList<>();
         // Two accommodations for the first Exam ID
-        mockExamAccommodations.add(new ExamAccommodationBuilder()
+        mockExamAccommodations.add(new ExamAccommodation.Builder(UUID.randomUUID())
+            .fromExamAccommodation(rand.nextObject(ExamAccommodation.class))
             .withExamId(examId)
             .withSegmentKey("segment")
+            .withType("language")
+            .withValue("ENU")
+            .withDeniedAt(null)
+            .withDeletedAt(null)
             .build());
-        mockExamAccommodations.add(new ExamAccommodationBuilder()
+        mockExamAccommodations.add(new ExamAccommodation.Builder(UUID.randomUUID())
+            .fromExamAccommodation(rand.nextObject(ExamAccommodation.class))
             .withExamId(examId)
             .withSegmentKey("segment")
             .withType("closed captioning")
             .withCode("TDS_ClosedCap0")
             .withTotalTypeCount(5)
+            .withDeniedAt(null)
+            .withDeletedAt(null)
             .build());
 
         examAccommodationCommandRepository.insert(mockExamAccommodations);

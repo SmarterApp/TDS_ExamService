@@ -1,6 +1,8 @@
 package tds.exam.services.impl;
 
 import com.google.common.collect.Sets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +25,7 @@ import tds.exam.services.ExpandableExamPrintRequestMapper;
 
 @Service
 public class ExamPrintRequestServiceImpl implements ExamPrintRequestService {
+    private static final Logger log = LoggerFactory.getLogger(ExamPrintRequestServiceImpl.class);
     private final ExamPrintRequestCommandRepository examPrintRequestCommandRepository;
     private final ExamPrintRequestQueryRepository examPrintRequestQueryRepository;
     private final Collection<ExpandableExamPrintRequestMapper> expandableExamPrintRequestMappers;
@@ -39,7 +42,16 @@ public class ExamPrintRequestServiceImpl implements ExamPrintRequestService {
     @Override
     @Transactional
     public void insert(final ExamPrintRequest examPrintRequest) {
-        examPrintRequestCommandRepository.insert(examPrintRequest);
+        final int unfulfilledRequestCountForItem = examPrintRequestQueryRepository
+            .findCountOfUnfulfilledRequestsForExamAndItemPosition(examPrintRequest.getExamId(), examPrintRequest.getItemPosition(),
+                examPrintRequest.getPagePosition());
+
+        if (unfulfilledRequestCountForItem == 0) {
+            examPrintRequestCommandRepository.insert(examPrintRequest);
+        } else {
+            log.debug("Print request for examId {} and item/page {}/{} was received, but not sent as there is an existing unfulfilled request.",
+                examPrintRequest.getExamId(), examPrintRequest.getItemPosition(), examPrintRequest.getPagePosition());
+        }
     }
 
     @Override

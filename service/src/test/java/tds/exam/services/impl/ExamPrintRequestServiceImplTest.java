@@ -1,6 +1,5 @@
 package tds.exam.services.impl;
 
-import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,7 +20,6 @@ import tds.exam.ExpandableExamPrintRequest;
 import tds.exam.repositories.ExamPrintRequestCommandRepository;
 import tds.exam.repositories.ExamPrintRequestQueryRepository;
 import tds.exam.services.ExamPrintRequestService;
-import tds.exam.services.ExpandableExamMapper;
 import tds.exam.services.ExpandableExamPrintRequestMapper;
 
 import static io.github.benas.randombeans.api.EnhancedRandom.random;
@@ -58,8 +56,23 @@ public class ExamPrintRequestServiceImplTest {
     @Test
     public void shouldCreateExamPrintRequest() {
         ExamPrintRequest examPrintRequest = random(ExamPrintRequest.class);
+        when(mockExamPrintRequestQueryRepository
+            .findCountOfUnfulfilledRequestsForExamAndItemPosition(examPrintRequest.getExamId(), examPrintRequest.getItemPosition(), examPrintRequest.getPagePosition())).thenReturn(0);
         examPrintRequestService.insert(examPrintRequest);
         verify(mockExamPrintRequestCommandRepository).insert(examPrintRequest);
+        verify(mockExamPrintRequestQueryRepository).findCountOfUnfulfilledRequestsForExamAndItemPosition(examPrintRequest.getExamId(),
+            examPrintRequest.getItemPosition(), examPrintRequest.getPagePosition());
+    }
+
+    @Test
+    public void shouldNotCreateExamPrintRequestDueToExistingRequest() {
+        ExamPrintRequest examPrintRequest = random(ExamPrintRequest.class);
+        when(mockExamPrintRequestQueryRepository
+            .findCountOfUnfulfilledRequestsForExamAndItemPosition(examPrintRequest.getExamId(), examPrintRequest.getItemPosition(), examPrintRequest.getPagePosition())).thenReturn(1);
+        examPrintRequestService.insert(examPrintRequest);
+        verify(mockExamPrintRequestCommandRepository, never()).insert(examPrintRequest);
+        verify(mockExamPrintRequestQueryRepository).findCountOfUnfulfilledRequestsForExamAndItemPosition(examPrintRequest.getExamId(),
+            examPrintRequest.getItemPosition(), examPrintRequest.getPagePosition());
     }
 
     @Test

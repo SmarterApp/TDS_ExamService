@@ -105,16 +105,17 @@ public class ExamControllerTest {
 
     @Test
     public void shouldReturnExamConfiguration() {
+        final String browserUserAgent = "007";
         Exam exam = new ExamBuilder().build();
         ExamConfiguration mockExamConfig = new ExamConfiguration.Builder()
             .withExam(exam)
             .withStatus("started")
             .build();
-        when(mockExamService.startExam(exam.getId())).thenReturn(
+        when(mockExamService.startExam(exam.getId(), browserUserAgent)).thenReturn(
             new Response<>(mockExamConfig));
 
-        ResponseEntity<Response<ExamConfiguration>> response = controller.startExam(exam.getId());
-        verify(mockExamService).startExam(exam.getId());
+        ResponseEntity<Response<ExamConfiguration>> response = controller.startExam(exam.getId(), browserUserAgent);
+        verify(mockExamService).startExam(exam.getId(), browserUserAgent);
 
         assertThat(response.getBody().getData().get().getExam().getId()).isEqualTo(exam.getId());
         assertThat(response.getBody().getData().get().getStatus()).isEqualTo("started");
@@ -124,11 +125,12 @@ public class ExamControllerTest {
 
     @Test
     public void shouldCreateErrorResponseWhenStartExamValidationError() {
+        final String browserUserAgent = "007";
         final UUID examId = UUID.randomUUID();
-        when(mockExamService.startExam(examId)).thenReturn(
+        when(mockExamService.startExam(examId, browserUserAgent)).thenReturn(
             new Response<>(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_SESSION_ID_MISMATCH, "Session mismatch")));
 
-        ResponseEntity<Response<ExamConfiguration>> response = controller.startExam(examId);
+        ResponseEntity<Response<ExamConfiguration>> response = controller.startExam(examId, browserUserAgent);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
         assertThat(response.getBody().hasError()).isTrue();
