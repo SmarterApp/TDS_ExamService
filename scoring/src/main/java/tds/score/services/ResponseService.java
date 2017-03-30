@@ -37,7 +37,7 @@ public interface ResponseService {
      * @param scoreStatus      the score status for the item
      * @param scoreRationale   the score rationale
      * @param scoreDimensions  the dimensions associated with the score
-     * @return
+     * @return {@link TDS.Shared.Data.ReturnStatus} that contains the status of the
      * @throws ReturnStatusException if there is an unexpected error
      */
     ReturnStatus updateItemScore(UUID examId, IItemResponseScorable responseScorable, int score, String scoreStatus, String scoreRationale, String scoreDimensions) throws ReturnStatusException;
