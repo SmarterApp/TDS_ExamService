@@ -23,12 +23,12 @@ CREATE OR REPLACE VIEW qa_session_testeecomment AS
     SELECT
       exam_id,
       session_id,
-         MAX(id) AS id
-      FROM
-        exam.exam_event
+      MAX(id) AS id
+    FROM
+      exam.exam_event
     GROUP BY
       exam_id,
       session_id
-	) AS last_event
-	ON
-		note.exam_id = last_event.exam_id;
+  ) AS last_event
+  ON
+    note.exam_id = last_event.exam_id;
