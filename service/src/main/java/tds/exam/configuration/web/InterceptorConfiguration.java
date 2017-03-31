@@ -7,8 +7,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
+import tds.common.web.interceptors.EventLoggerInterceptor;
 import tds.exam.services.ExamApprovalService;
-import tds.exam.web.interceptors.EventLoggerInterceptor;
 import tds.exam.web.interceptors.VerifyAccessInterceptor;
 
 /**
@@ -19,17 +19,21 @@ public class InterceptorConfiguration extends WebMvcConfigurerAdapter {
 
     private final ExamApprovalService examApprovalService;
 
-    @Autowired
-    private ApplicationContext applicationContext;
+    private final ApplicationContext applicationContext;
+    private final ObjectMapper objectMapper;
 
     @Autowired
-    public InterceptorConfiguration(ExamApprovalService examApprovalService) {
+    public InterceptorConfiguration(final ExamApprovalService examApprovalService,
+                                    final ApplicationContext applicationContext,
+                                    final ObjectMapper objectMapper) {
         this.examApprovalService = examApprovalService;
+        this.applicationContext = applicationContext;
+        this.objectMapper = objectMapper;
     }
 
     @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new EventLoggerInterceptor(new ObjectMapper())).addPathPatterns("/exam/**");
+    public void addInterceptors(final InterceptorRegistry registry) {
+        registry.addInterceptor(new EventLoggerInterceptor("ExamService", objectMapper)).addPathPatterns("/exam/**");
         registry.addInterceptor(new VerifyAccessInterceptor(examApprovalService)).addPathPatterns("/exam/**");
     }
 }
