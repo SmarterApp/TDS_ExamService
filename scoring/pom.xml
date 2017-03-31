@@ -18,7 +18,7 @@
     <properties>
         <java.version>1.8</java.version>
         <assertj.version>3.4.1</assertj.version>
-        <item-scoring.version>1.1.0-SNAPSHOT</item-scoring.version>
+        <item-scoring.version>3.0.1-SNAPSHOT</item-scoring.version>
         <item-renderer.version>3.0.4</item-renderer.version>
         <tds-student-common.version>3.0.0</tds-student-common.version>
     </properties>
@@ -86,9 +86,9 @@
             <version>${item-scoring.version}</version>
             <exclusions>
                 <exclusion>
-                    <groupId>org.opentestsystem.delivery</groupId>
-                    <artifactId>qtiscoringengine</artifactId>
-                </exclusion> 
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
                 <exclusion>
                     <groupId>org.springframework</groupId>
                     <artifactId>spring-context</artifactId>
