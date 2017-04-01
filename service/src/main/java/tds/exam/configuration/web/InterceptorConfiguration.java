@@ -1,10 +1,13 @@
 package tds.exam.configuration.web;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
+import tds.common.web.interceptors.EventLoggerInterceptor;
 import tds.exam.services.ExamApprovalService;
 import tds.exam.web.interceptors.VerifyAccessInterceptor;
 
@@ -13,15 +16,24 @@ import tds.exam.web.interceptors.VerifyAccessInterceptor;
  */
 @Configuration
 public class InterceptorConfiguration extends WebMvcConfigurerAdapter {
+
     private final ExamApprovalService examApprovalService;
 
+    private final ApplicationContext applicationContext;
+    private final ObjectMapper objectMapper;
+
     @Autowired
-    public InterceptorConfiguration(ExamApprovalService examApprovalService) {
+    public InterceptorConfiguration(final ExamApprovalService examApprovalService,
+                                    final ApplicationContext applicationContext,
+                                    final ObjectMapper objectMapper) {
         this.examApprovalService = examApprovalService;
+        this.applicationContext = applicationContext;
+        this.objectMapper = objectMapper;
     }
 
     @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new VerifyAccessInterceptor(examApprovalService)).addPathPatterns("/exam/**");;
+    public void addInterceptors(final InterceptorRegistry registry) {
+        registry.addInterceptor(new EventLoggerInterceptor("ExamService", objectMapper)).addPathPatterns("/exam/**");
+        registry.addInterceptor(new VerifyAccessInterceptor(examApprovalService)).addPathPatterns("/exam/**");
     }
 }
