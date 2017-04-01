@@ -218,17 +218,18 @@ class ExamServiceImpl implements ExamService {
         return createExam(currentSession.getClientName(), openExamRequest, currentSession, assessment, externalSessionConfiguration, previousExam, student);
     }
 
+    @Transactional
     @Override
     public Optional<ValidationError> updateExamStatus(final UUID examId, final ExamStatusCode newStatus) {
         return updateExamStatus(examId, newStatus, null);
     }
 
+    @Transactional
     @Override
     public Optional<ValidationError> updateExamStatus(final UUID examId, final ExamStatusCode newStatus, final String statusChangeReason) {
         return updateExamStatus(examId, newStatus, statusChangeReason, -1);
     }
 
-    @Transactional
     private Optional<ValidationError> updateExamStatus(final UUID examId, final ExamStatusCode newStatus, final String statusChangeReason,
                                                       final int waitingForSegmentPosition) {
         Exam exam = examQueryRepository.getExamById(examId)
