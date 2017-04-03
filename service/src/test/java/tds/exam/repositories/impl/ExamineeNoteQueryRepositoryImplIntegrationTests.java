@@ -10,6 +10,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -109,6 +110,37 @@ public class ExamineeNoteQueryRepositoryImplIntegrationTests {
             "context",
             "itemPosition",
             "note");
+    }
+
+    @Test
+    public void shouldReturnAllExamineeNotes() {
+        ExamineeNote globalNote = new ExamineeNote.Builder()
+            .withExamId(mockExam.getId())
+            .withContext(ExamineeNoteContext.EXAM)
+            .withNote("exam global note")
+            .build();
+
+        ExamineeNote itemNote = new ExamineeNote.Builder()
+            .withExamId(mockExam.getId())
+            .withContext(ExamineeNoteContext.ITEM)
+            .withItemPosition(5)
+            .withNote("exam item note")
+            .build();
+
+        ExamineeNote itemNoteUpdated = new ExamineeNote.Builder()
+            .withExamId(mockExam.getId())
+            .withContext(ExamineeNoteContext.ITEM)
+            .withItemPosition(5)
+            .withNote("exam item note updated")
+            .build();
+
+        examineeNoteCommandRepository.insert(globalNote);
+        examineeNoteCommandRepository.insert(itemNote);
+        examineeNoteCommandRepository.insert(itemNoteUpdated);
+
+        List<ExamineeNote> returnNotes = examineeNoteQueryRepository.findAllNotes(mockExam.getId());
+        assertThat(returnNotes).hasSize(2);
+        assertThat(returnNotes).containsExactlyInAnyOrder(globalNote, itemNoteUpdated);
     }
 
     @Test

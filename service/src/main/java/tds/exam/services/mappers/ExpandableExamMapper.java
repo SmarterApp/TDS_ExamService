@@ -1,10 +1,11 @@
-package tds.exam.services;
+package tds.exam.services.mappers;
 
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
 import tds.exam.ExpandableExam;
+import tds.exam.ExpandableExamParameters;
 
 /**
  * Interface for a service that maps an {@link tds.exam.ExpandableExam} with optional attributes
@@ -17,6 +18,6 @@ public interface ExpandableExamMapper {
      * @param examBuilders             A mapping of exam Ids to their respective {@link tds.exam.ExpandableExam}s
      * @param sessionId                The session id of the session the {@link tds.exam.ExpandableExam} belongs to
      */
-    void updateExpandableMapper(final Set<String> expandableExamAttributes, final Map<UUID, ExpandableExam.Builder> examBuilders,
+    void updateExpandableMapper(final Set<ExpandableExamParameters> expandableExamAttributes, final Map<UUID, ExpandableExam.Builder> examBuilders,
                                 final UUID sessionId);
 }

@@ -1,5 +1,6 @@
 package tds.exam.services;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -17,6 +18,14 @@ public interface ExamineeNoteService {
      * an empty {@link java.util.Optional} is returned instead.
      */
     Optional<ExamineeNote> findNoteInExamContext(final UUID examId);
+
+    /**
+     * Finds all {@link tds.exam.ExamineeNote} for the specified {@link tds.exam.Exam}
+     *
+     * @param examId
+     * @return the {@link tds.exam.ExamineeNote}s for the {@link tds.exam.Exam}
+     */
+    List<ExamineeNote> findAllNotes(final UUID examId);
 
     /**
      * Persist a {@link tds.exam.ExamineeNote}.

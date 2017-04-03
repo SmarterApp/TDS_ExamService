@@ -29,6 +29,28 @@ public class ExamineeNote {
         this.note = builder.note;
     }
 
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        final ExamineeNote that = (ExamineeNote) o;
+
+        if (itemPosition != that.itemPosition) return false;
+        if (examId != null ? !examId.equals(that.examId) : that.examId != null) return false;
+        if (context != that.context) return false;
+        return note != null ? note.equals(that.note) : that.note == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = examId != null ? examId.hashCode() : 0;
+        result = 31 * result + (context != null ? context.hashCode() : 0);
+        result = 31 * result + itemPosition;
+        result = 31 * result + (note != null ? note.hashCode() : 0);
+        return result;
+    }
+
     public static class Builder {
         private long id;
         private UUID examId;

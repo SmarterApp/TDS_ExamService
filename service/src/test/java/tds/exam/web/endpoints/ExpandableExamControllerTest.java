@@ -17,6 +17,7 @@ import java.util.UUID;
 import tds.exam.Exam;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExpandableExam;
+import tds.exam.ExpandableExamParameters;
 import tds.exam.services.ExpandableExamService;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,7 +40,7 @@ public class ExpandableExamControllerTest {
     public void shouldFindExpandableExamsForSession() {
         UUID sessionId = UUID.randomUUID();
         Set<String> statuses = Sets.newHashSet(ExamStatusCode.STATUS_APPROVED);
-        String embed = "something";
+        ExpandableExamParameters embed = ExpandableExamParameters.EXPANDABLE_PARAMS_EXAM_ACCOMMODATIONS;
         ExpandableExam exam = new ExpandableExam.Builder(mock(Exam.class)).build();
         List<ExpandableExam> expandableExams = Collections.singletonList(exam);
         when(mockExpandableService.findExamsBySessionId(sessionId, statuses, embed)).thenReturn(expandableExams);

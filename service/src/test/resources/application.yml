@@ -1,13 +1,13 @@
 spring:
   ds_queries:
-    jdbcUrl: ${sbac.jdbc.host}/exam
-    username: ${sbac.jdbc.user}
-    password: ${sbac.jdbc.password}
+    jdbcUrl: jdbc:mysql://localhost:3306/exam
+    username: 'root'
+    password: 'password123'
     driver-class-name: 'com.mysql.jdbc.Driver'
   ds_commands:
-    jdbcUrl: ${sbac.jdbc.host}/exam
-    username: ${sbac.jdbc.user}
-    password: ${sbac.jdbc.password}
+    jdbcUrl: jdbc:mysql://localhost:3306/exam
+    username: 'root'
+    password: 'password123'
     driver-class-name: 'com.mysql.jdbc.Driver'
 
 server:
@@ -20,6 +20,6 @@ server:
 
 flyway:
   enabled: true
-  url: ${sbac.jdbc.host}/exam
-  user: ${sbac.jdbc.user}
-  password: ${sbac.jdbc.password}
+  url: jdbc:mysql://localhost:3306/exam
+  user: 'root'
+  password: 'password123'

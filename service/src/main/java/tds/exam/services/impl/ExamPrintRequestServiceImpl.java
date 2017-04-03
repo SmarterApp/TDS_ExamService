@@ -21,7 +21,7 @@ import tds.exam.ExpandableExamPrintRequest;
 import tds.exam.repositories.ExamPrintRequestCommandRepository;
 import tds.exam.repositories.ExamPrintRequestQueryRepository;
 import tds.exam.services.ExamPrintRequestService;
-import tds.exam.services.ExpandableExamPrintRequestMapper;
+import tds.exam.services.mappers.ExpandableExamPrintRequestMapper;
 
 @Service
 public class ExamPrintRequestServiceImpl implements ExamPrintRequestService {

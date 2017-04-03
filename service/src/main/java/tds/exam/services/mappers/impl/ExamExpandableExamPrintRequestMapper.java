@@ -1,4 +1,4 @@
-package tds.exam.services.impl;
+package tds.exam.services.mappers.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -10,7 +10,7 @@ import java.util.UUID;
 import tds.exam.Exam;
 import tds.exam.ExpandableExamPrintRequest;
 import tds.exam.services.ExamService;
-import tds.exam.services.ExpandableExamPrintRequestMapper;
+import tds.exam.services.mappers.ExpandableExamPrintRequestMapper;
 
 @Component
 public class ExamExpandableExamPrintRequestMapper implements ExpandableExamPrintRequestMapper {

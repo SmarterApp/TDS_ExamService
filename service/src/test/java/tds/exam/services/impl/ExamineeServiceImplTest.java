@@ -7,7 +7,9 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import tds.common.web.exceptions.NotFoundException;
 import tds.exam.Exam;
@@ -16,12 +18,15 @@ import tds.exam.ExamineeContext;
 import tds.exam.ExamineeRelationship;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.repositories.ExamineeCommandRepository;
+import tds.exam.repositories.ExamineeQueryRepository;
 import tds.exam.services.ExamineeService;
 import tds.exam.services.StudentService;
 import tds.student.RtsStudentPackageAttribute;
 import tds.student.RtsStudentPackageRelationship;
 import tds.student.Student;
 
+import static io.github.benas.randombeans.api.EnhancedRandom.random;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.anyVararg;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -33,13 +38,16 @@ public class ExamineeServiceImplTest {
     private ExamineeCommandRepository examineeCommandRepository;
 
     @Mock
+    private ExamineeQueryRepository examineeQueryRepository;
+
+    @Mock
     private StudentService mockStudentService;
 
     private ExamineeService examineeService;
 
     @Before
     public void setUp() {
-        examineeService = new ExamineeServiceImpl(examineeCommandRepository, mockStudentService);
+        examineeService = new ExamineeServiceImpl(examineeCommandRepository, examineeQueryRepository, mockStudentService);
     }
 
     @Test
@@ -102,5 +110,30 @@ public class ExamineeServiceImplTest {
 
         examineeService.insertAttributesAndRelationships(mockExam, ExamineeContext.INITIAL);
         verifyZeroInteractions(mockStudentService, examineeCommandRepository);
+    }
+
+    @Test
+    public void shouldFindExamineeAttributes() {
+        final UUID examId = UUID.randomUUID();
+        final ExamineeContext context = ExamineeContext.INITIAL;
+
+        ExamineeAttribute attribute = random(ExamineeAttribute.class);
+        when(examineeQueryRepository.findAllAttributes(examId, context)).thenReturn(Arrays.asList(attribute));
+        List<ExamineeAttribute> retAttributes = examineeService.findAllAttributes(examId, context);
+        verify(examineeQueryRepository).findAllAttributes(examId, context);
+        assertThat(retAttributes).containsExactly(attribute);
+    }
+
+    @Test
+    public void shouldFindExamineeRelationships() {
+        final UUID examId = UUID.randomUUID();
+        final ExamineeContext context = ExamineeContext.INITIAL;
+
+        ExamineeRelationship relationship = random(ExamineeRelationship.class);
+
+        when(examineeQueryRepository.findAllRelationships(examId, context)).thenReturn(Arrays.asList(relationship));
+        List<ExamineeRelationship> retAttributes = examineeService.findAllRelationships(examId, context);
+        verify(examineeQueryRepository).findAllRelationships(examId, context);
+        assertThat(retAttributes).containsExactly(relationship);
     }
 }
