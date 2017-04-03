@@ -16,6 +16,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import tds.exam.ExamineeNote;
+import tds.exam.ExamineeNoteContext;
 import tds.exam.services.ExamineeNoteService;
 import tds.exam.web.annotations.VerifyAccess;
 
@@ -46,9 +47,16 @@ public class ExamineeNoteController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void insert(@PathVariable final UUID id,
                 @RequestBody final ExamineeNote note) {
+        // In legacy the student application, only item-level notes are HTML-escaped and exam-level notes are not
+        // (TestShellHandler#RecordItemComment, line 413 and TestShellHandler#RecordOppComment, line 436).  Since the
+        // note text is already escaped by the time it gets here, it must be un-escaped for Exam-level notes.
+        final String noteText = note.getContext().equals(ExamineeNoteContext.EXAM)
+            ? HtmlUtils.htmlUnescape(note.getNote())
+            : note.getNote();
+
         final ExamineeNote examineeNote = ExamineeNote.Builder.fromExamineeNote(note)
             .withExamId(id)
-            .withNote(HtmlUtils.htmlEscape(note.getNote()))
+            .withNote(noteText)
             .build();
 
         examineeNoteService.insert(examineeNote);
