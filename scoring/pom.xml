@@ -18,7 +18,7 @@
     <properties>
         <java.version>1.8</java.version>
         <assertj.version>3.4.1</assertj.version>
-        <item-scoring.version>3.0.1-SNAPSHOT</item-scoring.version>
+        <item-scoring.version>3.0.1</item-scoring.version>
         <item-renderer.version>3.0.4</item-renderer.version>
         <tds-student-common.version>3.0.0</tds-student-common.version>
     </properties>
