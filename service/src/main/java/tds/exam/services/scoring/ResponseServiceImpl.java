@@ -107,7 +107,6 @@ public class ResponseServiceImpl implements ResponseService {
         }
 
         String errorMessage = "";
-        //TODO - There is a check in StudentDLL to check if the item still exists in itembank.  Doesn't seem necessary
         if (!maybeItem.isPresent() || !maybeItem.get().getItemKey().equals(responseUpdate.getItemID())) {
             errorMessage = String.format("The item does not exist at this position in this test opportunity: Position = %d; Item = %s; testeeresponse._efk_ItemKey found is %s",
                 responseUpdate.getPosition(), responseUpdate.getItemID(), (maybeItem.map(ExamItem::getItemKey).orElse("null")));
