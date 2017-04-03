@@ -239,7 +239,7 @@ public class ItemScoringServiceImpl implements ItemScoringService {
 
                     // TODO: if score returned here ends up being
                     // ScoringStatus.ScoringError should we save this?
-                    score = scoreResponse(examInstance.getExamId(), responseUpdate, itsDoc);
+                    scoreResponse(examInstance.getExamId(), responseUpdate, itsDoc);
                 }
                 // for synchronous we need to score first and then save
                 else {
