@@ -38,7 +38,7 @@ public class ExamPageItemResponseExpandableExamMapper implements ExpandableExamM
             });
         }
 
-        if (expandableAttributes.contains(ExpandableExamAttributes.XAM_PAGE_ITEMS_AND_RESPONSES)) {
+        if (expandableAttributes.contains(ExpandableExamAttributes.EXAM_PAGE_ITEMS_AND_RESPONSES)) {
             examBuilders.forEach((examId, examBuilder) -> {
                 //TODO: Populate Responses
             });
