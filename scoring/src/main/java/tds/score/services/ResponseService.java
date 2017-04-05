@@ -26,7 +26,8 @@ public interface ResponseService {
      * @return a {@link TDS.Shared.Data.ReturnStatus} that contains whether the update was successful
      * @throws ReturnStatusException if there is any type of error or validation condition failure
      */
-    ReturnStatus updateScoredResponse(ExamInstance examInstance, IItemResponseUpdate responseUpdate, int score, String scoreStatus, String scoreRationale, long scoreLatency, long pageDuration) throws ReturnStatusException;
+    ReturnStatus updateScoredResponse(final ExamInstance examInstance, final IItemResponseUpdate responseUpdate, final int score,
+                                      final String scoreStatus, final String scoreRationale, final long scoreLatency, final long pageDuration) throws ReturnStatusException;
 
     /**
      * Updates a specific item with an updated score.
@@ -40,5 +41,5 @@ public interface ResponseService {
      * @return {@link TDS.Shared.Data.ReturnStatus} that contains the status of the
      * @throws ReturnStatusException if there is an unexpected error
      */
-    ReturnStatus updateItemScore(UUID examId, IItemResponseScorable responseScorable, int score, String scoreStatus, String scoreRationale, String scoreDimensions) throws ReturnStatusException;
+    ReturnStatus updateItemScore(final UUID examId, final IItemResponseScorable responseScorable, final int score, final String scoreStatus, final String scoreRationale, final String scoreDimensions) throws ReturnStatusException;
 }
