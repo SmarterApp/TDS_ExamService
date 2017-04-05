@@ -1,5 +1,6 @@
 package tds.exam.services.impl;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -9,14 +10,16 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import tds.exam.Exam;
 import tds.exam.ExpandableExam;
+import tds.exam.ExpandableExamAttributes;
 import tds.exam.repositories.ExamQueryRepository;
-import tds.exam.services.ExpandableExamMapper;
+import tds.exam.mappers.ExpandableExamMapper;
 import tds.exam.services.ExpandableExamService;
 
 @Service
@@ -32,8 +35,9 @@ public class ExpandableExamServiceImpl implements ExpandableExamService {
 
     @Override
     public List<ExpandableExam> findExamsBySessionId(final UUID sessionId, final Set<String> invalidStatuses,
-                                                     final String... embed) {
-        final Set<String> expandableExamAttributes = embed == null ? new HashSet<>() : Sets.newHashSet(embed);
+                                                     final ExpandableExamAttributes... expandableAttributes) {
+        final Set<ExpandableExamAttributes> expandableExamAttributes = expandableAttributes == null
+            ? new HashSet<>() : Sets.newHashSet(expandableAttributes);
         final List<Exam> exams = examQueryRepository.findAllExamsInSessionWithoutStatus(sessionId, invalidStatuses);
         final Map<UUID, ExpandableExam.Builder> examBuilders = exams.stream()
             .collect(Collectors.toMap(Exam::getId, ExpandableExam.Builder::new));
@@ -49,5 +53,26 @@ public class ExpandableExamServiceImpl implements ExpandableExamService {
         return examBuilders.values().stream()
             .map(ExpandableExam.Builder::build)
             .collect(Collectors.toList());
+    }
+
+    @Override
+    public Optional<ExpandableExam> findExam(final UUID examId, final ExpandableExamAttributes... expandableAttributes) {
+        final Set<ExpandableExamAttributes> expandableExamAttributes = expandableAttributes == null
+            ? new HashSet<>() : Sets.newHashSet(expandableAttributes);
+        Optional<Exam> maybeExam = examQueryRepository.getExamById(examId);
+
+        if (!maybeExam.isPresent()) {
+            return Optional.empty();
+        }
+
+        Exam exam = maybeExam.get();
+        ExpandableExam.Builder builder = new ExpandableExam.Builder(exam);
+        Map<UUID, ExpandableExam.Builder> examMap = ImmutableMap.of(examId, builder);
+
+        expandableExamMappers.forEach(mapper -> mapper.updateExpandableMapper(expandableExamAttributes,
+            examMap, exam.getSessionId())
+        );
+
+        return Optional.of(builder.build());
     }
 }

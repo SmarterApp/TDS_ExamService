@@ -12,17 +12,21 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
 import tds.exam.ExamStatusCode;
 import tds.exam.ExpandableExam;
+import tds.exam.ExpandableExamAttributes;
 import tds.exam.WebMvcControllerIntegrationTest;
 import tds.exam.services.ExpandableExamService;
 
 import static io.github.benas.randombeans.api.EnhancedRandom.random;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -41,12 +45,12 @@ public class ExpandableExamControllerIntegrationTests {
     public void shouldReturnEmptyForEmptyList() throws Exception {
         final UUID sessionId = UUID.randomUUID();
         final Set<String> invalidStatuses = ImmutableSet.of(ExamStatusCode.STATUS_SUSPENDED);
-        when(mockExpandableExamService.findExamsBySessionId(sessionId, invalidStatuses, ExpandableExam.EXPANDABLE_PARAMS_EXAM_ACCOMMODATIONS))
+        when(mockExpandableExamService.findExamsBySessionId(sessionId, invalidStatuses, ExpandableExamAttributes.EXAM_ACCOMMODATIONS))
             .thenReturn(new ArrayList<>());
 
         http.perform(get(new URI(String.format("/exam/session/%s", sessionId)))
             .param("statusNot", ExamStatusCode.STATUS_SUSPENDED)
-            .param("expandable", ExpandableExam.EXPANDABLE_PARAMS_EXAM_ACCOMMODATIONS)
+            .param("expandable", ExpandableExamAttributes.EXAM_ACCOMMODATIONS.name())
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(jsonPath("[0]").doesNotExist());
@@ -64,16 +68,16 @@ public class ExpandableExamControllerIntegrationTests {
         final ExpandableExam expandableExam1 = random(ExpandableExam.class);
         final ExpandableExam expandableExam2 = random(ExpandableExam.class);
 
-        when(mockExpandableExamService.findExamsBySessionId(sessionId, invalidStatuses, ExpandableExam.EXPANDABLE_PARAMS_EXAM_ACCOMMODATIONS,
-            ExpandableExam.EXPANDABLE_PARAMS_ITEM_RESPONSE_COUNT))
+        when(mockExpandableExamService.findExamsBySessionId(sessionId, invalidStatuses, ExpandableExamAttributes.EXAM_ACCOMMODATIONS,
+            ExpandableExamAttributes.ITEM_RESPONSE_COUNT))
             .thenReturn(Arrays.asList(expandableExam1, expandableExam2));
 
         http.perform(get(new URI(String.format("/exam/session/%s", sessionId)))
             .param("statusNot", ExamStatusCode.STATUS_SUSPENDED)
             .param("statusNot", ExamStatusCode.STATUS_PENDING)
             .param("statusNot", ExamStatusCode.STATUS_DENIED)
-            .param("embed", ExpandableExam.EXPANDABLE_PARAMS_EXAM_ACCOMMODATIONS)
-            .param("embed", ExpandableExam.EXPANDABLE_PARAMS_ITEM_RESPONSE_COUNT)
+            .param("expandableAttribute", ExpandableExamAttributes.EXAM_ACCOMMODATIONS.name())
+            .param("expandableAttribute", ExpandableExamAttributes.ITEM_RESPONSE_COUNT.name())
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(jsonPath("[0].exam.id", is(expandableExam1.getExam().getId().toString())))
@@ -84,5 +88,40 @@ public class ExpandableExamControllerIntegrationTests {
             .andExpect(jsonPath("[1].itemsResponseCount", is(expandableExam2.getItemsResponseCount())))
             .andExpect(jsonPath("[1].examAccommodations[0].id", is(expandableExam2.getExamAccommodations().get(0).getId().toString())))
             .andExpect(jsonPath("[1].examAccommodations", hasSize(expandableExam2.getExamAccommodations().size())));
+    }
+
+    @Test
+    public void shouldReturnSingleExpandableExam() throws Exception {
+        final ExpandableExam expandableExam = random(ExpandableExam.class);
+
+        when(mockExpandableExamService.findExam(expandableExam.getExam().getId(), ExpandableExamAttributes.EXAM_NOTES,
+            ExpandableExamAttributes.EXAM_SEGMENTS, ExpandableExamAttributes.EXAM_STATUS_DATES))
+            .thenReturn(Optional.of(expandableExam));
+
+
+        http.perform(get(new URI(String.format("/exam/%s/expandable", expandableExam.getExam().getId())))
+            .param("expandableAttribute", ExpandableExamAttributes.EXAM_NOTES.name())
+            .param("expandableAttribute", ExpandableExamAttributes.EXAM_SEGMENTS.name())
+            .param("expandableAttribute", ExpandableExamAttributes.EXAM_STATUS_DATES.name())
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.exam.id", is(expandableExam.getExam().getId().toString())))
+            .andExpect(jsonPath("$.startedAt", is(expandableExam.getStartedAt().toString())))
+            .andExpect(jsonPath("$.examSegments", hasSize(expandableExam.getExamSegments().size())))
+            .andExpect(jsonPath("$.examSegments[0].segmentId", is(expandableExam.getExamSegments().get(0).getSegmentId().toString())))
+            .andExpect(jsonPath("$.examineeNotes[0].id", is(expandableExam.getExamineeNotes().get(0).getId())));
+
+
+        verify(mockExpandableExamService).findExam(expandableExam.getExam().getId(), ExpandableExamAttributes.EXAM_NOTES,
+            ExpandableExamAttributes.EXAM_SEGMENTS, ExpandableExamAttributes.EXAM_STATUS_DATES);
+    }
+
+    @Test
+    public void shouldReturn404ForNoExam() throws Exception {
+        when(mockExpandableExamService.findExam(any(), any())).thenReturn(Optional.empty());
+        http.perform(get(new URI(String.format("/exam/%s/expandable", UUID.randomUUID())))
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNotFound());
+        verify(mockExpandableExamService).findExam(any(), any());
     }
 }

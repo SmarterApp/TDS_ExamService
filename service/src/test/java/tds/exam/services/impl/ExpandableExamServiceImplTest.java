@@ -10,15 +10,17 @@ import org.mockito.runners.MockitoJUnitRunner;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
 import tds.exam.Exam;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExpandableExam;
+import tds.exam.ExpandableExamAttributes;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.repositories.ExamQueryRepository;
-import tds.exam.services.ExpandableExamMapper;
+import tds.exam.mappers.ExpandableExamMapper;
 import tds.exam.services.ExpandableExamService;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -57,7 +59,7 @@ public class ExpandableExamServiceImplTest {
         when(mockExamQueryRepository.findAllExamsInSessionWithoutStatus(eq(sessionId), any())).thenReturn(Arrays.asList(exam1, exam2));
 
         List<ExpandableExam> expandableExams = expandableExamService.findExamsBySessionId(sessionId, invalidStatuses,
-            ExpandableExam.EXPANDABLE_PARAMS_EXAM_ACCOMMODATIONS);
+            ExpandableExamAttributes.EXAM_ACCOMMODATIONS);
 
         verify(mockExamQueryRepository).findAllExamsInSessionWithoutStatus(eq(sessionId), any());
         mockExamMappers.forEach(mockMapper -> verify(mockMapper).updateExpandableMapper(any(), any(), any()));
@@ -77,5 +79,16 @@ public class ExpandableExamServiceImplTest {
 
         assertThat(expExam1.getExam()).isEqualTo(exam1);
         assertThat(expExam2.getExam()).isEqualTo(exam2);
+    }
+
+    @Test
+    public void shouldReturnSingleExpandableExam() {
+        Exam exam = new ExamBuilder().build();
+        when(mockExamQueryRepository.getExamById(exam.getId())).thenReturn(Optional.of(exam));
+        Optional<ExpandableExam> maybeExpandableExam = expandableExamService.findExam(exam.getId(), ExpandableExamAttributes.EXAM_NOTES);
+        verify(mockExamQueryRepository).getExamById(exam.getId());
+        mockExamMappers.forEach(mockMapper -> verify(mockMapper).updateExpandableMapper(any(), any(), any()));
+
+        assertThat(maybeExpandableExam.get().getExam()).isEqualTo(exam);
     }
 }
