@@ -2,6 +2,7 @@ package tds.exam;
 
 import org.joda.time.Instant;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,6 +23,7 @@ public class ExamPage {
     private Instant createdAt;
     private Instant deletedAt;
     private Instant startedAt;
+    private long duration;
 
     /**
      * Private constructor for frameworks
@@ -38,7 +40,7 @@ public class ExamPage {
         itemGroupKey = builder.itemGroupKey;
         groupItemsRequired = builder.groupItemsRequired;
         examId = builder.examId;
-        examItems = builder.examItems;
+        examItems = builder.examItems == null ? new ArrayList<ExamItem>() : builder.examItems;
         createdAt = builder.createdAt;
         deletedAt = builder.deletedAt;
         startedAt = builder.startedAt;
@@ -57,22 +59,7 @@ public class ExamPage {
         private Instant createdAt;
         private Instant deletedAt;
         private Instant startedAt;
-
-        public Builder fromExamPage(ExamPage examPage) {
-            id = examPage.id;
-            pagePosition = examPage.pagePosition;
-            segmentKey = examPage.segmentKey;
-            segmentId = examPage.segmentId;
-            segmentPosition = examPage.segmentPosition;
-            itemGroupKey = examPage.itemGroupKey;
-            groupItemsRequired = examPage.groupItemsRequired;
-            examId = examPage.examId;
-            examItems = examPage.examItems;
-            createdAt = examPage.createdAt;
-            deletedAt = examPage.deletedAt;
-            startedAt = examPage.startedAt;
-            return this;
-        }
+        private long duration;
 
         public Builder withPagePosition(int pagePosition) {
             this.pagePosition = pagePosition;
@@ -134,8 +121,29 @@ public class ExamPage {
             return this;
         }
 
+        public Builder withDuration(long duration) {
+            this.duration = duration;
+            return this;
+        }
+
         public ExamPage build() {
             return new ExamPage(this);
+        }
+
+        public static Builder fromExamPage(ExamPage examPage) {
+            return new ExamPage.Builder()
+                .withId(examPage.getId())
+                .withPagePosition(examPage.getPagePosition())
+                .withSegmentKey(examPage.getSegmentKey())
+                .withSegmentId(examPage.getSegmentId())
+                .withItemGroupKey(examPage.getItemGroupKey())
+                .withGroupItemsRequired(examPage.isGroupItemsRequired())
+                .withExamId(examPage.getExamId())
+                .withExamItems(examPage.getExamItems())
+                .withCreatedAt(examPage.getCreatedAt())
+                .withDeletedAt(examPage.getDeletedAt())
+                .withStartedAt(examPage.getStartedAt())
+                .withDuration(examPage.getDuration());
         }
     }
 
@@ -227,5 +235,12 @@ public class ExamPage {
      */
     public Instant getStartedAt() {
         return startedAt;
+    }
+
+    /**
+     * @return the amount of time spent on a page
+     */
+    public long getDuration() {
+        return duration;
     }
 }

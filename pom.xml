@@ -9,6 +9,7 @@
 
     <modules>
         <module>client</module>
+        <module>scoring</module>
         <module>service</module>
     </modules>
 

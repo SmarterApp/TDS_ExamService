@@ -50,3 +50,18 @@ exam-service:
   student-url: http://localhost:32840
   assessment-url: http://localhost:32841
   config-url: http://localhost:32843
+
+exam:
+  scoring:
+    engine:
+      queueThreadCount: 20
+      queueHiWaterMark: 500
+      queueLowWaterMark: 400
+      pythonScoringUrl: http://localhost:32845
+      maxAttempts: 3
+      sympyTimeoutMillis: 1000
+    s3:
+      bucketName: tds-resources
+      prefix: item-content/local/
+      accessKey: ${s3.key}
+      secretKey: ${s3.secret}

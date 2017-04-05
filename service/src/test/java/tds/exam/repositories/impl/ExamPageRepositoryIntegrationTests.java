@@ -1,6 +1,5 @@
 package tds.exam.repositories.impl;
 
-import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -12,6 +11,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -101,6 +101,7 @@ public class ExamPageRepositoryIntegrationTests {
             .withExamId(exam.getId())
             .withPagePosition(1)
             .withItemGroupKey("GroupKey1")
+            .withDuration(10000)
             .build();
         ExamPage examPage2 = new ExamPageBuilder()
             .withId(UUID.randomUUID())
@@ -118,7 +119,16 @@ public class ExamPageRepositoryIntegrationTests {
         assertThat(examPageQueryRepository.findAll(exam.getId())).isEmpty();
 
         examPageCommandRepository.insert(examPage1a);
-        assertThat(examPageQueryRepository.findAll(exam.getId())).hasSize(1);
+        List<ExamPage> pages = examPageQueryRepository.findAll(exam.getId());
+        assertThat(pages).hasSize(1);
+
+        ExamPage page = pages.get(0);
+
+        assertThat(page.getDuration()).isEqualTo(examPage1a.getDuration());
+        assertThat(page.getId()).isEqualTo(examPage1a.getId());
+        assertThat(page.getExamId()).isEqualTo(examPage1a.getExamId());
+        assertThat(page.getPagePosition()).isEqualTo(examPage1a.getPagePosition());
+        assertThat(page.getItemGroupKey()).isEqualTo(examPage1a.getItemGroupKey());
     }
 
     @Test
@@ -183,5 +193,37 @@ public class ExamPageRepositoryIntegrationTests {
 
         ExamItem secondExamItem = examPage.getExamItems().get(1);
         assertThat(secondExamItem).isEqualToComparingFieldByField(mockSecondExamItem);
+    }
+
+    @Test
+    public void shouldFindExamPageByExamIdAndPosition() {
+        Optional<ExamPage> maybeExamPage = examPageQueryRepository.find(mockExam.getId(), mockFirstExamItem.getPosition());
+        assertThat(maybeExamPage).isPresent();
+
+        ExamPage page = maybeExamPage.get();
+        assertThat(page.getId()).isEqualTo(mockExamPage.getId());
+        assertThat(page.getExamItems()).isEmpty();
+    }
+
+    @Test
+    public void shouldHandleExamPageNotFoundForExamIdAndPosition() {
+        Optional<ExamPage> maybeExamPage = examPageQueryRepository.find(mockExam.getId(), 99);
+        assertThat(maybeExamPage).isNotPresent();
+    }
+
+    @Test
+    public void shouldFindExamPageById() {
+        Optional<ExamPage> maybeExamPage = examPageQueryRepository.find(mockExamPage.getId());
+        assertThat(maybeExamPage).isPresent();
+
+        ExamPage page = maybeExamPage.get();
+        assertThat(page.getId()).isEqualTo(mockExamPage.getId());
+        assertThat(page.getExamItems()).isEmpty();
+    }
+
+    @Test
+    public void shouldHandleExamPageNotFoundForId() {
+        Optional<ExamPage> maybeExamPage = examPageQueryRepository.find(UUID.randomUUID());
+        assertThat(maybeExamPage).isNotPresent();
     }
 }

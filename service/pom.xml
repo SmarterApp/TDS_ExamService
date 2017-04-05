@@ -40,6 +40,11 @@
         </dependency>
         <dependency>
             <groupId>org.opentestsystem.delivery</groupId>
+            <artifactId>tds-exam-scoring</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.opentestsystem.delivery</groupId>
             <artifactId>tds-common</artifactId>
             <version>${tds-common.version}</version>
         </dependency>
@@ -62,6 +67,11 @@
             <groupId>org.opentestsystem.delivery</groupId>
             <artifactId>tds-config-client</artifactId>
             <version>${tds-config-client.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.opentestsystem.delivery</groupId>
+            <artifactId>tds-exam-scoring</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <!-- Spring -->

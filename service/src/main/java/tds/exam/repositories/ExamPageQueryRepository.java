@@ -28,6 +28,14 @@ public interface ExamPageQueryRepository {
     Optional<ExamPage> find(final UUID examId, final int position);
 
     /**
+     * Finds page by id
+     *
+     * @param pageId the id for the page
+     * @return {@link tds.exam.ExamPage} if found otherwise empty
+     */
+    Optional<ExamPage> find(final UUID pageId);
+
+    /**
      * Fetch an {@link tds.exam.ExamPage} with its collection of {@link tds.exam.ExamItem}s.
      *
      * @param examId   the id of the {@link tds.exam.Exam} that the {@link tds.exam.ExamPage} corresponds to

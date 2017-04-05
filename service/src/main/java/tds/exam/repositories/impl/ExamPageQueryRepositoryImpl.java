@@ -8,6 +8,7 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
@@ -28,8 +29,29 @@ import tds.exam.repositories.ExamPageQueryRepository;
 @Repository
 public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
-    private final static ExamPageRowMapper examPageRowMapper = new ExamPageRowMapper();
-    private final static ExamPageResultSetExtractor examPageResultExtractor = new ExamPageResultSetExtractor();
+    private static final ExamPageRowMapper examPageRowMapper = new ExamPageRowMapper();
+    private static final ExamPageResultSetExtractor examPageResultExtractor = new ExamPageResultSetExtractor();
+
+    private static final String EXAM_PAGE_STANDARD_SELECT = "SELECT \n" +
+        "   P.id, \n" +
+        "   P.page_position, \n" +
+        "   P.item_group_key, \n" +
+        "   P.exam_id, \n" +
+        "   P.created_at, \n" +
+        "   PE.started_at \n" +
+        "FROM \n" +
+        "   exam_page P\n" +
+        "JOIN ( \n" +
+        "   SELECT \n" +
+        "       exam_page_id, \n" +
+        "       MAX(id) AS id \n" +
+        "   FROM \n" +
+        "       exam_page_event \n" +
+        "   GROUP BY exam_page_id \n" +
+        ") last_event \n" +
+        "   ON P.id = last_event.exam_page_id \n" +
+        "JOIN exam_page_event PE \n" +
+        "   ON last_event.id = PE.id \n";
 
     @Autowired
     public ExamPageQueryRepositoryImpl(@Qualifier("queryJdbcTemplate") final NamedParameterJdbcTemplate queryJdbcTemplate) {
@@ -72,34 +94,33 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
 
     @Override
     public Optional<ExamPage> find(final UUID examId, final int position) {
-        final MapSqlParameterSource parameters = new MapSqlParameterSource("examId", examId.toString())
+        final SqlParameterSource parameters = new MapSqlParameterSource("examId", examId.toString())
             .addValue("position", position);
 
-        final String SQL =
-            "SELECT \n" +
-                "   P.id, \n" +
-                "   P.page_position, \n" +
-                "   P.item_group_key, \n" +
-                "   P.exam_id, \n" +
-                "   P.created_at, \n" +
-                "   PE.started_at \n" +
-                "FROM \n" +
-                "   exam_page P\n" +
-                "JOIN ( \n" +
-                "   SELECT \n" +
-                "       exam_page_id, \n" +
-                "       MAX(id) AS id \n" +
-                "   FROM \n" +
-                "       exam_page_event \n" +
-                "   GROUP BY exam_page_id \n" +
-                ") last_event \n" +
-                "   ON P.id = last_event.exam_page_id \n" +
-                "JOIN exam_page_event PE \n" +
-                "   ON last_event.id = PE.id \n" +
-                "WHERE \n" +
+        final String SQL = EXAM_PAGE_STANDARD_SELECT +
+                " WHERE \n" +
                 "   P.exam_id = :examId " +
                 "   AND P.page_position = :position \n" +
                 "   AND PE.deleted_at IS NULL";
+
+        Optional<ExamPage> maybeExamPage;
+        try {
+            maybeExamPage = Optional.of(jdbcTemplate.queryForObject(SQL, parameters, examPageRowMapper));
+        } catch (EmptyResultDataAccessException e) {
+            maybeExamPage = Optional.empty();
+        }
+
+        return maybeExamPage;
+    }
+
+    @Override
+    public Optional<ExamPage> find(final UUID pageId) {
+        final SqlParameterSource parameters = new MapSqlParameterSource("id", pageId.toString());
+
+        final String SQL = EXAM_PAGE_STANDARD_SELECT +
+            " WHERE \n" +
+            "   P.id = :id " +
+            "   AND PE.deleted_at IS NULL";
 
         Optional<ExamPage> maybeExamPage;
         try {

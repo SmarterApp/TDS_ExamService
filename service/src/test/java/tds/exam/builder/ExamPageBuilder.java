@@ -27,6 +27,7 @@ public class ExamPageBuilder {
     private Instant createdAt;
     private Instant deletedAt;
     private Instant startedAt;
+    private long duration = 100;
 
     public ExamPage build() {
         return new ExamPage.Builder()
@@ -42,6 +43,7 @@ public class ExamPageBuilder {
             .withCreatedAt(createdAt)
             .withDeletedAt(deletedAt)
             .withStartedAt(startedAt)
+            .withDuration(duration)
             .build();
     }
 
@@ -102,6 +104,11 @@ public class ExamPageBuilder {
 
     public ExamPageBuilder withStartedAt(Instant startedAt) {
         this.startedAt = startedAt;
+        return this;
+    }
+
+    public ExamPageBuilder withDuration(long duration) {
+        this.duration = duration;
         return this;
     }
 }

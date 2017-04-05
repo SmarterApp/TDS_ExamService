@@ -180,3 +180,4 @@ $RECYCLE.BIN/
 **/*.iml
 service/src/main/resources/application.properties
 service/src/test/resources/application.properties
+service/logfile.*
