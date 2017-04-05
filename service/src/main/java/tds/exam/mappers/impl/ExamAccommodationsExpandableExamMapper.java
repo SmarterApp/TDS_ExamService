@@ -1,4 +1,4 @@
-package tds.exam.services.impl;
+package tds.exam.mappers.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -11,8 +11,9 @@ import java.util.stream.Collectors;
 
 import tds.exam.ExamAccommodation;
 import tds.exam.ExpandableExam;
+import tds.exam.ExpandableExamAttributes;
 import tds.exam.services.ExamAccommodationService;
-import tds.exam.services.ExpandableExamMapper;
+import tds.exam.mappers.ExpandableExamMapper;
 
 @Component
 public class ExamAccommodationsExpandableExamMapper implements ExpandableExamMapper {
@@ -24,7 +25,11 @@ public class ExamAccommodationsExpandableExamMapper implements ExpandableExamMap
     }
 
     @Override
-    public void updateExpandableMapper(final Set<String> expandableExamAttributes, final Map<UUID, ExpandableExam.Builder> examBuilders, final UUID sessionId) {
+    public void updateExpandableMapper(final Set<ExpandableExamAttributes> expandableAttributes, final Map<UUID, ExpandableExam.Builder> examBuilders, final UUID sessionId) {
+        if (!expandableAttributes.contains(ExpandableExamAttributes.EXAM_ACCOMMODATIONS)) {
+            return;
+        }
+
         List<ExamAccommodation> examAccommodations =
             examAccommodationService.findApprovedAccommodations(examBuilders.keySet().toArray(new UUID[examBuilders.size()]));
 

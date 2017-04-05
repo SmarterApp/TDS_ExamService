@@ -5,12 +5,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.UUID;
+
 import tds.common.web.exceptions.NotFoundException;
 import tds.exam.Exam;
 import tds.exam.ExamineeAttribute;
 import tds.exam.ExamineeContext;
 import tds.exam.ExamineeRelationship;
 import tds.exam.repositories.ExamineeCommandRepository;
+import tds.exam.repositories.ExamineeQueryRepository;
 import tds.exam.services.ExamineeService;
 import tds.exam.services.StudentService;
 import tds.student.Student;
@@ -18,13 +22,26 @@ import tds.student.Student;
 @Service
 public class ExamineeServiceImpl implements ExamineeService {
     private final ExamineeCommandRepository examineeCommandRepository;
+    private final ExamineeQueryRepository examineeQueryRepository;
     private final StudentService studentService;
 
     @Autowired
     public ExamineeServiceImpl(final ExamineeCommandRepository examineeCommandRepository,
+                               final ExamineeQueryRepository examineeQueryRepository,
                                final StudentService studentService) {
         this.examineeCommandRepository = examineeCommandRepository;
+        this.examineeQueryRepository = examineeQueryRepository;
         this.studentService = studentService;
+    }
+
+    @Override
+    public List<ExamineeAttribute> findAllAttributes(final UUID examId) {
+        return examineeQueryRepository.findAllAttributes(examId);
+    }
+
+    @Override
+    public List<ExamineeRelationship> findAllRelationships(final UUID examId) {
+        return examineeQueryRepository.findAllRelationships(examId);
     }
 
     @Override

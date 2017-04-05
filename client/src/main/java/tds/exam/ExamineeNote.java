@@ -1,5 +1,7 @@
 package tds.exam;
 
+import org.joda.time.Instant;
+
 import java.util.UUID;
 
 import tds.common.util.Preconditions;
@@ -14,6 +16,7 @@ public class ExamineeNote {
     private ExamineeNoteContext context;
     private int itemPosition;
     private String note;
+    private Instant createdAt;
 
     /**
      * Private constructor for frameworks
@@ -27,6 +30,33 @@ public class ExamineeNote {
         this.context = builder.context;
         this.itemPosition = builder.itemPosition;
         this.note = builder.note;
+        this.createdAt = builder.createdAt;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        final ExamineeNote that = (ExamineeNote) o;
+
+        if (id != that.id) return false;
+        if (itemPosition != that.itemPosition) return false;
+        if (!examId.equals(that.examId)) return false;
+        if (context != that.context) return false;
+        if (!note.equals(that.note)) return false;
+        return createdAt != null ? createdAt.equals(that.createdAt) : that.createdAt == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (int) (id ^ (id >>> 32));
+        result = 31 * result + examId.hashCode();
+        result = 31 * result + context.hashCode();
+        result = 31 * result + itemPosition;
+        result = 31 * result + note.hashCode();
+        result = 31 * result + (createdAt != null ? createdAt.hashCode() : 0);
+        return result;
     }
 
     public static class Builder {
@@ -35,6 +65,7 @@ public class ExamineeNote {
         private ExamineeNoteContext context;
         private int itemPosition;
         private String note;
+        private Instant createdAt;
 
         public Builder withId(final long id) {
             this.id = id;
@@ -64,6 +95,11 @@ public class ExamineeNote {
             return this;
         }
 
+        public Builder withCreatedAt(final Instant createdAt) {
+            this.createdAt = createdAt;
+            return this;
+        }
+
         public ExamineeNote build() {
             // RULE:  If the note is in the context of an exam, the position should be set to 0.  Item position is not
             // relevant to Exam-level notes
@@ -80,7 +116,8 @@ public class ExamineeNote {
                 .withExamId(examineeNote.examId)
                 .withContext(examineeNote.context)
                 .withItemPosition(examineeNote.itemPosition)
-                .withNote(examineeNote.note);
+                .withNote(examineeNote.note)
+                .withCreatedAt(examineeNote.createdAt);
         }
     }
 
@@ -122,5 +159,12 @@ public class ExamineeNote {
      */
     public String getNote() {
         return note;
+    }
+
+    /**
+     * @return The {@link org.joda.time.Instant} the note was created at
+     */
+    public Instant getCreatedAt() {
+        return createdAt;
     }
 }

@@ -1,5 +1,6 @@
 package tds.exam.repositories;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -16,4 +17,12 @@ public interface ExamineeNoteQueryRepository {
      * @return The {@link tds.exam.ExamineeNote} with an {@link tds.exam.ExamineeNoteContext} of "exam"
      */
     Optional<ExamineeNote> findNoteInExamContext(final UUID examId);
+
+    /**
+     * Finds all {@link tds.exam.ExamineeNote} for the specified {@link tds.exam.Exam}
+     *
+     * @param examId
+     * @return the {@link tds.exam.ExamineeNote}s for the {@link tds.exam.Exam}
+     */
+    List<ExamineeNote> findAllNotes(final UUID examId);
 }

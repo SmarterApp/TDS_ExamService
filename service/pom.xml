@@ -11,7 +11,7 @@
     <parent>
         <groupId>org.opentestsystem.delivery</groupId>
         <artifactId>tds-exam</artifactId>
-        <version>0.0.9-SNAPSHOT</version>
+        <version>0.0.10-SNAPSHOT</version>
     </parent>
 
     <properties>
@@ -195,6 +195,28 @@
             <artifactId>spring-context-support</artifactId>
             <version>4.3.2.RELEASE</version>
         </dependency>
+
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+            <version>1.1.11</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.1.11</version>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.janino</groupId>
+            <artifactId>janino</artifactId>
+            <version>2.6.1</version>
+        </dependency>
+        <dependency>
+            <groupId>net.logstash.logback</groupId>
+            <artifactId>logstash-logback-encoder</artifactId>
+            <version>4.8</version>
+        </dependency>
+
     </dependencies>
 
     <profiles>

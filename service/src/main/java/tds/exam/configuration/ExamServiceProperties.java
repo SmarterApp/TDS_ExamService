@@ -69,7 +69,7 @@ public class ExamServiceProperties {
     }
 
     public void setAssessmentUrl(String assessmentUrl) {
-        if (studentUrl == null) throw new IllegalArgumentException("asssessmentUrl cannot be null");
+        if (assessmentUrl == null) throw new IllegalArgumentException("asssessmentUrl cannot be null");
         this.assessmentUrl = removeTrailingSlash(assessmentUrl);
     }
 

@@ -1,7 +1,9 @@
 /***********************************************************************************************************************
-  File: V1490996512__exam_add_session_to_qa_testeecomment_view.sql
+  File: V1491009051__exam_update_qa_testeecomment_view.sql
 
-  Desc: Get the session_id for the exam to which the examinee note(s) are associated
+  Desc: Update the qa_session_testeecomment view to be MySQL 5.6 compliant.  MySQL versions < 5.7 do not allow
+  subqueries in views, meaning the normal approach to getting the most recent event record will not work.  The
+  qa_session_testeecomment view has been updated to use another view that will get the most recent exam_event record.
 
 ***********************************************************************************************************************/
 USE exam;
@@ -15,20 +17,13 @@ CREATE OR REPLACE VIEW qa_session_testeecomment AS
     note.note AS comment,
     note.created_at AS `date`,
     note.context AS context,
-    last_event.session_id AS _fk_session,
+    event.session_id AS _fk_session,
     'not migrated' AS groupid
   FROM
     examinee_note AS note
-  JOIN (
-    SELECT
-      exam_id,
-      session_id,
-      MAX(id) AS id
-    FROM
-      exam.exam_event
-    GROUP BY
-      exam_id,
-      session_id
-  ) AS last_event
-  ON
-    note.exam_id = last_event.exam_id;
+  JOIN
+    qa_exam_most_recent_event_per_exam AS last_event
+    ON note.exam_id = last_event.exam_id
+  JOIN
+	  exam_event AS event
+	  ON last_event.id = event.id;

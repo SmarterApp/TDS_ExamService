@@ -1,4 +1,4 @@
-package tds.exam.services.impl;
+package tds.exam.services.impl.mappers.impl;
 
 import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
@@ -15,7 +15,8 @@ import tds.exam.ExamPrintRequest;
 import tds.exam.ExpandableExamPrintRequest;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.services.ExamService;
-import tds.exam.services.ExpandableExamPrintRequestMapper;
+import tds.exam.mappers.ExpandableExamPrintRequestMapper;
+import tds.exam.mappers.impl.ExamExpandableExamPrintRequestMapper;
 
 import static io.github.benas.randombeans.api.EnhancedRandom.random;
 import static org.mockito.Mockito.verify;

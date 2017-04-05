@@ -5,7 +5,7 @@
     <artifactId>tds-exam</artifactId>
     <name>tds-exam</name>
     <packaging>pom</packaging>
-    <version>0.0.9-SNAPSHOT</version>
+    <version>0.0.10-SNAPSHOT</version>
 
     <modules>
         <module>client</module>
@@ -29,7 +29,7 @@
         <joda-time.version>2.9.5</joda-time.version>
         <spring.cloud.config.version>1.2.3.RELEASE</spring.cloud.config.version>
 
-        <tds-common.version>0.0.6</tds-common.version>
+        <tds-common.version>0.0.7</tds-common.version>
         <tds-common-legacy.version>0.0.5</tds-common-legacy.version>
         <tds-session.version>0.0.2</tds-session.version>
         <tds-assessment-client.version>0.0.6</tds-assessment-client.version>
