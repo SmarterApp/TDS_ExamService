@@ -52,14 +52,14 @@ public interface ExamPrintRequestService {
     /**
      * Updates and fetches and {@link tds.exam.ExpandableExamPrintRequest} with the specified additional parameters
      *
-     * @param status The {@link tds.exam.ExamPrintRequestStatus} of the request - either approved or denied
-     * @param id     The id of the {@link tds.exam.ExamPrintRequest} being denied
-     * @param reason The reason for the denial of the request
-     * @param embed  Optional embedded parameters for retrieving additional data
+     * @param status               The {@link tds.exam.ExamPrintRequestStatus} of the request - either approved or denied
+     * @param id                   The id of the {@link tds.exam.ExamPrintRequest} being denied
+     * @param reason               The reason for the denial of the request
+     * @param expandableProperties Optional expandable parameters for retrieving additional data
      * @return The approved/denied {@link tds.exam.ExamPrintRequest}
      */
     Optional<ExpandableExamPrintRequest> updateAndGetRequest(final ExamPrintRequestStatus status, final UUID id, final String reason,
-                                                             final String... embed);
+                                                             final String... expandableProperties);
 
     /**
      * Retrieves a list of approved requests for the session.

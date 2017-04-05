@@ -8,19 +8,6 @@
         </encoder>
     </appender>
 
-    <appender name="filelog" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${logfile.directory}/${CONTEXT_NAME}.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <!-- daily rollover -->
-            <fileNamePattern>${logfile.directory}/${CONTEXT_NAME}.log.%d{yyyy-MM-dd}.gz</fileNamePattern>
-            <maxHistory>28</maxHistory>
-        </rollingPolicy>
-        <encoder>
-            <!--<pattern>%d{HH:mm:ss.SSS} [%X{request.id},%X{request.context},%X{request.user}] %-5level %logger{36} - %msg%n</pattern>-->
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
-        </encoder>
-    </appender>
-
     <if condition='isDefined("LOGSTASH_DESTINATION")'>
         <then>
             <!-- log warnings and errors to logstash -->

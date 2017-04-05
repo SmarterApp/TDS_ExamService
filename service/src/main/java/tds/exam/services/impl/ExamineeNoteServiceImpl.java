@@ -3,6 +3,7 @@ package tds.exam.services.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -26,6 +27,11 @@ public class ExamineeNoteServiceImpl implements ExamineeNoteService {
     @Override
     public Optional<ExamineeNote> findNoteInExamContext(final UUID examId) {
         return examineeNoteQueryRepository.findNoteInExamContext(examId);
+    }
+
+    @Override
+    public List<ExamineeNote> findAllNotes(final UUID examId) {
+        return examineeNoteQueryRepository.findAllNotes(examId);
     }
 
     @Override

@@ -21,7 +21,7 @@ import tds.exam.ExpandableExamPrintRequest;
 import tds.exam.repositories.ExamPrintRequestCommandRepository;
 import tds.exam.repositories.ExamPrintRequestQueryRepository;
 import tds.exam.services.ExamPrintRequestService;
-import tds.exam.services.ExpandableExamPrintRequestMapper;
+import tds.exam.mappers.ExpandableExamPrintRequestMapper;
 
 @Service
 public class ExamPrintRequestServiceImpl implements ExamPrintRequestService {
@@ -85,8 +85,8 @@ public class ExamPrintRequestServiceImpl implements ExamPrintRequestService {
 
     @Override
     public Optional<ExpandableExamPrintRequest> updateAndGetRequest(final ExamPrintRequestStatus status, final UUID id, final String reason,
-                                                                    final String... embed) {
-        final Set<String> expandableExamAttributes = (embed == null ? new HashSet<>() : Sets.newHashSet(embed));
+                                                                    final String... expandableProperties) {
+        final Set<String> expandableExamAttributes = (expandableProperties == null ? new HashSet<>() : Sets.newHashSet(expandableProperties));
         final Optional<ExamPrintRequest> maybePrintRequest = examPrintRequestQueryRepository.findExamPrintRequest(id);
 
         if (!maybePrintRequest.isPresent()) {

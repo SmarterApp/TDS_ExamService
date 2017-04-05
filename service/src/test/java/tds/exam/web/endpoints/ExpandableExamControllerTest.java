@@ -17,6 +17,7 @@ import java.util.UUID;
 import tds.exam.Exam;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExpandableExam;
+import tds.exam.ExpandableExamAttributes;
 import tds.exam.services.ExpandableExamService;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,11 +40,11 @@ public class ExpandableExamControllerTest {
     public void shouldFindExpandableExamsForSession() {
         UUID sessionId = UUID.randomUUID();
         Set<String> statuses = Sets.newHashSet(ExamStatusCode.STATUS_APPROVED);
-        String embed = "something";
+        ExpandableExamAttributes expandableAttributes = ExpandableExamAttributes.EXAM_ACCOMMODATIONS;
         ExpandableExam exam = new ExpandableExam.Builder(mock(Exam.class)).build();
         List<ExpandableExam> expandableExams = Collections.singletonList(exam);
-        when(mockExpandableService.findExamsBySessionId(sessionId, statuses, embed)).thenReturn(expandableExams);
-        ResponseEntity<List<ExpandableExam>> entity = controller.findExamsForSessionId(sessionId, statuses, embed);
+        when(mockExpandableService.findExamsBySessionId(sessionId, statuses, expandableAttributes)).thenReturn(expandableExams);
+        ResponseEntity<List<ExpandableExam>> entity = controller.findExamsForSessionId(sessionId, statuses, expandableAttributes);
 
         assertThat(entity.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(entity.getBody()).isEqualTo(expandableExams);

@@ -1,4 +1,4 @@
-package tds.exam.services;
+package tds.exam.mappers;
 
 import java.util.Set;
 import java.util.UUID;

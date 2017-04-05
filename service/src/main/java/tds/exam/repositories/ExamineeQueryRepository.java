@@ -12,6 +12,14 @@ import tds.exam.ExamineeRelationship;
  */
 public interface ExamineeQueryRepository {
     /**
+     * Find the {@link tds.exam.ExamineeAttribute}s associated with an {@link tds.exam.Exam} for all contexts
+     *
+     * @param examId  The unique identifier of the {@link tds.exam.Exam}
+     * @return A collection of {@link tds.exam.ExamineeAttribute}s for the specified {@link tds.exam.ExamineeContext}
+     */
+    List<ExamineeAttribute> findAllAttributes(UUID examId);
+
+    /**
      * Find the {@link tds.exam.ExamineeAttribute}s associated with an {@link tds.exam.Exam} for the specified
      * {@link tds.exam.ExamineeContext}
      *
@@ -20,6 +28,14 @@ public interface ExamineeQueryRepository {
      * @return A collection of {@link tds.exam.ExamineeAttribute}s for the specified {@link tds.exam.ExamineeContext}
      */
     List<ExamineeAttribute> findAllAttributes(final UUID examId, final ExamineeContext context);
+
+    /**
+     * Find the {@link tds.exam.ExamineeRelationship}s associated with an {@link tds.exam.Exam}
+     *
+     * @param examId  The unique identifier of the {@link tds.exam.Exam}
+     * @return A collection of {@link tds.exam.ExamineeRelationship}s for the specified {@link tds.exam.ExamineeContext}
+     */
+    List<ExamineeRelationship> findAllRelationships(UUID examId);
 
     /**
      * Find the {@link tds.exam.ExamineeRelationship}s associated with an {@link tds.exam.Exam} for the specified

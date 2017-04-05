@@ -1,20 +1,28 @@
 package tds.exam;
 
+import org.joda.time.Instant;
+
 import java.util.List;
 
 /**
  * A model representing an {@link tds.exam.Exam} as well as other optional exam-specific data
  */
 public class ExpandableExam {
-    public static final String EXPANDABLE_PARAMS_EXAM_ACCOMMODATIONS = "examAccommodations";
-    public static final String EXPANDABLE_PARAMS_ITEM_RESPONSE_COUNT = "itemsResponseCount";
-    public static final String EXPANDABLE_PARAMS_UNFULFILLED_REQUEST_COUNT = "unfulfilledRequestCount";
-
     private Exam exam;
     private int itemsResponseCount;
     private int requestCount;
     private List<ExamAccommodation> examAccommodations;
+    private List<ExamSegment> examSegments;
+    private List<ExamPage> examPages;
+    private List<ExamItem> examItems;
+    private List<ExamItemResponse> examItemResponses;
+    private List<ExamineeNote> examineeNotes;
+    private List<ExamineeAttribute> examineeAttributes;
+    private List<ExamineeRelationship> examineeRelationships;
     private boolean multiStageBraille;
+    private Instant startedAt;
+    private Instant completedAt;
+    private Instant forceCompletedAt;
 
     /* Empty private constructor for frameworks */
     private ExpandableExam() {}
@@ -22,17 +30,37 @@ public class ExpandableExam {
     public ExpandableExam(Builder builder) {
         this.exam = builder.exam;
         this.examAccommodations = builder.examAccommodations;
+        this.examSegments = builder.examSegments;
+        this.examPages = builder.examPages;
+        this.examItems = builder.examItems;
+        this.examItemResponses = builder.examItemResponses;
+        this.examineeNotes = builder.examineeNotes;
+        this.examineeAttributes = builder.examineeAttributes;
+        this.examineeRelationships = builder.examineeRelationships;
         this.itemsResponseCount = builder.itemsResponseCount;
         this.requestCount = builder.requestCount;
         this.multiStageBraille = builder.multiStageBraille;
+        this.startedAt = builder.startedAt;
+        this.completedAt = builder.completedAt;
+        this.forceCompletedAt = builder.forceCompletedAt;
     }
 
     public static class Builder {
         private Exam exam;
         private List<ExamAccommodation> examAccommodations;
+        private List<ExamSegment> examSegments;
+        private List<ExamPage> examPages;
+        private List<ExamItem> examItems;
+        private List<ExamItemResponse> examItemResponses;
+        private List<ExamineeNote> examineeNotes;
+        private List<ExamineeAttribute> examineeAttributes;
+        private List<ExamineeRelationship> examineeRelationships;
         private int itemsResponseCount;
         private int requestCount;
         private boolean multiStageBraille;
+        private Instant startedAt;
+        private Instant completedAt;
+        private Instant forceCompletedAt;
 
         public Builder(Exam exam) {
             this.exam = exam;
@@ -40,6 +68,41 @@ public class ExpandableExam {
 
         public Builder withExamAccommodations(List<ExamAccommodation> examAccommodations) {
             this.examAccommodations = examAccommodations;
+            return this;
+        }
+
+        public Builder withExamSegments(List<ExamSegment> examSegments) {
+            this.examSegments = examSegments;
+            return this;
+        }
+
+        public Builder withExamPages(List<ExamPage> examPages) {
+            this.examPages = examPages;
+            return this;
+        }
+
+        public Builder withExamItems(List<ExamItem> examItems) {
+            this.examItems = examItems;
+            return this;
+        }
+
+        public Builder withExamItemResponses(List<ExamItemResponse> examItemResponses) {
+            this.examItemResponses = examItemResponses;
+            return this;
+        }
+
+        public Builder withExamineeNotes(List<ExamineeNote> examineeNotes) {
+            this.examineeNotes = examineeNotes;
+            return this;
+        }
+
+        public Builder withExamineeAttributes(List<ExamineeAttribute> examineeAttributes) {
+            this.examineeAttributes = examineeAttributes;
+            return this;
+        }
+
+        public Builder withExamineeRelationship(List<ExamineeRelationship> examineeRelationships) {
+            this.examineeRelationships = examineeRelationships;
             return this;
         }
 
@@ -55,6 +118,21 @@ public class ExpandableExam {
 
         public Builder withMultiStageBraille(boolean multiStageBraille) {
             this.multiStageBraille = multiStageBraille;
+            return this;
+        }
+
+        public Builder withStartedAt(Instant startedAt) {
+            this.startedAt = startedAt;
+            return this;
+        }
+
+        public Builder withCompletedAt(Instant completedAt) {
+            this.completedAt = completedAt;
+            return this;
+        }
+
+        public Builder withForceCompletedAt(Instant forceCompletedAt) {
+            this.forceCompletedAt = forceCompletedAt;
             return this;
         }
 
@@ -96,5 +174,75 @@ public class ExpandableExam {
      */
     public boolean isMultiStageBraille() {
         return multiStageBraille;
+    }
+
+    /**
+     * @return The exam segments for the given examId
+     */
+    public List<ExamSegment> getExamSegments() {
+        return examSegments;
+    }
+
+    /**
+     * @return The exam pages for the given examId
+     */
+    public List<ExamPage> getExamPages() {
+        return examPages;
+    }
+
+    /**
+     * @return The exam items for the given examId
+     */
+    public List<ExamItem> getExamItems() {
+        return examItems;
+    }
+
+    /**
+     * @return The exam item responses for the given examId
+     */
+    public List<ExamItemResponse> getExamItemResponses() {
+        return examItemResponses;
+    }
+
+    /**
+     * @return The examinee notes for the given examId
+     */
+    public List<ExamineeNote> getExamineeNotes() {
+        return examineeNotes;
+    }
+
+    /**
+     * @return The examinee attributes
+     */
+    public List<ExamineeAttribute> getExamineeAttributes() {
+        return examineeAttributes;
+    }
+
+    /**
+     * @return The exam relationships for the given examId
+     */
+    public List<ExamineeRelationship> getExamineeRelationships() {
+        return examineeRelationships;
+    }
+
+    /**
+     * @return the {@link org.joda.time.Instant} the exam was started at
+     */
+    public Instant getStartedAt() {
+        return startedAt;
+    }
+
+    /**
+     * @return the {@link org.joda.time.Instant} the exam was completed at
+     */
+    public Instant getCompletedAt() {
+        return completedAt;
+    }
+
+    /**
+     * @return the {@link org.joda.time.Instant} the exam was force-completed at
+     */
+    public Instant getForceCompletedAt() {
+        return forceCompletedAt;
     }
 }
