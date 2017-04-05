@@ -1,6 +1,5 @@
 package tds.exam;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Optional;
 
 import java.util.UUID;
@@ -227,15 +226,5 @@ public class ExamItem {
      */
     public Optional<ExamItemResponse> getResponse() {
         return Optional.fromNullable(response);
-    }
-
-    @JsonIgnore
-    public boolean isRepsonsePresent() {
-        return response != null;
-    }
-
-    @JsonIgnore
-    public boolean isItemScorePresent() {
-        return response != null && response.getScore().isPresent();
     }
 }
