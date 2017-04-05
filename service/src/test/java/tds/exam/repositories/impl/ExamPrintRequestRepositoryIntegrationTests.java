@@ -26,6 +26,7 @@ import tds.exam.ExamPrintRequestStatus;
 import tds.exam.ExamSegment;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.builder.ExamItemBuilder;
+import tds.exam.builder.ExamItemResponseBuilder;
 import tds.exam.builder.ExamSegmentBuilder;
 import tds.exam.repositories.ExamCommandRepository;
 import tds.exam.repositories.ExamItemCommandRepository;
@@ -113,17 +114,17 @@ public class ExamPrintRequestRepositoryIntegrationTests {
             .build();
         examItemCommandRepository.insert(itemWithoutResponses, itemWithResponses);
 
-        ExamItemResponse examItemResponse1 = new ExamItemResponse.Builder()
-            .fromExamItemResponse(random(ExamItemResponse.class))
+        ExamItemResponse examItemResponse1 = new ExamItemResponseBuilder()
             .withCreatedAt(Instant.now().minus(20000))
             .withExamItemId(itemWithResponses.getId())
+            .withSequence(1)
             .build();
 
         examItemCommandRepository.insertResponses(examItemResponse1);
 
-        ExamItemResponse examItemResponse2 = new ExamItemResponse.Builder()
-            .fromExamItemResponse(random(ExamItemResponse.class))
+        ExamItemResponse examItemResponse2 = new ExamItemResponseBuilder()
             .withExamItemId(itemWithResponses.getId())
+            .withSequence(1)
             .build();
 
         examItemCommandRepository.insertResponses(examItemResponse2);
