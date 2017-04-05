@@ -20,11 +20,10 @@ import tds.exam.ExamAccommodation;
 import tds.exam.ExamSegment;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamineeAttribute;
-import tds.exam.ExamineeContext;
 import tds.exam.ExamineeNote;
 import tds.exam.ExamineeRelationship;
 import tds.exam.ExpandableExam;
-import tds.exam.ExpandableExamParameters;
+import tds.exam.ExpandableExamAttributes;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.services.ExamAccommodationService;
 import tds.exam.services.ExamItemService;
@@ -34,15 +33,15 @@ import tds.exam.services.ExamSegmentService;
 import tds.exam.services.ExamStatusService;
 import tds.exam.services.ExamineeNoteService;
 import tds.exam.services.ExamineeService;
-import tds.exam.services.mappers.ExpandableExamMapper;
-import tds.exam.services.mappers.impl.ExamAccommodationsExpandableExamMapper;
-import tds.exam.services.mappers.impl.ExamPageItemResponseExpandableExamMapper;
-import tds.exam.services.mappers.impl.ExamSegmentExpandableExamMapper;
-import tds.exam.services.mappers.impl.ExamStatusExpandableExamMapper;
-import tds.exam.services.mappers.impl.ExamineeAttributesExpandableExamMapper;
-import tds.exam.services.mappers.impl.ExamineeNotesExpandableExamMapper;
-import tds.exam.services.mappers.impl.ItemResponseExpandableExamMapper;
-import tds.exam.services.mappers.impl.PrintRequestsExpandableExamMapper;
+import tds.exam.mappers.ExpandableExamMapper;
+import tds.exam.mappers.impl.ExamAccommodationsExpandableExamMapper;
+import tds.exam.mappers.impl.ExamPageItemResponseExpandableExamMapper;
+import tds.exam.mappers.impl.ExamSegmentExpandableExamMapper;
+import tds.exam.mappers.impl.ExamStatusExpandableExamMapper;
+import tds.exam.mappers.impl.ExamineeAttributesExpandableExamMapper;
+import tds.exam.mappers.impl.ExamineeNotesExpandableExamMapper;
+import tds.exam.mappers.impl.ItemResponseExpandableExamMapper;
+import tds.exam.mappers.impl.PrintRequestsExpandableExamMapper;
 
 import static io.github.benas.randombeans.api.EnhancedRandom.random;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -64,18 +63,18 @@ public class ExpandableExamMappersTest {
     private ExpandableExamMapper examStatusExpandableExamMapper;
     private ExpandableExamMapper examPageItemResponseExpandableExamMapper;
 
-    private final Set<ExpandableExamParameters> expandableExamAttributes = ImmutableSet.of(
-        ExpandableExamParameters.EXPANDABLE_PARAMS_EXAM_ACCOMMODATIONS,
-        ExpandableExamParameters.EXPANDABLE_PARAMS_ITEM_RESPONSE_COUNT,
-        ExpandableExamParameters.EXPANDABLE_PARAMS_UNFULFILLED_REQUEST_COUNT
+    private final Set<ExpandableExamAttributes> expandableExamAttributes = ImmutableSet.of(
+        ExpandableExamAttributes.EXAM_ACCOMMODATIONS,
+        ExpandableExamAttributes.ITEM_RESPONSE_COUNT,
+        ExpandableExamAttributes.UNFULFILLED_REQUEST_COUNT
     );
 
-    private final Set<ExpandableExamParameters> expandableExamParametersTrt = ImmutableSet.of(
-        ExpandableExamParameters.EXPANDABLE_PARAMS_EXAM_SEGMENTS,
-        ExpandableExamParameters.EXPANDABLE_PARAMS_EXAM_NOTES,
-        ExpandableExamParameters.EXPANDABLE_PARAMS_EXAMINEE_ATTRIBUTES_AND_RELATIONSHIPS,
-        ExpandableExamParameters.EXPANDABLE_PARAMS_EXAM_PAGE_AND_ITEMS,
-        ExpandableExamParameters.EXPANDABLE_PARAMS_EXAM_STATUS_DATES
+    private final Set<ExpandableExamAttributes> expandableExamParametersTrt = ImmutableSet.of(
+        ExpandableExamAttributes.EXAM_SEGMENTS,
+        ExpandableExamAttributes.EXAM_NOTES,
+        ExpandableExamAttributes.EXAMINEE_ATTRIBUTES_AND_RELATIONSHIPS,
+        ExpandableExamAttributes.EXAM_PAGE_AND_ITEMS,
+        ExpandableExamAttributes.EXAM_STATUS_DATES
     );
 
     @Mock
@@ -249,15 +248,15 @@ public class ExpandableExamMappersTest {
         List<ExamineeAttribute> examineeAttributes = Arrays.asList(random(ExamineeAttribute.class));
         List<ExamineeRelationship> examineeRelationships = Arrays.asList(random(ExamineeRelationship.class));
 
-        when(mockExamineeService.findAllAttributes(exam.getId(), ExamineeContext.FINAL)).thenReturn(examineeAttributes);
-        when(mockExamineeService.findAllRelationships(exam.getId(), ExamineeContext.FINAL)).thenReturn(examineeRelationships);
+        when(mockExamineeService.findAllAttributes(exam.getId())).thenReturn(examineeAttributes);
+        when(mockExamineeService.findAllRelationships(exam.getId())).thenReturn(examineeRelationships);
 
         examineeAttributesExpandableExamMapper.updateExpandableMapper(expandableExamParametersTrt,
             ImmutableMap.of(exam.getId(), expandableExamBuilder), exam.getSessionId()
         );
 
-        verify(mockExamineeService).findAllAttributes(exam.getId(), ExamineeContext.FINAL);
-        verify(mockExamineeService).findAllRelationships(exam.getId(), ExamineeContext.FINAL);
+        verify(mockExamineeService).findAllAttributes(exam.getId());
+        verify(mockExamineeService).findAllRelationships(exam.getId());
 
         ExpandableExam expandableExam = expandableExamBuilder.build();
         assertThat(expandableExam.getExamineeAttributes()).isEqualTo(examineeAttributes);
@@ -272,20 +271,20 @@ public class ExpandableExamMappersTest {
         Instant dateCompleted = Instant.now();
         Instant dateStarted = Instant.now().minus(500);
 
-        when(mockExamStatusService.findDateLastTimeStatus(exam.getId(), ExamStatusCode.STATUS_COMPLETED))
+        when(mockExamStatusService.findRecentTimeAtStatus(exam.getId(), ExamStatusCode.STATUS_COMPLETED))
             .thenReturn(Optional.of(dateCompleted));
-        when(mockExamStatusService.findDateLastTimeStatus(exam.getId(), ExamStatusCode.STATUS_FORCE_COMPLETED))
+        when(mockExamStatusService.findRecentTimeAtStatus(exam.getId(), ExamStatusCode.STATUS_FORCE_COMPLETED))
             .thenReturn(Optional.absent());
-        when(mockExamStatusService.findDateLastTimeStatus(exam.getId(), ExamStatusCode.STATUS_STARTED))
+        when(mockExamStatusService.findRecentTimeAtStatus(exam.getId(), ExamStatusCode.STATUS_STARTED))
             .thenReturn(Optional.of(dateStarted));
 
         examStatusExpandableExamMapper.updateExpandableMapper(expandableExamParametersTrt,
             ImmutableMap.of(exam.getId(), expandableExamBuilder), exam.getSessionId()
         );
 
-        verify(mockExamStatusService).findDateLastTimeStatus(exam.getId(), ExamStatusCode.STATUS_COMPLETED);
-        verify(mockExamStatusService).findDateLastTimeStatus(exam.getId(), ExamStatusCode.STATUS_FORCE_COMPLETED);
-        verify(mockExamStatusService).findDateLastTimeStatus(exam.getId(), ExamStatusCode.STATUS_STARTED);
+        verify(mockExamStatusService).findRecentTimeAtStatus(exam.getId(), ExamStatusCode.STATUS_COMPLETED);
+        verify(mockExamStatusService).findRecentTimeAtStatus(exam.getId(), ExamStatusCode.STATUS_FORCE_COMPLETED);
+        verify(mockExamStatusService).findRecentTimeAtStatus(exam.getId(), ExamStatusCode.STATUS_STARTED);
 
         ExpandableExam expandableExam = expandableExamBuilder.build();
         assertThat(expandableExam.getStartedAt()).isEqualTo(dateStarted);

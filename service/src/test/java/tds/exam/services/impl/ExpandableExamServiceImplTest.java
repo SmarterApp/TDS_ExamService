@@ -17,10 +17,10 @@ import java.util.UUID;
 import tds.exam.Exam;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExpandableExam;
-import tds.exam.ExpandableExamParameters;
+import tds.exam.ExpandableExamAttributes;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.repositories.ExamQueryRepository;
-import tds.exam.services.mappers.ExpandableExamMapper;
+import tds.exam.mappers.ExpandableExamMapper;
 import tds.exam.services.ExpandableExamService;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -59,7 +59,7 @@ public class ExpandableExamServiceImplTest {
         when(mockExamQueryRepository.findAllExamsInSessionWithoutStatus(eq(sessionId), any())).thenReturn(Arrays.asList(exam1, exam2));
 
         List<ExpandableExam> expandableExams = expandableExamService.findExamsBySessionId(sessionId, invalidStatuses,
-            ExpandableExamParameters.EXPANDABLE_PARAMS_EXAM_ACCOMMODATIONS);
+            ExpandableExamAttributes.EXAM_ACCOMMODATIONS);
 
         verify(mockExamQueryRepository).findAllExamsInSessionWithoutStatus(eq(sessionId), any());
         mockExamMappers.forEach(mockMapper -> verify(mockMapper).updateExpandableMapper(any(), any(), any()));
@@ -85,7 +85,7 @@ public class ExpandableExamServiceImplTest {
     public void shouldReturnSingleExpandableExam() {
         Exam exam = new ExamBuilder().build();
         when(mockExamQueryRepository.getExamById(exam.getId())).thenReturn(Optional.of(exam));
-        Optional<ExpandableExam> maybeExpandableExam = expandableExamService.findExam(exam.getId(), ExpandableExamParameters.EXPANDABLE_PARAMS_EXAM_NOTES);
+        Optional<ExpandableExam> maybeExpandableExam = expandableExamService.findExam(exam.getId(), ExpandableExamAttributes.EXAM_NOTES);
         verify(mockExamQueryRepository).getExamById(exam.getId());
         mockExamMappers.forEach(mockMapper -> verify(mockMapper).updateExpandableMapper(any(), any(), any()));
 

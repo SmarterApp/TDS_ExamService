@@ -34,12 +34,11 @@ public class ExamStatusServiceImplTest {
     public void shouldFindExamStatusStartedAt() {
         final Instant now = Instant.now();
         final UUID examId = UUID.randomUUID();
-        when(mockExamStatusQueryRepository.findDateLastTimeStatus(examId, ExamStatusCode.STATUS_STARTED)).thenReturn(Optional.of(now));
-        Optional<Instant> maybeStartDate = examStatusService.findDateLastTimeStatus(examId, ExamStatusCode.STATUS_STARTED);
+        when(mockExamStatusQueryRepository.findRecentTimeAtStatus(examId, ExamStatusCode.STATUS_STARTED)).thenReturn(Optional.of(now));
+        Optional<Instant> maybeStartDate = examStatusService.findRecentTimeAtStatus(examId, ExamStatusCode.STATUS_STARTED);
 
-        verify(mockExamStatusQueryRepository).findDateLastTimeStatus(examId, ExamStatusCode.STATUS_STARTED);
+        verify(mockExamStatusQueryRepository).findRecentTimeAtStatus(examId, ExamStatusCode.STATUS_STARTED);
         assertThat(maybeStartDate.isPresent()).isTrue();
         assertThat(maybeStartDate.get()).isEqualTo(now);
     }
-
 }

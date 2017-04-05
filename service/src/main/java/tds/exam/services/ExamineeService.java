@@ -14,24 +14,20 @@ import tds.student.Student;
  */
 public interface ExamineeService {
     /**
-     * Fetches a list of {@link tds.exam.ExamineeAttribute}s for the given examId and context
+     * Fetches a list of {@link tds.exam.ExamineeAttribute}s for the given examId
      *
      * @param examId          The id of the {@link tds.exam.Exam} for which to fetch attributes for
-     * @param examineeContext The {@link tds.exam.ExamineeContext} that describes the state of the examniee's information when
-     *                        these attributes were collected
      * @return The list of attributes for the given exam and context
      */
-    List<ExamineeAttribute> findAllAttributes(final UUID examId, final ExamineeContext examineeContext);
+    List<ExamineeAttribute> findAllAttributes(final UUID examId);
 
     /**
-     * Fetches a list of {@link tds.exam.ExamineeRelationship}s for the given examId and context
+     * Fetches a list of {@link tds.exam.ExamineeRelationship}s for the given examId
      *
      * @param examId          The id of the {@link tds.exam.Exam} for which to fetch relationships for
-     * @param examineeContext The {@link tds.exam.ExamineeContext} that describes the state of the examniee's information when
-     *                        these relationships were collected
      * @return The list of attributes for the given exam and context
      */
-    List<ExamineeRelationship> findAllRelationships(final UUID examId, final ExamineeContext examineeContext);
+    List<ExamineeRelationship> findAllRelationships(final UUID examId);
 
     /**
      * Insert the {@link tds.exam.ExamineeAttribute}s and {@link tds.exam.ExamineeRelationship}s for this

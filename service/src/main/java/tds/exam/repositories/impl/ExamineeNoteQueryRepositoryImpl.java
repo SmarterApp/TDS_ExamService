@@ -19,6 +19,8 @@ import tds.exam.ExamineeNote;
 import tds.exam.ExamineeNoteContext;
 import tds.exam.repositories.ExamineeNoteQueryRepository;
 
+import static tds.common.data.mapping.ResultSetMapperUtility.mapTimestampToJodaInstant;
+
 @Repository
 public class ExamineeNoteQueryRepositoryImpl implements ExamineeNoteQueryRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
@@ -39,7 +41,8 @@ public class ExamineeNoteQueryRepositoryImpl implements ExamineeNoteQueryReposit
                 "   exam_id, \n" +
                 "   context, \n" +
                 "   item_position, \n" +
-                "   note \n" +
+                "   note, \n" +
+                "   created_at \n" +
                 "FROM \n" +
                 "   examinee_note \n" +
                 "WHERE \n" +
@@ -68,7 +71,8 @@ public class ExamineeNoteQueryRepositoryImpl implements ExamineeNoteQueryReposit
                 "   note.exam_id, \n" +
                 "   note.context, \n" +
                 "   note.item_position, \n" +
-                "   note.note \n" +
+                "   note.note, \n" +
+                "   note.created_at \n" +
                 "FROM \n" +
                 "   examinee_note note \n" +
                 "INNER JOIN ( \n" +
@@ -84,7 +88,9 @@ public class ExamineeNoteQueryRepositoryImpl implements ExamineeNoteQueryReposit
                 ") last_note \n" +
                 "   ON last_note.id = note.id \n" +
                 "WHERE \n" +
-                "   note.exam_id = :examId";
+                "   note.exam_id = :examId \n" +
+                "ORDER BY \n" +
+                "   note.item_position";
 
         return jdbcTemplate.query(SQL, parameters, examineeNoteRowMapper);
     }
@@ -98,6 +104,7 @@ public class ExamineeNoteQueryRepositoryImpl implements ExamineeNoteQueryReposit
                 .withContext(ExamineeNoteContext.fromType(rs.getString("context")))
                 .withItemPosition(rs.getInt("item_position"))
                 .withNote(rs.getString("note"))
+                .withCreatedAt(mapTimestampToJodaInstant(rs, "created_at"))
                 .build();
         }
     }

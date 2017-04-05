@@ -35,13 +35,13 @@ public class ExamineeServiceImpl implements ExamineeService {
     }
 
     @Override
-    public List<ExamineeAttribute> findAllAttributes(final UUID examId, final ExamineeContext examineeContext) {
-        return examineeQueryRepository.findAllAttributes(examId, examineeContext);
+    public List<ExamineeAttribute> findAllAttributes(final UUID examId) {
+        return examineeQueryRepository.findAllAttributes(examId);
     }
 
     @Override
-    public List<ExamineeRelationship> findAllRelationships(final UUID examId, final ExamineeContext examineeContext) {
-        return examineeQueryRepository.findAllRelationships(examId, examineeContext);
+    public List<ExamineeRelationship> findAllRelationships(final UUID examId) {
+        return examineeQueryRepository.findAllRelationships(examId);
     }
 
     @Override

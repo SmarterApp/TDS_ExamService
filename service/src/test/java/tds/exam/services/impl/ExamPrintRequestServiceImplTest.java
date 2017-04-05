@@ -20,7 +20,7 @@ import tds.exam.ExpandableExamPrintRequest;
 import tds.exam.repositories.ExamPrintRequestCommandRepository;
 import tds.exam.repositories.ExamPrintRequestQueryRepository;
 import tds.exam.services.ExamPrintRequestService;
-import tds.exam.services.mappers.ExpandableExamPrintRequestMapper;
+import tds.exam.mappers.ExpandableExamPrintRequestMapper;
 
 import static io.github.benas.randombeans.api.EnhancedRandom.random;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;

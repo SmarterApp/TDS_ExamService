@@ -24,11 +24,16 @@ public class ExamineeQueryRepositoryImpl implements ExamineeQueryRepository {
     }
 
     @Override
+    public List<ExamineeAttribute> findAllAttributes(final UUID examId) {
+        return findAllAttributes(examId, null);
+    }
+
+    @Override
     public List<ExamineeAttribute> findAllAttributes(final UUID examId, final ExamineeContext context) {
         final SqlParameterSource parameters = new MapSqlParameterSource("examId", examId.toString())
-            .addValue("context", context.toString());
+            .addValue("context", context != null ? context.toString() : null);
 
-        final String SQL =
+        String SQL =
             "SELECT \n" +
                 "   attribute.id, \n" +
                 "   attribute.exam_id, \n" +
@@ -54,8 +59,12 @@ public class ExamineeQueryRepositoryImpl implements ExamineeQueryRepository {
                 "   ON \n" +
                 "       most_recent_record.id = attribute.id \n" +
                 "WHERE \n" +
-                "   attribute.exam_id = :examId	\n" +
-                "   AND attribute.context = :context";
+                "   attribute.exam_id = :examId	\n";
+
+        // If context isn't included, just fetch all records for this exam
+        if (context != null) {
+            SQL += "   AND attribute.context = :context";
+        }
 
         return jdbcTemplate.query(SQL, parameters, (rs, r) -> new ExamineeAttribute.Builder()
             .withId(rs.getLong("id"))
@@ -68,11 +77,16 @@ public class ExamineeQueryRepositoryImpl implements ExamineeQueryRepository {
     }
 
     @Override
+    public List<ExamineeRelationship> findAllRelationships(final UUID examId) {
+        return findAllRelationships(examId, null);
+    }
+
+    @Override
     public List<ExamineeRelationship> findAllRelationships(final UUID examId, final ExamineeContext context) {
         final SqlParameterSource parameters = new MapSqlParameterSource("examId", examId.toString())
-            .addValue("context", context.toString());
+            .addValue("context", context != null ? context.toString() : null);
 
-        final String SQL =
+        String SQL =
             "SELECT \n" +
                 "   relationship.id, \n" +
                 "   relationship.exam_id, \n" +
@@ -100,8 +114,11 @@ public class ExamineeQueryRepositoryImpl implements ExamineeQueryRepository {
                 "   ON \n" +
                 "       most_recent_record.id = relationship.id \n" +
                 "WHERE \n" +
-                "   relationship.exam_id = :examId \n" +
-                "   AND relationship.context = :context";
+                "   relationship.exam_id = :examId \n";
+
+        if (context != null) {
+            SQL +=  "   AND relationship.context = :context";
+        }
 
         return jdbcTemplate.query(SQL, parameters, (rs, r) -> new ExamineeRelationship.Builder()
             .withId(rs.getLong("id"))

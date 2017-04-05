@@ -160,7 +160,7 @@ public class ExamPrintRequestControllerIntegrationTests {
 
         http.perform(put("/exam/print/approve/{id}", id)
             .contentType(MediaType.APPLICATION_JSON)
-            .param("embed", ExpandableExamPrintRequest.EXPANDABLE_PARAMS_PRINT_REQUEST_WITH_EXAM))
+            .param("expandableProperties", ExpandableExamPrintRequest.EXPANDABLE_PARAMS_PRINT_REQUEST_WITH_EXAM))
             .andExpect(status().isOk())
             .andExpect(jsonPath("examPrintRequest.id", is(examPrintRequest.getId().toString())))
             .andExpect(jsonPath("examPrintRequest.sessionId", is(examPrintRequest.getSessionId().toString())))

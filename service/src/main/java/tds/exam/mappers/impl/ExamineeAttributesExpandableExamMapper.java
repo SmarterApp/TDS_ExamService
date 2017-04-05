@@ -1,4 +1,4 @@
-package tds.exam.services.mappers.impl;
+package tds.exam.mappers.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -9,12 +9,11 @@ import java.util.Set;
 import java.util.UUID;
 
 import tds.exam.ExamineeAttribute;
-import tds.exam.ExamineeContext;
 import tds.exam.ExamineeRelationship;
 import tds.exam.ExpandableExam;
-import tds.exam.ExpandableExamParameters;
+import tds.exam.ExpandableExamAttributes;
 import tds.exam.services.ExamineeService;
-import tds.exam.services.mappers.ExpandableExamMapper;
+import tds.exam.mappers.ExpandableExamMapper;
 
 @Component
 public class ExamineeAttributesExpandableExamMapper implements ExpandableExamMapper {
@@ -26,14 +25,14 @@ public class ExamineeAttributesExpandableExamMapper implements ExpandableExamMap
     }
 
     @Override
-    public void updateExpandableMapper(final Set<ExpandableExamParameters> expandableExamAttributes, final Map<UUID, ExpandableExam.Builder> examBuilders, final UUID sessionId) {
-        if (!expandableExamAttributes.contains(ExpandableExamParameters.EXPANDABLE_PARAMS_EXAMINEE_ATTRIBUTES_AND_RELATIONSHIPS)) {
+    public void updateExpandableMapper(final Set<ExpandableExamAttributes> expandableAttributes, final Map<UUID, ExpandableExam.Builder> examBuilders, final UUID sessionId) {
+        if (!expandableAttributes.contains(ExpandableExamAttributes.EXAMINEE_ATTRIBUTES_AND_RELATIONSHIPS)) {
             return;
         }
 
         examBuilders.forEach((examId, examBuilder) -> {
-            List<ExamineeAttribute> examineeAttributes = examineeService.findAllAttributes(examId, ExamineeContext.FINAL);
-            List<ExamineeRelationship> examineeRelationships = examineeService.findAllRelationships(examId, ExamineeContext.FINAL);
+            List<ExamineeAttribute> examineeAttributes = examineeService.findAllAttributes(examId);
+            List<ExamineeRelationship> examineeRelationships = examineeService.findAllRelationships(examId);
 
             ExpandableExam.Builder builder = examBuilders.get(examId);
             builder.withExamineeAttributes(examineeAttributes);

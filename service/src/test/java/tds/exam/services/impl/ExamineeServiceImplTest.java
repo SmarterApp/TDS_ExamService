@@ -115,25 +115,22 @@ public class ExamineeServiceImplTest {
     @Test
     public void shouldFindExamineeAttributes() {
         final UUID examId = UUID.randomUUID();
-        final ExamineeContext context = ExamineeContext.INITIAL;
 
         ExamineeAttribute attribute = random(ExamineeAttribute.class);
-        when(examineeQueryRepository.findAllAttributes(examId, context)).thenReturn(Arrays.asList(attribute));
-        List<ExamineeAttribute> retAttributes = examineeService.findAllAttributes(examId, context);
-        verify(examineeQueryRepository).findAllAttributes(examId, context);
+        when(examineeQueryRepository.findAllAttributes(examId)).thenReturn(Arrays.asList(attribute));
+        List<ExamineeAttribute> retAttributes = examineeService.findAllAttributes(examId);
+        verify(examineeQueryRepository).findAllAttributes(examId);
         assertThat(retAttributes).containsExactly(attribute);
     }
 
     @Test
     public void shouldFindExamineeRelationships() {
         final UUID examId = UUID.randomUUID();
-        final ExamineeContext context = ExamineeContext.INITIAL;
-
         ExamineeRelationship relationship = random(ExamineeRelationship.class);
 
-        when(examineeQueryRepository.findAllRelationships(examId, context)).thenReturn(Arrays.asList(relationship));
-        List<ExamineeRelationship> retAttributes = examineeService.findAllRelationships(examId, context);
-        verify(examineeQueryRepository).findAllRelationships(examId, context);
+        when(examineeQueryRepository.findAllRelationships(examId)).thenReturn(Arrays.asList(relationship));
+        List<ExamineeRelationship> retAttributes = examineeService.findAllRelationships(examId);
+        verify(examineeQueryRepository).findAllRelationships(examId);
         assertThat(retAttributes).containsExactly(relationship);
     }
 }

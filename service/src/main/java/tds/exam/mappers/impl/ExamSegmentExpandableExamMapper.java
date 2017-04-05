@@ -1,4 +1,4 @@
-package tds.exam.services.mappers.impl;
+package tds.exam.mappers.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -10,9 +10,9 @@ import java.util.UUID;
 
 import tds.exam.ExamSegment;
 import tds.exam.ExpandableExam;
-import tds.exam.ExpandableExamParameters;
+import tds.exam.ExpandableExamAttributes;
 import tds.exam.services.ExamSegmentService;
-import tds.exam.services.mappers.ExpandableExamMapper;
+import tds.exam.mappers.ExpandableExamMapper;
 
 @Component
 public class ExamSegmentExpandableExamMapper implements ExpandableExamMapper {
@@ -24,8 +24,8 @@ public class ExamSegmentExpandableExamMapper implements ExpandableExamMapper {
     }
 
     @Override
-    public void updateExpandableMapper(final Set<ExpandableExamParameters> expandableExamAttributes, final Map<UUID, ExpandableExam.Builder> examBuilders, final UUID sessionId) {
-        if (!expandableExamAttributes.contains(ExpandableExamParameters.EXPANDABLE_PARAMS_EXAM_SEGMENTS)) {
+    public void updateExpandableMapper(final Set<ExpandableExamAttributes> expandableAttributes, final Map<UUID, ExpandableExam.Builder> examBuilders, final UUID sessionId) {
+        if (!expandableAttributes.contains(ExpandableExamAttributes.EXAM_SEGMENTS)) {
             return;
         }
 

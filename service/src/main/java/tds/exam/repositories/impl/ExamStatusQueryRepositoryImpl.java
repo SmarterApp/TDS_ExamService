@@ -43,7 +43,7 @@ public class ExamStatusQueryRepositoryImpl implements ExamStatusQueryRepository 
     }
 
     @Override
-    public Optional<Instant> findDateLastTimeStatus(final UUID examId, final String examStatus) {
+    public Optional<Instant> findRecentTimeAtStatus(final UUID examId, final String examStatus) {
         final SqlParameterSource parameters = new MapSqlParameterSource("examId", examId.toString())
             .addValue("status", examStatus);
 

@@ -20,7 +20,7 @@ public class ExamStatusServiceImpl implements ExamStatusService {
     }
 
     @Override
-    public Optional<Instant> findDateLastTimeStatus(final UUID examId, final String examStatus) {
-        return examStatusQueryRepository.findDateLastTimeStatus(examId, examStatus);
+    public Optional<Instant> findRecentTimeAtStatus(final UUID examId, final String examStatus) {
+        return examStatusQueryRepository.findRecentTimeAtStatus(examId, examStatus);
     }
 }

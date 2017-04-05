@@ -24,5 +24,5 @@ public interface ExamineeNoteQueryRepository {
      * @param examId
      * @return the {@link tds.exam.ExamineeNote}s for the {@link tds.exam.Exam}
      */
-    List<ExamineeNote> findAllNotes(UUID examId);
+    List<ExamineeNote> findAllNotes(final UUID examId);
 }

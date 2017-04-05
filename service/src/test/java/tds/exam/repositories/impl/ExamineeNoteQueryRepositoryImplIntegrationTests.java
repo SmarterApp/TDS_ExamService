@@ -1,5 +1,6 @@
 package tds.exam.repositories.impl;
 
+import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -140,7 +141,21 @@ public class ExamineeNoteQueryRepositoryImplIntegrationTests {
 
         List<ExamineeNote> returnNotes = examineeNoteQueryRepository.findAllNotes(mockExam.getId());
         assertThat(returnNotes).hasSize(2);
-        assertThat(returnNotes).containsExactlyInAnyOrder(globalNote, itemNoteUpdated);
+
+        ExamineeNote retGlobalNote = returnNotes.stream().filter(note -> note.getItemPosition() == 0).findFirst().get();
+        ExamineeNote retUpdatedNote = returnNotes.stream().filter(note -> note.getItemPosition() == 5).findFirst().get();
+
+        assertThat(retGlobalNote).isNotNull();
+        assertThat(retGlobalNote.getNote()).isEqualTo(globalNote.getNote());
+        assertThat(retGlobalNote.getExamId()).isEqualTo(globalNote.getExamId());
+        assertThat(retGlobalNote.getContext()).isEqualTo(globalNote.getContext());
+        assertThat(retGlobalNote.getCreatedAt()).isNotNull();
+
+        assertThat(retUpdatedNote).isNotNull();
+        assertThat(retUpdatedNote.getNote()).isEqualTo(itemNoteUpdated.getNote());
+        assertThat(retUpdatedNote.getExamId()).isEqualTo(itemNoteUpdated.getExamId());
+        assertThat(retUpdatedNote.getContext()).isEqualTo(itemNoteUpdated.getContext());
+        assertThat(retUpdatedNote.getCreatedAt()).isNotNull();
     }
 
     @Test

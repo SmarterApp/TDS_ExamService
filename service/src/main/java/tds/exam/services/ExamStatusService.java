@@ -16,5 +16,5 @@ public interface ExamStatusService {
      * @param examStatus The status to check for
      * @return The {@link org.joda.time.Instant} the exam was last set to the specified status
      */
-    Optional<Instant> findDateLastTimeStatus(final UUID examId, final String examStatus);
+    Optional<Instant> findRecentTimeAtStatus(final UUID examId, final String examStatus);
 }

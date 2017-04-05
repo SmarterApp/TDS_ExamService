@@ -19,7 +19,6 @@ import tds.exam.builder.ExamBuilder;
 import tds.exam.repositories.ExamCommandRepository;
 import tds.exam.repositories.ExamStatusQueryRepository;
 
-import static jdk.nashorn.internal.objects.NativeMath.random;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -56,14 +55,14 @@ public class ExamStatusQueryRepositoryImplIntegrationTests {
             .build();
 
         examCommandRepository.insert(exam);
-        assertThat(examStatusQueryRepository.findDateLastTimeStatus(exam.getId(), ExamStatusCode.STATUS_PAUSED).get()).isEqualTo(datePaused);
+        assertThat(examStatusQueryRepository.findRecentTimeAtStatus(exam.getId(), ExamStatusCode.STATUS_PAUSED).get()).isEqualTo(datePaused);
         Exam examRestarted = new Exam.Builder()
             .fromExam(exam)
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_STARTED), Instant.now())
             .build();
 
         examCommandRepository.update(examRestarted);
-        assertThat(examStatusQueryRepository.findDateLastTimeStatus(exam.getId(), ExamStatusCode.STATUS_PAUSED).get()).isEqualTo(datePaused);
+        assertThat(examStatusQueryRepository.findRecentTimeAtStatus(exam.getId(), ExamStatusCode.STATUS_PAUSED).get()).isEqualTo(datePaused);
         Instant datePausedAgain = Instant.now();
         Exam examPausedAgain = new Exam.Builder()
             .fromExam(exam)
@@ -71,7 +70,7 @@ public class ExamStatusQueryRepositoryImplIntegrationTests {
             .build();
 
         examCommandRepository.update(examPausedAgain);
-        assertThat(examStatusQueryRepository.findDateLastTimeStatus(exam.getId(), ExamStatusCode.STATUS_PAUSED).get()).isEqualTo(datePausedAgain);
+        assertThat(examStatusQueryRepository.findRecentTimeAtStatus(exam.getId(), ExamStatusCode.STATUS_PAUSED).get()).isEqualTo(datePausedAgain);
     }
 
     @Test(expected = EmptyResultDataAccessException.class)

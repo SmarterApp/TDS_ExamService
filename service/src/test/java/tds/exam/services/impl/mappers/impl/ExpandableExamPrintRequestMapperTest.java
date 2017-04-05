@@ -15,8 +15,8 @@ import tds.exam.ExamPrintRequest;
 import tds.exam.ExpandableExamPrintRequest;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.services.ExamService;
-import tds.exam.services.mappers.ExpandableExamPrintRequestMapper;
-import tds.exam.services.mappers.impl.ExamExpandableExamPrintRequestMapper;
+import tds.exam.mappers.ExpandableExamPrintRequestMapper;
+import tds.exam.mappers.impl.ExamExpandableExamPrintRequestMapper;
 
 import static io.github.benas.randombeans.api.EnhancedRandom.random;
 import static org.mockito.Mockito.verify;

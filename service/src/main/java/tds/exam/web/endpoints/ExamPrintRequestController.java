@@ -60,8 +60,8 @@ public class ExamPrintRequestController {
 
     @RequestMapping(value = "/approve/{id}", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ExpandableExamPrintRequest> findAndApprovePrintRequest(final @PathVariable UUID id,
-                                                                                 final @RequestParam(required=false) String... embed) {
-        Optional<ExpandableExamPrintRequest> maybeExamPrintRequest = examPrintRequestService.updateAndGetRequest(ExamPrintRequestStatus.APPROVED, id, null, embed);
+                                                                                 final @RequestParam(required=false) String... expandableProperties) {
+        Optional<ExpandableExamPrintRequest> maybeExamPrintRequest = examPrintRequestService.updateAndGetRequest(ExamPrintRequestStatus.APPROVED, id, null, expandableProperties);
 
         if (!maybeExamPrintRequest.isPresent()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);

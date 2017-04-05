@@ -1,4 +1,4 @@
-package tds.exam.services.mappers.impl;
+package tds.exam.mappers.impl;
 
 import com.google.common.base.Optional;
 import org.joda.time.Instant;
@@ -11,9 +11,9 @@ import java.util.UUID;
 
 import tds.exam.ExamStatusCode;
 import tds.exam.ExpandableExam;
-import tds.exam.ExpandableExamParameters;
+import tds.exam.ExpandableExamAttributes;
 import tds.exam.services.ExamStatusService;
-import tds.exam.services.mappers.ExpandableExamMapper;
+import tds.exam.mappers.ExpandableExamMapper;
 
 @Component
 public class ExamStatusExpandableExamMapper implements ExpandableExamMapper {
@@ -25,22 +25,22 @@ public class ExamStatusExpandableExamMapper implements ExpandableExamMapper {
     }
 
     @Override
-    public void updateExpandableMapper(final Set<ExpandableExamParameters> expandableExamAttributes,
+    public void updateExpandableMapper(final Set<ExpandableExamAttributes> expandableAttributes,
                                        final Map<UUID, ExpandableExam.Builder> examBuilders, final UUID sessionId) {
-        if (!expandableExamAttributes.contains(ExpandableExamParameters.EXPANDABLE_PARAMS_EXAM_STATUS_DATES)) {
+        if (!expandableAttributes.contains(ExpandableExamAttributes.EXAM_STATUS_DATES)) {
             return;
         }
 
         examBuilders.forEach((examId, examBuilder) -> {
-            Optional<Instant> maybeStartedAt = examStatusService.findDateLastTimeStatus(examId, ExamStatusCode.STATUS_STARTED);
+            Optional<Instant> maybeStartedAt = examStatusService.findRecentTimeAtStatus(examId, ExamStatusCode.STATUS_STARTED);
 
             // If the exam was never started for whatever reason, no need to check for other statuses
             if (!maybeStartedAt.isPresent()) {
                 return;
             }
 
-            Optional<Instant> maybeCompletedAt = examStatusService.findDateLastTimeStatus(examId, ExamStatusCode.STATUS_COMPLETED);
-            Optional<Instant> maybeForceCompletedAt = examStatusService.findDateLastTimeStatus(examId, ExamStatusCode.STATUS_FORCE_COMPLETED);
+            Optional<Instant> maybeCompletedAt = examStatusService.findRecentTimeAtStatus(examId, ExamStatusCode.STATUS_COMPLETED);
+            Optional<Instant> maybeForceCompletedAt = examStatusService.findRecentTimeAtStatus(examId, ExamStatusCode.STATUS_FORCE_COMPLETED);
 
             ExpandableExam.Builder builder = examBuilders.get(examId);
 
