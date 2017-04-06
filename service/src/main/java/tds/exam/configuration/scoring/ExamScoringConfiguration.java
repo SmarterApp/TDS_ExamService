@@ -22,16 +22,16 @@ import tds.itemscoringengine.web.server.AppStatsRecorder;
 import tds.itemscoringengine.web.server.ScoringMaster;
 import tds.score.configuration.ScoringConfiguration;
 
-//@Configuration
-//@Import(
-//    ScoringConfiguration.class
-//)
+@Configuration
+@Import(
+    ScoringConfiguration.class
+)
 public class ExamScoringConfiguration {
     private static final IItemScorer mciScorer = new MCItemScorer();
     private static final IItemScorer qtiScorer = new QTIItemScorer();
     private static final IItemScorer proxyScorer = new ProxyItemScorer(new HttpWebHelper());
 
-//    @Bean
+    @Bean
     public IItemScorerManager getScoreManager(final ExamScoringProperties examScoringProperties) {
         Map<String, IItemScorer> scorers = new HashMap<>();
 
@@ -56,7 +56,7 @@ public class ExamScoringConfiguration {
         );
     }
 
-//    @Bean
+    @Bean
     public AmazonS3 getAmazonS3(final ScoringS3Properties s3Properties) {
         BasicAWSCredentials basicAWSCredentials = new BasicAWSCredentials(s3Properties.getAccessKey(), s3Properties.getSecretKey());
 
