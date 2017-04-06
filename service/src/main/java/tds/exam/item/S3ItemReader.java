@@ -12,7 +12,7 @@ import java.net.URI;
 import tds.exam.configuration.scoring.ScoringS3Properties;
 import tds.itemrenderer.processing.ItemDataReader;
 
-@Component
+//@Component
 public class S3ItemReader implements ItemDataReader {
     private final AmazonS3 s3Client;
     private final ScoringS3Properties s3Properties;
