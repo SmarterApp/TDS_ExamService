@@ -60,7 +60,6 @@
             <version>1.3</version>
         </dependency>
 
-        <!-- TODO - Need to exclude unneeded dependencies for anything included in this block -->
         <dependency>
             <groupId>org.opentestsystem.delivery</groupId>
             <artifactId>item-renderer</artifactId>
@@ -96,10 +95,6 @@
                 <exclusion>
                     <groupId>org.apache.activemq</groupId>
                     <artifactId>activemq-client</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.antlr</groupId>
-                    <artifactId>antlr</artifactId>
                 </exclusion>
                 <exclusion>
                     <groupId>org.apache.cassandra</groupId>
