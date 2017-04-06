@@ -106,7 +106,6 @@ public class ExpandableExamControllerIntegrationTests {
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.exam.id", is(expandableExam.getExam().getId().toString())))
-            .andExpect(jsonPath("$.startedAt", is(expandableExam.getStartedAt().toString())))
             .andExpect(jsonPath("$.examSegments", hasSize(expandableExam.getExamSegments().size())))
             .andExpect(jsonPath("$.examSegments[0].segmentId", is(expandableExam.getExamSegments().get(0).getSegmentId().toString())))
             .andExpect(jsonPath("$.examineeNotes[0].id", is(expandableExam.getExamineeNotes().get(0).getId())));

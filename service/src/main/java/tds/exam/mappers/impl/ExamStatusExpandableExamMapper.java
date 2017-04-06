@@ -32,20 +32,8 @@ public class ExamStatusExpandableExamMapper implements ExpandableExamMapper {
         }
 
         examBuilders.forEach((examId, examBuilder) -> {
-            Optional<Instant> maybeStartedAt = examStatusService.findRecentTimeAtStatus(examId, ExamStatusCode.STATUS_STARTED);
-
-            // If the exam was never started for whatever reason, no need to check for other statuses
-            if (!maybeStartedAt.isPresent()) {
-                return;
-            }
-
-            Optional<Instant> maybeCompletedAt = examStatusService.findRecentTimeAtStatus(examId, ExamStatusCode.STATUS_COMPLETED);
             Optional<Instant> maybeForceCompletedAt = examStatusService.findRecentTimeAtStatus(examId, ExamStatusCode.STATUS_FORCE_COMPLETED);
-
             ExpandableExam.Builder builder = examBuilders.get(examId);
-
-            builder.withStartedAt(maybeStartedAt.get());
-            builder.withCompletedAt(maybeCompletedAt.isPresent() ? maybeCompletedAt.get() : null);
             builder.withForceCompletedAt(maybeForceCompletedAt.isPresent() ? maybeForceCompletedAt.get() : null);
         });
     }
