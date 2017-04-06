@@ -81,36 +81,13 @@ public class ExamineeNoteControllerTest {
     }
 
     @Test
-    public void shouldNotHtmlUnescapeAnItemLevelNote() {
-        // This is how a note w/some special characters will look when it comes in through the controller; it will
-        // already be escaped
+    public void shouldHtmlUnescapeAnNoteText() {
         final String htmlEscapedString = "&#39;foo&#39; &amp; &lt; bar / &gt;";
 
         final ExamineeNote examineeNote = new ExamineeNote.Builder()
             .withId(42L)
             .withExamId(UUID.randomUUID())
             .withContext(ExamineeNoteContext.ITEM)
-            .withNote(htmlEscapedString)
-            .build();
-
-        final ArgumentCaptor<ExamineeNote> noteTextCaptor = ArgumentCaptor.forClass(ExamineeNote.class);
-
-        controller.insert(examineeNote.getExamId(), examineeNote);
-        verify(mockExamineeNoteService).insert(noteTextCaptor.capture());
-
-        assertThat(noteTextCaptor.getValue().getNote()).isEqualTo(htmlEscapedString);
-    }
-
-    @Test
-    public void shouldHtmlUnescapeAnExamLevelNote() {
-        // This is how a note w/some special characters will look when it comes in through the controller; it will
-        // already be escaped
-        final String htmlEscapedString = "&#39;foo&#39; &amp; &lt; bar / &gt;";
-
-        final ExamineeNote examineeNote = new ExamineeNote.Builder()
-            .withId(42L)
-            .withExamId(UUID.randomUUID())
-            .withContext(ExamineeNoteContext.EXAM)
             .withNote(htmlEscapedString)
             .build();
 

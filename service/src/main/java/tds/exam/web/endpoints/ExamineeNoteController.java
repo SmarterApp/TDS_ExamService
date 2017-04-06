@@ -47,9 +47,12 @@ public class ExamineeNoteController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void insert(@PathVariable final UUID id,
                 @RequestBody final ExamineeNote note) {
+        // Only Item-level notes are HTML-escaped in legacy student application (TestShellHandler#RecordItemComment,
+        // line 413).  The exam database will store the notes in a consistent manner; the caller can format the note
+        // text however they see fit.
         final ExamineeNote examineeNote = ExamineeNote.Builder.fromExamineeNote(note)
             .withExamId(id)
-            .withNote(note.getNote())
+            .withNote(HtmlUtils.htmlUnescape(note.getNote()))
             .build();
 
         examineeNoteService.insert(examineeNote);
