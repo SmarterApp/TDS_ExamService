@@ -2,6 +2,7 @@ package tds.exam;
 
 import org.joda.time.Instant;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -20,8 +21,6 @@ public class ExpandableExam {
     private List<ExamineeAttribute> examineeAttributes;
     private List<ExamineeRelationship> examineeRelationships;
     private boolean multiStageBraille;
-    private Instant startedAt;
-    private Instant completedAt;
     private Instant forceCompletedAt;
 
     /* Empty private constructor for frameworks */
@@ -40,8 +39,6 @@ public class ExpandableExam {
         this.itemsResponseCount = builder.itemsResponseCount;
         this.requestCount = builder.requestCount;
         this.multiStageBraille = builder.multiStageBraille;
-        this.startedAt = builder.startedAt;
-        this.completedAt = builder.completedAt;
         this.forceCompletedAt = builder.forceCompletedAt;
     }
 
@@ -180,63 +177,49 @@ public class ExpandableExam {
      * @return The exam segments for the given examId
      */
     public List<ExamSegment> getExamSegments() {
-        return examSegments;
+        return (examSegments != null) ? examSegments : new ArrayList<ExamSegment>();
     }
 
     /**
      * @return The exam pages for the given examId
      */
     public List<ExamPage> getExamPages() {
-        return examPages;
+        return (examPages != null) ? examPages : new ArrayList<ExamPage>();
     }
 
     /**
      * @return The exam items for the given examId
      */
     public List<ExamItem> getExamItems() {
-        return examItems;
+        return (examItems != null) ? examItems : new ArrayList<ExamItem>();
     }
 
     /**
      * @return The exam item responses for the given examId
      */
     public List<ExamItemResponse> getExamItemResponses() {
-        return examItemResponses;
+        return (examItemResponses != null) ? examItemResponses : new ArrayList<ExamItemResponse>();
     }
 
     /**
      * @return The examinee notes for the given examId
      */
     public List<ExamineeNote> getExamineeNotes() {
-        return examineeNotes;
+        return (examineeNotes != null) ? examineeNotes : new ArrayList<ExamineeNote>();
     }
 
     /**
      * @return The examinee attributes
      */
     public List<ExamineeAttribute> getExamineeAttributes() {
-        return examineeAttributes;
+        return (examineeAttributes != null) ? examineeAttributes : new ArrayList<ExamineeAttribute>();
     }
 
     /**
      * @return The exam relationships for the given examId
      */
     public List<ExamineeRelationship> getExamineeRelationships() {
-        return examineeRelationships;
-    }
-
-    /**
-     * @return the {@link org.joda.time.Instant} the exam was started at
-     */
-    public Instant getStartedAt() {
-        return startedAt;
-    }
-
-    /**
-     * @return the {@link org.joda.time.Instant} the exam was completed at
-     */
-    public Instant getCompletedAt() {
-        return completedAt;
+        return (examineeRelationships != null) ? examineeRelationships : new ArrayList<ExamineeRelationship>();
     }
 
     /**

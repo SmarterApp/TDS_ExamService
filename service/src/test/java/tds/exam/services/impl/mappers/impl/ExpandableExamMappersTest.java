@@ -267,28 +267,17 @@ public class ExpandableExamMappersTest {
     public void shouldMapExamStatusesToExpandableExam() {
         Exam exam = random(Exam.class);
         ExpandableExam.Builder expandableExamBuilder = new ExpandableExam.Builder(exam);
+        Instant dateForceCompleted = Instant.now().minus(500);
 
-        Instant dateCompleted = Instant.now();
-        Instant dateStarted = Instant.now().minus(500);
-
-        when(mockExamStatusService.findRecentTimeAtStatus(exam.getId(), ExamStatusCode.STATUS_COMPLETED))
-            .thenReturn(Optional.of(dateCompleted));
         when(mockExamStatusService.findRecentTimeAtStatus(exam.getId(), ExamStatusCode.STATUS_FORCE_COMPLETED))
-            .thenReturn(Optional.absent());
-        when(mockExamStatusService.findRecentTimeAtStatus(exam.getId(), ExamStatusCode.STATUS_STARTED))
-            .thenReturn(Optional.of(dateStarted));
+            .thenReturn(Optional.of(dateForceCompleted));
 
         examStatusExpandableExamMapper.updateExpandableMapper(expandableExamParametersTrt,
             ImmutableMap.of(exam.getId(), expandableExamBuilder), exam.getSessionId()
         );
 
-        verify(mockExamStatusService).findRecentTimeAtStatus(exam.getId(), ExamStatusCode.STATUS_COMPLETED);
         verify(mockExamStatusService).findRecentTimeAtStatus(exam.getId(), ExamStatusCode.STATUS_FORCE_COMPLETED);
-        verify(mockExamStatusService).findRecentTimeAtStatus(exam.getId(), ExamStatusCode.STATUS_STARTED);
-
         ExpandableExam expandableExam = expandableExamBuilder.build();
-        assertThat(expandableExam.getStartedAt()).isEqualTo(dateStarted);
-        assertThat(expandableExam.getCompletedAt()).isEqualTo(dateCompleted);
-        assertThat(expandableExam.getForceCompletedAt()).isNull();
+        assertThat(expandableExam.getForceCompletedAt()).isEqualTo(dateForceCompleted);
     }
 }
