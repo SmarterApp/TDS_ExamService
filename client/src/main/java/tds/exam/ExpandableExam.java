@@ -149,7 +149,7 @@ public class ExpandableExam {
      * @return The {@link tds.exam.ExamAccommodation}s of the exam
      */
     public List<ExamAccommodation> getExamAccommodations() {
-        return examAccommodations;
+        return (examAccommodations != null) ? examAccommodations : new ArrayList<ExamAccommodation>();
     }
 
     /**
