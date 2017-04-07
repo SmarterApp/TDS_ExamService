@@ -2,24 +2,33 @@ package tds.exam.web.endpoints;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.net.URI;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Optional;
 import java.util.UUID;
 
 import tds.common.ValidationError;
+import tds.common.web.resources.NoContentResponseResource;
+import tds.exam.ApproveAccommodationsRequest;
 import tds.exam.Exam;
+import tds.exam.ExamAccommodation;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
 import tds.exam.SegmentApprovalRequest;
 import tds.exam.WebMvcControllerIntegrationTest;
+import tds.exam.builder.ExamAccommodationBuilder;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.error.ValidationErrorCode;
 import tds.exam.services.ExamApprovalService;
@@ -28,14 +37,18 @@ import tds.exam.services.ExamService;
 import tds.exam.web.interceptors.VerifyAccessInterceptor;
 
 import static io.github.benas.randombeans.api.EnhancedRandom.random;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -210,5 +223,45 @@ public class ExamControllerIntegrationTests {
 
 
         verify(mockExamService).waitForSegmentApproval(eq(examId), any());
+    }
+
+    @Test
+    public void shouldApproveAccommodationsAndReturnNoContentWithNoErrors() throws Exception {
+        final UUID examId = UUID.randomUUID();
+        final UUID sessionId = UUID.randomUUID();
+        final UUID browserId = UUID.randomUUID();
+        ApproveAccommodationsRequest request = new ApproveAccommodationsRequest(sessionId, browserId, new HashMap<>());
+
+        when(mockExamService.updateExamAccommodationsAndExam(examId, request)).thenReturn(Optional.empty());
+        JSONObject requestJson = new JSONObject(request);
+
+        http.perform(post(new URI(String.format("/exam/%s/accommodations", examId)))
+            .content(requestJson.toString())
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNoContent());
+
+        verify(mockExamService).updateExamAccommodationsAndExam(examId, request);
+    }
+
+    @Test
+    public void shouldReturnUnprocessableEntityWithError() throws Exception {
+        final UUID examId = UUID.randomUUID();
+        final UUID sessionId = UUID.randomUUID();
+        final UUID browserId = UUID.randomUUID();
+        final String errorCode = "ErrorCode";
+        final String errorMsg = "Error!";
+        ApproveAccommodationsRequest request = new ApproveAccommodationsRequest(sessionId, browserId, new HashMap<>());
+
+        when(mockExamService.updateExamAccommodationsAndExam(examId, request)).thenReturn(Optional.of(new ValidationError(errorCode, errorMsg)));
+        JSONObject requestJson = new JSONObject(request);
+
+        http.perform(post(new URI(String.format("/exam/%s/accommodations", examId)))
+            .content(requestJson.toString())
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("errors[0].code", is(errorCode)))
+            .andExpect(jsonPath("errors[0].message", is(errorMsg)))
+            .andExpect(status().isUnprocessableEntity());
+
+        verify(mockExamService).updateExamAccommodationsAndExam(examId, request);
     }
 }

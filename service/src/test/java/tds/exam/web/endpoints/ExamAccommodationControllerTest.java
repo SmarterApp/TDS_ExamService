@@ -183,41 +183,4 @@ public class ExamAccommodationControllerTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).containsExactly(examAccommodation);
     }
-    
-    @Test
-    public void shouldApproveAccommodationsAndReturnNoErrors() {
-        final UUID examId = UUID.randomUUID();
-        final UUID sessionId = UUID.randomUUID();
-        final UUID browserId = UUID.randomUUID();
-        ApproveAccommodationsRequest request = new ApproveAccommodationsRequest(sessionId, browserId, new HashMap<>());
-        
-        when(mockExamAccommodationService.approveAccommodations(examId, request)).thenReturn(Optional.empty());
-        
-        ResponseEntity<NoContentResponseResource> response = controller.approveAccommodations(examId, request);
-        
-        verify(mockExamAccommodationService).approveAccommodations(examId, request);
-        verifyNoMoreInteractions(mockExamAccommodationService);
-        
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
-    }
-    
-    @Test
-    public void shouldReturnValidationError() {
-        final UUID examId = UUID.randomUUID();
-        final UUID sessionId = UUID.randomUUID();
-        final UUID browserId = UUID.randomUUID();
-        final String errCode = "Error code";
-        final String errMsg = "Error message";
-        ApproveAccommodationsRequest request = new ApproveAccommodationsRequest(sessionId, browserId, new HashMap<>());
-        
-        when(mockExamAccommodationService.approveAccommodations(examId, request)).thenReturn(Optional.of(new ValidationError(errCode, errMsg)));
-        
-        ResponseEntity<NoContentResponseResource> response = controller.approveAccommodations(examId, request);
-        
-        verify(mockExamAccommodationService).approveAccommodations(examId, request);
-        verifyNoMoreInteractions(mockExamAccommodationService);
-        
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
-        assertThat(response.getBody().getErrors()).isNotEmpty();
-    }
 }

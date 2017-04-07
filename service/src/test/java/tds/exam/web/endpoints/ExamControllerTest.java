@@ -15,6 +15,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -22,6 +23,7 @@ import tds.common.Response;
 import tds.common.ValidationError;
 import tds.common.web.exceptions.NotFoundException;
 import tds.common.web.resources.NoContentResponseResource;
+import tds.exam.ApproveAccommodationsRequest;
 import tds.exam.Exam;
 import tds.exam.ExamConfiguration;
 import tds.exam.ExamStatusCode;
@@ -38,6 +40,7 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -223,5 +226,42 @@ public class ExamControllerTest {
         when(mockExamService.updateExamStatus(eq(examId), any(), eq(reason))).thenReturn(Optional.of(new ValidationError("Some", "Error")));
         ResponseEntity<NoContentResponseResource> response = controller.updateStatus(examId, statusCode, stage, reason);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+
+    @Test
+    public void shouldApproveAccommodationsAndReturnNoErrors() {
+        final UUID examId = UUID.randomUUID();
+        final UUID sessionId = UUID.randomUUID();
+        final UUID browserId = UUID.randomUUID();
+        ApproveAccommodationsRequest request = new ApproveAccommodationsRequest(sessionId, browserId, new HashMap<>());
+
+        when(mockExamService.updateExamAccommodationsAndExam(examId, request)).thenReturn(Optional.empty());
+
+        ResponseEntity<NoContentResponseResource> response = controller.approveAccommodations(examId, request);
+
+        verify(mockExamService).updateExamAccommodationsAndExam(examId, request);
+        verifyNoMoreInteractions(mockExamService);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+    }
+
+    @Test
+    public void shouldReturnValidationError() {
+        final UUID examId = UUID.randomUUID();
+        final UUID sessionId = UUID.randomUUID();
+        final UUID browserId = UUID.randomUUID();
+        final String errCode = "Error code";
+        final String errMsg = "Error message";
+        ApproveAccommodationsRequest request = new ApproveAccommodationsRequest(sessionId, browserId, new HashMap<>());
+
+        when(mockExamService.updateExamAccommodationsAndExam(examId, request)).thenReturn(Optional.of(new ValidationError(errCode, errMsg)));
+
+        ResponseEntity<NoContentResponseResource> response = controller.approveAccommodations(examId, request);
+
+        verify(mockExamService).updateExamAccommodationsAndExam(examId, request);
+        verifyNoMoreInteractions(mockExamService);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        assertThat(response.getBody().getErrors()).isNotEmpty();
     }
 }
