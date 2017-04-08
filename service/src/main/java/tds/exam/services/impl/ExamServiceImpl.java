@@ -310,7 +310,7 @@ class ExamServiceImpl implements ExamService {
         Exam exam = maybeExam.get();
 
         if (!request.isGuest()) {
-            /* line 11441 */
+            /* StudentDLL line 11441 */
             Optional<ValidationError> maybeError = examApprovalService.verifyAccess(new ExamInfo(examId, request.getSessionId(), request.getBrowserId()), exam);
 
             if (maybeError.isPresent()) {
@@ -318,7 +318,7 @@ class ExamServiceImpl implements ExamService {
             }
         }
 
-        /* lines 11465-11473 */
+        /* StudentDLL lines 11465-11473 */
         Optional<Session> maybeSession = sessionService.findSessionById(exam.getSessionId());
 
         if (!maybeSession.isPresent()) {
