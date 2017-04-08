@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import tds.common.Response;
 import tds.common.ValidationError;
+import tds.exam.ApproveAccommodationsRequest;
 import tds.exam.Exam;
 import tds.exam.ExamConfiguration;
 import tds.exam.ExamStatusCode;
@@ -35,7 +36,7 @@ public interface ExamService {
     /**
      * Starts a new or existing exam.
      *
-     * @param examId The exam to start
+     * @param examId           The exam to start
      * @param browserUserAgent The browser user agent string for the {@link tds.exam.Exam}
      * @return {@link tds.common.Response<tds.exam.Exam>} containing the exam's configuration or errors.
      */
@@ -72,10 +73,20 @@ public interface ExamService {
     /**
      * Performs exam access validation and updates the {@link Exam} status to wait for segment approval.
      *
-     * @param examId The id of the exam seeking segment approval
+     * @param examId  The id of the exam seeking segment approval
      * @param request A request object containing data related to the segment approval request
      * @return {@code Optional<ValidationError>} if the {@link tds.exam.Exam} cannot be updated from its current status
      * to the new status of if the approval request fails.
      */
     Optional<ValidationError> waitForSegmentApproval(UUID examId, SegmentApprovalRequest request);
+
+    /**
+     * Updates the exam accommodations defined in the given {@link tds.exam.ApproveAccommodationsRequest} request and
+     * also updated the Exam if custom accommodations are added or removed
+     *
+     * @param examId  The id of the exam with accommodations to approve
+     * @param request A {@link tds.exam.ApproveAccommodationsRequest} containing request data
+     * @return {@code Optional<ValidationError>}, if one occurs while processing the approval request
+     */
+    Optional<ValidationError> updateExamAccommodationsAndExam(UUID examId, ApproveAccommodationsRequest request);
 }

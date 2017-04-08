@@ -19,19 +19,13 @@ import java.util.stream.Collectors;
 
 import tds.accommodation.Accommodation;
 import tds.assessment.Assessment;
-import tds.common.ValidationError;
 import tds.exam.ApproveAccommodationsRequest;
 import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
-import tds.exam.ExamInfo;
-import tds.exam.error.ValidationErrorCode;
 import tds.exam.repositories.ExamAccommodationCommandRepository;
 import tds.exam.repositories.ExamAccommodationQueryRepository;
-import tds.exam.repositories.ExamQueryRepository;
 import tds.exam.services.AssessmentService;
 import tds.exam.services.ExamAccommodationService;
-import tds.exam.services.ExamApprovalService;
-import tds.exam.services.SessionService;
 import tds.session.Session;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
@@ -45,24 +39,15 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
 
     private final ExamAccommodationQueryRepository examAccommodationQueryRepository;
     private final ExamAccommodationCommandRepository examAccommodationCommandRepository;
-    private final ExamApprovalService examApprovalService;
-    private final SessionService sessionService;
     private final AssessmentService assessmentService;
-    private final ExamQueryRepository examQueryRepository;
 
     @Autowired
     public ExamAccommodationServiceImpl(final ExamAccommodationQueryRepository examAccommodationQueryRepository,
                                         final ExamAccommodationCommandRepository examAccommodationCommandRepository,
-                                        final AssessmentService assessmentService,
-                                        final SessionService sessionService,
-                                        final ExamApprovalService examApprovalService,
-                                        final ExamQueryRepository examQueryRepository) {
+                                        final AssessmentService assessmentService) {
         this.examAccommodationQueryRepository = examAccommodationQueryRepository;
         this.examAccommodationCommandRepository = examAccommodationCommandRepository;
         this.assessmentService = assessmentService;
-        this.sessionService = sessionService;
-        this.examApprovalService = examApprovalService;
-        this.examQueryRepository = examQueryRepository;
     }
 
     @Override
@@ -186,46 +171,22 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
 
     @Transactional
     @Override
-    public Optional<ValidationError> approveAccommodations(final UUID examId, final ApproveAccommodationsRequest request) {
-        /* This method is a port of StudentDLL.T_ApproveAccommodations_SP, starting at line 11429 */
-        ExamInfo examInfo = new ExamInfo(examId, request.getSessionId(), request.getBrowserId());
-
-        Optional<Exam> maybeExam = examQueryRepository.getExamById(examId);
-
-        if (!maybeExam.isPresent()) {
-            return Optional.of(new ValidationError(ValidationErrorCode.EXAM_DOES_NOT_EXIST, "The test opportunity does not exist"));
-        }
-
-        Exam exam = maybeExam.get();
-        Optional<ValidationError> maybeError = Optional.empty();
-
-        if (request.isGuest()) {
-            /* line 11441 */
-            maybeError = examApprovalService.verifyAccess(examInfo, exam);
-        }
-
-        if (maybeError.isPresent()) {
-            return maybeError;
-        }
-    
-        /* lines 11465-11473 */
-        Optional<Session> maybeSession = sessionService.findSessionById(exam.getSessionId());
-
-        if (!maybeSession.isPresent()) {
-            return Optional.of(new ValidationError(ValidationErrorCode.EXAM_NOT_ENROLLED_IN_SESSION, "The test opportunity is not enrolled in this session"));
-        } else if (maybeSession.isPresent() && !maybeSession.get().isProctorless() && request.isGuest()) {
-            return Optional.of(new ValidationError(ValidationErrorCode.STUDENT_SELF_APPROVE_UNPROCTORED_SESSION, "Student can only self-approve unproctored sessions"));
-        }
-
+    public List<ExamAccommodation> approveAccommodations(final Exam exam, final Session session,
+                                                           final ApproveAccommodationsRequest request) {
         // Get the list of current exam accomms in case we need to update them (for example, if a pre-initialized default was changed by the guest user)
-        List<ExamAccommodation> currentAccommodations = examAccommodationQueryRepository.findApprovedAccommodations(examId);
+        List<ExamAccommodation> currentAccommodations = examAccommodationQueryRepository.findApprovedAccommodations(exam.getId());
         List<Accommodation> assessmentAccommodations = assessmentService.findAssessmentAccommodationsByAssessmentKey(exam.getClientName(), exam.getAssessmentKey());
+        // Store all the updated exam accommodations
+        List<ExamAccommodation> updatedExamAccommodations = new ArrayList<>();
         // For each assessment and segments separately, initialize their respective accommodations
         request.getAccommodationCodes().forEach((segmentPosition, guestAccommodationCodes) ->
-            initializePreviousAccommodations(exam, segmentPosition, false, currentAccommodations, guestAccommodationCodes,
-                assessmentAccommodations, true));
+            updatedExamAccommodations.addAll(
+                initializePreviousAccommodations(exam, segmentPosition, false, currentAccommodations, guestAccommodationCodes,
+                assessmentAccommodations, true)
+            )
+        );
 
-        return Optional.empty();
+        return updatedExamAccommodations;
     }
 
     @Override

@@ -22,6 +22,7 @@ import tds.common.Response;
 import tds.common.ValidationError;
 import tds.common.web.exceptions.NotFoundException;
 import tds.common.web.resources.NoContentResponseResource;
+import tds.exam.ApproveAccommodationsRequest;
 import tds.exam.Exam;
 import tds.exam.ExamConfiguration;
 import tds.exam.ExamStatusCode;
@@ -136,6 +137,22 @@ public class ExamController {
         }
 
         Link link = linkTo(methodOn(ExamController.class).getExamById(examId)).withSelfRel();
+        final HttpHeaders headers = new HttpHeaders();
+        headers.add("Location", link.getHref());
+
+        return new ResponseEntity<>(headers, HttpStatus.NO_CONTENT);
+    }
+
+    @RequestMapping(value = "/{examId}/accommodations", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<NoContentResponseResource> approveAccommodations(@PathVariable final UUID examId, @RequestBody ApproveAccommodationsRequest request) {
+        Optional<ValidationError> maybeError = examService.updateExamAccommodationsAndExam(examId, request);
+
+        if (maybeError.isPresent()) {
+            NoContentResponseResource response = new NoContentResponseResource(maybeError.get());
+            return new ResponseEntity<>(response, HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+
+        Link link = linkTo(methodOn(ExamAccommodationController.class).findAccommodations(examId)).withSelfRel();
         final HttpHeaders headers = new HttpHeaders();
         headers.add("Location", link.getHref());
 

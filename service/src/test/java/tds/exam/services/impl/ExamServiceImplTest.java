@@ -16,6 +16,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -31,6 +32,7 @@ import tds.common.entity.utils.ChangeListener;
 import tds.common.web.exceptions.NotFoundException;
 import tds.config.ClientSystemFlag;
 import tds.config.TimeLimitConfiguration;
+import tds.exam.ApproveAccommodationsRequest;
 import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
 import tds.exam.ExamApproval;
@@ -1292,5 +1294,115 @@ public class ExamServiceImplTest {
 
         verify(mockExamApprovalService).getApproval(new ExamInfo(exam.getId(), request.getSessionId(), request.getBrowserId()));
         verify(mockExamCommandRepository, never()).update(isA(Exam.class));
+    }
+
+    @Test
+    public void shouldReturnValidationErrorForNoExamUpdateExamAccommodationsAndExam() {
+        Exam exam = random(Exam.class);
+        ApproveAccommodationsRequest approveAccommodationsRequest =
+            new ApproveAccommodationsRequest(exam.getSessionId(), exam.getBrowserId(), true, new HashMap<>());
+
+        when(mockExamQueryRepository.getExamById(exam.getId())).thenReturn(Optional.empty());
+        Optional<ValidationError> maybeError = examService.updateExamAccommodationsAndExam(exam.getId(), approveAccommodationsRequest);
+        verify(mockExamQueryRepository).getExamById(exam.getId());
+        assertThat(maybeError.isPresent());
+    }
+
+    @Test
+    public void shouldReturnValidationErrorForProctoredSessionFound() {
+        Session session = new SessionBuilder().withProctorId(1L).build();
+        Exam exam = new ExamBuilder().withSessionId(session.getId()).build();
+        ApproveAccommodationsRequest approveAccommodationsRequest = new ApproveAccommodationsRequest(exam.getSessionId(), exam.getBrowserId(), true, new HashMap<>());
+        when(mockExamQueryRepository.getExamById(exam.getId())).thenReturn(Optional.of(exam));
+        when(mockSessionService.findSessionById(exam.getSessionId())).thenReturn(Optional.of(session));
+        Optional<ValidationError> maybeError = examService.updateExamAccommodationsAndExam(exam.getId(), approveAccommodationsRequest);
+        assertThat(maybeError).isPresent();
+        verify(mockExamQueryRepository).getExamById(exam.getId());
+        verify(mockSessionService).findSessionById(exam.getSessionId());
+    }
+
+    @Test
+    public void shouldFailValidationForNonGuestStudent() {
+        Session session = new SessionBuilder().withProctorId(1L).build();
+        Exam exam = new ExamBuilder().withSessionId(session.getId()).build();
+        ApproveAccommodationsRequest approveAccommodationsRequest =
+            new ApproveAccommodationsRequest(exam.getSessionId(), exam.getBrowserId(), false, new HashMap<>());
+        when(mockExamApprovalService.verifyAccess(any(), any())).thenReturn(Optional.of(new ValidationError("oh", "no!!")));
+        when(mockExamQueryRepository.getExamById(exam.getId())).thenReturn(Optional.of(exam));
+        Optional<ValidationError> maybeError = examService.updateExamAccommodationsAndExam(exam.getId(), approveAccommodationsRequest);
+        assertThat(maybeError).isPresent();
+        verify(mockExamQueryRepository).getExamById(exam.getId());
+        verify(mockExamApprovalService).verifyAccess(any(), any());
+    }
+
+    @Test
+    public void shouldFailWithNoSessionFound() {
+        Session session = new SessionBuilder().withProctorId(1L).build();
+        Exam exam = new ExamBuilder().withSessionId(session.getId()).build();
+        ApproveAccommodationsRequest approveAccommodationsRequest = new ApproveAccommodationsRequest(exam.getSessionId(), exam.getBrowserId(), false, new HashMap<>());
+
+        when(mockExamApprovalService.verifyAccess(any(), any())).thenReturn(Optional.empty());
+        when(mockExamQueryRepository.getExamById(exam.getId())).thenReturn(Optional.of(exam));
+        when(mockSessionService.findSessionById(exam.getSessionId())).thenReturn(Optional.empty());
+
+        Optional<ValidationError> maybeError = examService.updateExamAccommodationsAndExam(exam.getId(), approveAccommodationsRequest);
+
+        assertThat(maybeError).isPresent();
+        verify(mockExamQueryRepository).getExamById(exam.getId());
+        verify(mockSessionService).findSessionById(exam.getSessionId());
+        verify(mockExamApprovalService).verifyAccess(any(), any());
+    }
+
+    @Test
+    public void shouldApproveAccommodationsSuccessfullyWithCustom() {
+        Session session = new SessionBuilder().withProctorId(1L).build();
+        Exam exam = new ExamBuilder()
+            .withCustomAccommodations(false)
+            .withSessionId(session.getId())
+            .build();
+        ApproveAccommodationsRequest approveAccommodationsRequest = new ApproveAccommodationsRequest(exam.getSessionId(), exam.getBrowserId(), false, new HashMap<>());
+        ExamAccommodation examAccommodation1 = new ExamAccommodationBuilder().withCustom(true).build();
+        ExamAccommodation examAccommodation2 = new ExamAccommodationBuilder().withCustom(false).build();
+
+        when(mockExamApprovalService.verifyAccess(any(), any())).thenReturn(Optional.empty());
+        when(mockExamQueryRepository.getExamById(exam.getId())).thenReturn(Optional.of(exam));
+        when(mockSessionService.findSessionById(exam.getSessionId())).thenReturn(Optional.of(session));
+        when(mockExamAccommodationService.approveAccommodations(exam, session, approveAccommodationsRequest)).thenReturn(
+            Arrays.asList(examAccommodation1, examAccommodation2));
+        Optional<ValidationError> maybeError = examService.updateExamAccommodationsAndExam(exam.getId(), approveAccommodationsRequest);
+
+        assertThat(maybeError).isNotPresent();
+        verify(mockExamQueryRepository).getExamById(exam.getId());
+        verify(mockSessionService).findSessionById(exam.getSessionId());
+        verify(mockExamApprovalService).verifyAccess(any(), any());
+        // Verify that the exam was updated with the custom accommodation flag
+        verify(mockExamCommandRepository).update(examArgumentCaptor.capture());
+        assertThat(examArgumentCaptor.getValue().isCustomAccommodations()).isTrue();
+    }
+
+    @Test
+    public void shouldApproveAccommodationsSuccessfullyNoUpdateCustom() {
+        Session session = new SessionBuilder().withProctorId(1L).build();
+        Exam exam = new ExamBuilder()
+            .withCustomAccommodations(false)
+            .withSessionId(session.getId())
+            .build();
+        ApproveAccommodationsRequest approveAccommodationsRequest = new ApproveAccommodationsRequest(exam.getSessionId(), exam.getBrowserId(), false, new HashMap<>());
+        ExamAccommodation examAccommodation1 = new ExamAccommodationBuilder().withCustom(false).build();
+        ExamAccommodation examAccommodation2 = new ExamAccommodationBuilder().withCustom(false).build();
+
+        when(mockExamApprovalService.verifyAccess(any(), any())).thenReturn(Optional.empty());
+        when(mockExamQueryRepository.getExamById(exam.getId())).thenReturn(Optional.of(exam));
+        when(mockSessionService.findSessionById(exam.getSessionId())).thenReturn(Optional.of(session));
+        when(mockExamAccommodationService.approveAccommodations(exam, session, approveAccommodationsRequest)).thenReturn(
+            Arrays.asList(examAccommodation1, examAccommodation2));
+        Optional<ValidationError> maybeError = examService.updateExamAccommodationsAndExam(exam.getId(), approveAccommodationsRequest);
+
+        assertThat(maybeError).isNotPresent();
+        verify(mockExamQueryRepository).getExamById(exam.getId());
+        verify(mockSessionService).findSessionById(exam.getSessionId());
+        verify(mockExamApprovalService).verifyAccess(any(), any());
+        // Verify that the exam was updated with the custom accommodation flag
+        verify(mockExamCommandRepository, never()).update(any());
     }
 }

@@ -27,6 +27,7 @@ import tds.common.entity.utils.ChangeListener;
 import tds.common.web.exceptions.NotFoundException;
 import tds.config.ClientSystemFlag;
 import tds.config.TimeLimitConfiguration;
+import tds.exam.ApproveAccommodationsRequest;
 import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
 import tds.exam.ExamApproval;
@@ -273,7 +274,6 @@ class ExamServiceImpl implements ExamService {
         }
     }
 
-
     @Override
     public Optional<ValidationError> waitForSegmentApproval(final UUID examId, final SegmentApprovalRequest request) {
         Response<ExamApproval> approvalResponse = examApprovalService.getApproval(new ExamInfo(examId, request.getSessionId(), request.getBrowserId()));
@@ -294,6 +294,44 @@ class ExamServiceImpl implements ExamService {
         }
 
         return maybeError;
+    }
+
+    @Override
+    public Optional<ValidationError> updateExamAccommodationsAndExam(final UUID examId, final ApproveAccommodationsRequest request) {
+        /* This method is a port of StudentDLL.T_ApproveAccommodations_SP, starting at line 11429 */
+        Optional<Exam> maybeExam = examQueryRepository.getExamById(examId);
+
+        if (!maybeExam.isPresent()) {
+            return Optional.of(new ValidationError(
+                ExamStatusCode.STATUS_FAILED, String.format("No exam found for id %s", examId)
+            ));
+        }
+
+        Exam exam = maybeExam.get();
+
+        if (!request.isGuest()) {
+            /* StudentDLL line 11441 */
+            Optional<ValidationError> maybeError = examApprovalService.verifyAccess(new ExamInfo(examId, request.getSessionId(), request.getBrowserId()), exam);
+
+            if (maybeError.isPresent()) {
+                return maybeError;
+            }
+        }
+
+        /* StudentDLL lines 11465-11473 */
+        Optional<Session> maybeSession = sessionService.findSessionById(exam.getSessionId());
+
+        if (!maybeSession.isPresent()) {
+            return Optional.of(new ValidationError(ValidationErrorCode.EXAM_NOT_ENROLLED_IN_SESSION, "The test opportunity is not enrolled in this session"));
+        } else if (maybeSession.isPresent() && !maybeSession.get().isProctorless() && request.isGuest()) {
+            return Optional.of(new ValidationError(ValidationErrorCode.STUDENT_SELF_APPROVE_UNPROCTORED_SESSION, "Student can only self-approve unproctored sessions"));
+        }
+
+        List<ExamAccommodation> updatedAccommodations = examAccommodationService.approveAccommodations(exam, maybeSession.get(), request);
+        // Update the "custom" exam flag is a custom exam accommodation is approved
+        updateExamWithCustomAccommodations(exam, updatedAccommodations);
+
+        return Optional.empty();
     }
 
     @Transactional
@@ -708,14 +746,14 @@ class ExamServiceImpl implements ExamService {
     private Exam updateExamWithCustomAccommodations(final Exam exam,
                                                     final List<ExamAccommodation> examAccommodations) {
         //Pulled from CommonDLL lines 2669 - 2670.  If any of the exam accommodations are custom then we need to flag the exam
-        Optional<ExamAccommodation> maybeExamAccommodation = examAccommodations.stream()
+        Optional<ExamAccommodation> maybeCustomExamAccommodation = examAccommodations.stream()
             .filter(ExamAccommodation::isCustom)
             .findFirst();
 
-        if (maybeExamAccommodation.isPresent() != exam.isCustomAccommodations()) {
+        if (maybeCustomExamAccommodation.isPresent() != exam.isCustomAccommodations()) {
             Exam updatedExam = new Exam.Builder()
                 .fromExam(exam)
-                .withCustomAccommodation(maybeExamAccommodation.isPresent())
+                .withCustomAccommodation(maybeCustomExamAccommodation.isPresent())
                 .build();
 
             updateExam(exam, updatedExam);
