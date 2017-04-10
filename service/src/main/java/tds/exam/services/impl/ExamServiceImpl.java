@@ -311,7 +311,7 @@ class ExamServiceImpl implements ExamService {
 
         if (!request.isGuest()) {
             /* StudentDLL line 11441 */
-            Optional<ValidationError> maybeError = examApprovalService.verifyAccess(new ExamInfo(examId, request.getSessionId(), request.getBrowserId()), exam);
+            Optional<ValidationError> maybeError = examApprovalService.verifyAccess(new ExamInfo(examId, request.getSessionId(), exam.getBrowserId()), exam);
 
             if (maybeError.isPresent()) {
                 return maybeError;
