@@ -6,6 +6,7 @@ import java.util.Optional;
 import tds.accommodation.Accommodation;
 import tds.assessment.Assessment;
 import tds.assessment.AssessmentWindow;
+import tds.assessment.SegmentItemInformation;
 import tds.session.ExternalSessionConfiguration;
 
 /**
@@ -16,7 +17,7 @@ public interface AssessmentService {
      * Finds the {@link tds.assessment.Assessment}
      *
      * @param clientName The name of the client (e.g. SBAC or SBAC_PT)
-     * @param key unique key for the assessment
+     * @param key        unique key for the assessment
      * @return {@link tds.assessment.Assessment the assessment}
      */
     Optional<Assessment> findAssessment(final String clientName, final String key);
@@ -50,4 +51,11 @@ public interface AssessmentService {
      */
     List<Accommodation> findAssessmentAccommodationsByAssessmentId(final String clientName, final String assessmentId);
 
+    /**
+     * Finds the {@link tds.assessment.SegmentItemInformation}
+     *
+     * @param segmentKey the segment key
+     * @return optional with the {@link tds.assessment.SegmentItemInformation} if found
+     */
+    Optional<SegmentItemInformation> findSegmentItemInformation(final String segmentKey);
 }
