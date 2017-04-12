@@ -3,32 +3,28 @@ package tds.exam.web.endpoints;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import org.json.JSONObject;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.net.URI;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.UUID;
 
 import tds.common.ValidationError;
-import tds.common.web.resources.NoContentResponseResource;
 import tds.exam.ApproveAccommodationsRequest;
 import tds.exam.Exam;
-import tds.exam.ExamAccommodation;
 import tds.exam.ExamStatusCode;
+import tds.exam.ExamStatusRequest;
 import tds.exam.ExamStatusStage;
 import tds.exam.SegmentApprovalRequest;
 import tds.exam.WebMvcControllerIntegrationTest;
-import tds.exam.builder.ExamAccommodationBuilder;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.error.ValidationErrorCode;
 import tds.exam.services.ExamApprovalService;
@@ -37,15 +33,12 @@ import tds.exam.services.ExamService;
 import tds.exam.web.interceptors.VerifyAccessInterceptor;
 
 import static io.github.benas.randombeans.api.EnhancedRandom.random;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -75,6 +68,13 @@ public class ExamControllerIntegrationTests {
 
     @MockBean
     private ExamApprovalService mockExamApprovalService;
+
+    private ObjectWriter ow;
+
+    @Before
+    public void setUp() {
+        ow = objectMapper.writer().withDefaultPrettyPrinter();
+    }
 
     @Test
     public void shouldReturnExam() throws Exception {
@@ -151,12 +151,12 @@ public class ExamControllerIntegrationTests {
     @Test
     public void shouldUpdateExamStatus() throws Exception {
         final UUID examId = UUID.randomUUID();
-        final String statusCode = ExamStatusCode.STATUS_APPROVED;
+        final ExamStatusRequest request = new ExamStatusRequest(random(ExamStatusCode.class), null);
 
         when(mockExamService.updateExamStatus(eq(examId), any(), (String) isNull())).thenReturn(Optional.empty());
 
         http.perform(put(new URI(String.format("/exam/%s/status/", examId)))
-            .param("status", statusCode)
+            .content(ow.writeValueAsString(request))
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isNoContent());
 
@@ -166,13 +166,13 @@ public class ExamControllerIntegrationTests {
     @Test
     public void shouldFailStatusUpdateWithError() throws Exception {
         final UUID examId = UUID.randomUUID();
-        final String statusCode = ExamStatusCode.STATUS_APPROVED;
+        final ExamStatusRequest request = new ExamStatusRequest(random(ExamStatusCode.class), null);
 
         when(mockExamService.updateExamStatus(eq(examId), any(), (String) isNull()))
             .thenReturn(Optional.of(new ValidationError("Some", "Error")));
 
         http.perform(put(new URI(String.format("/exam/%s/status/", examId)))
-            .param("status", statusCode)
+            .content(ow.writeValueAsString(request))
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isUnprocessableEntity());
 
@@ -195,9 +195,6 @@ public class ExamControllerIntegrationTests {
         SegmentApprovalRequest request = random(SegmentApprovalRequest.class);
         when(mockExamService.waitForSegmentApproval(eq(examId), any())).thenReturn(Optional.empty());
 
-        ObjectWriter ow = objectMapper
-            .writer().withDefaultPrettyPrinter();
-
         http.perform(put(new URI(String.format("/exam/%s/segmentApproval/", examId)))
             .contentType(MediaType.APPLICATION_JSON)
             .content(ow.writeValueAsString(request)))
@@ -212,9 +209,6 @@ public class ExamControllerIntegrationTests {
         UUID examId = UUID.randomUUID();
         SegmentApprovalRequest request = random(SegmentApprovalRequest.class);
         when(mockExamService.waitForSegmentApproval(eq(examId), any())).thenReturn(Optional.of(new ValidationError("some", "error")));
-
-        ObjectWriter ow = objectMapper
-            .writer().withDefaultPrettyPrinter();
 
         http.perform(put(new URI(String.format("/exam/%s/segmentApproval/", examId)))
             .contentType(MediaType.APPLICATION_JSON)

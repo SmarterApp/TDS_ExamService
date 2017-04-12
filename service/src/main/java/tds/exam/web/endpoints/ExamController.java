@@ -26,6 +26,7 @@ import tds.exam.ApproveAccommodationsRequest;
 import tds.exam.Exam;
 import tds.exam.ExamConfiguration;
 import tds.exam.ExamStatusCode;
+import tds.exam.ExamStatusRequest;
 import tds.exam.ExamStatusStage;
 import tds.exam.OpenExamRequest;
 import tds.exam.SegmentApprovalRequest;
@@ -84,12 +85,9 @@ public class ExamController {
 
     @RequestMapping(value = "/{examId}/status", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<NoContentResponseResource> updateStatus(@PathVariable final UUID examId,
-                                                           @RequestParam final String status,
-                                                           @RequestParam(required = false) final String stage,
-                                                           @RequestParam(required = false) final String reason) {
-
-        ExamStatusCode examStatus = (stage == null) ? new ExamStatusCode(status) : new ExamStatusCode(status, ExamStatusStage.fromType(stage));
-        final Optional<ValidationError> maybeStatusTransitionFailure = examService.updateExamStatus(examId, examStatus, reason);
+                                                           @RequestBody final ExamStatusRequest examStatusRequest) {
+        final Optional<ValidationError> maybeStatusTransitionFailure = examService.updateExamStatus(examId,
+            examStatusRequest.getExamStatus(), examStatusRequest.getReason());
 
         if (maybeStatusTransitionFailure.isPresent()) {
             NoContentResponseResource response = new NoContentResponseResource(maybeStatusTransitionFailure.get());
