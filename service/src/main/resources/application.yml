@@ -17,6 +17,11 @@ spring:
     password: ${sbac.jdbc.password}
     driver-class-name: 'com.mysql.jdbc.Driver'
 
+management:
+  health:
+    redis:
+      enabled: false
+
 #Logging
 logging:
   level:
