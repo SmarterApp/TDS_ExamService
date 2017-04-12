@@ -97,7 +97,7 @@ public class ExamCommandRepositoryImplIntegrationTests {
         assertThat(savedExam.getCurrentSegmentPosition()).isEqualTo(exam.getCurrentSegmentPosition());
         assertThat(savedExam.isCustomAccommodations()).isEqualTo(exam.isCustomAccommodations());
         assertThat(savedExam.getCreatedAt()).isNotNull();
-        assertThat(savedExam.getCreatedAt()).isGreaterThan(now);
+        assertThat(savedExam.getCreatedAt()).isGreaterThanOrEqualTo(now);
         assertThat(savedExam.getBrowserUserAgent()).isEqualTo(exam.getBrowserUserAgent());
     }
 
