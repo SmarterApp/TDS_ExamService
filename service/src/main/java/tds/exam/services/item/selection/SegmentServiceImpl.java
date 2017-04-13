@@ -1,23 +1,35 @@
 package tds.exam.services.item.selection;
 
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import tds.assessment.ContentLevelSpecification;
+import tds.assessment.Item;
+import tds.assessment.ItemControlParameter;
+import tds.assessment.ItemGroup;
+import tds.assessment.ItemMeasurement;
+import tds.assessment.ItemProperty;
 import tds.assessment.Segment;
 import tds.assessment.SegmentItemInformation;
-import tds.common.web.exceptions.NotFoundException;
 import tds.dll.common.performance.caching.CacheType;
 import tds.exam.services.AssessmentService;
+import tds.itemselection.api.ItemSelectionException;
+import tds.itemselection.base.TestItem;
 import tds.itemselection.impl.blueprint.Blueprint;
 import tds.itemselection.impl.blueprint.BpElement;
 import tds.itemselection.impl.blueprint.ReportingCategory;
 import tds.itemselection.impl.math.AAMath;
+import tds.itemselection.impl.sets.ItemPool;
 import tds.itemselection.loader.TestSegment;
 import tds.itemselection.services.SegmentService;
 
@@ -26,6 +38,7 @@ import tds.itemselection.services.SegmentService;
  */
 @Service
 public class SegmentServiceImpl implements SegmentService {
+    private static final Logger LOG = LoggerFactory.getLogger(SegmentServiceImpl.class);
     private final AssessmentService assessmentService;
 
     @Autowired
@@ -45,7 +58,7 @@ public class SegmentServiceImpl implements SegmentService {
         //It is unused for a data access purpose.  We are using Spring caching instead.
 
         SegmentItemInformation segmentItemInformation = assessmentService.findSegmentItemInformation(segmentKey)
-            .orElseThrow(() -> new NotFoundException("Unable to find the requested segment by %s", segmentKey));
+            .orElseThrow(() -> new ItemSelectionException(String.format("Unable to find the requested segment by %s", segmentKey)));
 
         TestSegment testSegment = new TestSegment(segmentKey, false);
 
@@ -57,21 +70,27 @@ public class SegmentServiceImpl implements SegmentService {
         testSegment.position = segment.getPosition();
 
         Blueprint blueprint = testSegment.getBp();
+        ItemPool itemPool = testSegment.getPool();
 
         populateBlueprintFromSegment(blueprint, segment);
         populateBlueprintConsraints(blueprint, segmentItemInformation.getContentLevelSpecifications());
+        populateItemGroups(itemPool, segmentItemInformation.getItemGroups());
+        populateSegmentItems(itemPool, segmentItemInformation.getSegmentItems(), blueprint.segmentPosition);
+        populateParentItems(itemPool, segmentItemInformation.getParentItems());
+        populateItemDimensions(itemPool, segmentItemInformation.getItemMeasurements());
+        populateBlueprintOffGradeItemProps(blueprint, segmentItemInformation.getControlParameters());
+        populateBlueprintOffGradeItemsDesignator(blueprint, segmentItemInformation.getPoolFilterProperties());
 
-        return null;
+        return testSegment;
     }
 
     private static void populateBlueprintConsraints(final Blueprint blueprint, final List<ContentLevelSpecification> specs) {
         //Blueprint.initializeBluePrintConstraints
-
         HashMap<String, ReportingCategory> reportingCategories = new HashMap<>();
         HashMap<String, BpElement> bluePrintElements = new HashMap<>();
 
-        for(ContentLevelSpecification spec : specs) {
-            if(spec.isReportingCategory()) {
+        for (ContentLevelSpecification spec : specs) {
+            if (spec.isReportingCategory()) {
                 ReportingCategory rc = convertReportingCateogry(spec);
                 reportingCategories.put(rc.ID, rc);
                 blueprint.elements.addBpElement(rc);
@@ -129,10 +148,8 @@ public class SegmentServiceImpl implements SegmentService {
 
     private static void populateBlueprintFromSegment(final Blueprint blueprint, final Segment segment) {
         //Port of Bluepring initialization in Blueprint.initializeOverallBluePrint
-
-
         blueprint.segmentKey = segment.getKey();
-//        blueprint.segmentID
+        blueprint.segmentID = segment.getSegmentId();
 //        minOpItemsTest = long2Integer(record, "minOpItemsTest");
 //        maxOpItemsTest = long2Integer(record, "maxOpItemsTest");
         blueprint.segmentPosition = segment.getPosition();
@@ -180,5 +197,110 @@ public class SegmentServiceImpl implements SegmentService {
         blueprint.terminateBasedOnReportingCategoryInformation = segment.isTerminationReportingCategoryInfo();
         blueprint.terminateBasedOnScoreTooClose = segment.isTerminationTooClose();
         blueprint.terminateBaseOnFlagsAnd = segment.isTerminationFlagsAnd();
+    }
+
+    private static void populateItemGroups(ItemPool itemPool, List<ItemGroup> itemGroups) {
+        for (ItemGroup itemGroup : itemGroups) {
+            tds.itemselection.base.ItemGroup legacyGroup = new tds.itemselection.base.ItemGroup();
+            legacyGroup.setGroupID(itemGroup.getGroupId());
+            legacyGroup.setNumberOfItemsRequired(itemGroup.getRequiredItemCount());
+            legacyGroup.setMaximumNumberOfItems(itemGroup.getMaxItems());
+            itemPool.addItemgroup(legacyGroup);
+        }
+    }
+
+    private static TestItem convertItem(Item item) {
+        TestItem testItem = new TestItem();
+        testItem.setItemID(item.getId());
+        testItem.setGroupID(item.getGroupId());
+        testItem.isActive = item.isActive();
+        testItem.isRequired = item.isRequired();
+        testItem.isFieldTest = item.isFieldTest();
+        testItem.strandName = item.getStrand();
+
+        //We call this claims but the legacy application calls it content levels
+        testItem.setContentLevels(item.getClaims());
+        return testItem;
+    }
+
+    private static void populateSegmentItems(ItemPool itemPool, List<Item> items, Integer segmentPosition) {
+        for (Item item : items) {
+            TestItem testItem = convertItem(item);
+            testItem.setSegmentPosition(segmentPosition);
+
+            if (itemPool.getItemGroup(testItem.getGroupID()) == null) {
+                String groupId = testItem.getGroupID();
+                if (StringUtils.isEmpty(groupId)) {
+                    groupId = "I-".concat(testItem.getItemID());
+                }
+
+                tds.itemselection.base.ItemGroup group = new tds.itemselection.base.ItemGroup(groupId, 0, 1);
+                itemPool.addItemgroup(group);
+            } else {
+                tds.itemselection.base.ItemGroup group = itemPool.getItemGroup(testItem.groupID);
+                group.getItems().add(testItem);
+                group.setMaximumNumberOfItems(group.getMaximumNumberOfItems() + 1);
+            }
+
+            itemPool.addItem(testItem);
+        }
+    }
+
+    private static void populateParentItems(ItemPool itemPool, List<Item> items) {
+        for (Item item : items) {
+            itemPool.addSiblingItem(convertItem(item));
+        }
+    }
+
+    private static void populateItemDimensions(ItemPool itemPool, List<ItemMeasurement> measurements) throws Exception {
+        //Port of ItemPool.InitializeItemDimensions
+        for (ItemMeasurement measurement : measurements) {
+            TestItem testItem = itemPool.getItem(measurement.getItemKey());
+
+            if (testItem == null) {
+                continue;
+            }
+
+            testItem.initializeDimensionEntry(measurement.getDimension(),
+                measurement.getItemResponseTheoryModel(),
+                measurement.getParameterNumber(),
+                measurement.getParameterName(),
+                measurement.getParameterValue() == null ? null : (double) measurement.getParameterValue()
+            );
+
+            testItem.dimensions.get(testItem.dimensions.size() - 1).initializeIRT();
+            testItem.hasDimensions = !testItem.dimensions.isEmpty();
+        }
+    }
+
+    private static void populateBlueprintOffGradeItemProps(Blueprint blueprint, List<ItemControlParameter> itemControlParameters) {
+        //Port of Blueprint.initializeBluePrintOffGradeItemsProps
+        for(ItemControlParameter param : itemControlParameters) {
+            if(StringUtils.isEmpty(param.getValue())) {
+                continue;
+            }
+
+            if(blueprint.segmentID.equals(param.getBlueprintElementId())) {
+                blueprint.offGradeItemsProps.populateBluePrintOffGradeItemsDesignator(param.getName(), param.getValue());
+            } else if(blueprint.getReportingCategory(param.getBlueprintElementId()) != null) {
+                blueprint.getReportingCategory(param.getBlueprintElementId()).putItemSelectionParam(param.getName(), param.getValue());
+            } else if(blueprint.getBPElement(param.getBlueprintElementId()) != null){
+                blueprint.getBPElement(param.getBlueprintElementId()).putItemSelectionParam(param.getName(), param.getValue());
+            } else {
+                LOG.warn("There is no bpElement with bpElementId = " + param.getBlueprintElementId());
+            }
+        }
+    }
+
+    private static void populateBlueprintOffGradeItemsDesignator(Blueprint blueprint, List<ItemProperty> itemProperties) {
+        //Port of Blueprint.initializeBluePrintOffGradeItemsDesignator
+        //Assessment service returns all the properties rather than grouping in the DB
+        Map<String, List<ItemProperty>> groupedProperties = itemProperties.stream()
+            .filter(itemProperty -> itemProperty.getValue() != null)
+            .collect(Collectors.groupingBy(ItemProperty::getValue));
+
+        for(Map.Entry<String, List<ItemProperty>> entry : groupedProperties.entrySet()) {
+            blueprint.offGradeItemsProps.countByDesignator.put(entry.getKey(), entry.getValue().size());
+        }
     }
 }
