@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -53,7 +54,7 @@ public class ExamItemController {
         return ResponseEntity.ok(nextPage);
     }
 
-    @PostMapping("/{examId}/item/{position}/review")
+    @PutMapping("/{examId}/item/{position}/review")
     @VerifyAccess
     ResponseEntity<NoContentResponseResource> markItemForReview(@PathVariable final UUID examId,
                                                                 @PathVariable final int position,
