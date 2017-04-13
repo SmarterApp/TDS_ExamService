@@ -54,6 +54,7 @@ public class ExamItemController {
     }
 
     @PostMapping("/{id}/item/{position}/review")
+    @VerifyAccess
     ResponseEntity<NoContentResponseResource> markItemForReview(@PathVariable final UUID id,
                                                                 @PathVariable final int position,
                                                                 @RequestBody final Boolean mark) {
