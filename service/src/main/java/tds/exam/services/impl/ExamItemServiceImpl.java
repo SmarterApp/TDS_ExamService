@@ -13,7 +13,7 @@ import tds.common.Response;
 import tds.common.ValidationError;
 import tds.common.web.exceptions.NotFoundException;
 import tds.exam.Exam;
-import tds.exam.ExamInfo;
+import tds.exam.ExamItem;
 import tds.exam.ExamItemResponse;
 import tds.exam.ExamItemResponseScore;
 import tds.exam.ExamPage;
@@ -24,9 +24,11 @@ import tds.exam.repositories.ExamItemQueryRepository;
 import tds.exam.repositories.ExamPageCommandRepository;
 import tds.exam.repositories.ExamPageQueryRepository;
 import tds.exam.repositories.ExamQueryRepository;
-import tds.exam.services.ExamApprovalService;
 import tds.exam.services.ExamItemResponseScoringService;
 import tds.exam.services.ExamItemService;
+
+import static tds.exam.error.ValidationErrorCode.EXAM_ITEM_DOES_NOT_EXIST;
+import static tds.exam.error.ValidationErrorCode.EXAM_ITEM_RESPONSE_DOES_NOT_EXIST;
 
 @Service
 public class ExamItemServiceImpl implements ExamItemService {
@@ -101,5 +103,31 @@ public class ExamItemServiceImpl implements ExamItemService {
     @Override
     public Map<UUID, Integer> getResponseCounts(final UUID... examIds) {
         return examItemQueryRepository.getResponseCounts(examIds);
+    }
+
+    @Override
+    public Optional<ValidationError> markForReview(final UUID examId, final int position, final Boolean mark) {
+        Optional<ExamItem> maybeExamItem = examItemQueryRepository.findExamItemAndResponse(examId, position);
+
+        if (!maybeExamItem.isPresent()) {
+            return Optional.of(new ValidationError(EXAM_ITEM_DOES_NOT_EXIST,
+                String.format("No exam item found for exam id '%s' at position '%s'.", examId, position)));
+        }
+
+        ExamItem examItem = maybeExamItem.get();
+
+        if (!examItem.getResponse().isPresent()) {
+            return Optional.of(new ValidationError(EXAM_ITEM_RESPONSE_DOES_NOT_EXIST,
+                String.format("No exam response found for exam id '%s' at item position '%s'.", examId, position)));
+        }
+
+        ExamItemResponse updatedResponse = ExamItemResponse.Builder
+            .fromExamItemResponse(examItem.getResponse().get())
+            .withMarkedForReview(mark)
+            .build();
+
+        examItemCommandRepository.insertResponses(updatedResponse);
+
+        return Optional.empty();
     }
 }

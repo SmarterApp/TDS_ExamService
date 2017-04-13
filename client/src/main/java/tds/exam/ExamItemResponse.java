@@ -20,6 +20,7 @@ public class ExamItemResponse {
     private boolean selected;
     private ExamItemResponseScore score;
     private Instant createdAt;
+    private boolean markedForReview;
 
     /**
      * Private constructor for frameworks
@@ -36,6 +37,7 @@ public class ExamItemResponse {
         selected = builder.selected;
         score = builder.score;
         createdAt = builder.createdAt;
+        markedForReview = builder.markedForReview;
     }
 
     public static final class Builder {
@@ -47,6 +49,7 @@ public class ExamItemResponse {
         private boolean selected;
         private ExamItemResponseScore score;
         private Instant createdAt;
+        private boolean markedForReview;
 
         public static Builder fromExamItemResponse(ExamItemResponse examItemResponse) {
             return new Builder()
@@ -57,6 +60,7 @@ public class ExamItemResponse {
                 .withValid(examItemResponse.valid)
                 .withSelected(examItemResponse.selected)
                 .withScore(examItemResponse.score)
+                .withMarkedForReview(examItemResponse.markedForReview)
                 .withCreatedAt(examItemResponse.createdAt);
         }
 
@@ -102,6 +106,11 @@ public class ExamItemResponse {
 
         public Builder withCreatedAt(Instant createdAt) {
             this.createdAt = createdAt;
+            return this;
+        }
+
+        public Builder withMarkedForReview(boolean markedForReview) {
+            this.markedForReview = markedForReview;
             return this;
         }
 
@@ -177,6 +186,13 @@ public class ExamItemResponse {
         return createdAt;
     }
 
+    /**
+     * @return Flag indicating whether the item is marked for review
+     */
+    public boolean isMarkedForReview() {
+        return markedForReview;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -188,6 +204,7 @@ public class ExamItemResponse {
         if (getSequence() != that.getSequence()) return false;
         if (isValid() != that.isValid()) return false;
         if (isSelected() != that.isSelected()) return false;
+        if (isMarkedForReview() != that.isMarkedForReview()) return false;
         if (!getExamItemId().equals(that.getExamItemId())) return false;
         if (!getResponse().equals(that.getResponse())) return false;
         if (!getScore().equals(that.getScore())) return false;
@@ -202,6 +219,7 @@ public class ExamItemResponse {
         result = 31 * result + getSequence();
         result = 31 * result + (isValid() ? 1 : 0);
         result = 31 * result + (isSelected() ? 1 : 0);
+        result = 31 * result + (isMarkedForReview() ? 1 : 0);
 
         return result;
     }

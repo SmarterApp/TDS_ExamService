@@ -81,7 +81,6 @@ public class ExamPageControllerIntegrationTests {
             .andExpect(jsonPath("data.examItems[0].itemType", is(mockExamItem.getItemType())))
             .andExpect(jsonPath("data.examItems[0].position", is(mockExamItem.getPosition())))
             .andExpect(jsonPath("data.examItems[0].required", is(mockExamItem.isRequired())))
-            .andExpect(jsonPath("data.examItems[0].markedForReview", is(mockExamItem.isMarkedForReview())))
             .andExpect(jsonPath("data.examItems[0].fieldTest", is(mockExamItem.isFieldTest())))
             .andExpect(jsonPath("data.examItems[0].itemFilePath", is(mockExamItem.getItemFilePath())))
             .andExpect(jsonPath("data.examItems[0].stimulusFilePath", is(mockExamItem.getStimulusFilePath().get())));
@@ -134,7 +133,6 @@ public class ExamPageControllerIntegrationTests {
             .andExpect(jsonPath("data.examItems[0].itemType", is(examItem.getItemType())))
             .andExpect(jsonPath("data.examItems[0].position", is(examItem.getPosition())))
             .andExpect(jsonPath("data.examItems[0].required", is(examItem.isRequired())))
-            .andExpect(jsonPath("data.examItems[0].markedForReview", is(examItem.isMarkedForReview())))
             .andExpect(jsonPath("data.examItems[0].fieldTest", is(examItem.isFieldTest())))
             .andExpect(jsonPath("data.examItems[0].itemFilePath", is(examItem.getItemFilePath())))
             .andExpect(jsonPath("data.examItems[0].stimulusFilePath", is(examItem.getStimulusFilePath().get())))

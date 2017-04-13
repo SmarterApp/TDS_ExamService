@@ -155,7 +155,6 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
                 "   item.position AS item_position, \n" +
                 "   item.is_fieldtest, \n" +
                 "   item.is_required, \n" +
-                "   item.is_marked_for_review, \n" +
                 "   item.item_file_path, \n" +
                 "   item.stimulus_file_path, \n" +
                 "   response.response, \n" +
@@ -168,6 +167,7 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
                 "   response.scoring_dimensions, \n" +
                 "   response.created_at AS response_created_at, \n" +
                 "   response.scored_at, \n" +
+                "   response.is_marked_for_review, \n" +
                 "   segment.segment_key, \n" +
                 "   segment.segment_id, \n" +
                 "   segment.segment_position \n" +
@@ -260,6 +260,7 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
                         .withSequence(resultExtractor.getInt("sequence"))
                         .withValid(resultExtractor.getBoolean("is_valid"))
                         .withSelected(resultExtractor.getBoolean("is_selected"))
+                        .withMarkedForReview(resultExtractor.getBoolean("is_marked_for_review"))
                         .withScore(new ExamItemResponseScore.Builder()
                             .withScore(resultExtractor.getInt("score"))
                             .withScoringStatus(ExamScoringStatus.fromType(resultExtractor.getString("scoring_status")))
@@ -280,7 +281,6 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
                     .withPosition(resultExtractor.getInt("item_position"))
                     .withFieldTest(resultExtractor.getBoolean("is_fieldtest"))
                     .withRequired(resultExtractor.getBoolean("is_required"))
-                    .withMarkedForReview(resultExtractor.getBoolean("is_marked_for_review"))
                     .withItemFilePath(resultExtractor.getString("item_file_path"))
                     .withStimulusFilePath(resultExtractor.getString("stimulus_file_path"))
                     .withResponse(response)
