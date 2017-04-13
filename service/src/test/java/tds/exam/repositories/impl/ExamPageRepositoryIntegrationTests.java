@@ -179,7 +179,6 @@ public class ExamPageRepositoryIntegrationTests {
         assertThat(firstExamItem.getItemType()).isEqualTo("MS");
         assertThat(firstExamItem.getPosition()).isEqualTo(1);
         assertThat(firstExamItem.isRequired()).isTrue();
-        assertThat(firstExamItem.isMarkedForReview()).isFalse();
         assertThat(firstExamItem.isFieldTest()).isFalse();
         assertThat(firstExamItem.getItemFilePath()).isEqualTo("/path/to/item/187-1234.xml");
         assertThat(firstExamItem.getStimulusFilePath().isPresent()).isFalse();
@@ -190,6 +189,7 @@ public class ExamPageRepositoryIntegrationTests {
         assertThat(firstItemResponse.getResponse()).isEqualTo("first item response");
         assertThat(firstItemResponse.getSequence()).isEqualTo(1);
         assertThat(firstItemResponse.getCreatedAt()).isNotNull();
+        assertThat(firstItemResponse.isMarkedForReview()).isFalse();
 
         ExamItem secondExamItem = examPage.getExamItems().get(1);
         assertThat(secondExamItem).isEqualToComparingFieldByField(mockSecondExamItem);

@@ -122,7 +122,6 @@ public class ExamItemQueryRepositoryImpl implements ExamItemQueryRepository {
             "  I.position,\n" +
             "  I.is_fieldtest,\n" +
             "  I.is_required,\n" +
-            "  I.is_marked_for_review,\n" +
             "  R.id as responseId,\n" +
             "  R.response,\n" +
             "  R.sequence,\n" +
@@ -132,6 +131,7 @@ public class ExamItemQueryRepositoryImpl implements ExamItemQueryRepository {
             "  R.scoring_status,\n" +
             "  R.scoring_rationale,\n" +
             "  R.scoring_dimensions,\n" +
+            "  R.is_marked_for_review,\n" +
             "  R.scored_at, \n" +
             "  R.score_sent_at, \n" +
             "  R.score_latency, \n" +
@@ -179,8 +179,7 @@ public class ExamItemQueryRepositoryImpl implements ExamItemQueryRepository {
                 .withExamPageId(UUID.fromString(rs.getString("exam_page_id")))
                 .withFieldTest(rs.getBoolean("is_fieldtest"))
                 .withRequired(rs.getBoolean("is_required"))
-                .withPosition(rs.getInt("position"))
-                .withMarkedForReview(rs.getBoolean("is_marked_for_review"));
+                .withPosition(rs.getInt("position"));
 
             //Since there is a left join in the query this could not have a response
             if(rs.getObject("responseId") != null) {
@@ -189,7 +188,8 @@ public class ExamItemQueryRepositoryImpl implements ExamItemQueryRepository {
                     .withExamItemId(UUID.fromString(rs.getString("examItemId")))
                     .withResponse(rs.getString("response"))
                     .withSequence(rs.getInt("sequence"))
-                    .withSelected(rs.getBoolean("is_selected"));
+                    .withSelected(rs.getBoolean("is_selected"))
+                    .withMarkedForReview(rs.getBoolean("is_marked_for_review"));;
 
                 //Means that the item has been scored
                 if(rs.getObject("scored_at") != null) {
@@ -209,7 +209,6 @@ public class ExamItemQueryRepositoryImpl implements ExamItemQueryRepository {
 
                 itemBuilder.withResponse(responseBuilder.build());
             }
-
 
             return itemBuilder.build();
         }

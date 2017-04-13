@@ -196,7 +196,6 @@ public class ExamItemCommandRepositoryImplIntegrationTests {
             .withPosition(rs.getInt("position"))
             .withFieldTest(rs.getBoolean("is_fieldtest"))
             .withRequired(rs.getBoolean("is_required"))
-            .withMarkedForReview(rs.getBoolean("is_marked_for_review"))
             .withItemFilePath(rs.getString("item_file_path"))
             .withStimulusFilePath(rs.getString("stimulus_file_path"))
             .build());

@@ -18,7 +18,6 @@ public class ExamItem {
     private String itemType;
     private int position;
     private boolean required;
-    private boolean markedForReview;
     private boolean fieldTest;
     private String itemFilePath;
     private String stimulusFilePath;
@@ -40,7 +39,6 @@ public class ExamItem {
         itemType = builder.itemType;
         position = builder.position;
         required = builder.required;
-        markedForReview = builder.markedForReview;
         fieldTest = builder.fieldTest;
         itemFilePath = builder.itemFilePath;
         stimulusFilePath = builder.stimulusFilePath;
@@ -103,11 +101,6 @@ public class ExamItem {
 
         public Builder withRequired(boolean required) {
             this.required = required;
-            return this;
-        }
-
-        public Builder withMarkedForReview(boolean markedForReview) {
-            this.markedForReview = markedForReview;
             return this;
         }
 
@@ -191,13 +184,6 @@ public class ExamItem {
      */
     public boolean isRequired() {
         return required;
-    }
-
-    /**
-     * @return True if a student has marked this {@link tds.exam.ExamItem} for review; otherwise false
-     */
-    public boolean isMarkedForReview() {
-        return markedForReview;
     }
 
     /**

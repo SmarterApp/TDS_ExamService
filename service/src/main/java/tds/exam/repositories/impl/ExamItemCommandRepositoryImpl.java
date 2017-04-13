@@ -40,7 +40,6 @@ public class ExamItemCommandRepositoryImpl implements ExamItemCommandRepository 
                 .addValue("position", examItem.getPosition())
                 .addValue("isFieldTest", examItem.isFieldTest())
                 .addValue("isRequired", examItem.isRequired())
-                .addValue("isMarkedForReview", examItem.isMarkedForReview())
                 .addValue("itemFilePath", examItem.getItemFilePath())
                 .addValue("stimulusFilePath", examItem.getStimulusFilePath().orNull())
                 .addValue("createdAt", createdAt))
@@ -57,7 +56,6 @@ public class ExamItemCommandRepositoryImpl implements ExamItemCommandRepository 
                 "   position, \n" +
                 "   is_fieldtest, \n" +
                 "   is_required, \n" +
-                "   is_marked_for_review, \n" +
                 "   item_file_path, \n" +
                 "   stimulus_file_path, \n" +
                 "   created_at) \n" +
@@ -71,7 +69,6 @@ public class ExamItemCommandRepositoryImpl implements ExamItemCommandRepository 
                 "   :position, \n" +
                 "   :isFieldTest, \n" +
                 "   :isRequired, \n" +
-                "   :isMarkedForReview, \n" +
                 "   :itemFilePath, \n" +
                 "   :stimulusFilePath, \n" +
                 "   :createdAt)";
@@ -90,7 +87,8 @@ public class ExamItemCommandRepositoryImpl implements ExamItemCommandRepository 
                         .addValue("sequence", response.getSequence())
                         .addValue("isValid", response.isValid())
                         .addValue("isSelected", response.isSelected())
-                        .addValue("createdAt", createdAt);
+                        .addValue("createdAt", createdAt)
+                        .addValue("isMarkedForReview", response.isMarkedForReview());
 
                 // It's possible that a response has not yet been scored
                 if (response.getScore().isPresent()) {
@@ -126,6 +124,7 @@ public class ExamItemCommandRepositoryImpl implements ExamItemCommandRepository 
                 "   sequence, \n" +
                 "   is_valid, \n" +
                 "   is_selected, \n" +
+                "   is_marked_for_review, \n" +
                 "   score, \n" +
                 "   scoring_status, \n" +
                 "   scoring_rationale, \n" +
@@ -141,6 +140,7 @@ public class ExamItemCommandRepositoryImpl implements ExamItemCommandRepository 
                 "   :sequence, \n" +
                 "   :isValid, \n" +
                 "   :isSelected, \n" +
+                "   :isMarkedForReview, \n" +
                 "   :score, \n" +
                 "   :scoringStatus, \n" +
                 "   :scoringRationale, \n" +
