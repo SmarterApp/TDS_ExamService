@@ -11,9 +11,12 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import tds.common.Response;
+import tds.common.ValidationError;
+import tds.common.web.resources.NoContentResponseResource;
 import tds.exam.ExamInfo;
 import tds.exam.ExamItem;
 import tds.exam.ExamItemResponse;
@@ -70,5 +73,29 @@ public class ExamItemControllerTest {
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(result.getBody().getData().isPresent()).isTrue();
         assertThat(result.getBody().getError().isPresent()).isFalse();
+    }
+
+    @Test
+    public void shouldMarkItemForReview() {
+        final UUID examId = UUID.randomUUID();
+        final int position = 6;
+        final boolean mark = true;
+
+        when(mockExamItemService.markForReview(examId, position, mark)).thenReturn(Optional.empty());
+        ResponseEntity<NoContentResponseResource> response = examItemController.markItemForReview(examId, position, mark);
+        verify(mockExamItemService).markForReview(examId, position, mark);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+    }
+
+    @Test
+    public void shouldFailToMarkItemForReview() {
+        final UUID examId = UUID.randomUUID();
+        final int position = 6;
+        final boolean mark = true;
+
+        when(mockExamItemService.markForReview(examId, position, mark)).thenReturn(Optional.of(new ValidationError("some", "error")));
+        ResponseEntity<NoContentResponseResource> response = examItemController.markItemForReview(examId, position, mark);
+        verify(mockExamItemService).markForReview(examId, position, mark);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
     }
 }

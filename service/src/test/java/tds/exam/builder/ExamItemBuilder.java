@@ -19,7 +19,6 @@ public class ExamItemBuilder {
     private String itemType = "MS";
     private int position = 1;
     private boolean required;
-    private boolean markedForReview;
     private boolean fieldTest;
     private String itemFilePath = "/path/to/item/187-1234.xml";
     private String stimulusFilePath;
@@ -34,7 +33,6 @@ public class ExamItemBuilder {
             .withItemType(itemType)
             .withPosition(position)
             .withRequired(required)
-            .withMarkedForReview(markedForReview)
             .withFieldTest(fieldTest)
             .withItemFilePath(itemFilePath)
             .withStimulusFilePath(stimulusFilePath)
@@ -79,11 +77,6 @@ public class ExamItemBuilder {
 
     public ExamItemBuilder withRequired(boolean required) {
         this.required = required;
-        return this;
-    }
-
-    public ExamItemBuilder withMarkedForReview(boolean markedForReview) {
-        this.markedForReview = markedForReview;
         return this;
     }
 

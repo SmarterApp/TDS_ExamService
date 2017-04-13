@@ -85,6 +85,7 @@ public class ExamItemQueryRepositoryIntegrationTests {
             .withExamItemId(examItem.getId())
             .withSelected(false)
             .withSequence(1)
+            .withMarkedForReview(true)
             .build();
 
         ExamItemResponseScore initialScore = new ExamItemResponseScore.Builder()
@@ -124,6 +125,7 @@ public class ExamItemQueryRepositoryIntegrationTests {
         assertThat(response.getResponse()).isEqualTo("test");
         assertThat(response.getSequence()).isEqualTo(1);
         assertThat(response.getScore().isPresent()).isTrue();
+        assertThat(response.isMarkedForReview()).isTrue();
 
         ExamItemResponseScore score = response.getScore().get();
 

@@ -30,4 +30,8 @@ public class ValidationErrorCode {
 
     // Exam Segments
     public static final String EXAM_SEGMENT_DOES_NOT_EXIST = "examSegmentDoesNotExist";
+
+    // Exam Items/Responses
+    public static final String EXAM_ITEM_DOES_NOT_EXIST = "examItemDoesNotExist";
+    public static final String EXAM_ITEM_RESPONSE_DOES_NOT_EXIST = "examItemResponseDoesNotExist";
 }
