@@ -33,6 +33,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -124,7 +125,7 @@ public class ExamItemControllerIntegrationTests {
 
         when(mockExamItemService.markForReview(examId, position, mark)).thenReturn(Optional.empty());
 
-        http.perform(post("/exam/{id}/item/{position}/review", examId, position)
+        http.perform(put("/exam/{id}/item/{position}/review", examId, position)
             .contentType(MediaType.APPLICATION_JSON)
             .content(new ObjectMapper().writeValueAsString(mark)))
             .andExpect(status().isNoContent());
@@ -140,7 +141,7 @@ public class ExamItemControllerIntegrationTests {
 
         when(mockExamItemService.markForReview(examId, position, mark)).thenReturn(Optional.of(new ValidationError("Some", "error")));
 
-        http.perform(post("/exam/{id}/item/{position}/review", examId, position)
+        http.perform(put("/exam/{id}/item/{position}/review", examId, position)
             .contentType(MediaType.APPLICATION_JSON)
             .content(new ObjectMapper().writeValueAsString(mark)))
             .andExpect(status().isUnprocessableEntity());
