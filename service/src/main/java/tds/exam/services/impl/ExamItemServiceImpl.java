@@ -106,19 +106,19 @@ public class ExamItemServiceImpl implements ExamItemService {
     }
 
     @Override
-    public Optional<ValidationError> markForReview(final UUID id, final int position, final Boolean mark) {
-        Optional<ExamItem> maybeExamItem = examItemQueryRepository.findExamItemAndResponse(id, position);
+    public Optional<ValidationError> markForReview(final UUID examId, final int position, final Boolean mark) {
+        Optional<ExamItem> maybeExamItem = examItemQueryRepository.findExamItemAndResponse(examId, position);
 
         if (!maybeExamItem.isPresent()) {
             return Optional.of(new ValidationError(EXAM_ITEM_DOES_NOT_EXIST,
-                String.format("No exam item found for exam id '%s' at position '%s'.", id, position)));
+                String.format("No exam item found for exam id '%s' at position '%s'.", examId, position)));
         }
 
         ExamItem examItem = maybeExamItem.get();
 
         if (!examItem.getResponse().isPresent()) {
             return Optional.of(new ValidationError(EXAM_ITEM_RESPONSE_DOES_NOT_EXIST,
-                String.format("No exam response found for exam id '%s' at item position '%s'.", id, position)));
+                String.format("No exam response found for exam id '%s' at item position '%s'.", examId, position)));
         }
 
         ExamItemResponse updatedResponse = ExamItemResponse.Builder

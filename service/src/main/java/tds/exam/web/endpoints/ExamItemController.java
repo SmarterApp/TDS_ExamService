@@ -37,12 +37,12 @@ public class ExamItemController {
         this.examItemService = examItemService;
     }
 
-    @PostMapping("/{id}/page/{position}/responses")
+    @PostMapping("/{examId}/page/{position}/responses")
     @VerifyAccess
-    ResponseEntity<Response<ExamPage>> insertResponses(@PathVariable final UUID id,
+    ResponseEntity<Response<ExamPage>> insertResponses(@PathVariable final UUID examId,
                                                        @PathVariable final int position,
                                                        @RequestBody final ExamItemResponse[] responses) {
-        Response<ExamPage> nextPage = examItemService.insertResponses(id,
+        Response<ExamPage> nextPage = examItemService.insertResponses(examId,
             position,
             responses);
 
@@ -53,12 +53,12 @@ public class ExamItemController {
         return ResponseEntity.ok(nextPage);
     }
 
-    @PostMapping("/{id}/item/{position}/review")
+    @PostMapping("/{examId}/item/{position}/review")
     @VerifyAccess
-    ResponseEntity<NoContentResponseResource> markItemForReview(@PathVariable final UUID id,
+    ResponseEntity<NoContentResponseResource> markItemForReview(@PathVariable final UUID examId,
                                                                 @PathVariable final int position,
                                                                 @RequestBody final Boolean mark) {
-        final Optional<ValidationError> maybeMarkFailure = examItemService.markForReview(id, position, mark);
+        final Optional<ValidationError> maybeMarkFailure = examItemService.markForReview(examId, position, mark);
 
         if (maybeMarkFailure.isPresent()) {
             NoContentResponseResource response = new NoContentResponseResource(maybeMarkFailure.get());

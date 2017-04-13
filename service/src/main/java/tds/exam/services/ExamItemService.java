@@ -44,10 +44,10 @@ public interface ExamItemService {
     /**
      * Marks or unmarks an item for review for the given exam id and position
      *
-     * @param id       the id of the {@link tds.exam.Exam} to mark for review
+     * @param examId       the id of the {@link tds.exam.Exam} to mark for review
      * @param position the position of the item to mark for review
      * @param mark     a boolean value representing whether an item should be marked or unmarked
      * @return an {@link tds.common.ValidationError} if one occurs
      */
-    Optional<ValidationError> markForReview(final UUID id, final int position, final Boolean mark);
+    Optional<ValidationError> markForReview(final UUID examId, final int position, final Boolean mark);
 }
