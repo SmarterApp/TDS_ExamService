@@ -77,17 +77,15 @@ public class OnCompletedStatusExamChangeListener implements ChangeListener<Exam>
         // tables/queries that are referenced in that method are only used by the loader stored procedures, schema
         // creation/modification scripts and/or SimDLL.java (which is related to the simulator).
 
-        // Publish the submitted exam to the Messaging backend, allowing other services to continue processing it.
-        // Submit for scoring (CommonDLL#_OnStatus_Completed_SP, line 1433 - 1434), which changes the exam's status to "submitted"
-        messagingService.sendExamCompletion(newExam.getId());
-
         // CommonDLL#_OnStatus_Completed_SP, lines 1445 - 1453: Find all the field test items that were administered
         // during an exam and record their usage.
         final List<FieldTestItemGroup> fieldTestItemGroupsToUpdate = fieldTestService.findUsageInExam(newExam.getId());
-        if (fieldTestItemGroupsToUpdate.isEmpty()) {
-            return;
+        if (!fieldTestItemGroupsToUpdate.isEmpty()) {
+            fieldTestService.update(fieldTestItemGroupsToUpdate.toArray(new FieldTestItemGroup[fieldTestItemGroupsToUpdate.size()]));
         }
 
-        fieldTestService.update(fieldTestItemGroupsToUpdate.toArray(new FieldTestItemGroup[fieldTestItemGroupsToUpdate.size()]));
+        // Publish the submitted exam to the Messaging backend, allowing other services to continue processing it.
+        // Submit for scoring (CommonDLL#_OnStatus_Completed_SP, line 1433 - 1434), which changes the exam's status to "submitted"
+        messagingService.sendExamCompletion(newExam.getId());
     }
 }
