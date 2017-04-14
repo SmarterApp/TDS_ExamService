@@ -48,7 +48,7 @@ public class OnCompletedStatusExamChangeListenerTest {
     private ExamineeService mockExamineeService;
 
     @Mock
-    private MessagingService messagingService;
+    private MessagingService mockMessagingService;
 
     @Captor
     private ArgumentCaptor<ExamSegment> examSegmentsArgumentCaptor;
@@ -60,7 +60,7 @@ public class OnCompletedStatusExamChangeListenerTest {
         onCompletedExamStatusChangeListener = new OnCompletedStatusExamChangeListener(mockExamSegmentService,
             mockFieldTestService,
             mockExamineeService,
-            messagingService);
+            mockMessagingService);
     }
 
     @Test
@@ -202,6 +202,6 @@ public class OnCompletedStatusExamChangeListenerTest {
             .build();
 
         onCompletedExamStatusChangeListener.accept(oldExam, newExam);
-        verify(messagingService).sendExamCompletion(eq(oldExam.getId().toString()));
+        verify(mockMessagingService).sendExamCompletion(eq(oldExam.getId()));
     }
 }

@@ -79,7 +79,7 @@ public class OnCompletedStatusExamChangeListener implements ChangeListener<Exam>
 
         // Publish the submitted exam to the Messaging backend, allowing other services to continue processing it.
         // Submit for scoring (CommonDLL#_OnStatus_Completed_SP, line 1433 - 1434), which changes the exam's status to "submitted"
-        messagingService.sendExamCompletion(newExam.getId().toString());
+        messagingService.sendExamCompletion(newExam.getId());
 
         // CommonDLL#_OnStatus_Completed_SP, lines 1445 - 1453: Find all the field test items that were administered
         // during an exam and record their usage.

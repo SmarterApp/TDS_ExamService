@@ -1,5 +1,7 @@
 package tds.exam.services;
 
+import java.util.UUID;
+
 /**
  * Implementations of this interface are responsible for publishing messages to the ecosystem messaging framework.
  */
@@ -10,5 +12,5 @@ public interface MessagingService {
      *
      * @param examId The completed exam's id
      */
-    void sendExamCompletion(final String examId);
+    void sendExamCompletion(final UUID examId);
 }
