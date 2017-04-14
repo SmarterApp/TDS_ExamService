@@ -17,6 +17,14 @@ spring:
     password: ${sbac.jdbc.password}
     driver-class-name: 'com.mysql.jdbc.Driver'
 
+#Port defined in TDS_Build:docker-compose.yml
+  rabbitmq:
+    port: 32846
+    publisher-confirms: true
+    template:
+      retry:
+        enabled: true
+
 management:
   health:
     redis:
