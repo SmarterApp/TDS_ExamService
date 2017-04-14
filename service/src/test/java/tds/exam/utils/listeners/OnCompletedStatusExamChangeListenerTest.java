@@ -8,14 +8,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
-
 import tds.common.entity.utils.ChangeListener;
 import tds.exam.Exam;
 import tds.exam.ExamSegment;
@@ -27,9 +19,19 @@ import tds.exam.models.FieldTestItemGroup;
 import tds.exam.services.ExamSegmentService;
 import tds.exam.services.ExamineeService;
 import tds.exam.services.FieldTestService;
+import tds.exam.services.MessagingService;
 
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
+
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
@@ -45,6 +47,9 @@ public class OnCompletedStatusExamChangeListenerTest {
     @Mock
     private ExamineeService mockExamineeService;
 
+    @Mock
+    private MessagingService messagingService;
+
     @Captor
     private ArgumentCaptor<ExamSegment> examSegmentsArgumentCaptor;
 
@@ -54,31 +59,32 @@ public class OnCompletedStatusExamChangeListenerTest {
     public void setUp() {
         onCompletedExamStatusChangeListener = new OnCompletedStatusExamChangeListener(mockExamSegmentService,
             mockFieldTestService,
-            mockExamineeService);
+            mockExamineeService,
+            messagingService);
     }
 
     @Test
     public void shouldUpdateFieldTestItemGroupsWhenAnExamIsSetToCompleted() {
-        Exam oldExam = new ExamBuilder().build();
-        Exam newExam = new ExamBuilder()
+        final Exam oldExam = new ExamBuilder().build();
+        final Exam newExam = new ExamBuilder()
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_COMPLETED, ExamStatusStage.IN_PROGRESS), Instant.now())
             .build();
-        ExamSegment mockSegment = new ExamSegmentBuilder()
+        final ExamSegment mockSegment = new ExamSegmentBuilder()
             .withExamId(newExam.getId())
             .withIsPermeable(true)
             .withSegmentId("segment1")
             .build();
-        ExamSegment mockSegment2 = new ExamSegmentBuilder()
+        final ExamSegment mockSegment2 = new ExamSegmentBuilder()
             .withExamId(newExam.getId())
             .withIsPermeable(false)
             .withSegmentId("segment2")
             .build();
-        ExamSegment mockSegment3 = new ExamSegmentBuilder()
+        final ExamSegment mockSegment3 = new ExamSegmentBuilder()
             .withExamId(newExam.getId())
             .withIsPermeable(true)
             .withSegmentId("segment3")
             .build();
-        FieldTestItemGroup mockFirstFtItemGroup = new FieldTestItemGroup.Builder()
+        final FieldTestItemGroup mockFirstFtItemGroup = new FieldTestItemGroup.Builder()
             .withExamId(newExam.getId())
             .withGroupId("item-group-id")
             .withGroupKey("item-group-key")
@@ -92,7 +98,7 @@ public class OnCompletedStatusExamChangeListenerTest {
             .withItemCount(1)
             .withSessionId(UUID.randomUUID())
             .build();
-        FieldTestItemGroup mockSecondFtItemGroup = new FieldTestItemGroup.Builder()
+        final FieldTestItemGroup mockSecondFtItemGroup = new FieldTestItemGroup.Builder()
             .withExamId(newExam.getId())
             .withGroupId("item-group-id-2")
             .withGroupKey("item-group-key-2")
@@ -117,7 +123,7 @@ public class OnCompletedStatusExamChangeListenerTest {
         verify(mockFieldTestService).findUsageInExam(newExam.getId());
         verify(mockExamSegmentService).update(examSegmentsArgumentCaptor.capture());
 
-        List<ExamSegment> examSegments = examSegmentsArgumentCaptor.getAllValues();
+        final List<ExamSegment> examSegments = examSegmentsArgumentCaptor.getAllValues();
 
         //ExamSegment[] examSegments = examSegmentsArgumentCaptor.getValue();
         assertThat(examSegments).hasSize(2);
@@ -129,16 +135,16 @@ public class OnCompletedStatusExamChangeListenerTest {
 
     @Test
     public void shouldNotUpdateFieldTestItemGroupsIfNoneAreAdministeredInThisExam() {
-        Exam oldExam = new ExamBuilder().build();
-        Exam newExam = new ExamBuilder()
+        final Exam oldExam = new ExamBuilder().build();
+        final Exam newExam = new ExamBuilder()
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_COMPLETED, ExamStatusStage.IN_PROGRESS), Instant.now())
             .build();
-        ExamSegment mockSegment = new ExamSegmentBuilder()
+        final ExamSegment mockSegment = new ExamSegmentBuilder()
             .withExamId(newExam.getId())
             .build();
 
         when(mockExamSegmentService.findExamSegments(newExam.getId()))
-            .thenReturn(Arrays.asList(mockSegment));
+            .thenReturn(singletonList(mockSegment));
         when(mockFieldTestService.findUsageInExam(newExam.getId()))
             .thenReturn(Collections.emptyList());
 
@@ -149,8 +155,8 @@ public class OnCompletedStatusExamChangeListenerTest {
 
     @Test
     public void shouldDoNothingWhenOldExamAndNewExamHaveTheSameStatus() {
-        Exam oldExam = new ExamBuilder().build();
-        Exam newExam = new ExamBuilder().build();
+        final Exam oldExam = new ExamBuilder().build();
+        final Exam newExam = new ExamBuilder().build();
 
         onCompletedExamStatusChangeListener.accept(oldExam, newExam);
         verifyZeroInteractions(mockExamSegmentService);
@@ -160,10 +166,10 @@ public class OnCompletedStatusExamChangeListenerTest {
 
     @Test
     public void shouldDoNothingWhenNewExamStatusIsNotSetToCompleted() {
-        Exam oldExam = new ExamBuilder()
+        final Exam oldExam = new ExamBuilder()
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.OPEN), Instant.now())
             .build();
-        Exam newExam = new ExamBuilder()
+        final Exam newExam = new ExamBuilder()
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_STARTED, ExamStatusStage.IN_PROGRESS), Instant.now())
             .build();
 
@@ -175,8 +181,8 @@ public class OnCompletedStatusExamChangeListenerTest {
 
     @Test
     public void shouldSucceedWhenExamSegmentsCannotBeFound() {
-        Exam oldExam = new ExamBuilder().build();
-        Exam newExam = new ExamBuilder()
+        final Exam oldExam = new ExamBuilder().build();
+        final Exam newExam = new ExamBuilder()
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_COMPLETED, ExamStatusStage.IN_PROGRESS), Instant.now())
             .build();
 
@@ -185,5 +191,17 @@ public class OnCompletedStatusExamChangeListenerTest {
 
         onCompletedExamStatusChangeListener.accept(oldExam, newExam);
         verify(mockExamSegmentService).findExamSegments(any(UUID.class));
+    }
+
+    @Test
+    public void shouldSubmitACompletedExamToTheMessagingService() {
+        final Exam oldExam = new ExamBuilder().withId(UUID.randomUUID()).build();
+        final Exam newExam = new ExamBuilder()
+            .withId(oldExam.getId())
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_COMPLETED, ExamStatusStage.IN_PROGRESS), Instant.now())
+            .build();
+
+        onCompletedExamStatusChangeListener.accept(oldExam, newExam);
+        verify(messagingService).sendExamCompletion(eq(oldExam.getId().toString()));
     }
 }
