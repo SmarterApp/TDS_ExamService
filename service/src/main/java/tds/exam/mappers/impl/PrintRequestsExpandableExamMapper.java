@@ -9,8 +9,8 @@ import java.util.UUID;
 
 import tds.exam.ExpandableExam;
 import tds.exam.ExpandableExamAttributes;
-import tds.exam.services.ExamPrintRequestService;
 import tds.exam.mappers.ExpandableExamMapper;
+import tds.exam.services.ExamPrintRequestService;
 
 @Component
 public class PrintRequestsExpandableExamMapper implements ExpandableExamMapper {
@@ -18,7 +18,7 @@ public class PrintRequestsExpandableExamMapper implements ExpandableExamMapper {
 
     @Autowired
     public PrintRequestsExpandableExamMapper(final ExamPrintRequestService examPrintRequestService) {
-      this.examPrintRequestService = examPrintRequestService;
+        this.examPrintRequestService = examPrintRequestService;
     }
 
     @Override

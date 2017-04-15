@@ -11,8 +11,8 @@ import java.util.UUID;
 import tds.exam.ExamSegment;
 import tds.exam.ExpandableExam;
 import tds.exam.ExpandableExamAttributes;
-import tds.exam.services.ExamSegmentService;
 import tds.exam.mappers.ExpandableExamMapper;
+import tds.exam.services.ExamSegmentService;
 
 @Component
 public class ExamSegmentExpandableExamMapper implements ExpandableExamMapper {
@@ -29,9 +29,8 @@ public class ExamSegmentExpandableExamMapper implements ExpandableExamMapper {
             return;
         }
 
-        examBuilders.forEach((examId, examBuilder) -> {
+        examBuilders.forEach((examId, builder) -> {
             List<ExamSegment> examSegments = examSegmentService.findExamSegments(examId);
-            ExpandableExam.Builder builder = examBuilders.get(examId);
             builder.withExamSegments(examSegments);
         });
     }

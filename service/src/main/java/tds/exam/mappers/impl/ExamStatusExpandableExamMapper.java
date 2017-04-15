@@ -12,8 +12,8 @@ import java.util.UUID;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExpandableExam;
 import tds.exam.ExpandableExamAttributes;
-import tds.exam.services.ExamStatusService;
 import tds.exam.mappers.ExpandableExamMapper;
+import tds.exam.services.ExamStatusService;
 
 @Component
 public class ExamStatusExpandableExamMapper implements ExpandableExamMapper {
@@ -31,9 +31,8 @@ public class ExamStatusExpandableExamMapper implements ExpandableExamMapper {
             return;
         }
 
-        examBuilders.forEach((examId, examBuilder) -> {
+        examBuilders.forEach((examId, builder) -> {
             Optional<Instant> maybeForceCompletedAt = examStatusService.findRecentTimeAtStatus(examId, ExamStatusCode.STATUS_FORCE_COMPLETED);
-            ExpandableExam.Builder builder = examBuilders.get(examId);
             builder.withForceCompletedAt(maybeForceCompletedAt.isPresent() ? maybeForceCompletedAt.get() : null);
         });
     }
