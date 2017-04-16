@@ -3,6 +3,7 @@ package tds.exam.services.item.selection;
 import AIR.Common.Helpers._Ref;
 import TDS.Shared.Exceptions.ReturnStatusException;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -80,6 +81,8 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
         Map<UUID, List<ExamItem> itemsToPage = items.stream()
             .collect(Collectors.groupingBy(ExamItem::getExamPageId));
 
-        Map<UUID, List<ExamItem>> itemsToSegment =
+        Map<UUID, List<ExamItem>> itemsToSegment = new HashMap<>();
+
+
     }
 }
