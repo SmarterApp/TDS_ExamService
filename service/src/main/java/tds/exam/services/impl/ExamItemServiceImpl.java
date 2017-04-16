@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -77,7 +78,7 @@ public class ExamItemServiceImpl implements ExamItemService {
         ExamItemResponse[] scoredResponses = Stream.of(responses).map(response -> {
             ExamItemResponseScore score = examItemResponseScoringService.getScore(response);
 
-            return new ExamItemResponse.Builder()
+            return ExamItemResponse.Builder
                 .fromExamItemResponse(response)
                 .withScore(score)
                 .build();
@@ -85,7 +86,7 @@ public class ExamItemServiceImpl implements ExamItemService {
 
         examItemCommandRepository.insertResponses(scoredResponses);
 
-        ExamPage nextPage = new ExamPage.Builder()
+        ExamPage nextPage = ExamPage.Builder
             .fromExamPage(currentPage)
             .withPagePosition(mostRecentPagePosition + 1)
             .build();
@@ -129,5 +130,15 @@ public class ExamItemServiceImpl implements ExamItemService {
         examItemCommandRepository.insertResponses(updatedResponse);
 
         return Optional.empty();
+    }
+
+    @Override
+    public List<ExamItem> findExamItemAndResponses(final UUID examId) {
+        return examItemQueryRepository.findExamItemAndResponses(examId);
+    }
+
+    @Override
+    public Optional<ExamItem> findExamItemAndResponse(final UUID examId, final int position) {
+        return examItemQueryRepository.findExamItemAndResponse(examId, position);
     }
 }

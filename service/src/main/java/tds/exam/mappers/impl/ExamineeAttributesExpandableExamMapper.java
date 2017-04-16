@@ -12,8 +12,8 @@ import tds.exam.ExamineeAttribute;
 import tds.exam.ExamineeRelationship;
 import tds.exam.ExpandableExam;
 import tds.exam.ExpandableExamAttributes;
-import tds.exam.services.ExamineeService;
 import tds.exam.mappers.ExpandableExamMapper;
+import tds.exam.services.ExamineeService;
 
 @Component
 public class ExamineeAttributesExpandableExamMapper implements ExpandableExamMapper {
@@ -30,11 +30,10 @@ public class ExamineeAttributesExpandableExamMapper implements ExpandableExamMap
             return;
         }
 
-        examBuilders.forEach((examId, examBuilder) -> {
+        examBuilders.forEach((examId, builder) -> {
             List<ExamineeAttribute> examineeAttributes = examineeService.findAllAttributes(examId);
             List<ExamineeRelationship> examineeRelationships = examineeService.findAllRelationships(examId);
 
-            ExpandableExam.Builder builder = examBuilders.get(examId);
             builder.withExamineeAttributes(examineeAttributes);
             builder.withExamineeRelationship(examineeRelationships);
         });
