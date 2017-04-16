@@ -4,10 +4,12 @@ import AIR.Common.Helpers._Ref;
 import TDS.Shared.Exceptions.ReturnStatusException;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import tds.dll.api.IItemSelectionDLL;
+import tds.exam.ExamItem;
 import tds.exam.ExamSegment;
 import tds.exam.ExpandableExam;
 import tds.exam.ExpandableExamAttributes;
@@ -27,7 +29,7 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
 
     @Override
     public ItemCandidatesData getItemCandidates(UUID examId) throws ReturnStatusException {
-        ExpandableExam exam = expandableExamService.findExam(examId, ExpandableExamAttributes.EXAM_SEGMENTS)
+        ExpandableExam exam = expandableExamService.findExam(examId, ExpandableExamAttributes.EXAM_SEGMENTS, ExpandableExamAttributes.EXAM_PAGE_AND_ITEMS)
             .orElseThrow(() -> new ReturnStatusException("Could not find Exam for id" + examId));
 
         List<ExamSegment> unsatisfiedSegments = exam.getExamSegments().stream()
@@ -68,5 +70,16 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
     @Override
     public String addOffGradeItems(UUID examId, String designation, String segmentKey, _Ref<String> reason) throws ReturnStatusException {
         return "";
+    }
+
+    private Map<ExamSegment, List<ExamItem>> mapSegmentToItems(ExpandableExam expandableExam) {
+        List<ExamSegment> segments = expandableExam.getExamSegments();
+
+        List<ExamItem> items = expandableExam.getExamItems();
+
+        Map<UUID, List<ExamItem> itemsToPage = items.stream()
+            .collect(Collectors.groupingBy(ExamItem::getExamPageId));
+
+        Map<UUID, List<ExamItem>> itemsToSegment =
     }
 }
