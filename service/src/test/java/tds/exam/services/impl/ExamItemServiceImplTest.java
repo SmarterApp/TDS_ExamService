@@ -10,6 +10,7 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -242,5 +243,26 @@ public class ExamItemServiceImplTest {
 
         assertThat(maybeError).isPresent();
         assertThat(maybeError.get().getCode()).isEqualTo(ValidationErrorCode.EXAM_ITEM_RESPONSE_DOES_NOT_EXIST);
+    }
+
+    @Test
+    public void shouldFindItemAndResponsesForExam() {
+        final UUID examId = UUID.randomUUID();
+        ExamItem examItem = new ExamItem.Builder(UUID.randomUUID()).build();
+
+        when(mockExamItemQueryRepository.findExamItemAndResponses(examId)).thenReturn(Collections.singletonList(examItem));
+
+        assertThat(examItemService.findExamItemAndResponses(examId)).containsExactly(examItem);
+    }
+
+    @Test
+    public void shouldFindItemAndResponsesForExamAndPosition() {
+        final UUID examId = UUID.randomUUID();
+        final int position = 7;
+        ExamItem examItem = new ExamItem.Builder(UUID.randomUUID()).build();
+
+        when(mockExamItemQueryRepository.findExamItemAndResponse(examId, position)).thenReturn(Optional.of(examItem));
+
+        assertThat(examItemService.findExamItemAndResponse(examId, position).get()).isEqualTo(examItem);
     }
 }
