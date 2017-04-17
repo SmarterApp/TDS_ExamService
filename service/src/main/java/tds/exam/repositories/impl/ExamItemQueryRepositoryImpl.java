@@ -3,7 +3,6 @@ package tds.exam.repositories.impl;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -15,6 +14,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -109,10 +109,29 @@ public class ExamItemQueryRepositoryImpl implements ExamItemQueryRepository {
 
     @Override
     public Optional<ExamItem> findExamItemAndResponse(final UUID examId, final int position) {
-        final SqlParameterSource parameters = new MapSqlParameterSource("examId", examId.toString())
-            .addValue("position", position);
+        List<ExamItem> items = findExamItemAndResponses(examId, position);
 
-        final String SQL = "SELECT \n" +
+        if (items.isEmpty()) {
+            return Optional.empty();
+        }
+
+        //There should only be one item at a given position.  If there are multiple results there is a bug.
+        return Optional.of(items.get(0));
+    }
+
+    @Override
+    public List<ExamItem> findExamItemAndResponses(final UUID examId) {
+        return findExamItemAndResponses(examId, null);
+    }
+
+    private List<ExamItem> findExamItemAndResponses(final UUID examId, final Integer position) {
+        final MapSqlParameterSource parameters = new MapSqlParameterSource("examId", examId.toString());
+
+        if (position != null) {
+            parameters.addValue("position", position);
+        }
+
+        String SQL = "SELECT \n" +
             "  I.id AS examItemId,\n" +
             "  I.item_key,\n" +
             "  I.assessment_item_bank_key,\n" +
@@ -156,16 +175,13 @@ public class ExamItemQueryRepositoryImpl implements ExamItemQueryRepository {
             "LEFT JOIN\n" +
             "      exam_item_response R ON last_response.exam_item_response_id = R.id\n" +
             "WHERE\n" +
-            "  P.exam_id = :examId AND I.position = :position AND EPE.deleted_at IS NULL";
+            "  P.exam_id = :examId AND EPE.deleted_at IS NULL";
 
-        Optional<ExamItem> maybeExamItem;
-        try {
-            maybeExamItem = Optional.of(jdbcTemplate.queryForObject(SQL, parameters, examItemRowMapper));
-        } catch (EmptyResultDataAccessException e) {
-            maybeExamItem = Optional.empty();
+        if (position != null) {
+            SQL += " AND I.position = :position ";
         }
 
-        return maybeExamItem;
+        return jdbcTemplate.query(SQL, parameters, examItemRowMapper);
     }
 
     private static class ExamItemRowMapper implements RowMapper<ExamItem> {
@@ -182,17 +198,18 @@ public class ExamItemQueryRepositoryImpl implements ExamItemQueryRepository {
                 .withPosition(rs.getInt("position"));
 
             //Since there is a left join in the query this could not have a response
-            if(rs.getObject("responseId") != null) {
+            if (rs.getObject("responseId") != null) {
                 ExamItemResponse.Builder responseBuilder = new ExamItemResponse.Builder()
                     .withId(rs.getLong("responseId"))
                     .withExamItemId(UUID.fromString(rs.getString("examItemId")))
                     .withResponse(rs.getString("response"))
                     .withSequence(rs.getInt("sequence"))
                     .withSelected(rs.getBoolean("is_selected"))
-                    .withMarkedForReview(rs.getBoolean("is_marked_for_review"));;
+                    .withMarkedForReview(rs.getBoolean("is_marked_for_review"));
+                ;
 
                 //Means that the item has been scored
-                if(rs.getObject("scored_at") != null) {
+                if (rs.getObject("scored_at") != null) {
                     ExamItemResponseScore score = new ExamItemResponseScore.Builder()
                         .withScore(rs.getInt("score"))
                         .withScoringStatus(ExamScoringStatus.fromType(rs.getString("scoring_status")))

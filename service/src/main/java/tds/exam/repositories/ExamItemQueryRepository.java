@@ -1,5 +1,6 @@
 package tds.exam.repositories;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -36,4 +37,11 @@ public interface ExamItemQueryRepository {
      * @return ExamItem if found otherwise empty.  ExamItemResponse will be empty if a response is not present
      */
     Optional<ExamItem> findExamItemAndResponse(final UUID examId, int position);
+
+    /**
+     * Fetches all the exam items and the associated valid responses for the exam
+     * @param examId the exam UUID
+     * @return List of {@link tds.exam.ExamItem} with the most active {@link tds.exam.ExamItemResponse}
+     */
+    List<ExamItem> findExamItemAndResponses(final UUID examId);
 }

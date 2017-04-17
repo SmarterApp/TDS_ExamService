@@ -11,8 +11,8 @@ import java.util.UUID;
 import tds.exam.ExamineeNote;
 import tds.exam.ExpandableExam;
 import tds.exam.ExpandableExamAttributes;
-import tds.exam.services.ExamineeNoteService;
 import tds.exam.mappers.ExpandableExamMapper;
+import tds.exam.services.ExamineeNoteService;
 
 @Component
 public class ExamineeNotesExpandableExamMapper implements ExpandableExamMapper {
@@ -31,8 +31,7 @@ public class ExamineeNotesExpandableExamMapper implements ExpandableExamMapper {
 
         examBuilders.forEach((examId, examBuilder) -> {
             List<ExamineeNote> examineeNotes = examineeNoteService.findAllNotes(examId);
-            ExpandableExam.Builder builder = examBuilders.get(examId);
-            builder.withExamineeNotes(examineeNotes);
+            examBuilder.withExamineeNotes(examineeNotes);
         });
     }
 }

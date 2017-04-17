@@ -16,7 +16,6 @@ public class ExpandableExam {
     private List<ExamSegment> examSegments;
     private List<ExamPage> examPages;
     private List<ExamItem> examItems;
-    private List<ExamItemResponse> examItemResponses;
     private List<ExamineeNote> examineeNotes;
     private List<ExamineeAttribute> examineeAttributes;
     private List<ExamineeRelationship> examineeRelationships;
@@ -32,7 +31,6 @@ public class ExpandableExam {
         this.examSegments = builder.examSegments;
         this.examPages = builder.examPages;
         this.examItems = builder.examItems;
-        this.examItemResponses = builder.examItemResponses;
         this.examineeNotes = builder.examineeNotes;
         this.examineeAttributes = builder.examineeAttributes;
         this.examineeRelationships = builder.examineeRelationships;
@@ -48,7 +46,6 @@ public class ExpandableExam {
         private List<ExamSegment> examSegments;
         private List<ExamPage> examPages;
         private List<ExamItem> examItems;
-        private List<ExamItemResponse> examItemResponses;
         private List<ExamineeNote> examineeNotes;
         private List<ExamineeAttribute> examineeAttributes;
         private List<ExamineeRelationship> examineeRelationships;
@@ -80,11 +77,6 @@ public class ExpandableExam {
 
         public Builder withExamItems(List<ExamItem> examItems) {
             this.examItems = examItems;
-            return this;
-        }
-
-        public Builder withExamItemResponses(List<ExamItemResponse> examItemResponses) {
-            this.examItemResponses = examItemResponses;
             return this;
         }
 
@@ -192,13 +184,6 @@ public class ExpandableExam {
      */
     public List<ExamItem> getExamItems() {
         return (examItems != null) ? examItems : new ArrayList<ExamItem>();
-    }
-
-    /**
-     * @return The exam item responses for the given examId
-     */
-    public List<ExamItemResponse> getExamItemResponses() {
-        return (examItemResponses != null) ? examItemResponses : new ArrayList<ExamItemResponse>();
     }
 
     /**
