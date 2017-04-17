@@ -4,14 +4,20 @@ import AIR.Common.Helpers._Ref;
 import TDS.Shared.Exceptions.ReturnStatusException;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import tds.assessment.Assessment;
+import tds.assessment.Item;
+import tds.assessment.Segment;
 import tds.common.Algorithm;
 import tds.dll.api.IItemSelectionDLL;
 import tds.exam.Exam;
@@ -54,6 +60,12 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
     @Override
     public ItemCandidatesData getItemCandidates(UUID examId) throws ReturnStatusException {
         //Port of ItemSelectionDLL.AA_GetNextItemCandidates_SP
+        return getAllItemCandidates(examId).get(0);
+    }
+
+    @Override
+    public List<ItemCandidatesData> getAllItemCandidates(UUID examId) throws ReturnStatusException {
+        //Port of ItemSelectionDLL.AA_GetNextItemCandidates_SP
         ExpandableExam exam = expandableExamService.findExam(examId, ExpandableExamAttributes.EXAM_SEGMENTS, ExpandableExamAttributes.EXAM_PAGE_AND_ITEMS)
             .orElseThrow(() -> new ReturnStatusException("Could not find Exam for id" + examId));
 
@@ -74,11 +86,11 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
             .collect(Collectors.groupingBy(FieldTestItemGroup::getSegmentKey));
 
         if (unsatisfiedSegments.isEmpty()) {
-            return new ItemCandidatesData(examId, IItemSelectionDLL.SATISFIED);
+            return Collections.singletonList(new ItemCandidatesData(examId, IItemSelectionDLL.SATISFIED));
         }
 
         List<ExamSegment> satisfiedSegments = new ArrayList<>();
-        List<ExamSegment> nonSatisfiedSegments = new ArrayList<>();
+        List<SegmentHolder> nonSatisfiedSegments = new ArrayList<>();
         for (SegmentHolder segment : unsatisfiedSegments) {
             long nonFieldTestItemCount = segment.items.stream()
                 .filter(examItem -> !examItem.isFieldTest())
@@ -100,12 +112,12 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
                 && examSegment.getExamItemCount() == (nonFieldTestItemCount + fieldTestItemCount)) {
                 satisfiedSegments.add(examSegment);
             } else {
-                nonSatisfiedSegments.add(examSegment);
+                nonSatisfiedSegments.add(segment);
             }
         }
 
         //Means that a segment has been satisfied but hasn't been updated to be satisfied
-        if(!satisfiedSegments.isEmpty()) {
+        if (!satisfiedSegments.isEmpty()) {
             List<ExamSegment> segmentsToUpdate = satisfiedSegments.stream()
                 .map(examSegment -> ExamSegment.Builder
                     .fromSegment(examSegment)
@@ -116,37 +128,7 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
             examSegmentService.update(segmentsToUpdate.toArray(new ExamSegment[segmentsToUpdate.size()]));
         }
 
-        return convert(exam.getExam(), nonSatisfiedSegments.subList(0, 1)).get(0);
-    }
-
-    private List<ItemCandidatesData> convert(final Exam exam, final Assessment assessment, boolean isFieldTest, final List<ExamSegment> segments) {
-        String groupId = "";
-        String blockId = "";
-
-        if(assessment.getSelectionAlgorithm().equals(Algorithm.FIXED_FORM)) {
-
-        } else if (assessment.getSelectionAlgorithm().equals(Algorithm.ADAPTIVE_2) && isFieldTest) {
-
-        }
-
-        return segments.stream()
-            .map(examSegment -> new ItemCandidatesData(
-                examSegment.getExamId(),
-                examSegment.getAlgorithm().getType(),
-                examSegment.getSegmentKey(),
-                examSegment.getSegmentId(),
-                examSegment.getSegmentPosition(),
-                groupId,
-                blockId,
-                exam.getSessionId(),
-                false,
-                null
-            )).collect(Collectors.toList());
-    }
-
-    @Override
-    public List<ItemCandidatesData> getAllItemCandidates(UUID examId) throws ReturnStatusException {
-        return null;
+        return convert(exam.getExam(), assessment, nonSatisfiedSegments, fieldTestItemGroups);
     }
 
     @Override
@@ -201,6 +183,85 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
         return segmentHolders;
     }
 
+
+    private List<ItemCandidatesData> convert(final Exam exam,
+                                             final Assessment assessment,
+                                             final List<SegmentHolder> segments,
+                                             final List<FieldTestItemGroup> fieldTestItemGroups) {
+        return segments.stream()
+            .map(segmentHolder -> {
+                ExamSegment examSegment = segmentHolder.examSegment;
+
+                boolean isFieldTest = segmentHolder.items.stream()
+                    .filter(ExamItem::isFieldTest)
+                    .count() > 0;
+
+                GroupBlock groupBlock = findGroupBlock(examSegment.getSegmentKey(), assessment, fieldTestItemGroups, isFieldTest, exam.getLanguageCode());
+                return new ItemCandidatesData(
+                    examSegment.getExamId(),
+                    isFieldTest ? FIELDTEST : examSegment.getAlgorithm().getType(),
+                    examSegment.getSegmentKey(),
+                    examSegment.getSegmentId(),
+                    examSegment.getSegmentPosition(),
+                    groupBlock.group,
+                    groupBlock.block,
+                    exam.getSessionId(),
+                    false,
+                    null);
+            })
+            .collect(Collectors.toList());
+    }
+
+    private GroupBlock findGroupBlock(final String segmentKey,
+                                      final Assessment assessment,
+                                      final List<FieldTestItemGroup> fieldTestItemGroups,
+                                      final boolean isFieldTest,
+                                      final String languageCode) {
+        //Port of ItemSelectionDLL.ValidateAndReturnSegmentData get group and block data
+        String groupId = "";
+        String blockId = "";
+
+        Segment segment = assessment.getSegment(segmentKey);
+
+        Optional<Item> maybeMinItem = segment.getItems().stream()
+            .min(Comparator.comparingInt(Item::getPosition));
+
+        Optional<Item> maybeMaxItem = segment.getItems().stream()
+            .max(Comparator.comparingInt(Item::getPosition));
+
+        int firstPosition = 0;
+        int lastPosition = -1;
+        if (maybeMaxItem.isPresent() && maybeMinItem.isPresent()) {
+            firstPosition = maybeMinItem.get().getPosition();
+            lastPosition = maybeMaxItem.get().getPosition();
+        }
+
+        int relativePosition = lastPosition + 1 - firstPosition + 1;
+
+        if (assessment.getSelectionAlgorithm().equals(Algorithm.FIXED_FORM)) {
+            Optional<Item> maybeItem = segment.getItems().stream().filter(item -> item.getPosition() == relativePosition).findFirst();
+
+            if (maybeItem.isPresent()) {
+                groupId = maybeItem.get().getGroupId();
+                blockId = maybeItem.get().getBlockId();
+            }
+        } else if (assessment.getSelectionAlgorithm().equals(Algorithm.ADAPTIVE_2) && isFieldTest) {
+            Optional<FieldTestItemGroup> maybeFieldTestItem = fieldTestItemGroups.stream().filter(new Predicate<FieldTestItemGroup>() {
+                @Override
+                public boolean test(final FieldTestItemGroup fieldTestItemGroup) {
+                    return fieldTestItemGroup.getLanguageCode().equals(languageCode);
+                }
+            }).findFirst();
+
+            if(maybeFieldTestItem.isPresent()) {
+                groupId = maybeFieldTestItem.get().getGroupId();
+                blockId = maybeFieldTestItem.get().getBlockId();
+            }
+        }
+
+        return new GroupBlock(groupId, blockId);
+    }
+
     private class SegmentHolder {
         private final ExamSegment examSegment;
         private Set<UUID> pageIds = new HashSet<>();
@@ -225,6 +286,16 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
 
         boolean isItemInSegment(final ExamItem examItem) {
             return pageIds.contains(examItem.getExamPageId());
+        }
+    }
+
+    private class GroupBlock {
+        private final String group;
+        private final String block;
+
+        public GroupBlock(final String group, final String block) {
+            this.group = group;
+            this.block = block;
         }
     }
 }
