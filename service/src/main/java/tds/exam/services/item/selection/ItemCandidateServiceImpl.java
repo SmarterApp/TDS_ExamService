@@ -12,7 +12,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import tds.assessment.Assessment;
@@ -35,13 +34,16 @@ import tds.itemselection.api.ItemSelectionException;
 import tds.itemselection.base.ItemCandidatesData;
 import tds.itemselection.base.ItemGroup;
 import tds.itemselection.loader.StudentHistory2013;
+import tds.itemselection.loader.TestSegment;
 import tds.itemselection.services.ItemCandidatesService;
+import tds.itemselection.services.SegmentService;
 
 public class ItemCandidateServiceImpl implements ItemCandidatesService {
     private final ExpandableExamService expandableExamService;
     private final FieldTestService fieldTestService;
     private final ExamSegmentService examSegmentService;
     private final AssessmentService assessmentService;
+    private final SegmentService segmentService;
 
     private final static String SATISFIED = "SATISFIED";
     private final static String FIXEDFORM = "fixedform";
@@ -50,11 +52,12 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
     private final static String LIKESTRING_I = "I-";
     private final static String LANGUAGE = "Language";
 
-    public ItemCandidateServiceImpl(final ExpandableExamService expandableExamService, final FieldTestService fieldTestService, final ExamSegmentService examSegmentService, final AssessmentService assessmentService) {
+    public ItemCandidateServiceImpl(final ExpandableExamService expandableExamService, final FieldTestService fieldTestService, final ExamSegmentService examSegmentService, final AssessmentService assessmentService, final SegmentService segmentService) {
         this.expandableExamService = expandableExamService;
         this.fieldTestService = fieldTestService;
         this.examSegmentService = examSegmentService;
         this.assessmentService = assessmentService;
+        this.segmentService = segmentService;
     }
 
     @Override
@@ -147,7 +150,12 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
 
     @Override
     public ItemGroup getItemGroup(UUID examId, String segmentKey, String groupID, String blockID, Boolean isFieldTest) throws ReturnStatusException {
-        return null;
+        try {
+            TestSegment testSegment = segmentService.getSegment(segmentKey);
+            return testSegment.getPool().getItemGroup(groupID);
+        } catch (Exception e) {
+            throw new ReturnStatusException(e);
+        }
     }
 
     @Override
@@ -157,9 +165,17 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
 
     @Override
     public boolean setSegmentSatisfied(UUID examId, Integer segmentPosition, String reason) throws ReturnStatusException {
-        return false;
+        Optional<ExamSegment> maybeExamSegment = examSegmentService.findByExamIdAndSegmentPosition(examId, segmentPosition);
+        if(!maybeExamSegment.isPresent()) {
+            return false;
+        }
 
+        if(!maybeExamSegment.get().isSatisfied()) {
+            ExamSegment examSegment = ExamSegment.Builder.fromSegment(maybeExamSegment.get()).withSatisfied(true).build();
+            examSegmentService.update(examSegment);
+        }
 
+        return true;
     }
 
     @Override
@@ -218,6 +234,7 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
                     groupBlock.block,
                     exam.getSessionId(),
                     false,
+                    //TODO - Find out where isActive is coming from in legacy code
                     null);
             })
             .collect(Collectors.toList());
@@ -257,12 +274,9 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
                 blockId = maybeItem.get().getBlockId();
             }
         } else if (assessment.getSelectionAlgorithm().equals(Algorithm.ADAPTIVE_2) && isFieldTest) {
-            Optional<FieldTestItemGroup> maybeFieldTestItem = fieldTestItemGroups.stream().filter(new Predicate<FieldTestItemGroup>() {
-                @Override
-                public boolean test(final FieldTestItemGroup fieldTestItemGroup) {
-                    return fieldTestItemGroup.getLanguageCode().equals(languageCode);
-                }
-            }).findFirst();
+            Optional<FieldTestItemGroup> maybeFieldTestItem = fieldTestItemGroups.stream()
+                .filter(fieldTestItemGroup -> fieldTestItemGroup.getLanguageCode().equals(languageCode))
+                .findFirst();
 
             if (maybeFieldTestItem.isPresent()) {
                 groupId = maybeFieldTestItem.get().getGroupId();
@@ -304,7 +318,7 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
         private final String group;
         private final String block;
 
-        public GroupBlock(final String group, final String block) {
+        GroupBlock(final String group, final String block) {
             this.group = group;
             this.block = block;
         }
