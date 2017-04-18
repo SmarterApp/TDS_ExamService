@@ -10,6 +10,7 @@ public class ItemScoreSettings {
     private int timerInterval = 5;
     private int timerPendingMinutes = 15;
     private int timerMaxAttempts = 10;
+    private boolean encryptionEnabled = false;
 
     public boolean isEnabled() {
         return enabled;
@@ -47,6 +48,10 @@ public class ItemScoreSettings {
         return timerMaxAttempts;
     }
 
+    public boolean isEncryptionEnabled() {
+        return encryptionEnabled;
+    }
+
     public static final class ItemScoreSettingsBuilder {
         private boolean enabled = true;
         private boolean debug = false;
@@ -57,6 +62,7 @@ public class ItemScoreSettings {
         private int timerInterval = 5;
         private int timerPendingMinutes = 15;
         private int timerMaxAttempts = 10;
+        private boolean encryptionEnabled = false;
 
         public ItemScoreSettingsBuilder withEnabled(boolean enabled) {
             this.enabled = enabled;
@@ -103,6 +109,11 @@ public class ItemScoreSettings {
             return this;
         }
 
+        public ItemScoreSettingsBuilder withEncryptionEnabled(boolean encryptionEnabled) {
+            this.encryptionEnabled = encryptionEnabled;
+            return this;
+        }
+
         public ItemScoreSettings build() {
             ItemScoreSettings itemScoreSettings = new ItemScoreSettings();
             itemScoreSettings.callbackUrl = this.callbackUrl;
@@ -114,6 +125,7 @@ public class ItemScoreSettings {
             itemScoreSettings.timerPendingMinutes = this.timerPendingMinutes;
             itemScoreSettings.timerMaxAttempts = this.timerMaxAttempts;
             itemScoreSettings.debug = this.debug;
+            itemScoreSettings.encryptionEnabled = this.encryptionEnabled;
             return itemScoreSettings;
         }
     }

@@ -12,6 +12,7 @@ import tds.student.sql.data.ItemScoringConfig;
 public interface ScoreConfigService {
     /**
      * Finds the item score configurations
+     *
      * @param clientName client name associated with the configuration
      * @return list of {@link tds.student.sql.data.ItemScoringConfig}
      * @throws ReturnStatusException if there is an error finding the configurations
