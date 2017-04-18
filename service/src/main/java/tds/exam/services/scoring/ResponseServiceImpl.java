@@ -12,12 +12,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Date;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-
 import tds.exam.Exam;
 import tds.exam.ExamItem;
 import tds.exam.ExamItemResponse;
@@ -33,6 +27,11 @@ import tds.score.model.ExamInstance;
 import tds.score.services.ResponseService;
 import tds.student.sql.data.IItemResponseScorable;
 import tds.student.sql.data.IItemResponseUpdate;
+
+import java.util.Date;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 
 import static tds.exam.ExamStatusCode.STATUS_REVIEW;
 import static tds.exam.ExamStatusCode.STATUS_SEGMENT_ENTRY;
@@ -117,6 +116,7 @@ public class ResponseServiceImpl implements ResponseService {
         }
 
         if (StringUtils.isNotEmpty(errorMessage)) {
+            LOG.warn("Problem accessing exam item: {}", errorMessage);
             String message = configService.getFormattedMessage(examInstance.getClientName(), null, "T_UpdateScoredResponse", null);
             throw new ReturnStatusException(message);
         }

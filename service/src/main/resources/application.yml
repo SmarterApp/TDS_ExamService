@@ -80,6 +80,6 @@ exam:
       encryptionEnabled: false
     s3:
       bucketName: tds-resources
-      prefix: item-content/local/
       accessKey: ${s3.key}
       secretKey: ${s3.secret}
+      itemPrefix: item-content/local/
