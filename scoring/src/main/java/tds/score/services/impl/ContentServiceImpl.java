@@ -11,12 +11,11 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Optional;
 
-import tds.itemrenderer.ITSDocumentFactory;
 import tds.itemrenderer.data.AccLookup;
 import tds.itemrenderer.data.IITSDocument;
 import tds.itemrenderer.data.ITSContent;
 import tds.itemrenderer.data.ITSMachineRubric;
-import tds.itemrenderer.processing.ItemDataReader;
+import tds.itemrenderer.service.ItemDocumentService;
 import tds.itemscoringengine.RubricContentSource;
 import tds.score.model.AccLookupWrapper;
 import tds.score.model.Item;
@@ -27,16 +26,16 @@ import tds.student.services.data.PageGroup;
 
 @Service
 public class ContentServiceImpl implements ContentService {
+    private static final Logger _logger = LoggerFactory.getLogger(ContentService.class);
+
     private final ItemService itemService;
-    private final ItemDataReader itemDataReader;
+    private final ItemDocumentService itemDocumentService;
 
     @Autowired
-    public ContentServiceImpl(final ItemService itemService, final ItemDataReader itemDataReader) {
+    public ContentServiceImpl(final ItemService itemService, final ItemDocumentService itemDocumentService) {
         this.itemService = itemService;
-        this.itemDataReader = itemDataReader;
+        this.itemDocumentService = itemDocumentService;
     }
-
-    private static final Logger _logger = LoggerFactory.getLogger(ContentService.class);
 
     @Override
     public IITSDocument getContent(final String xmlFilePath, final AccLookup accommodations) throws ReturnStatusException {
@@ -111,7 +110,7 @@ public class ContentServiceImpl implements ContentService {
 
         try {
             URI uri = new URI(xmlFilePath);
-            return ITSDocumentFactory.load(uri, accommodations.getValue(), itemDataReader, true);
+            return itemDocumentService.loadItemDocument(uri, accommodations.getValue(), true);
         } catch (URISyntaxException e) {
             throw new ReturnStatusException(e);
         }
