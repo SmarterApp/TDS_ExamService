@@ -12,7 +12,6 @@ import tds.score.services.ItemScoringService;
 import tds.student.sql.data.ItemResponseUpdate;
 import tds.student.sql.data.ItemResponseUpdateStatus;
 
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -64,25 +63,5 @@ public class ExamScoringControllerTest {
         assertThat(examInstanceArgumentCaptor.getValue().getClientName()).isEqualTo(clientName);
 
         assertThat(updatesArgumentCaptor.getValue()).containsExactlyElementsOf(updates);
-    }
-
-    private ItemResponseUpdate itemResponseUpdate() {
-        final ItemResponseUpdate update = new ItemResponseUpdate();
-        update.setDateCreated(new Date().toString());
-        update.setIsSelected(true);
-        update.setIsValid(true);
-        update.setPage(1);
-        update.setPageKey("pageKey");
-        update.setBankKey(123L);
-        update.setFilePath("file/path");
-        update.setItemKey(456L);
-        update.setLanguage("ENU");
-        update.setPosition(1);
-        update.setScoreMark(UUID.randomUUID());
-        update.setSegmentID("segmentId");
-        update.setSequence(1);
-        update.setTestID("testId");
-        update.setValue("value");
-        return update;
     }
 }
