@@ -75,6 +75,7 @@ exam:
       pythonScoringUrl: http://localhost:32845
       maxAttempts: 3
       sympyTimeoutMillis: 1000
+      encryptionEnabled: false
     s3:
       bucketName: tds-resources
       prefix: item-content/local/
