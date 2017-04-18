@@ -133,7 +133,16 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
 
     @Override
     public void cleanupDismissedItemCandidates(Long selectedSegmentPosition, UUID examId) throws ReturnStatusException {
-        return;
+        List<ExamSegment> segments = examSegmentService.findExamSegments(examId)
+            .stream()
+            .filter(examSegment -> !examSegment.isSatisfied())
+            .filter(examSegment -> examSegment.getSegmentPosition() != selectedSegmentPosition.intValue())
+            .map(examSegment -> ExamSegment.Builder.fromSegment(examSegment)
+                .withSatisfied(true)
+                .build())
+            .collect(Collectors.toList());
+
+        examSegmentService.update(segments.toArray(new ExamSegment[segments.size()]));
     }
 
     @Override
@@ -149,6 +158,8 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
     @Override
     public boolean setSegmentSatisfied(UUID examId, Integer segmentPosition, String reason) throws ReturnStatusException {
         return false;
+
+
     }
 
     @Override
@@ -253,7 +264,7 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
                 }
             }).findFirst();
 
-            if(maybeFieldTestItem.isPresent()) {
+            if (maybeFieldTestItem.isPresent()) {
                 groupId = maybeFieldTestItem.get().getGroupId();
                 blockId = maybeFieldTestItem.get().getBlockId();
             }
