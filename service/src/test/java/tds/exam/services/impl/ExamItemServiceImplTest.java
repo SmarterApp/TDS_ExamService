@@ -38,7 +38,6 @@ import tds.exam.repositories.ExamPageQueryRepository;
 import tds.exam.repositories.ExamQueryRepository;
 import tds.exam.services.ExamItemResponseScoringService;
 import tds.exam.services.ExamItemService;
-import tds.itemselection.services.ItemSelectionService;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
@@ -65,9 +64,6 @@ public class ExamItemServiceImplTest {
     private ExamQueryRepository mockExamQueryRepository;
 
     @Mock
-    private ItemSelectionService mockItemSelectionService;
-
-    @Mock
     private ExamItemResponseScoringService mockExamItemResponseScoringService;
 
     private ExamItemService examItemService;
@@ -82,8 +78,7 @@ public class ExamItemServiceImplTest {
             mockExamPageCommandRepository,
             mockExamPageQueryRepository,
             mockExamQueryRepository,
-            mockExamItemResponseScoringService,
-            mockItemSelectionService);
+            mockExamItemResponseScoringService);
     }
 
     @Test

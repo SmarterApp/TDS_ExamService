@@ -1,6 +1,5 @@
 package tds.exam.services.impl;
 
-import TDS.Shared.Exceptions.ReturnStatusException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -9,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import tds.common.Response;
@@ -22,7 +20,6 @@ import tds.exam.ExamItemResponseScore;
 import tds.exam.ExamPage;
 import tds.exam.ExamStatusCode;
 import tds.exam.error.ValidationErrorCode;
-import tds.exam.item.PageGroupRequest;
 import tds.exam.repositories.ExamItemCommandRepository;
 import tds.exam.repositories.ExamItemQueryRepository;
 import tds.exam.repositories.ExamPageCommandRepository;
@@ -30,11 +27,6 @@ import tds.exam.repositories.ExamPageQueryRepository;
 import tds.exam.repositories.ExamQueryRepository;
 import tds.exam.services.ExamItemResponseScoringService;
 import tds.exam.services.ExamItemService;
-import tds.itemselection.base.ItemGroup;
-import tds.itemselection.model.ItemResponse;
-import tds.itemselection.services.ItemSelectionService;
-import tds.student.services.data.PageGroup;
-import tds.student.sql.data.OpportunityItem;
 
 import static tds.exam.error.ValidationErrorCode.EXAM_ITEM_DOES_NOT_EXIST;
 import static tds.exam.error.ValidationErrorCode.EXAM_ITEM_RESPONSE_DOES_NOT_EXIST;
@@ -47,7 +39,6 @@ public class ExamItemServiceImpl implements ExamItemService {
     private final ExamPageQueryRepository examPageQueryRepository;
     private final ExamQueryRepository examQueryRepository;
     private final ExamItemResponseScoringService examItemResponseScoringService;
-    private final ItemSelectionService itemSelectionService;
 
     @Autowired
     public ExamItemServiceImpl(final ExamItemQueryRepository examItemQueryRepository,
@@ -55,15 +46,13 @@ public class ExamItemServiceImpl implements ExamItemService {
                                final ExamPageCommandRepository examPageCommandRepository,
                                final ExamPageQueryRepository examPageQueryRepository,
                                final ExamQueryRepository examQueryRepository,
-                               final ExamItemResponseScoringService examItemResponseScoringService,
-                               final ItemSelectionService itemSelectionService) {
+                               final ExamItemResponseScoringService examItemResponseScoringService) {
         this.examItemQueryRepository = examItemQueryRepository;
         this.examItemCommandRepository = examItemCommandRepository;
         this.examPageCommandRepository = examPageCommandRepository;
         this.examPageQueryRepository = examPageQueryRepository;
         this.examQueryRepository = examQueryRepository;
         this.examItemResponseScoringService = examItemResponseScoringService;
-        this.itemSelectionService = itemSelectionService;
     }
 
     @Transactional
@@ -151,64 +140,5 @@ public class ExamItemServiceImpl implements ExamItemService {
     @Override
     public Optional<ExamItem> findExamItemAndResponse(final UUID examId, final int position) {
         return examItemQueryRepository.findExamItemAndResponse(examId, position);
-    }
-
-    @Transactional
-    @Override
-    public PageGroup createNextPageGroup(UUID examid, PageGroupRequest request) throws ReturnStatusException {
-        PageGroup pageGroup = null;
-
-        ItemResponse<ItemGroup> response = itemSelectionService.getNextItemGroup(examid, request.isMsb());
-
-        if(response.getResponseData().isPresent()) {
-            throw new RuntimeException("Failed to create item group: " + response.getErrorMessage());
-        } else if (!response.getResponseData().isPresent()) {
-            throw new IllegalStateException("No error nor item information was returned from selection.  Please check configuration");
-        }
-
-        ItemGroup itemGroup = response.getResponseData().get();
-
-        UUID pageId = UUID.randomUUID();
-
-        ExamPage page = new ExamPage.Builder()
-            .withId(pageId)
-            .withPagePosition(request.getLastPage() + 1)
-            .withExamId(examid)
-            .withItemGroupKey(itemGroup.getGroupID())
-            .withSegmentKey(itemGroup.getSegmentKey())
-            .withSegmentId(itemGroup.getSegmentID())
-            .withSegmentPosition(itemGroup.getSegmentPosition())
-            .build();
-
-        List<ExamItem> examItems = itemGroup.getItems().stream()
-            .map(testItem -> new ExamItem.Builder(UUID.randomUUID())
-                .withItemKey(testItem.getItemID())
-                .withExamPageId(pageId)
-                .withFieldTest(testItem.isFieldTest())
-                .withPosition(testItem.position)
-                .withRequired(testItem.isRequired())
-                .build())
-            .collect(Collectors.toList());
-
-        examPageCommandRepository.insert(page);
-        examItemCommandRepository.insert(examItems.toArray(new ExamItem[examItems.size()]));
-
-        List<OpportunityItem> opportunityItems = examItems.stream()
-            .map(examItem -> {
-                OpportunityItem item = new OpportunityItem();
-                item.setGroupID(page.getItemGroupKey());
-//                item.setGroupItemsRequired();
-//                item.setIsPrintable(examItem.isPr);
-                item.setIsRequired(examItem.isRequired());
-//                item.setIsVisible();
-                item.setSegmentID(page.getSegmentId());
-                item.setSegment(page.getSegmentPosition());
-                item.setBankKey(examItem.getAssessmentItemBankKey());
-                item.setItemKey(examItem.getAssessmentItemKey());
-                return item;
-            }).collect(Collectors.toList());
-
-        pageGroup = PageGroup.Create(opportunityItems);
-        return pageGroup;
     }
 }
