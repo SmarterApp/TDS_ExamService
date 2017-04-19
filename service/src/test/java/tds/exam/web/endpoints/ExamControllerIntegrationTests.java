@@ -227,10 +227,9 @@ public class ExamControllerIntegrationTests {
         ApproveAccommodationsRequest request = new ApproveAccommodationsRequest(sessionId, browserId, new HashMap<>());
 
         when(mockExamService.updateExamAccommodationsAndExam(examId, request)).thenReturn(Optional.empty());
-        JSONObject requestJson = new JSONObject(request);
 
         http.perform(post(new URI(String.format("/exam/%s/accommodations", examId)))
-            .content(requestJson.toString())
+            .content(ow.writeValueAsString(request))
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isNoContent());
 
@@ -247,10 +246,9 @@ public class ExamControllerIntegrationTests {
         ApproveAccommodationsRequest request = new ApproveAccommodationsRequest(sessionId, browserId, new HashMap<>());
 
         when(mockExamService.updateExamAccommodationsAndExam(examId, request)).thenReturn(Optional.of(new ValidationError(errorCode, errorMsg)));
-        JSONObject requestJson = new JSONObject(request);
 
         http.perform(post(new URI(String.format("/exam/%s/accommodations", examId)))
-            .content(requestJson.toString())
+            .content(ow.writeValueAsString(request))
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("errors[0].code", is(errorCode)))
             .andExpect(jsonPath("errors[0].message", is(errorMsg)))
