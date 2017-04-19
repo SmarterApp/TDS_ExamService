@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -83,16 +84,16 @@ public class ExamQueryRepositoryImplIntegrationTests {
 
         exams.forEach(exam -> {
             examCommandRepository.insert(exam);
-            examAccommodationCommandRepository.insert(Arrays.asList(
-              new ExamAccommodationBuilder()
-                .withType("Language")
-                .withCode("ENU")
-                .withExamId(exam.getId())
-                .withSegmentPosition(0)
-                .build()
+            examAccommodationCommandRepository.insert(Collections.singletonList(
+                new ExamAccommodationBuilder()
+                    .withType("Language")
+                    .withCode("ENU")
+                    .withExamId(exam.getId())
+                    .withSegmentPosition(0)
+                    .build()
             ));
         });
-        
+
         insertExamScoresData();
 
         // Build exams that belong to the same session
@@ -121,13 +122,13 @@ public class ExamQueryRepositoryImplIntegrationTests {
 
         examsInSession.forEach(exam -> {
             examCommandRepository.insert(exam);
-            examAccommodationCommandRepository.insert(Arrays.asList(
-              new ExamAccommodationBuilder()
-                .withType("Language")
-                .withCode("ENU")
-                .withExamId(exam.getId())
-                .withSegmentPosition(0)
-                .build()
+            examAccommodationCommandRepository.insert(Collections.singletonList(
+                new ExamAccommodationBuilder()
+                    .withType("Language")
+                    .withCode("ENU")
+                    .withExamId(exam.getId())
+                    .withSegmentPosition(0)
+                    .build()
             ));
         });
 
@@ -196,35 +197,35 @@ public class ExamQueryRepositoryImplIntegrationTests {
         assertThat(maybeLastTimePaused).isPresent();
         assertThat(maybeLastTimePaused.get()).isGreaterThanOrEqualTo(now);
     }
-    
+
     @Test
     public void shouldFindExamWithLatestLanguage() throws InterruptedException {
         Exam exam = new ExamBuilder().build();
         examCommandRepository.insert(exam);
-    
+
         ExamAccommodation enuAccommodation =
             new ExamAccommodationBuilder()
                 .withType(Accommodation.ACCOMMODATION_TYPE_LANGUAGE)
                 .withCode("ENU")
                 .withExamId(exam.getId())
                 .build();
-    
+
         ExamAccommodation esnAccommodation =
             new ExamAccommodationBuilder()
                 .withType(Accommodation.ACCOMMODATION_TYPE_LANGUAGE)
                 .withCode("ESN")
                 .withExamId(exam.getId())
                 .build();
-        
-        examAccommodationCommandRepository.insert(Arrays.asList(enuAccommodation));
-        
+
+        examAccommodationCommandRepository.insert(Collections.singletonList(enuAccommodation));
+
         Optional<Exam> maybeExam = examQueryRepository.getExamById(exam.getId());
         assertThat(maybeExam).isPresent();
         assertThat(maybeExam.get().getLanguageCode()).isEqualTo("ENU");
-    
+
         Thread.sleep(5000);
-        examAccommodationCommandRepository.insert(Arrays.asList(esnAccommodation));
-    
+        examAccommodationCommandRepository.insert(Collections.singletonList(esnAccommodation));
+
         Optional<Exam> maybeUpdatedExam = examQueryRepository.getExamById(exam.getId());
         assertThat(maybeUpdatedExam).isPresent();
         assertThat(maybeUpdatedExam.get().getLanguageCode()).isEqualTo("ESN");

@@ -12,7 +12,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -54,17 +54,18 @@ public class ExamCommandRepositoryImplIntegrationTests {
             .withJoinedAt(now)
             .withAbnormalStarts(5)
             .withBrowserUserAgent("agent 007")
+            .withMultiStageBraille(true)
             .build();
         assertThat(examQueryRepository.getExamById(exam.getId())).isNotPresent();
 
         examCommandRepository.insert(exam);
-        examAccommodationCommandRepository.insert(Arrays.asList(
-          new ExamAccommodationBuilder()
-            .withType("Language")
-            .withCode("ENU")
-            .withExamId(exam.getId())
-            .withSegmentPosition(0)
-            .build()
+        examAccommodationCommandRepository.insert(Collections.singletonList(
+            new ExamAccommodationBuilder()
+                .withType("Language")
+                .withCode("ENU")
+                .withExamId(exam.getId())
+                .withSegmentPosition(0)
+                .build()
         ));
 
         Optional<Exam> maybeExam = examQueryRepository.getExamById(exam.getId());
@@ -99,6 +100,7 @@ public class ExamCommandRepositoryImplIntegrationTests {
         assertThat(savedExam.getCreatedAt()).isNotNull();
         assertThat(savedExam.getCreatedAt()).isGreaterThanOrEqualTo(now);
         assertThat(savedExam.getBrowserUserAgent()).isEqualTo(exam.getBrowserUserAgent());
+        assertThat(savedExam.isMultiStageBraille()).isTrue();
     }
 
     @Test
@@ -107,13 +109,13 @@ public class ExamCommandRepositoryImplIntegrationTests {
         assertThat(examQueryRepository.getExamById(mockExam.getId())).isNotPresent();
 
         examCommandRepository.insert(mockExam);
-        examAccommodationCommandRepository.insert(Arrays.asList(
-          new ExamAccommodationBuilder()
-            .withType("Language")
-            .withCode("ENU")
-            .withExamId(mockExam.getId())
-            .withSegmentPosition(0)
-            .build()
+        examAccommodationCommandRepository.insert(Collections.singletonList(
+            new ExamAccommodationBuilder()
+                .withType("Language")
+                .withCode("ENU")
+                .withExamId(mockExam.getId())
+                .withSegmentPosition(0)
+                .build()
         ));
         Optional<Exam> maybeExam = examQueryRepository.getExamById(mockExam.getId());
         assertThat(maybeExam).isPresent();
@@ -149,13 +151,13 @@ public class ExamCommandRepositoryImplIntegrationTests {
 
         exams.forEach(e -> {
             examCommandRepository.insert(e);
-            examAccommodationCommandRepository.insert(Arrays.asList(
-              new ExamAccommodationBuilder()
-                .withType("Language")
-                .withCode("ENU")
-                .withExamId(e.getId())
-                .withSegmentPosition(0)
-                .build()
+            examAccommodationCommandRepository.insert(Collections.singletonList(
+                new ExamAccommodationBuilder()
+                    .withType("Language")
+                    .withCode("ENU")
+                    .withExamId(e.getId())
+                    .withSegmentPosition(0)
+                    .build()
             ));
         });
         
