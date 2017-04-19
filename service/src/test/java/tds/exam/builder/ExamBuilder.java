@@ -7,7 +7,6 @@ import java.util.UUID;
 import tds.common.util.Preconditions;
 import tds.exam.Exam;
 import tds.exam.ExamStatusCode;
-import tds.exam.ExamStatusStage;
 
 import static tds.exam.ExamStatusCode.STATUS_PENDING;
 
@@ -50,6 +49,7 @@ public class ExamBuilder {
     private int resumptions = 5;
     private int restartsAndResumptions = 7;
     private String browserUserAgent = "user agent";
+    private boolean multiStageBraille = false;
 
     public Exam build() {
         return new Exam.Builder()
@@ -86,6 +86,7 @@ public class ExamBuilder {
             .withRestartsAndResumptions(restartsAndResumptions)
             .withCreatedAt(createdAt)
             .withBrowserUserAgent(browserUserAgent)
+            .withMultiStageBraille(multiStageBraille)
             .build();
     }
 
@@ -263,4 +264,8 @@ public class ExamBuilder {
         return this;
     }
 
+    public ExamBuilder withMultiStageBraille(boolean multiStageBraille) {
+        this.multiStageBraille = multiStageBraille;
+        return this;
+    }
 }

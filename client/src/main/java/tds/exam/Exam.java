@@ -45,6 +45,7 @@ public class Exam {
     private int resumptions;
     private int restartsAndResumptions;
     private String browserUserAgent;
+    private boolean multiStageBraille;
 
     /**
      * Private constructor for frameworks
@@ -88,6 +89,7 @@ public class Exam {
         private int resumptions;
         private int restartsAndResumptions;
         private String browserUserAgent;
+        private boolean multiStageBraille;
 
         public Builder withSegmented(boolean segmented) {
             this.segmented = segmented;
@@ -263,6 +265,11 @@ public class Exam {
             return this;
         }
 
+        public Builder withMultiStageBraille(boolean multiStageBraille) {
+            this.multiStageBraille = multiStageBraille;
+            return this;
+        }
+
         public Builder fromExam(Exam exam) {
             id = exam.id;
             sessionId = exam.sessionId;
@@ -299,6 +306,7 @@ public class Exam {
             resumptions = exam.resumptions;
             restartsAndResumptions = exam.restartsAndResumptions;
             browserUserAgent = exam.browserUserAgent;
+            multiStageBraille = exam.multiStageBraille;
             return this;
         }
 
@@ -343,6 +351,7 @@ public class Exam {
         resumptions = builder.resumptions;
         restartsAndResumptions = builder.restartsAndResumptions;
         browserUserAgent = builder.browserUserAgent;
+        multiStageBraille = builder.multiStageBraille;
     }
 
     /**
@@ -593,5 +602,12 @@ public class Exam {
      */
     public String getBrowserUserAgent() {
         return browserUserAgent;
+    }
+
+    /**
+     * @return {@code true} if the exam is multi stage braille
+     */
+    public boolean isMultiStageBraille() {
+        return multiStageBraille;
     }
 }
