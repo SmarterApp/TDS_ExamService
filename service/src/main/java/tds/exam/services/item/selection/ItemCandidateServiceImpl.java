@@ -21,6 +21,8 @@ import tds.common.Algorithm;
 import tds.dll.api.IItemSelectionDLL;
 import tds.exam.Exam;
 import tds.exam.ExamItem;
+import tds.exam.ExamItemResponse;
+import tds.exam.ExamItemResponseScore;
 import tds.exam.ExamPage;
 import tds.exam.ExamSegment;
 import tds.exam.ExpandableExam;
@@ -33,6 +35,7 @@ import tds.exam.services.FieldTestService;
 import tds.itemselection.api.ItemSelectionException;
 import tds.itemselection.base.ItemCandidatesData;
 import tds.itemselection.base.ItemGroup;
+import tds.itemselection.impl.ItemResponse;
 import tds.itemselection.loader.StudentHistory2013;
 import tds.itemselection.loader.TestSegment;
 import tds.itemselection.services.ItemCandidatesService;
@@ -161,15 +164,73 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
     @Override
     public StudentHistory2013 loadOppHistory(UUID examId, String segmentKey) throws ItemSelectionException {
         //AA_GetDataHistory2_SP
-
         ExpandableExam exam = expandableExamService.findExam(examId, ExpandableExamAttributes.EXAM_SEGMENTS, ExpandableExamAttributes.EXAM_PAGE_AND_ITEMS)
             .orElseThrow(() -> new ItemSelectionException("Could not find Exam for id" + examId));
 
-        //TODO - we need to fetch past item group selections
+        Assessment assessment = assessmentService.findAssessment(exam.getExam().getClientName(), exam.getExam().getAssessmentKey())
+            .orElseThrow(() -> new ItemSelectionException("Can't find assessment for the exam"));
 
+        ExamSegment examSegment = exam.getExamSegments()
+            .stream()
+            .filter(examSegment1 -> examSegment1.getSegmentKey().equals(segmentKey))
+            .findFirst()
+            .orElseThrow(() -> new ItemSelectionException("Could not find exam segment"));
 
+        Set<String> fieldTestItemGroups = fieldTestService.findUsageInExam(examId)
+            .stream()
+            .filter(fieldTestItemGroup -> !fieldTestItemGroup.isDeleted())
+            .map(FieldTestItemGroup::getGroupId)
+            .collect(Collectors.toSet());
 
-        return null;
+        ArrayList<String> itemGroups = new ArrayList<>();
+        itemGroups.addAll(examSegment.getItemPool());
+        StudentHistory2013 history = new StudentHistory2013();
+        history.setStartAbility(assessment.getStartAbility());
+        history.set_itemPool(itemGroups);
+
+        //TODO - we need to fetch past item group selections based on responses.  However, that is really a pain to do with our
+        //current data model since you can't easily get from an exam to a item.  You always have to go through page.
+        //Revisit this in the future.  Ignoring that part in the legacy code
+
+        HashSet<String> ftFieldGroups = new HashSet<>();
+        ftFieldGroups.addAll(fieldTestItemGroups);
+        history.set_previousFieldTestItemGroups(ftFieldGroups);
+
+        List<SegmentHolder> segmentHolders = mapSegmentToItems(exam);
+
+        ArrayList<ItemResponse> itemResponses = new ArrayList<>();
+        for(final SegmentHolder segmentHolder : segmentHolders) {
+            List<ItemResponse> responses = segmentHolder.items.stream()
+                .filter(examItem -> examItem.getItemKey() != null)
+                .map(examItem -> {
+                    ItemResponse response = new ItemResponse();
+                    response.segmentPosition = segmentHolder.examSegment.getSegmentPosition();
+                    response.itemID = examItem.getItemKey();
+                    //TODO - add group id to items
+//                    response.groupID = examItem.getGroupId();
+                    response.itemPosition = examItem.getPosition();
+                    response.isFieldTest = examItem.isFieldTest();
+
+                    if(examItem.getResponse().isPresent()) {
+                        ExamItemResponse examItemResponse = examItem.getResponse().get();
+
+                        if(examItemResponse.getScore().isPresent()) {
+                            ExamItemResponseScore score = examItemResponse.getScore().get();
+                            response.setScore(score.getScore());
+                            response.setScoreDimensions(score.getScoringDimensions());
+                            response.loadDimensionScores(score.getScoringDimensions());
+                        }
+                    }
+
+                    return response;
+                }).collect(Collectors.toList());
+
+            itemResponses.addAll(responses);
+        }
+
+        history.set_previousResponses(itemResponses);
+
+        return history;
     }
 
     @Override
