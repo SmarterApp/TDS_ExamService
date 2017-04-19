@@ -28,6 +28,7 @@ public class AssessmentBuilder {
     private Instant fieldTestStartDate;
     private Instant fieldTestEndDate;
     private String accommodationFamily = "ELA";
+    private boolean multiStageBraille = false;
 
     public AssessmentBuilder() {
         segments = Collections.singletonList(new SegmentBuilder().build());
@@ -48,10 +49,11 @@ public class AssessmentBuilder {
         assessment.setSubject(subject);
         assessment.setAccommodationFamily(accommodationFamily);
         assessment.setItemConstraints(itemConstraints);
+        assessment.setMultiStageBraille(multiStageBraille);
         return assessment;
     }
 
-    public AssessmentBuilder withKey(String key) {
+    public AssessmentBuilder withKey(final String key) {
         this.key = key;
         return this;
     }
@@ -66,48 +68,53 @@ public class AssessmentBuilder {
         return this;
     }
 
-    public AssessmentBuilder withAbilityIntercept(float abilityIntercept) {
+    public AssessmentBuilder withAbilityIntercept(final float abilityIntercept) {
         this.abilityIntercept = abilityIntercept;
         return this;
     }
 
-    public AssessmentBuilder withAssessmentId(String assessmentID) {
+    public AssessmentBuilder withAssessmentId(final String assessmentID) {
         this.assessmentId = assessmentID;
         return this;
     }
 
-    public AssessmentBuilder withSelectionAlgorithm(Algorithm selectionAlgorithm) {
+    public AssessmentBuilder withSelectionAlgorithm(final Algorithm selectionAlgorithm) {
         this.selectionAlgorithm = selectionAlgorithm;
         return this;
     }
 
-    public AssessmentBuilder withStartAbility(float ability) {
+    public AssessmentBuilder withStartAbility(final float ability) {
         this.startAbility = ability;
         return this;
     }
 
-    public AssessmentBuilder withSubject(String subjectName) {
+    public AssessmentBuilder withSubject(final String subjectName) {
         this.subject = subjectName;
         return this;
     }
 
-    public AssessmentBuilder withSegments(List<Segment> segments) {
+    public AssessmentBuilder withSegments(final List<Segment> segments) {
         this.segments = segments;
         return this;
     }
 
-    public AssessmentBuilder withFieldTestStartDate(Instant fieldTestStartDate) {
+    public AssessmentBuilder withFieldTestStartDate(final Instant fieldTestStartDate) {
         this.fieldTestStartDate = fieldTestStartDate;
         return this;
     }
 
-    public AssessmentBuilder withFieldTestEndDate(Instant fieldTestEndDate) {
+    public AssessmentBuilder withFieldTestEndDate(final Instant fieldTestEndDate) {
         this.fieldTestEndDate = fieldTestEndDate;
         return this;
     }
 
-    public AssessmentBuilder withAccommodationFamily(String accommodationFamily) {
+    public AssessmentBuilder withAccommodationFamily(final String accommodationFamily) {
         this.accommodationFamily = accommodationFamily;
+        return this;
+    }
+
+    public AssessmentBuilder withMultiStageBraille(final boolean multiStageBraille) {
+        this.multiStageBraille = multiStageBraille;
         return this;
     }
 }
