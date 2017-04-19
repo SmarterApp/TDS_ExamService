@@ -11,13 +11,12 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
-
-import java.util.List;
-
 import tds.common.cache.CacheType;
 import tds.exam.configuration.ExamServiceProperties;
 import tds.score.services.ScoreConfigService;
 import tds.student.sql.data.ItemScoringConfig;
+
+import java.util.List;
 
 @Service
 public class ScoreConfigServiceImpl implements ScoreConfigService {
@@ -36,7 +35,7 @@ public class ScoreConfigServiceImpl implements ScoreConfigService {
         UriComponents uriComponents =
             UriComponentsBuilder
                 .fromHttpUrl(examServiceProperties.getConfigUrl())
-                .path("{clientName}/scoring")
+                .path("config/{clientName}/scoring")
                 .buildAndExpand(clientName);
 
         try {
