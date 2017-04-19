@@ -1,5 +1,7 @@
 package tds.exam.services;
 
+import TDS.Shared.Exceptions.ReturnStatusException;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -10,6 +12,8 @@ import tds.common.ValidationError;
 import tds.exam.ExamItem;
 import tds.exam.ExamItemResponse;
 import tds.exam.ExamPage;
+import tds.exam.item.PageGroupRequest;
+import tds.student.services.data.PageGroup;
 
 /**
  * A service for interacting with an {@link tds.exam.Exam}'s {@link tds.exam.ExamItem}s and their associated
@@ -69,4 +73,14 @@ public interface ExamItemService {
      * @return ExamItem if found otherwise empty.  ExamItemResponse will be empty if a response is not present
      */
     Optional<ExamItem> findExamItemAndResponse(final UUID examId, int position);
+
+    /**
+     * Creates the next page group
+     *
+     * @param examId  exam id
+     * @param request {@link tds.exam.item.PageGroupRequest} containing information to build the next page
+     * @return a {@link tds.student.services.data.PageGroup}
+     * @throws ReturnStatusException if anything goes wrong...
+     */
+    PageGroup createNextPageGroup(UUID examId, PageGroupRequest request) throws ReturnStatusException;
 }
