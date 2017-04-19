@@ -68,7 +68,6 @@ public class ExamScoringControllerIntegrationTests {
             .param("pageDuration", pageDuration.toString())
             .contentType(APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(updates)))
-//            .andDo(print())
 
             .andExpect(status().is(OK.value()))
             .andExpect(jsonPath("$", hasSize(1)))

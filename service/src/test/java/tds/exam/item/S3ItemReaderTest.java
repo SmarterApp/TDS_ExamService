@@ -83,13 +83,6 @@ public class S3ItemReaderTest {
         }
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void itShouldThrowIfUriIsTooShort() throws Exception {
-        final URI shortUri = new URI("My-Item.xml");
-
-        itemReader.readData(shortUri);
-    }
-
     private S3ObjectInputStream response(final String body) throws Exception {
         final ByteArrayInputStream delegate = new ByteArrayInputStream(body.getBytes(UTF_8));
         return new S3ObjectInputStream(delegate, mock(HttpRequestBase.class));
