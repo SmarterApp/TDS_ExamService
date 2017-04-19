@@ -20,7 +20,7 @@
         <ss-multijar.version>3.0.3</ss-multijar.version>
         <item-scoring.version>3.0.1</item-scoring.version>
         <item-renderer.version>3.0.8</item-renderer.version>
-        <tds-student-common.version>3.0.4-SNAPSHOT</tds-student-common.version>
+        <tds-student-common.version>3.0.4</tds-student-common.version>
     </properties>
 
     <dependencies>
