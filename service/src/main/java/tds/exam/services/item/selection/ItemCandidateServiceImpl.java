@@ -2,6 +2,8 @@ package tds.exam.services.item.selection;
 
 import AIR.Common.Helpers._Ref;
 import TDS.Shared.Exceptions.ReturnStatusException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,6 +43,7 @@ import tds.itemselection.loader.TestSegment;
 import tds.itemselection.services.ItemCandidatesService;
 import tds.itemselection.services.SegmentService;
 
+@Service
 public class ItemCandidateServiceImpl implements ItemCandidatesService {
     private final ExpandableExamService expandableExamService;
     private final FieldTestService fieldTestService;
@@ -48,13 +51,10 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
     private final AssessmentService assessmentService;
     private final SegmentService segmentService;
 
-    private final static String SATISFIED = "SATISFIED";
-    private final static String FIXEDFORM = "fixedform";
     private final static String ADAPTIVE = "adaptive";
     private final static String FIELDTEST = "fieldtest";
-    private final static String LIKESTRING_I = "I-";
-    private final static String LANGUAGE = "Language";
 
+    @Autowired
     public ItemCandidateServiceImpl(final ExpandableExamService expandableExamService, final FieldTestService fieldTestService, final ExamSegmentService examSegmentService, final AssessmentService assessmentService, final SegmentService segmentService) {
         this.expandableExamService = expandableExamService;
         this.fieldTestService = fieldTestService;
