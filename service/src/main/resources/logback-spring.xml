@@ -1,50 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-Root logger is set to INFO and written to the CONSOLE.
-Logger tds.common.logging.EventLogger is set to INFO and sent to Logstash/
+Root logger is set to INFO and logs are sent to CONSOLE and logstash via tcp.
 
-Root WARN level logs are sent to Logstash.
-
-Spring boot default log levels and console appender are used.
+Spring boot default log levels are used.
 -->
 <configuration>
-    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
-    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
-
-    <springProperty name="LOGSTASH_DESTINATION" source="logstash-destination"/>
-
-    <if condition='isDefined("LOGSTASH_DESTINATION")'>
-        <then>
-            <appender name="LOGSTASH-WARN" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
-                <destination>${LOGSTASH_DESTINATION}</destination>
-                <!-- encoder is required -->
-                <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
-
-                <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-                    <level>WARN</level>
-                </filter>
-            </appender>
-
-            <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
-                <destination>${LOGSTASH_DESTINATION}</destination>
-                <!-- encoder is required -->
-                <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
-            </appender>
-
-            <!-- log specific info events to logstash -->
-            <logger name="tds.common.logging.EventLogger" level="INFO">
-                <appender-ref ref="LOGSTASH"/>
-            </logger>
-        </then>
-    </if>
-
-    <root level="INFO">
-        <appender-ref ref="CONSOLE"/>
-
-        <if condition='isDefined("LOGSTASH_DESTINATION")'>
-            <then>
-                <appender-ref ref="LOGSTASH-WARN"/>
-            </then>
-        </if>
-    </root>
+    <include resource="tds/common/logging/logstash.xml"/>
 </configuration>

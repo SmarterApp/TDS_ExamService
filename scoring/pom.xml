@@ -17,9 +17,10 @@
     <properties>
         <java.version>1.8</java.version>
         <assertj.version>3.4.1</assertj.version>
+        <ss-multijar.version>3.0.3</ss-multijar.version>
         <item-scoring.version>3.0.1</item-scoring.version>
-        <item-renderer.version>3.0.4</item-renderer.version>
-        <tds-student-common.version>3.0.0</tds-student-common.version>
+        <item-renderer.version>3.0.8</item-renderer.version>
+        <tds-student-common.version>3.0.4</tds-student-common.version>
     </properties>
 
     <dependencies>
@@ -79,6 +80,11 @@
             </exclusions>            
         </dependency>
         <dependency>
+            <groupId>org.opentestsystem.shared</groupId>
+            <artifactId>shared-db</artifactId>
+            <version>${ss-multijar.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.opentestsystem.delivery</groupId>
             <artifactId>item-scoring-engine</artifactId>
             <version>${item-scoring.version}</version>
@@ -114,6 +120,11 @@
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
             <version>${assertj.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-test</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

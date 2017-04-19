@@ -3,7 +3,10 @@ package tds.score.configuration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import tds.itemrenderer.configuration.ItemDocumentSettings;
 import tds.itemrenderer.processing.ItemDataReader;
+import tds.itemrenderer.service.ItemDocumentService;
+import tds.itemrenderer.service.impl.ITSDocumentService;
 import tds.itemscoringengine.IItemScorerManager;
 import tds.score.services.ContentService;
 import tds.score.services.ItemScoringService;
@@ -32,7 +35,15 @@ public class ScoringConfiguration {
 
     @Bean
     public ContentService getContentService(final ItemService itemService,
-                                            final ItemDataReader itemDataReader) {
-        return new ContentServiceImpl(itemService, itemDataReader);
+                                            final ItemDocumentService itemDocumentService) {
+        return new ContentServiceImpl(itemService, itemDocumentService);
+    }
+
+    @Bean
+    public ItemDocumentService getItemDocumentService(final ItemDataReader itemDataReader,
+                                                      final ItemScoreSettings itemScoreSettings) {
+        ItemDocumentSettings itemDocumentSettings = new ItemDocumentSettings();
+        itemDocumentSettings.setEncryptionEnabled(itemScoreSettings.isEncryptionEnabled());
+        return new ITSDocumentService(itemDataReader, itemDocumentSettings);
     }
 }

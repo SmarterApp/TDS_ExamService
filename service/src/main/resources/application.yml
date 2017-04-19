@@ -75,8 +75,11 @@ exam:
       pythonScoringUrl: http://localhost:32845
       maxAttempts: 3
       sympyTimeoutMillis: 1000
+      #For not this needs to always be disabled.  We're unsure if encryption is ever needed, but if it does
+      #changes will need to be made in item-renderer
+      encryptionEnabled: false
     s3:
       bucketName: tds-resources
-      prefix: item-content/local/
       accessKey: ${s3.key}
       secretKey: ${s3.secret}
+      itemPrefix: item-content/local/
