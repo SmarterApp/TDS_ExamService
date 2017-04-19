@@ -160,6 +160,15 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
 
     @Override
     public StudentHistory2013 loadOppHistory(UUID examId, String segmentKey) throws ItemSelectionException {
+        //AA_GetDataHistory2_SP
+
+        ExpandableExam exam = expandableExamService.findExam(examId, ExpandableExamAttributes.EXAM_SEGMENTS, ExpandableExamAttributes.EXAM_PAGE_AND_ITEMS)
+            .orElseThrow(() -> new ItemSelectionException("Could not find Exam for id" + examId));
+
+        //TODO - we need to fetch past item group selections
+
+
+
         return null;
     }
 
