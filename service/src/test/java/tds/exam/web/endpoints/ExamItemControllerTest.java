@@ -3,7 +3,6 @@ package tds.exam.web.endpoints;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
@@ -24,6 +23,7 @@ import tds.exam.ExamPage;
 import tds.exam.builder.ExamItemBuilder;
 import tds.exam.builder.ExamItemResponseBuilder;
 import tds.exam.builder.ExamPageBuilder;
+import tds.exam.services.ExamItemSelectionService;
 import tds.exam.services.ExamItemService;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,11 +37,14 @@ public class ExamItemControllerTest {
     @Mock
     private ExamItemService mockExamItemService;
 
+    @Mock
+    private ExamItemSelectionService mockExamItemSelectionService;
+
     private ExamItemController examItemController;
 
     @Before
     public void setUp() {
-        examItemController = new ExamItemController(mockExamItemService);
+        examItemController = new ExamItemController(mockExamItemService, mockExamItemSelectionService);
     }
 
     @Test

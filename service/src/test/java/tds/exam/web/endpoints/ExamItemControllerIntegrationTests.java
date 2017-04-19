@@ -26,6 +26,7 @@ import tds.exam.builder.ExamItemBuilder;
 import tds.exam.builder.ExamItemResponseBuilder;
 import tds.exam.builder.ExamItemResponseScoreBuilder;
 import tds.exam.builder.ExamPageBuilder;
+import tds.exam.services.ExamItemSelectionService;
 import tds.exam.services.ExamItemService;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -33,8 +34,8 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -46,6 +47,9 @@ public class ExamItemControllerIntegrationTests {
 
     @MockBean
     private ExamItemService mockExamItemService;
+
+    @MockBean
+    private ExamItemSelectionService mockExamItemSelectionService;
 
     @Test
     public void shouldInsertResponse() throws Exception {

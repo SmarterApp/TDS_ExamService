@@ -37,8 +37,6 @@ public class ExamItemSelectionServiceImpl implements ExamItemSelectionService {
     @Transactional
     @Override
     public PageGroup createNextPageGroup(UUID examid, PageGroupRequest request) throws ReturnStatusException {
-        PageGroup pageGroup = null;
-
         ItemResponse<ItemGroup> response = itemSelectionService.getNextItemGroup(examid, request.isMsb());
 
         if(response.getResponseData().isPresent()) {
@@ -89,7 +87,7 @@ public class ExamItemSelectionServiceImpl implements ExamItemSelectionService {
                 return item;
             }).collect(Collectors.toList());
 
-        pageGroup = PageGroup.Create(opportunityItems);
+        PageGroup pageGroup = PageGroup.Create(opportunityItems);
         return pageGroup;
     }
 }
