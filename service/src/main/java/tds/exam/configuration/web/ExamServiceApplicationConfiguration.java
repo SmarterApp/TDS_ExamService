@@ -22,9 +22,8 @@ import tds.exam.configuration.item.selection.ItemSelectionConfiguration;
     RedisClusterConfiguration.class,
     CacheConfiguration.class,
     SecurityConfiguration.class,
-    ItemSelectionConfiguration.class
-    SecurityConfiguration.class,
-    EventLoggerConfiguration.class,
+    ItemSelectionConfiguration.class,
+    EventLoggerConfiguration.class
 })
 public class ExamServiceApplicationConfiguration {
 }
