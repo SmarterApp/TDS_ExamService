@@ -68,10 +68,16 @@ public class ExamPageServiceImpl implements ExamPageService {
             .collect(Collectors.groupingBy(ExamItem::getExamPageId));
 
         return examPages.stream()
-            .map(examPage -> ExamPage.Builder
-                .fromExamPage(examPage)
-                .withExamItems(itemsToPageMap.get(examPage.getId()))
-                .build())
+            .map(examPage -> {
+                List<ExamItem> itemsForPage = itemsToPageMap.containsKey(examPage.getId())
+                    ? itemsToPageMap.get(examPage.getId())
+                    : new ArrayList<>();
+
+                return ExamPage.Builder
+                    .fromExamPage(examPage)
+                    .withExamItems(itemsForPage)
+                    .build();
+                })
             .collect(Collectors.toList());
     }
 
