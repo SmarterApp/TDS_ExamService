@@ -70,7 +70,6 @@ public class ExamItemController {
     }
 
     @PostMapping("/{examId}/item")
-    @VerifyAccess
     ResponseEntity<PageGroup> getNextItemGroup(@PathVariable final UUID examId, @RequestBody PageGroupRequest request) throws ReturnStatusException {
         return ResponseEntity.ok(examItemSelectionService.createNextPageGroup(examId, request));
     }
