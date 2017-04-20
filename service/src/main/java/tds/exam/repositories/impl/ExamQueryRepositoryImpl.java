@@ -56,6 +56,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
         "e.assessment_window_id, \n" +
         "e.assessment_algorithm, \n" +
         "e.segmented, \n" +
+        "e.msb, \n" +
         "lang.code AS language_code, \n" +
         "ee.attempts, \n" +
         "ee.status, \n" +
@@ -451,6 +452,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 .withCurrentSegmentPosition(rs.getInt("current_segment_position"))
                 .withCustomAccommodation(rs.getBoolean("custom_accommodations"))
                 .withBrowserUserAgent(rs.getString("browser_user_agent"))
+                .withMultiStageBraille(rs.getBoolean("msb"))
                 .build();
         }
     }

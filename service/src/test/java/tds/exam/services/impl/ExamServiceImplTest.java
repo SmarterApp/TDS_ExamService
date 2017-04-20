@@ -285,7 +285,9 @@ public class ExamServiceImplTest {
         Session currentSession = new SessionBuilder()
             .build();
 
-        Assessment assessment = new AssessmentBuilder().build();
+        Assessment assessment = new AssessmentBuilder()
+            .withMultiStageBraille(true)
+            .build();
         ExternalSessionConfiguration extSessionConfig = new ExternalSessionConfigurationBuilder()
             .withEnvironment(DEVELOPMENT_ENVIRONMENT)
             .build();
@@ -333,6 +335,7 @@ public class ExamServiceImplTest {
         assertThat(exam.getStatus().getCode()).isEqualTo(STATUS_PENDING);
         assertThat(exam.getSubject()).isEqualTo(assessment.getSubject());
         assertThat(exam.getWaitingForSegmentApprovalPosition()).isEqualTo(1);
+        assertThat(exam.isMultiStageBraille()).isTrue();
     }
 
     @Test(expected = IllegalStateException.class)

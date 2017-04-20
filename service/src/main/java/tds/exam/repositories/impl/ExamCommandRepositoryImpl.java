@@ -42,6 +42,7 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
             .addValue("assessmentAlgorithm", exam.getAssessmentAlgorithm())
             .addValue("segmented", exam.isSegmented())
             .addValue("joinedAt", mapJodaInstantToTimestamp(exam.getDateJoined()))
+            .addValue("msb", exam.isMultiStageBraille())
             .addValue("createdAt", mapJodaInstantToTimestamp(Instant.now()));
 
         String examInsertSQL = "INSERT INTO exam \n" +
@@ -58,6 +59,7 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
             "  assessment_window_id,\n" +
             "  assessment_algorithm,\n" +
             "  segmented,\n" +
+            "  msb,\n" +
             "  joined_at, \n" +
             "  created_at \n" +
             ")\n" +
@@ -75,6 +77,7 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
             "  :assessmentWindowId,\n" +
             "  :assessmentAlgorithm,\n" +
             "  :segmented,\n" +
+            "  :msb,\n" +
             "  :joinedAt, \n" +
             "  :createdAt \n" +
             ");";
