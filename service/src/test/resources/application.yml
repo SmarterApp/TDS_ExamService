@@ -9,6 +9,7 @@ spring:
     username: ${sbac.jdbc.user}
     password: ${sbac.jdbc.password}
     driver-class-name: 'com.mysql.jdbc.Driver'
+  cloud.bus.enabled: false
 
 server:
   undertow:
