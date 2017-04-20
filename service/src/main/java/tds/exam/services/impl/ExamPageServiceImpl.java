@@ -5,9 +5,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import tds.common.Response;
@@ -60,18 +63,15 @@ public class ExamPageServiceImpl implements ExamPageService {
         final List<ExamPage> examPages = examPageQueryRepository.findAll(examId);
         final List<ExamItem> examItems = examItemQueryRepository.findExamItemAndResponses(examId);
 
-        // Associate each exam item to its parent page
-        return examPages.stream()
-            .map(examPage -> {
-                List<ExamItem> itemsForPage = examItems.stream()
-                    .filter(examItem -> examItem.getExamPageId().equals(examPage.getId()))
-                    .collect(Collectors.toList());
+        // Associate each exam item collection to its parent page
+        final Map<UUID, List<ExamItem>> itemsToPageMap = examItems.stream()
+            .collect(Collectors.groupingBy(ExamItem::getExamPageId));
 
-                return ExamPage.Builder
-                    .fromExamPage(examPage)
-                    .withExamItems(itemsForPage)
-                    .build();
-            })
+        return examPages.stream()
+            .map(examPage -> ExamPage.Builder
+                .fromExamPage(examPage)
+                .withExamItems(itemsToPageMap.get(examPage.getId()))
+                .build())
             .collect(Collectors.toList());
     }
 
