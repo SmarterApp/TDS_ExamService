@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.UUID;
 
 import tds.common.Response;
@@ -37,5 +38,13 @@ public class ExamPageController {
         }
 
         return ResponseEntity.ok(page);
+    }
+
+    @VerifyAccess
+    @RequestMapping(value="/{id}/page", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<List<ExamPage>> getAllPagesWithItems(@PathVariable final UUID id) {
+        List<ExamPage> examPagesWithItems = examPageService.findAllPagesWithItems(id);
+
+        return ResponseEntity.ok(examPagesWithItems);
     }
 }

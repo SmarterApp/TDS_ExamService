@@ -141,6 +141,7 @@ public class ExamItemQueryRepositoryImpl implements ExamItemQueryRepository {
             "  I.position,\n" +
             "  I.is_fieldtest,\n" +
             "  I.is_required,\n" +
+            "  I.created_at, \n" +
             "  R.id as responseId,\n" +
             "  R.response,\n" +
             "  R.sequence,\n" +
@@ -195,6 +196,7 @@ public class ExamItemQueryRepositoryImpl implements ExamItemQueryRepository {
                 .withExamPageId(UUID.fromString(rs.getString("exam_page_id")))
                 .withFieldTest(rs.getBoolean("is_fieldtest"))
                 .withRequired(rs.getBoolean("is_required"))
+                .withCreatedAt(ResultSetMapperUtility.mapTimestampToJodaInstant(rs, "created_at"))
                 .withPosition(rs.getInt("position"));
 
             //Since there is a left join in the query this could not have a response
@@ -206,7 +208,6 @@ public class ExamItemQueryRepositoryImpl implements ExamItemQueryRepository {
                     .withSequence(rs.getInt("sequence"))
                     .withSelected(rs.getBoolean("is_selected"))
                     .withMarkedForReview(rs.getBoolean("is_marked_for_review"));
-                ;
 
                 //Means that the item has been scored
                 if (rs.getObject("scored_at") != null) {

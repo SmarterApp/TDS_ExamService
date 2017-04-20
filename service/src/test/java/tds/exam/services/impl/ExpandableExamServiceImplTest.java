@@ -9,16 +9,21 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
 import tds.exam.Exam;
+import tds.exam.ExamItem;
+import tds.exam.ExamPage;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExpandableExam;
 import tds.exam.ExpandableExamAttributes;
 import tds.exam.builder.ExamBuilder;
+import tds.exam.builder.ExamItemBuilder;
+import tds.exam.builder.ExamPageBuilder;
 import tds.exam.repositories.ExamQueryRepository;
 import tds.exam.mappers.ExpandableExamMapper;
 import tds.exam.services.ExpandableExamService;
