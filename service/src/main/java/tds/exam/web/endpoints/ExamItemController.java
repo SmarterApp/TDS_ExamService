@@ -71,6 +71,14 @@ public class ExamItemController {
 
     @PostMapping("/{examId}/item")
     ResponseEntity<PageGroup> getNextItemGroup(@PathVariable final UUID examId, @RequestBody PageGroupRequest request) throws ReturnStatusException {
-        return ResponseEntity.ok(examItemSelectionService.createNextPageGroup(examId, request));
+        try {
+            PageGroup pageGroup = examItemSelectionService.createNextPageGroup(examId, request);
+
+
+            return ResponseEntity.ok(pageGroup);
+        } catch (Exception e) {
+            e.printStackTrace();;
+            throw e;
+        }
     }
 }

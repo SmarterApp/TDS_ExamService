@@ -337,14 +337,14 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
 
         int relativePosition = lastPosition + 1 - firstPosition + 1;
 
-        if (assessment.getSelectionAlgorithm().equals(Algorithm.FIXED_FORM)) {
+        if (segment.getSelectionAlgorithm().equals(Algorithm.FIXED_FORM)) {
             Optional<Item> maybeItem = segment.getItems().stream().filter(item -> item.getPosition() == relativePosition).findFirst();
 
             if (maybeItem.isPresent()) {
                 groupId = maybeItem.get().getGroupId();
                 blockId = maybeItem.get().getBlockId();
             }
-        } else if (assessment.getSelectionAlgorithm().equals(Algorithm.ADAPTIVE_2) && isFieldTest) {
+        } else if (segment.getSelectionAlgorithm().equals(Algorithm.ADAPTIVE_2) && isFieldTest) {
             Optional<FieldTestItemGroup> maybeFieldTestItem = fieldTestItemGroups.stream()
                 .filter(fieldTestItemGroup -> fieldTestItemGroup.getLanguageCode().equals(languageCode))
                 .findFirst();
