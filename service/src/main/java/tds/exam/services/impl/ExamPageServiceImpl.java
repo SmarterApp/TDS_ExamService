@@ -16,6 +16,7 @@ import tds.exam.ExamItem;
 import tds.exam.ExamPage;
 import tds.exam.ExpandableExam;
 import tds.exam.ExpandableExamAttributes;
+import tds.exam.repositories.ExamItemQueryRepository;
 import tds.exam.repositories.ExamPageCommandRepository;
 import tds.exam.repositories.ExamPageQueryRepository;
 import tds.exam.services.ExamPageService;
@@ -25,15 +26,16 @@ import tds.exam.services.ExpandableExamService;
 public class ExamPageServiceImpl implements ExamPageService {
     private final ExamPageCommandRepository examPageCommandRepository;
     private final ExamPageQueryRepository examPageQueryRepository;
-    private final ExpandableExamService expandableExamService;
+    private final ExamItemQueryRepository examItemQueryRepository;
+
 
     @Autowired
     public ExamPageServiceImpl(final ExamPageQueryRepository examPageQueryRepository,
                                final ExamPageCommandRepository examPageCommandRepository,
-                               final ExpandableExamService expandableExamService) {
+                               final ExamItemQueryRepository examItemQueryRepository) {
         this.examPageCommandRepository = examPageCommandRepository;
         this.examPageQueryRepository = examPageQueryRepository;
-        this.expandableExamService = expandableExamService;
+        this.examItemQueryRepository = examItemQueryRepository;
     }
 
     @Transactional
@@ -55,19 +57,19 @@ public class ExamPageServiceImpl implements ExamPageService {
 
     @Override
     public List<ExamPage> findAllPagesWithItems(final UUID examId) {
-        final ExpandableExam expandableExam = expandableExamService.findExam(examId, ExpandableExamAttributes.EXAM_PAGE_AND_ITEMS)
-            .orElseThrow(() -> new NotFoundException(String.format("Could not find an exam page(s) and item(s) for exam id %s", examId)));
+        final List<ExamPage> examPages = examPageQueryRepository.findAll(examId);
+        final List<ExamItem> examItems = examItemQueryRepository.findExamItemAndResponses(examId);
 
         // Associate each exam item to its parent page
-        return expandableExam.getExamPages().stream()
+        return examPages.stream()
             .map(examPage -> {
-                List<ExamItem> examItems = expandableExam.getExamItems().stream()
+                List<ExamItem> itemsForPage = examItems.stream()
                     .filter(examItem -> examItem.getExamPageId().equals(examPage.getId()))
                     .collect(Collectors.toList());
 
                 return ExamPage.Builder
                     .fromExamPage(examPage)
-                    .withExamItems(examItems)
+                    .withExamItems(itemsForPage)
                     .build();
             })
             .collect(Collectors.toList());

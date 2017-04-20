@@ -10,7 +10,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -25,10 +24,10 @@ import tds.exam.ExpandableExamAttributes;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.builder.ExamItemBuilder;
 import tds.exam.builder.ExamPageBuilder;
+import tds.exam.repositories.ExamItemQueryRepository;
 import tds.exam.repositories.ExamPageCommandRepository;
 import tds.exam.repositories.ExamPageQueryRepository;
 import tds.exam.services.ExamPageService;
-import tds.exam.services.ExpandableExamService;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
@@ -45,7 +44,7 @@ public class ExamPageServiceImplTest {
     private ExamPageQueryRepository mockExamPageQueryRepository;
 
     @Mock
-    private ExpandableExamService mockExpandableExamService;
+    private ExamItemQueryRepository mockExamItemQueryRepository;
 
     private ExamPageService examPageService;
 
@@ -53,7 +52,7 @@ public class ExamPageServiceImplTest {
     public void setUp() {
         examPageService = new ExamPageServiceImpl(mockExamPageQueryRepository,
             mockExamPageCommandRepository,
-            mockExpandableExamService);
+            mockExamItemQueryRepository);
     }
 
     @Test
@@ -171,16 +170,15 @@ public class ExamPageServiceImplTest {
             .build();
 
         Exam exam = new ExamBuilder().build();
-        ExpandableExam expandableExam = new ExpandableExam.Builder(exam)
-            .withExamPages(Arrays.asList(firstPage, secondPage))
-            .withExamItems(Arrays.asList(firstItem, secondItem))
-            .build();
 
-        when(mockExpandableExamService.findExam(any(UUID.class), any(ExpandableExamAttributes.class)))
-            .thenReturn(Optional.of(expandableExam));
+        when(mockExamPageQueryRepository.findAll(any(UUID.class)))
+            .thenReturn(Arrays.asList(firstPage, secondPage));
+        when(mockExamItemQueryRepository.findExamItemAndResponses(any(UUID.class)))
+            .thenReturn(Arrays.asList(firstItem, secondItem));
 
-        List<ExamPage> result = examPageService.findAllPagesWithItems(expandableExam.getExam().getId());
-        verify(mockExpandableExamService).findExam(any(UUID.class), any(ExpandableExamAttributes.class));
+        List<ExamPage> result = examPageService.findAllPagesWithItems(exam.getId());
+        verify(mockExamPageQueryRepository).findAll(any(UUID.class));
+        verify(mockExamItemQueryRepository).findExamItemAndResponses(any(UUID.class));
 
         assertThat(result).hasSize(2);
 
