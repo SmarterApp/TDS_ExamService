@@ -10,19 +10,25 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import tds.common.Response;
+import tds.exam.Exam;
 import tds.exam.ExamItem;
 import tds.exam.ExamItemResponse;
 import tds.exam.ExamPage;
+import tds.exam.ExpandableExam;
+import tds.exam.ExpandableExamAttributes;
+import tds.exam.builder.ExamBuilder;
 import tds.exam.builder.ExamItemBuilder;
 import tds.exam.builder.ExamPageBuilder;
 import tds.exam.repositories.ExamPageCommandRepository;
 import tds.exam.repositories.ExamPageQueryRepository;
 import tds.exam.services.ExamPageService;
+import tds.exam.services.ExpandableExamService;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
@@ -38,12 +44,16 @@ public class ExamPageServiceImplTest {
     @Mock
     private ExamPageQueryRepository mockExamPageQueryRepository;
 
+    @Mock
+    private ExpandableExamService mockExpandableExamService;
+
     private ExamPageService examPageService;
 
     @Before
     public void setUp() {
         examPageService = new ExamPageServiceImpl(mockExamPageQueryRepository,
-            mockExamPageCommandRepository);
+            mockExamPageCommandRepository,
+            mockExpandableExamService);
     }
 
     @Test
@@ -143,5 +153,45 @@ public class ExamPageServiceImplTest {
         verify(mockExamPageCommandRepository).update(captor.capture());
 
         assertThat(captor.getValue()).isEqualTo(examPage);
+    }
+
+    @Test
+    public void shouldGetAllPagesWithItemsForAnExam() {
+        UUID firstPageId = UUID.randomUUID();
+        UUID secondPageId = UUID.randomUUID();
+
+        ExamItem firstItem = new ExamItemBuilder().withExamPageId(firstPageId).build();
+        ExamItem secondItem = new ExamItemBuilder().withExamPageId(secondPageId).build();
+
+        ExamPage firstPage = new ExamPageBuilder()
+            .withId(firstPageId)
+            .build();
+        ExamPage secondPage = new ExamPageBuilder()
+            .withId(secondPageId)
+            .build();
+
+        Exam exam = new ExamBuilder().build();
+        ExpandableExam expandableExam = new ExpandableExam.Builder(exam)
+            .withExamPages(Arrays.asList(firstPage, secondPage))
+            .withExamItems(Arrays.asList(firstItem, secondItem))
+            .build();
+
+        when(mockExpandableExamService.findExam(any(UUID.class), any(ExpandableExamAttributes.class)))
+            .thenReturn(Optional.of(expandableExam));
+
+        List<ExamPage> result = examPageService.findAllPagesWithItems(expandableExam.getExam().getId());
+        verify(mockExpandableExamService).findExam(any(UUID.class), any(ExpandableExamAttributes.class));
+
+        assertThat(result).hasSize(2);
+
+        ExamPage firstPageResult = result.get(0);
+        assertThat(firstPageResult.getExamItems()).hasSize(1);
+        ExamItem firstPageResultExamItem = firstPageResult.getExamItems().get(0);
+        assertThat(firstPageResultExamItem).isEqualToComparingFieldByFieldRecursively(firstItem);
+
+        ExamPage secondPageResult = result.get(1);
+        assertThat(secondPageResult.getExamItems()).hasSize(1);
+        ExamItem secondPageResultExamItem = secondPageResult.getExamItems().get(0);
+        assertThat(secondPageResultExamItem).isEqualToComparingFieldByFieldRecursively(secondItem);
     }
 }

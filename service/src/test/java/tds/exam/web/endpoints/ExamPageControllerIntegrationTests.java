@@ -10,6 +10,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -26,6 +27,7 @@ import tds.exam.error.ValidationErrorCode;
 import tds.exam.services.ExamPageService;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -141,6 +143,57 @@ public class ExamPageControllerIntegrationTests {
             .andExpect(jsonPath("data.examItems[0].response.examItemId", is(response.getExamItemId().toString())));
 
         verify(mockExamPageService).getPage(examPage.getExamId(), examPage.getPagePosition());
+    }
+
+    @Test
+    public void shouldGetTwoPagesWithItems() throws Exception {
+        final UUID examId = UUID.randomUUID();
+        final UUID firstExamPageId = UUID.randomUUID();
+        final UUID secondExamPageId = UUID.randomUUID();
+
+        final ExamItem firstExamItem = new ExamItemBuilder()
+            .withExamPageId(firstExamPageId)
+            .withStimulusFilePath("/path/to/stimulus/187-1234.xml")
+            .build();
+        final ExamItem secondExamItem = new ExamItemBuilder()
+            .withExamPageId(secondExamPageId)
+            .withStimulusFilePath("/path/to/stimulus/187-5678.xml")
+            .build();
+
+        final ExamPage firstExamPage = new ExamPageBuilder()
+            .withId(firstExamPageId)
+            .withExamId(examId)
+            .withExamItems(Collections.singletonList(firstExamItem))
+            .build();
+        final ExamPage secondExamPage = new ExamPageBuilder()
+            .withId(secondExamPageId)
+            .withExamId(examId)
+            .withExamItems(Collections.singletonList(secondExamItem))
+            .build();
+
+        final ExamInfo examInfo = new ExamInfo(firstExamPage.getExamId(),
+            UUID.randomUUID(),
+            UUID.randomUUID());
+
+        when(mockExamPageService.findAllPagesWithItems(isA(UUID.class)))
+            .thenReturn(Arrays.asList(firstExamPage, secondExamPage));
+
+        http.perform(get("/exam/{id}/page", examId)
+            .contentType(MediaType.APPLICATION_JSON)
+            .param("sessionId", examInfo.getSessionId().toString())
+            .param("browserId", examInfo.getBrowserId().toString()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", hasSize(2)))
+            .andExpect(jsonPath("$[0].id", is(firstExamPageId.toString())))
+            .andExpect(jsonPath("$[0].examId", is(examId.toString())))
+            .andExpect(jsonPath("$[0].examItems", hasSize(1)))
+            .andExpect(jsonPath("$[0].examItems[0].examPageId", is(firstExamPageId.toString())))
+            .andExpect(jsonPath("$[0].examItems[0].itemFilePath", is(firstExamItem.getItemFilePath())))
+            .andExpect(jsonPath("$[1].id", is(secondExamPageId.toString())))
+            .andExpect(jsonPath("$[1].examId", is(examId.toString())))
+            .andExpect(jsonPath("$[1].examItems", hasSize(1)))
+            .andExpect(jsonPath("$[1].examItems[0].examPageId", is(secondExamPageId.toString())))
+            .andExpect(jsonPath("$[1].examItems[0].stimulusFilePath", is(secondExamItem.getStimulusFilePath().get())));
     }
 
     @Test
