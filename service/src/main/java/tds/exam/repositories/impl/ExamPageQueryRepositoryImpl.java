@@ -157,6 +157,7 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
                 "   item.is_required, \n" +
                 "   item.item_file_path, \n" +
                 "   item.stimulus_file_path, \n" +
+                "   item.created_at, \n" +
                 "   response.response, \n" +
                 "   response.sequence, \n" +
                 "   response.is_valid, \n" +
@@ -284,6 +285,7 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
                     .withItemFilePath(resultExtractor.getString("item_file_path"))
                     .withStimulusFilePath(resultExtractor.getString("stimulus_file_path"))
                     .withResponse(response)
+                    .withCreatedAt(ResultSetMapperUtility.mapTimestampToJodaInstant(resultExtractor, "created_at"))
                     .build());
             }
 

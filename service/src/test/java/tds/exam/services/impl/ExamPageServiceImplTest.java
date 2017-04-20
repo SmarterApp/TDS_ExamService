@@ -15,11 +15,16 @@ import java.util.Optional;
 import java.util.UUID;
 
 import tds.common.Response;
+import tds.exam.Exam;
 import tds.exam.ExamItem;
 import tds.exam.ExamItemResponse;
 import tds.exam.ExamPage;
+import tds.exam.ExpandableExam;
+import tds.exam.ExpandableExamAttributes;
+import tds.exam.builder.ExamBuilder;
 import tds.exam.builder.ExamItemBuilder;
 import tds.exam.builder.ExamPageBuilder;
+import tds.exam.repositories.ExamItemQueryRepository;
 import tds.exam.repositories.ExamPageCommandRepository;
 import tds.exam.repositories.ExamPageQueryRepository;
 import tds.exam.services.ExamPageService;
@@ -38,12 +43,16 @@ public class ExamPageServiceImplTest {
     @Mock
     private ExamPageQueryRepository mockExamPageQueryRepository;
 
+    @Mock
+    private ExamItemQueryRepository mockExamItemQueryRepository;
+
     private ExamPageService examPageService;
 
     @Before
     public void setUp() {
         examPageService = new ExamPageServiceImpl(mockExamPageQueryRepository,
-            mockExamPageCommandRepository);
+            mockExamPageCommandRepository,
+            mockExamItemQueryRepository);
     }
 
     @Test
@@ -143,5 +152,44 @@ public class ExamPageServiceImplTest {
         verify(mockExamPageCommandRepository).update(captor.capture());
 
         assertThat(captor.getValue()).isEqualTo(examPage);
+    }
+
+    @Test
+    public void shouldGetAllPagesWithItemsForAnExam() {
+        UUID firstPageId = UUID.randomUUID();
+        UUID secondPageId = UUID.randomUUID();
+
+        ExamItem firstItem = new ExamItemBuilder().withExamPageId(firstPageId).build();
+        ExamItem secondItem = new ExamItemBuilder().withExamPageId(secondPageId).build();
+
+        ExamPage firstPage = new ExamPageBuilder()
+            .withId(firstPageId)
+            .build();
+        ExamPage secondPage = new ExamPageBuilder()
+            .withId(secondPageId)
+            .build();
+
+        Exam exam = new ExamBuilder().build();
+
+        when(mockExamPageQueryRepository.findAll(any(UUID.class)))
+            .thenReturn(Arrays.asList(firstPage, secondPage));
+        when(mockExamItemQueryRepository.findExamItemAndResponses(any(UUID.class)))
+            .thenReturn(Arrays.asList(firstItem, secondItem));
+
+        List<ExamPage> result = examPageService.findAllPagesWithItems(exam.getId());
+        verify(mockExamPageQueryRepository).findAll(any(UUID.class));
+        verify(mockExamItemQueryRepository).findExamItemAndResponses(any(UUID.class));
+
+        assertThat(result).hasSize(2);
+
+        ExamPage firstPageResult = result.get(0);
+        assertThat(firstPageResult.getExamItems()).hasSize(1);
+        ExamItem firstPageResultExamItem = firstPageResult.getExamItems().get(0);
+        assertThat(firstPageResultExamItem).isEqualToComparingFieldByFieldRecursively(firstItem);
+
+        ExamPage secondPageResult = result.get(1);
+        assertThat(secondPageResult.getExamItems()).hasSize(1);
+        ExamItem secondPageResultExamItem = secondPageResult.getExamItems().get(0);
+        assertThat(secondPageResultExamItem).isEqualToComparingFieldByFieldRecursively(secondItem);
     }
 }

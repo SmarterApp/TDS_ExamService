@@ -11,13 +11,13 @@
     <parent>
         <groupId>org.opentestsystem.delivery</groupId>
         <artifactId>tds-exam</artifactId>
-        <version>0.0.12-SNAPSHOT</version>
+        <version>0.0.13-SNAPSHOT</version>
     </parent>
 
     <properties>
         <java.version>1.8</java.version>
         <assertj.version>3.4.1</assertj.version>
-        <ss-multijar.version>3.0.3</ss-multijar.version>
+        <ss-multijar.version>3.0.6</ss-multijar.version>
         <item-scoring.version>3.0.1</item-scoring.version>
         <item-renderer.version>3.0.8</item-renderer.version>
         <tds-student-common.version>3.0.4</tds-student-common.version>
