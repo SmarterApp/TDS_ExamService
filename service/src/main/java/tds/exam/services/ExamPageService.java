@@ -34,6 +34,15 @@ public interface ExamPageService {
     List<ExamPage> findAllPages(final UUID examId);
 
     /**
+     * Fetches a list of all {@link tds.exam.ExamPage}s for an exam.  Each {@link tds.exam.ExamPage} will have its
+     * collection of {@link tds.exam.ExamItem}s.
+     *
+     * @param examId the id of the {@link tds.exam.Exam}
+     * @return A collection of all {@link tds.exam.ExamPage}s for the specified exam Id
+     */
+    List<ExamPage> findAllPagesWithItems(final UUID examId);
+
+    /**
      * Fetch an {@link tds.exam.ExamPage} for the specified {@link tds.exam.Exam} id and page number.
      *
      * @param examId     The exam ID
@@ -53,6 +62,7 @@ public interface ExamPageService {
 
     /**
      * Updates the exam page
+     *
      * @param examPage exam pages to update
      */
     void update(ExamPage... examPage);

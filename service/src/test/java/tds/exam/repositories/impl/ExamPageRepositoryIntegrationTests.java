@@ -192,7 +192,15 @@ public class ExamPageRepositoryIntegrationTests {
         assertThat(firstItemResponse.isMarkedForReview()).isFalse();
 
         ExamItem secondExamItem = examPage.getExamItems().get(1);
-        assertThat(secondExamItem).isEqualToComparingFieldByField(mockSecondExamItem);
+        assertThat(secondExamItem.getId()).isEqualTo(mockSecondExamItem.getId());
+        assertThat(secondExamItem.getExamPageId()).isEqualTo(examPage.getId());
+        assertThat(secondExamItem.getItemKey()).isEqualTo(mockSecondExamItem.getItemKey());
+        assertThat(secondExamItem.getAssessmentItemKey()).isEqualTo(mockSecondExamItem.getAssessmentItemKey());
+        assertThat(secondExamItem.getItemType()).isEqualTo(mockSecondExamItem.getItemType());
+        assertThat(secondExamItem.getPosition()).isEqualTo(mockSecondExamItem.getPosition());
+        assertThat(secondExamItem.isRequired()).isEqualTo(mockSecondExamItem.isRequired());
+        assertThat(secondExamItem.getItemFilePath()).isEqualTo(mockSecondExamItem.getItemFilePath());
+        assertThat(secondExamItem.getStimulusFilePath()).isEqualTo(mockSecondExamItem.getStimulusFilePath());
     }
 
     @Test

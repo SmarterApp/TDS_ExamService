@@ -1,6 +1,8 @@
 package tds.exam;
 
 import com.google.common.base.Optional;
+import org.joda.time.DateTime;
+import org.joda.time.Instant;
 
 import java.util.UUID;
 
@@ -22,6 +24,7 @@ public class ExamItem {
     private String itemFilePath;
     private String stimulusFilePath;
     private ExamItemResponse response;
+    private Instant createdAt;
 
     /**
      * Private constructor for frameworks
@@ -43,6 +46,7 @@ public class ExamItem {
         itemFilePath = builder.itemFilePath;
         stimulusFilePath = builder.stimulusFilePath;
         response = builder.response;
+        createdAt = builder.createdAt;
     }
 
     public static final class Builder {
@@ -54,43 +58,42 @@ public class ExamItem {
         private String itemType;
         private int position;
         private boolean required;
-
-        private boolean markedForReview;
         private boolean fieldTest;
         private String itemFilePath;
         private String stimulusFilePath;
         private ExamItemResponse response;
+        private Instant createdAt;
 
-        public Builder(UUID id) {
+        public Builder(final UUID id) {
             this.id = id;
         }
 
-        public Builder withExamPageId(UUID examPageId) {
+        public Builder withExamPageId(final UUID examPageId) {
             this.examPageId = examPageId;
             return this;
         }
 
-        public Builder withItemKey(String itemKey) {
+        public Builder withItemKey(final String itemKey) {
             this.itemKey = itemKey;
             return this;
         }
 
-        public Builder withAssessmentItemBankKey(long assessmentItemBankKey) {
+        public Builder withAssessmentItemBankKey(final long assessmentItemBankKey) {
             this.assessmentItemBankKey = assessmentItemBankKey;
             return this;
         }
 
-        public Builder withAssessmentItemKey(long assessmentItemKey) {
+        public Builder withAssessmentItemKey(final long assessmentItemKey) {
             this.assessmentItemKey = assessmentItemKey;
             return this;
         }
 
-        public Builder withItemType(String itemType) {
+        public Builder withItemType(final String itemType) {
             this.itemType = itemType;
             return this;
         }
 
-        public Builder withPosition(int position) {
+        public Builder withPosition(final int position) {
             if (position < 1) {
                 throw new IllegalArgumentException("Item position must be greater than 0");
             }
@@ -99,28 +102,33 @@ public class ExamItem {
             return this;
         }
 
-        public Builder withRequired(boolean required) {
+        public Builder withRequired(final boolean required) {
             this.required = required;
             return this;
         }
 
-        public Builder withFieldTest(boolean fieldTest) {
+        public Builder withFieldTest(final boolean fieldTest) {
             this.fieldTest = fieldTest;
             return this;
         }
 
-        public Builder withResponse(ExamItemResponse response) {
+        public Builder withResponse(final ExamItemResponse response) {
             this.response = response;
             return this;
         }
 
-        public Builder withItemFilePath(String itemFilePath) {
+        public Builder withItemFilePath(final String itemFilePath) {
             this.itemFilePath = checkNotNull(itemFilePath, "Item file path cannot be null");
             return this;
         }
 
-        public Builder withStimulusFilePath(String stimulusFilePath) {
+        public Builder withStimulusFilePath(final String stimulusFilePath) {
             this.stimulusFilePath = stimulusFilePath;
+            return this;
+        }
+
+        public Builder withCreatedAt(final Instant createdAt) {
+            this.createdAt = createdAt;
             return this;
         }
 
@@ -212,5 +220,12 @@ public class ExamItem {
      */
     public Optional<ExamItemResponse> getResponse() {
         return Optional.fromNullable(response);
+    }
+
+    /**
+     * @return The date/time when this {@link tds.exam.ExamItem} was created
+     */
+    public Instant getCreatedAt() {
+        return createdAt;
     }
 }

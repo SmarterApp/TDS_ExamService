@@ -21,7 +21,6 @@ import tds.assessment.Item;
 import tds.assessment.Segment;
 import tds.common.Algorithm;
 import tds.dll.api.IItemSelectionDLL;
-import tds.exam.Exam;
 import tds.exam.ExamItem;
 import tds.exam.ExamItemResponse;
 import tds.exam.ExamItemResponseScore;
@@ -134,7 +133,35 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
             examSegmentService.update(segmentsToUpdate.toArray(new ExamSegment[segmentsToUpdate.size()]));
         }
 
-        return convert(exam.getExam(), assessment, nonSatisfiedSegments, fieldTestItemGroups);
+        return nonSatisfiedSegments.stream()
+            .map(segmentHolder -> {
+                ExamSegment examSegment = segmentHolder.examSegment;
+
+                boolean isFieldTest = segmentHolder.items.stream()
+                    .filter(ExamItem::isFieldTest)
+                    .count() > 0;
+
+                GroupBlock groupBlock = findGroupBlock(examSegment.getSegmentKey(),
+                    assessment,
+                    fieldTestItemGroups,
+                    isFieldTest,
+                    exam.getExam().getLanguageCode(),
+                    segmentHolder);
+
+                return new ItemCandidatesData(
+                    examSegment.getExamId(),
+                    isFieldTest ? FIELDTEST : examSegment.getAlgorithm().getType(),
+                    examSegment.getSegmentKey(),
+                    examSegment.getSegmentId(),
+                    examSegment.getSegmentPosition(),
+                    groupBlock.group,
+                    groupBlock.block,
+                    exam.getExam().getSessionId(),
+                    false,
+                    //TODO - Find out where isActive is coming from in legacy code
+                    null);
+            })
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -282,52 +309,24 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
         return segmentHolders;
     }
 
-
-    private List<ItemCandidatesData> convert(final Exam exam,
-                                             final Assessment assessment,
-                                             final List<SegmentHolder> segments,
-                                             final List<FieldTestItemGroup> fieldTestItemGroups) {
-        return segments.stream()
-            .map(segmentHolder -> {
-                ExamSegment examSegment = segmentHolder.examSegment;
-
-                boolean isFieldTest = segmentHolder.items.stream()
-                    .filter(ExamItem::isFieldTest)
-                    .count() > 0;
-
-                GroupBlock groupBlock = findGroupBlock(examSegment.getSegmentKey(), assessment, fieldTestItemGroups, isFieldTest, exam.getLanguageCode());
-                return new ItemCandidatesData(
-                    examSegment.getExamId(),
-                    isFieldTest ? FIELDTEST : examSegment.getAlgorithm().getType(),
-                    examSegment.getSegmentKey(),
-                    examSegment.getSegmentId(),
-                    examSegment.getSegmentPosition(),
-                    groupBlock.group,
-                    groupBlock.block,
-                    exam.getSessionId(),
-                    false,
-                    //TODO - Find out where isActive is coming from in legacy code
-                    null);
-            })
-            .collect(Collectors.toList());
-    }
-
     private GroupBlock findGroupBlock(final String segmentKey,
                                       final Assessment assessment,
                                       final List<FieldTestItemGroup> fieldTestItemGroups,
                                       final boolean isFieldTest,
-                                      final String languageCode) {
+                                      final String languageCode,
+                                      final SegmentHolder segmentHolder) {
         //Port of ItemSelectionDLL.ValidateAndReturnSegmentData get group and block data
         String groupId = "";
         String blockId = "";
 
         Segment segment = assessment.getSegment(segmentKey);
 
-        Optional<Item> maybeMinItem = segment.getItems().stream()
-            .min(Comparator.comparingInt(Item::getPosition));
+        //This needs ot look at exam items
+        Optional<ExamItem> maybeMinItem = segmentHolder.items.stream()
+            .min(Comparator.comparingInt(ExamItem::getPosition));
 
-        Optional<Item> maybeMaxItem = segment.getItems().stream()
-            .max(Comparator.comparingInt(Item::getPosition));
+        Optional<ExamItem> maybeMaxItem = segmentHolder.items.stream()
+            .max(Comparator.comparingInt(ExamItem::getPosition));
 
         int firstPosition = 0;
         int lastPosition = -1;
