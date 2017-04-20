@@ -11,15 +11,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import tds.exam.configuration.ExamServiceProperties;
+import tds.score.services.ScoreConfigService;
+import tds.student.sql.data.ItemScoringConfig;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
-
-import tds.exam.configuration.ExamServiceProperties;
-import tds.score.services.ScoreConfigService;
-import tds.student.sql.data.ItemScoringConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -45,7 +44,7 @@ public class ScoreConfigServiceImplTest {
         ItemScoringConfig scoringConfig = new ItemScoringConfig();
         ResponseEntity<List<ItemScoringConfig>> entity = new ResponseEntity<>(Collections.singletonList(scoringConfig), HttpStatus.OK);
 
-        URI uri = new URI("http://localhost:8080/SBAC_PT/scoring");
+        URI uri = new URI("http://localhost:8080/config/SBAC_PT/scoring");
 
         when(mockRestTemplate.exchange(uri, GET, null, new ParameterizedTypeReference<List<ItemScoringConfig>>() {
         })).thenReturn(entity);
@@ -55,7 +54,7 @@ public class ScoreConfigServiceImplTest {
 
     @Test (expected = ReturnStatusException.class)
     public void shouldThrowReturnStatusExceptionWhenRestTemplateThrows() throws URISyntaxException, ReturnStatusException {
-        URI uri = new URI("http://localhost:8080/SBAC_PT/scoring");
+        URI uri = new URI("http://localhost:8080/config/SBAC_PT/scoring");
 
         when(mockRestTemplate.exchange(uri, GET, null, new ParameterizedTypeReference<List<ItemScoringConfig>>() {
         })).thenThrow(new RestClientException("Fail"));
