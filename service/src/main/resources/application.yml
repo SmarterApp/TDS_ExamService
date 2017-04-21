@@ -28,6 +28,10 @@ spring:
       retry:
         enabled: true
 
+tds:
+  caching:
+    enabled: false
+
 management:
   health:
     redis:
