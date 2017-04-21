@@ -14,7 +14,7 @@ spring:
       enabled: false
 
 tds:
-  caching:
+  cache:
     enabled: false
 
 server:

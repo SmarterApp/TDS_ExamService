@@ -29,7 +29,7 @@ spring:
         enabled: true
 
 tds:
-  caching:
+  cache:
     enabled: false
 
 management:
