@@ -1,6 +1,5 @@
 package tds.exam.services.impl;
 
-import TDS.Shared.Exceptions.ReturnStatusException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,7 +24,6 @@ import tds.exam.services.ExamService;
 import tds.itemselection.base.ItemGroup;
 import tds.itemselection.model.ItemResponse;
 import tds.itemselection.services.ItemSelectionService;
-import tds.student.services.data.PageGroup;
 import tds.student.sql.data.OpportunityItem;
 
 @Service
@@ -47,10 +45,10 @@ public class ExamItemSelectionServiceImpl implements ExamItemSelectionService {
 
     @Transactional
     @Override
-    public PageGroup createNextPageGroup(UUID examId, PageGroupRequest request) throws ReturnStatusException {
+    public List<OpportunityItem> createNextPageGroup(UUID examId, PageGroupRequest request) {
         ItemResponse<ItemGroup> response = itemSelectionService.getNextItemGroup(examId, request.isMsb());
 
-        if(response.getErrorMessage().isPresent()) {
+        if (response.getErrorMessage().isPresent()) {
             throw new RuntimeException("Failed to create item group: " + response.getErrorMessage());
         } else if (!response.getResponseData().isPresent()) {
             throw new IllegalStateException("No error nor item information was returned from selection.  Please check configuration");
@@ -102,21 +100,24 @@ public class ExamItemSelectionServiceImpl implements ExamItemSelectionService {
 
         List<OpportunityItem> opportunityItems = examItems.stream()
             .map(examItem -> {
-                OpportunityItem item = new OpportunityItem();
-                item.setGroupID(page.getItemGroupKey());
+                OpportunityItem oppItem = new OpportunityItem();
+                Item item = itemByKey.get(examItem.getItemKey()).get(0);
+
+                oppItem.setGroupID(page.getItemGroupKey());
 //                item.setGroupItemsRequired();
 //                item.setIsPrintable(examItem.isPr);
-                item.setIsRequired(examItem.isRequired());
+                oppItem.setFormat(item.getItemType());
+                oppItem.setIsRequired(examItem.isRequired());
+                oppItem.setPage(page.getPagePosition());
 //                item.setIsVisible();
-                item.setSegmentID(page.getSegmentId());
-                item.setSegment(page.getSegmentPosition());
-                item.setBankKey(examItem.getAssessmentItemBankKey());
-                item.setItemKey(examItem.getAssessmentItemKey());
-                return item;
+                oppItem.setSegmentID(page.getSegmentId());
+                oppItem.setSegment(page.getSegmentPosition());
+                oppItem.setBankKey(examItem.getAssessmentItemBankKey());
+                oppItem.setItemKey(examItem.getAssessmentItemKey());
+                return oppItem;
             }).collect(Collectors.toList());
 
-        PageGroup pageGroup = PageGroup.Create(opportunityItems);
-        return pageGroup;
+        return opportunityItems;
     }
 
 

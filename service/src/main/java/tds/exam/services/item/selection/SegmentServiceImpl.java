@@ -217,7 +217,8 @@ public class SegmentServiceImpl implements SegmentService {
         testItem.setRequired(item.isRequired());
         testItem.isActive = item.isActive();
         testItem.strandName = item.getStrand();
-        testItem.position = item.getPosition();
+        //Item is 1 based
+        testItem.position = item.getPosition() + 1;
         testItem.setItemType(item.getItemType());
 
         //We call this claims but the legacy application calls it content levels

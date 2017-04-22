@@ -1,6 +1,5 @@
 package tds.exam.web.endpoints;
 
-import TDS.Shared.Exceptions.ReturnStatusException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -23,7 +23,7 @@ import tds.exam.item.PageGroupRequest;
 import tds.exam.services.ExamItemSelectionService;
 import tds.exam.services.ExamItemService;
 import tds.exam.web.annotations.VerifyAccess;
-import tds.student.services.data.PageGroup;
+import tds.student.sql.data.OpportunityItem;
 
 @RestController
 @RequestMapping("/exam")
@@ -70,15 +70,8 @@ public class ExamItemController {
     }
 
     @PostMapping("/{examId}/item")
-    ResponseEntity<PageGroup> getNextItemGroup(@PathVariable final UUID examId, @RequestBody PageGroupRequest request) throws ReturnStatusException {
-        try {
-            PageGroup pageGroup = examItemSelectionService.createNextPageGroup(examId, request);
-
-
-            return ResponseEntity.ok(pageGroup);
-        } catch (Exception e) {
-            e.printStackTrace();;
-            throw e;
-        }
+    ResponseEntity<List<OpportunityItem>> getNextItemGroup(@PathVariable final UUID examId, @RequestBody PageGroupRequest request) {
+        List<OpportunityItem> page = examItemSelectionService.createNextPageGroup(examId, request);
+        return ResponseEntity.ok(page);
     }
 }

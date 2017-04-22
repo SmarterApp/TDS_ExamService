@@ -8,7 +8,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -23,8 +23,10 @@ import tds.exam.ExamPage;
 import tds.exam.builder.ExamItemBuilder;
 import tds.exam.builder.ExamItemResponseBuilder;
 import tds.exam.builder.ExamPageBuilder;
+import tds.exam.item.PageGroupRequest;
 import tds.exam.services.ExamItemSelectionService;
 import tds.exam.services.ExamItemService;
+import tds.student.sql.data.OpportunityItem;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
@@ -53,7 +55,7 @@ public class ExamItemControllerTest {
             UUID.randomUUID(),
             UUID.randomUUID());
         ExamItem mockExamItem = new ExamItemBuilder().build();
-        List<ExamItem> mockExamItems = Arrays.asList(mockExamItem);
+        List<ExamItem> mockExamItems = Collections.singletonList(mockExamItem);
         ExamPage mockNextExamPage = new ExamPageBuilder()
             .withExamId(mockExamInfo.getExamId())
             .withPagePosition(2)
@@ -66,13 +68,13 @@ public class ExamItemControllerTest {
             any(ExamItemResponse[].class)))
             .thenReturn(new Response<>(mockNextExamPage));
 
-        ExamItemResponse[] responses = new ExamItemResponse[] { new ExamItemResponseBuilder().build() };
+        ExamItemResponse[] responses = new ExamItemResponse[]{new ExamItemResponseBuilder().build()};
 
         ResponseEntity<Response<ExamPage>> result = examItemController.insertResponses(mockExamInfo.getExamId(),
             1,
             responses);
         verify(mockExamItemService).insertResponses(isA(UUID.class), isA(Integer.class), any(ExamItemResponse[].class));
-        
+
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(result.getBody().getData().isPresent()).isTrue();
         assertThat(result.getBody().getError().isPresent()).isFalse();
@@ -100,5 +102,20 @@ public class ExamItemControllerTest {
         ResponseEntity<NoContentResponseResource> response = examItemController.markItemForReview(examId, position, mark);
         verify(mockExamItemService).markForReview(examId, position, mark);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+
+    @Test
+    public void shouldReturnPageGroup() {
+        UUID examId = UUID.randomUUID();
+        PageGroupRequest pageGroupRequest = new PageGroupRequest(1, 1, true);
+        OpportunityItem item = new OpportunityItem();
+        when(mockExamItemSelectionService.createNextPageGroup(examId, pageGroupRequest)).thenReturn(Collections.singletonList(item));
+
+        ResponseEntity<List<OpportunityItem>> response = examItemController.getNextItemGroup(examId, pageGroupRequest);
+
+        verify(mockExamItemSelectionService).createNextPageGroup(examId, pageGroupRequest);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).containsExactly(item);
     }
 }
