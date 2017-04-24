@@ -13,7 +13,7 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -67,13 +67,13 @@ public class ExamItemCommandRepositoryImplIntegrationTests {
 
         ExamSegment mockExamSegment = new ExamSegmentBuilder()
             .withSegmentId(mockPage.getSegmentId())
-            .withSegmentKey(mockPage.getExamSegmentKey())
+            .withSegmentKey(mockPage.getSegmentKey())
             .withSegmentPosition(mockPage.getSegmentPosition())
             .withExamId(mockExam.getId())
             .build();
 
         examCommandRepository.insert(mockExam);
-        examSegmentCommandRepository.insert(Arrays.asList(mockExamSegment));
+        examSegmentCommandRepository.insert(Collections.singletonList(mockExamSegment));
         examPageCommandRepository.insert(mockPage);
     }
 
@@ -128,7 +128,7 @@ public class ExamItemCommandRepositoryImplIntegrationTests {
             "INSERT INTO exam_segment(exam_id, segment_key, segment_id, segment_position, created_at)" +
                 "VALUES (:examId, 'segment-key-1', 'segment-id-1', 1, UTC_TIMESTAMP() )";
         final String insertPageSQL =
-            "INSERT INTO exam_page (id, page_position, exam_segment_key, item_group_key, exam_id, created_at) " +
+            "INSERT INTO exam_page (id, page_position, segment_key, item_group_key, exam_id, created_at) " +
                 "VALUES (805, 1, 'segment-key-1', 'GroupKey1', :examId, UTC_TIMESTAMP()), (806, 2, 'segment-key-1', 'GroupKey2', :examId, UTC_TIMESTAMP())";
         final String insertPageEventSQL = // Create two pages, second page is deleted
             "INSERT INTO exam_page_event (exam_page_id, started_at, deleted_at, created_at) " +

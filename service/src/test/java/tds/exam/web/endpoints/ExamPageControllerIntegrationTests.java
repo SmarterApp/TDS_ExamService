@@ -69,7 +69,7 @@ public class ExamPageControllerIntegrationTests {
 
             .andExpect(jsonPath("data.id", is(mockExamPage.getId().toString())))
             .andExpect(jsonPath("data.pagePosition", is(mockExamPage.getPagePosition())))
-            .andExpect(jsonPath("data.segmentKey", is(mockExamPage.getExamSegmentKey())))
+            .andExpect(jsonPath("data.segmentKey", is(mockExamPage.getSegmentKey())))
             .andExpect(jsonPath("data.segmentId", is(mockExamPage.getSegmentId())))
             .andExpect(jsonPath("data.segmentPosition", is(mockExamPage.getSegmentPosition())))
             .andExpect(jsonPath("data.itemGroupKey", is(mockExamPage.getItemGroupKey())))
@@ -121,7 +121,7 @@ public class ExamPageControllerIntegrationTests {
             .andExpect(jsonPath("data").isNotEmpty())
             .andExpect(jsonPath("data.id", is(examPage.getId().toString())))
             .andExpect(jsonPath("data.pagePosition", is(examPage.getPagePosition())))
-            .andExpect(jsonPath("data.segmentKey", is(examPage.getExamSegmentKey())))
+            .andExpect(jsonPath("data.segmentKey", is(examPage.getSegmentKey())))
             .andExpect(jsonPath("data.segmentId", is(examPage.getSegmentId())))
             .andExpect(jsonPath("data.segmentPosition", is(examPage.getSegmentPosition())))
             .andExpect(jsonPath("data.itemGroupKey", is(examPage.getItemGroupKey())))

@@ -26,7 +26,6 @@ import java.util.UUID;
 
 import tds.accommodation.Accommodation;
 import tds.exam.Exam;
-import tds.exam.ExamAccommodation;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
 import tds.exam.builder.ExamAccommodationBuilder;
@@ -37,6 +36,7 @@ import tds.exam.repositories.ExamCommandRepository;
 import tds.exam.repositories.ExamQueryRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static tds.common.data.mapping.ResultSetMapperUtility.mapJodaInstantToTimestamp;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest
@@ -203,28 +203,28 @@ public class ExamQueryRepositoryImplIntegrationTests {
         Exam exam = new ExamBuilder().build();
         examCommandRepository.insert(exam);
 
-        ExamAccommodation enuAccommodation =
-            new ExamAccommodationBuilder()
-                .withType(Accommodation.ACCOMMODATION_TYPE_LANGUAGE)
-                .withCode("ENU")
-                .withExamId(exam.getId())
-                .build();
+        String SQL = "insert into exam_accommodation(id, exam_id, type, code, description, value, segment_position, default_accommodation, allow_combine, sort_order, created_at)\n" +
+            "values (:id, :examId, :type, :code, 'description', 'value', 1, 0, 0, 1, :createdAt);";
 
-        ExamAccommodation esnAccommodation =
-            new ExamAccommodationBuilder()
-                .withType(Accommodation.ACCOMMODATION_TYPE_LANGUAGE)
-                .withCode("ESN")
-                .withExamId(exam.getId())
-                .build();
+        SqlParameterSource parameters = new MapSqlParameterSource("id", UUID.randomUUID().toString())
+            .addValue("examId", exam.getId().toString())
+            .addValue("type", Accommodation.ACCOMMODATION_TYPE_LANGUAGE)
+            .addValue("code", "ENU")
+            .addValue("createdAt", mapJodaInstantToTimestamp(Instant.now().minus(50000)));
 
-        examAccommodationCommandRepository.insert(Collections.singletonList(enuAccommodation));
+        jdbcTemplate.update(SQL, parameters);
 
         Optional<Exam> maybeExam = examQueryRepository.getExamById(exam.getId());
         assertThat(maybeExam).isPresent();
         assertThat(maybeExam.get().getLanguageCode()).isEqualTo("ENU");
 
-        Thread.sleep(5000);
-        examAccommodationCommandRepository.insert(Collections.singletonList(esnAccommodation));
+        parameters = new MapSqlParameterSource("id", UUID.randomUUID().toString())
+            .addValue("examId", exam.getId().toString())
+            .addValue("type", Accommodation.ACCOMMODATION_TYPE_LANGUAGE)
+            .addValue("code", "ESN")
+            .addValue("createdAt", mapJodaInstantToTimestamp(Instant.now()));
+
+        jdbcTemplate.update(SQL, parameters);
 
         Optional<Exam> maybeUpdatedExam = examQueryRepository.getExamById(exam.getId());
         assertThat(maybeUpdatedExam).isPresent();
@@ -280,7 +280,7 @@ public class ExamQueryRepositoryImplIntegrationTests {
             "INSERT INTO exam_segment(exam_id, segment_key, segment_id, segment_position, created_at)" +
                 "VALUES (:examId, 'segment-key-1', 'segment-id-1', 1, UTC_TIMESTAMP())";
         final String insertPageSQL =
-            "INSERT INTO exam_page (id, page_position, exam_segment_key, item_group_key, exam_id, created_at) " +
+            "INSERT INTO exam_page (id, page_position, segment_key, item_group_key, exam_id, created_at) " +
                 "VALUES (805, 1, 'segment-key-1', 'GroupKey1', :examId, :pageCreatedAt)";
         final String insertPageEventSQL =
             "INSERT INTO exam_page_event (exam_page_id, started_at, created_at) VALUES (805, UTC_TIMESTAMP(), UTC_TIMESTAMP())";

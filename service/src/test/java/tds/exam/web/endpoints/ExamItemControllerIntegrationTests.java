@@ -88,7 +88,7 @@ public class ExamItemControllerIntegrationTests {
             .andExpect(jsonPath("data").isNotEmpty())
             .andExpect(jsonPath("data.id", is(mockNextExamPage.getId().toString())))
             .andExpect(jsonPath("data.pagePosition", is(mockNextExamPage.getPagePosition())))
-            .andExpect(jsonPath("data.segmentKey", is(mockNextExamPage.getExamSegmentKey())))
+            .andExpect(jsonPath("data.segmentKey", is(mockNextExamPage.getSegmentKey())))
             .andExpect(jsonPath("data.segmentId", is(mockNextExamPage.getSegmentId())))
             .andExpect(jsonPath("data.segmentPosition", is(mockNextExamPage.getSegmentPosition())))
             .andExpect(jsonPath("data.itemGroupKey", is(mockNextExamPage.getItemGroupKey())))

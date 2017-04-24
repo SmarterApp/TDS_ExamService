@@ -34,7 +34,7 @@ public class ExamPageCommandRepositoryImpl implements ExamPageCommandRepository 
                 "exam_page (\n" +
                 "   id, \n" +
                 "   page_position, \n" +
-                "   exam_segment_key, \n" +
+                "   segment_key, \n" +
                 "   item_group_key, \n" +
                 "   are_group_items_required, \n" +
                 "   exam_id, \n" +
@@ -52,7 +52,7 @@ public class ExamPageCommandRepositoryImpl implements ExamPageCommandRepository 
             new MapSqlParameterSource("examId", examPage.getExamId().toString())
                 .addValue("id", examPage.getId().toString())
                 .addValue("pagePosition", examPage.getPagePosition())
-                .addValue("segmentKey", examPage.getExamSegmentKey())
+                .addValue("segmentKey", examPage.getSegmentKey())
                 .addValue("itemGroupKey", examPage.getItemGroupKey())
                 .addValue("groupItemsRequired", examPage.isGroupItemsRequired())
                 .addValue("createdAt", createdAt))

@@ -15,7 +15,7 @@ import static tds.common.util.Preconditions.checkNotNull;
 public class ExamPage {
     private UUID id;
     private int pagePosition;
-    private String examSegmentKey;
+    private String segmentKey;
     private String segmentId;
     private int segmentPosition;
     private String itemGroupKey;
@@ -36,7 +36,7 @@ public class ExamPage {
     private ExamPage(Builder builder) {
         id = checkNotNull(builder.id);
         pagePosition = builder.pagePosition;
-        examSegmentKey = checkNotNull(builder.segmentKey);
+        segmentKey = checkNotNull(builder.segmentKey);
         segmentId = builder.segmentId;
         segmentPosition = builder.segmentPosition;
         itemGroupKey = checkNotNull(builder.itemGroupKey);
@@ -136,7 +136,7 @@ public class ExamPage {
             return new ExamPage.Builder()
                 .withId(examPage.getId())
                 .withPagePosition(examPage.getPagePosition())
-                .withSegmentKey(examPage.getExamSegmentKey())
+                .withSegmentKey(examPage.getSegmentKey())
                 .withSegmentId(examPage.getSegmentId())
                 .withItemGroupKey(examPage.getItemGroupKey())
                 .withGroupItemsRequired(examPage.isGroupItemsRequired())
@@ -166,19 +166,19 @@ public class ExamPage {
     /**
      * @return The key of which segment owns this page
      */
-    public String getExamSegmentKey() {
-        return examSegmentKey;
+    public String getSegmentKey() {
+        return segmentKey;
     }
 
     /**
-     * @return The id of which segment owns this page
+     * @return The id of which segment owns this page. This is only populated if the query joins ExamSegment
      */
     public String getSegmentId() {
         return segmentId;
     }
 
     /**
-     * @return The position of the segment owns this page
+     * @return The position of the segment owns this page.  This is only populated if the query joins ExamSegment
      */
     public int getSegmentPosition() {
         return segmentPosition;

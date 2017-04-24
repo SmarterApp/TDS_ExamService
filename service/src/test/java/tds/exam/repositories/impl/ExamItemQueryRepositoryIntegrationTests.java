@@ -63,7 +63,7 @@ public class ExamItemQueryRepositoryIntegrationTests {
 
         ExamSegment mockExamSegment = new ExamSegmentBuilder()
             .withSegmentId(mockPage.getSegmentId())
-            .withSegmentKey(mockPage.getExamSegmentKey())
+            .withSegmentKey(mockPage.getSegmentKey())
             .withSegmentPosition(mockPage.getSegmentPosition())
             .withExamId(mockExam.getId())
             .build();
