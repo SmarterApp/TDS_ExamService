@@ -29,8 +29,8 @@
 
         <tds-common.version>0.0.14</tds-common.version>
         <tds-session.version>0.0.2</tds-session.version>
-        <tds-assessment-client.version>0.0.9</tds-assessment-client.version>
         <tds-student-client.version>0.0.1</tds-student-client.version>
+        <tds-assessment-client.version>0.0.10</tds-assessment-client.version>
         <tds-config-client.version>0.0.2</tds-config-client.version>
 
         <maven.compiler.plugin.version>3.5.1</maven.compiler.plugin.version>
