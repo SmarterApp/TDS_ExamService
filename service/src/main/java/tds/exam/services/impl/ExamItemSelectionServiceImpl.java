@@ -106,17 +106,25 @@ public class ExamItemSelectionServiceImpl implements ExamItemSelectionService {
                 Item item = itemByKey.get(examItem.getItemKey()).get(0);
 
                 oppItem.setGroupID(page.getItemGroupKey());
-//                item.setIsPrintable(examItem.isPr);
                 oppItem.setFormat(item.getItemType());
                 oppItem.setIsRequired(examItem.isRequired());
                 oppItem.setPage(page.getPagePosition());
-//                item.setIsVisible();
                 oppItem.setSegmentID(page.getSegmentId());
                 oppItem.setSegment(page.getSegmentPosition());
                 oppItem.setBankKey(examItem.getAssessmentItemBankKey());
                 oppItem.setItemKey(examItem.getAssessmentItemKey());
                 oppItem.setGroupItemsRequired(segment.getMinItems());
                 oppItem.setPosition(examItem.getPosition());
+
+                // manually set data (taken from the legacy adaptive service impl. ResponseRepository.insertItems lin 159
+                oppItem.setIsVisible (true);
+                oppItem.setIsSelected (false);
+                oppItem.setIsValid (false);
+                oppItem.setMarkForReview (false);
+                oppItem.setSequence (0);
+                oppItem.setStimulusFile (null);
+                oppItem.setItemFile (null);
+
                 return oppItem;
             }).collect(Collectors.toList());
 

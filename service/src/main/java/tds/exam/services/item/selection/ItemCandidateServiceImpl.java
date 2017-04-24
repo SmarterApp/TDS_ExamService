@@ -376,7 +376,7 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
         }
 
         boolean isPageInSegment(final ExamPage examPage) {
-            return examSegment.getExamId().equals(examPage.getExamId())
+            return examSegment.getSegmentKey().equals(examPage.getSegmentKey())
                 && examSegment.getSegmentPosition() == examPage.getSegmentPosition();
         }
 

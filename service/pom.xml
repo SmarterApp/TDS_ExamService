@@ -61,6 +61,11 @@
             <artifactId>tds-item-selection-components</artifactId>
             <version>${tds-item-selection.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.opentestsystem.delivery</groupId>
+            <artifactId>student-library</artifactId>
+            <version>3.0.4</version>
+        </dependency>
 
         <!-- Spring -->
         <dependency>

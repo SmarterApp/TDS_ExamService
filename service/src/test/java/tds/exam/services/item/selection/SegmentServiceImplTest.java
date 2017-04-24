@@ -23,8 +23,11 @@ import tds.exam.builder.ItemBuilder;
 import tds.exam.builder.SegmentBuilder;
 import tds.exam.services.AssessmentService;
 import tds.itemselection.api.ItemSelectionException;
+import tds.itemselection.impl.blueprint.Blueprint;
+import tds.itemselection.loader.TestSegment;
 import tds.itemselection.services.SegmentService;
 
+import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -51,10 +54,17 @@ public class SegmentServiceImplTest {
 
     @Test
     public void shouldReturnTestSegment() throws Exception {
+        SegmentItemInformation segmentItemInformation = build("segmentKey");
         when(mockAssessmentService.findSegmentItemInformation("segmentKey"))
-            .thenReturn(Optional.of(build("segmentKey")));
+            .thenReturn(Optional.of(segmentItemInformation));
 
-        segmentService.getSegment("segmentKey");
+        TestSegment testSegment = segmentService.getSegment("segmentKey");
+
+
+        assertThat(testSegment.getBp()).isNotNull();
+        Blueprint bp = testSegment.getBp();
+
+//        assertThat(bp.abilityOffset).isEqualTo(s)
     }
 
     private static SegmentItemInformation build(String segmentKey) {
