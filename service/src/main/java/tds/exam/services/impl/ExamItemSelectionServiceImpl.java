@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -78,6 +79,7 @@ public class ExamItemSelectionServiceImpl implements ExamItemSelectionService {
             .build();
 
         List<ExamItem> examItems = itemGroup.getItems().stream()
+            .sorted(Comparator.comparingInt(o -> o.position))
             .map(testItem -> {
                 Item item = itemByKey.get(testItem.getItemID()).get(0);
                 return new ExamItem.Builder(UUID.randomUUID())
@@ -104,7 +106,6 @@ public class ExamItemSelectionServiceImpl implements ExamItemSelectionService {
                 Item item = itemByKey.get(examItem.getItemKey()).get(0);
 
                 oppItem.setGroupID(page.getItemGroupKey());
-//                item.setGroupItemsRequired();
 //                item.setIsPrintable(examItem.isPr);
                 oppItem.setFormat(item.getItemType());
                 oppItem.setIsRequired(examItem.isRequired());
@@ -114,6 +115,8 @@ public class ExamItemSelectionServiceImpl implements ExamItemSelectionService {
                 oppItem.setSegment(page.getSegmentPosition());
                 oppItem.setBankKey(examItem.getAssessmentItemBankKey());
                 oppItem.setItemKey(examItem.getAssessmentItemKey());
+                oppItem.setGroupItemsRequired(segment.getMinItems());
+                oppItem.setPosition(examItem.getPosition());
                 return oppItem;
             }).collect(Collectors.toList());
 
