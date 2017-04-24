@@ -38,6 +38,8 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
         "   P.item_group_key, \n" +
         "   P.exam_id, \n" +
         "   P.created_at, \n" +
+        "   P.are_group_items_required, \n" +
+        "   P.segment_key, \n" +
         "   PE.started_at \n" +
         "FROM \n" +
         "   exam_page P\n" +
@@ -63,26 +65,7 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
         final MapSqlParameterSource parameters = new MapSqlParameterSource("examId", examId.toString());
 
         final String SQL =
-            "SELECT \n" +
-                "   P.id, \n" +
-                "   P.page_position, \n" +
-                "   P.item_group_key, \n" +
-                "   P.exam_id, \n" +
-                "   P.created_at, \n" +
-                "   PE.started_at \n" +
-                "FROM \n" +
-                "   exam_page P\n" +
-                "JOIN ( \n" +
-                "   SELECT \n" +
-                "       exam_page_id, \n" +
-                "       MAX(id) AS id \n" +
-                "   FROM \n" +
-                "       exam_page_event \n" +
-                "   GROUP BY exam_page_id \n" +
-                ") last_event \n" +
-                "   ON P.id = last_event.exam_page_id \n" +
-                "JOIN exam_page_event PE \n" +
-                "   ON last_event.id = PE.id \n" +
+            EXAM_PAGE_STANDARD_SELECT +
                 "WHERE \n" +
                 "   P.exam_id = :examId AND\n" +
                 "   PE.deleted_at IS NULL \n" +
@@ -145,6 +128,7 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
                 "   page.are_group_items_required, \n" +
                 "   page.exam_id, \n" +
                 "   page.created_at, \n" +
+                "   page.segment_key, \n" +
                 "   page_event.started_at, \n" +
                 "   item.id AS item_id, \n" +
                 "   item.item_key, \n" +
@@ -169,7 +153,6 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
                 "   response.created_at AS response_created_at, \n" +
                 "   response.scored_at, \n" +
                 "   response.is_marked_for_review, \n" +
-                "   segment.segment_key, \n" +
                 "   segment.segment_id, \n" +
                 "   segment.segment_position \n" +
                 "FROM \n" +
@@ -190,7 +173,7 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
                 "JOIN \n" +
                 "   exam_segment segment \n" +
                 "   ON segment.exam_id = page.exam_id \n" +
-                "   AND segment.segment_key = page.exam_segment_key \n" +
+                "   AND segment.segment_key = page.segment_key \n" +
                 "JOIN \n" +
                 "   exam_item item \n" +
                 "   ON page.id = item.exam_page_id \n" +
@@ -221,6 +204,7 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
             return new ExamPage.Builder()
                 .withId(UUID.fromString(rs.getString("id")))
                 .withPagePosition(rs.getInt("page_position"))
+                .withSegmentKey(rs.getString("segment_key"))
                 .withItemGroupKey(rs.getString("item_group_key"))
                 .withExamId(UUID.fromString(rs.getString("exam_id")))
                 .withCreatedAt(ResultSetMapperUtility.mapTimestampToJodaInstant(rs, "created_at"))

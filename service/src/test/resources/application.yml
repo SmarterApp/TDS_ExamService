@@ -13,6 +13,10 @@ spring:
     bus:
       enabled: false
 
+tds:
+  cache:
+    enabled: false
+
 server:
   undertow:
     buffer-size: 16384

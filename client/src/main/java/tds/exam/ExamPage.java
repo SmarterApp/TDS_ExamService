@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static tds.common.util.Preconditions.checkNotNull;
+
 /**
  * Represents the page of an exam
  */
@@ -32,16 +34,16 @@ public class ExamPage {
     }
 
     private ExamPage(Builder builder) {
-        id = builder.id;
+        id = checkNotNull(builder.id);
         pagePosition = builder.pagePosition;
-        segmentKey = builder.segmentKey;
+        segmentKey = checkNotNull(builder.segmentKey);
         segmentId = builder.segmentId;
         segmentPosition = builder.segmentPosition;
-        itemGroupKey = builder.itemGroupKey;
+        itemGroupKey = checkNotNull(builder.itemGroupKey);
         groupItemsRequired = builder.groupItemsRequired;
-        examId = builder.examId;
+        examId = checkNotNull(builder.examId);
         examItems = builder.examItems == null ? new ArrayList<ExamItem>() : builder.examItems;
-        createdAt = builder.createdAt;
+        createdAt = checkNotNull(builder.createdAt);
         deletedAt = builder.deletedAt;
         startedAt = builder.startedAt;
     }
@@ -169,14 +171,14 @@ public class ExamPage {
     }
 
     /**
-     * @return The id of which segment owns this page
+     * @return The id of which segment owns this page. This is only populated if the query joins ExamSegment
      */
     public String getSegmentId() {
         return segmentId;
     }
 
     /**
-     * @return The position of the segment owns this page
+     * @return The position of the segment owns this page.  This is only populated if the query joins ExamSegment
      */
     public int getSegmentPosition() {
         return segmentPosition;
