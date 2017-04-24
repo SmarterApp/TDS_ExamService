@@ -142,7 +142,7 @@ public class ExamPageRepositoryIntegrationTests {
         assertThat(examPage.getCreatedAt()).isNotNull();
         assertThat(examPage.getId()).isEqualTo(mockExamPage.getId());
         assertThat(examPage.getPagePosition()).isEqualTo(1);
-        assertThat(examPage.getSegmentKey()).isEqualTo("segment-key-1");
+        assertThat(examPage.getExamSegmentKey()).isEqualTo("segment-key-1");
         assertThat(examPage.getSegmentId()).isEqualTo("segment-id-1");
         assertThat(examPage.getSegmentPosition()).isEqualTo(1);
         assertThat(examPage.getItemGroupKey()).isEqualTo("item-group-key");

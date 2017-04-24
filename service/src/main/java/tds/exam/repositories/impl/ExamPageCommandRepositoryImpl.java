@@ -12,7 +12,6 @@ import java.sql.Timestamp;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-import tds.common.data.mapping.ResultSetMapperUtility;
 import tds.exam.ExamPage;
 import tds.exam.repositories.ExamPageCommandRepository;
 
@@ -53,7 +52,7 @@ public class ExamPageCommandRepositoryImpl implements ExamPageCommandRepository 
             new MapSqlParameterSource("examId", examPage.getExamId().toString())
                 .addValue("id", examPage.getId().toString())
                 .addValue("pagePosition", examPage.getPagePosition())
-                .addValue("segmentKey", examPage.getSegmentKey())
+                .addValue("segmentKey", examPage.getExamSegmentKey())
                 .addValue("itemGroupKey", examPage.getItemGroupKey())
                 .addValue("groupItemsRequired", examPage.isGroupItemsRequired())
                 .addValue("createdAt", createdAt))

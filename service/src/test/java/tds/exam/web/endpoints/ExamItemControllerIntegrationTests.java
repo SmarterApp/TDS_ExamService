@@ -33,8 +33,8 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -88,7 +88,7 @@ public class ExamItemControllerIntegrationTests {
             .andExpect(jsonPath("data").isNotEmpty())
             .andExpect(jsonPath("data.id", is(mockNextExamPage.getId().toString())))
             .andExpect(jsonPath("data.pagePosition", is(mockNextExamPage.getPagePosition())))
-            .andExpect(jsonPath("data.segmentKey", is(mockNextExamPage.getSegmentKey())))
+            .andExpect(jsonPath("data.segmentKey", is(mockNextExamPage.getExamSegmentKey())))
             .andExpect(jsonPath("data.segmentId", is(mockNextExamPage.getSegmentId())))
             .andExpect(jsonPath("data.segmentPosition", is(mockNextExamPage.getSegmentPosition())))
             .andExpect(jsonPath("data.itemGroupKey", is(mockNextExamPage.getItemGroupKey())))

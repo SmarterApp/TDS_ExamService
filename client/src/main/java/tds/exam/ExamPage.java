@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static tds.common.util.Preconditions.checkNotNull;
+
 /**
  * Represents the page of an exam
  */
@@ -13,7 +15,7 @@ import java.util.UUID;
 public class ExamPage {
     private UUID id;
     private int pagePosition;
-    private String segmentKey;
+    private String examSegmentKey;
     private String segmentId;
     private int segmentPosition;
     private String itemGroupKey;
@@ -32,16 +34,16 @@ public class ExamPage {
     }
 
     private ExamPage(Builder builder) {
-        id = builder.id;
+        id = checkNotNull(builder.id);
         pagePosition = builder.pagePosition;
-        segmentKey = builder.segmentKey;
+        examSegmentKey = checkNotNull(builder.segmentKey);
         segmentId = builder.segmentId;
         segmentPosition = builder.segmentPosition;
-        itemGroupKey = builder.itemGroupKey;
+        itemGroupKey = checkNotNull(builder.itemGroupKey);
         groupItemsRequired = builder.groupItemsRequired;
-        examId = builder.examId;
+        examId = checkNotNull(builder.examId);
         examItems = builder.examItems == null ? new ArrayList<ExamItem>() : builder.examItems;
-        createdAt = builder.createdAt;
+        createdAt = checkNotNull(builder.createdAt);
         deletedAt = builder.deletedAt;
         startedAt = builder.startedAt;
     }
@@ -134,7 +136,7 @@ public class ExamPage {
             return new ExamPage.Builder()
                 .withId(examPage.getId())
                 .withPagePosition(examPage.getPagePosition())
-                .withSegmentKey(examPage.getSegmentKey())
+                .withSegmentKey(examPage.getExamSegmentKey())
                 .withSegmentId(examPage.getSegmentId())
                 .withItemGroupKey(examPage.getItemGroupKey())
                 .withGroupItemsRequired(examPage.isGroupItemsRequired())
@@ -164,8 +166,8 @@ public class ExamPage {
     /**
      * @return The key of which segment owns this page
      */
-    public String getSegmentKey() {
-        return segmentKey;
+    public String getExamSegmentKey() {
+        return examSegmentKey;
     }
 
     /**

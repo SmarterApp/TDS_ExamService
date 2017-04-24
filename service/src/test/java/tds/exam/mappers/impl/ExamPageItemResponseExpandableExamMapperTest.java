@@ -19,6 +19,8 @@ import tds.exam.ExamItem;
 import tds.exam.ExamPage;
 import tds.exam.ExpandableExam;
 import tds.exam.ExpandableExamAttributes;
+import tds.exam.builder.ExamItemBuilder;
+import tds.exam.builder.ExamPageBuilder;
 import tds.exam.services.ExamItemService;
 import tds.exam.services.ExamPageService;
 
@@ -48,8 +50,8 @@ public class ExamPageItemResponseExpandableExamMapperTest {
     @Test
     public void shouldMapPagesAndItems() {
         UUID examId = UUID.randomUUID();
-        ExamPage examPage = new ExamPage.Builder().build();
-        ExamItem examItem = new ExamItem.Builder(UUID.randomUUID()).build();
+        ExamPage examPage = new ExamPageBuilder().build();
+        ExamItem examItem = new ExamItemBuilder().build();
 
         when(mockExamPageService.findAllPages(examId)).thenReturn(Collections.singletonList(examPage));
         when(mockExamItemService.findExamItemAndResponses(examId)).thenReturn(Collections.singletonList(examItem));
