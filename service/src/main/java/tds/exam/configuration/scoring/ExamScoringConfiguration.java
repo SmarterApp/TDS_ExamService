@@ -9,10 +9,6 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-
-import java.util.HashMap;
-import java.util.Map;
-
 import tds.itemscoringengine.IItemScorer;
 import tds.itemscoringengine.IItemScorerManager;
 import tds.itemscoringengine.itemscorers.MCItemScorer;
@@ -21,6 +17,9 @@ import tds.itemscoringengine.itemscorers.QTIItemScorer;
 import tds.itemscoringengine.web.server.AppStatsRecorder;
 import tds.itemscoringengine.web.server.ScoringMaster;
 import tds.score.configuration.ScoringConfiguration;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
 @Import(
@@ -37,6 +36,7 @@ public class ExamScoringConfiguration {
 
         scorers.put("MC", mciScorer);
         scorers.put("MS", mciScorer);
+        scorers.put("MI", qtiScorer);
         scorers.put("QTI", proxyScorer);
         scorers.put("EBSR", qtiScorer);
         scorers.put("HTQ", qtiScorer);
