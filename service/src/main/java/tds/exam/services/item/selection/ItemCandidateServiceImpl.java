@@ -51,7 +51,7 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
     private final SegmentService segmentService;
 
     private final static String ADAPTIVE = "adaptive";
-    private final static String FIELDTEST = "fieldtest";
+    private final static String FIELD_TEST = "fieldtest";
 
     @Autowired
     public ItemCandidateServiceImpl(final ExpandableExamService expandableExamService, final FieldTestService fieldTestService, final ExamSegmentService examSegmentService, final AssessmentService assessmentService, final SegmentService segmentService) {
@@ -150,7 +150,7 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
 
                 return new ItemCandidatesData(
                     examSegment.getExamId(),
-                    isFieldTest ? FIELDTEST : examSegment.getAlgorithm().getType(),
+                    isFieldTest ? FIELD_TEST : examSegment.getAlgorithm().getType(),
                     examSegment.getSegmentKey(),
                     examSegment.getSegmentId(),
                     examSegment.getSegmentPosition(),
