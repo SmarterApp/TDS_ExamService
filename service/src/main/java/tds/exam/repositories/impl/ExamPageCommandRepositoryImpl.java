@@ -12,7 +12,6 @@ import java.sql.Timestamp;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-import tds.common.data.mapping.ResultSetMapperUtility;
 import tds.exam.ExamPage;
 import tds.exam.repositories.ExamPageCommandRepository;
 
@@ -35,7 +34,7 @@ public class ExamPageCommandRepositoryImpl implements ExamPageCommandRepository 
                 "exam_page (\n" +
                 "   id, \n" +
                 "   page_position, \n" +
-                "   exam_segment_key, \n" +
+                "   segment_key, \n" +
                 "   item_group_key, \n" +
                 "   are_group_items_required, \n" +
                 "   exam_id, \n" +

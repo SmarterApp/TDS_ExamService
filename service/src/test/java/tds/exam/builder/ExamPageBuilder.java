@@ -24,7 +24,7 @@ public class ExamPageBuilder {
     private boolean groupItemsRequired = true;
     private UUID examId = UUID.randomUUID();
     private List<ExamItem> examItems = new ArrayList<>();
-    private Instant createdAt;
+    private Instant createdAt = Instant.now();
     private Instant deletedAt;
     private Instant startedAt;
     private long duration = 100;

@@ -22,6 +22,7 @@ import tds.exam.ExamSegment;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.builder.ExamItemBuilder;
 import tds.exam.builder.ExamItemResponseBuilder;
+import tds.exam.builder.ExamPageBuilder;
 import tds.exam.builder.ExamSegmentBuilder;
 import tds.exam.repositories.ExamCommandRepository;
 import tds.exam.repositories.ExamItemCommandRepository;
@@ -66,7 +67,7 @@ public class ExamItemRepositoryIntegrationTests {
         examSegmentCommandRepository.insert(Arrays.asList(mockExamSegment));
 
         // This page will be deleted
-        ExamPage page1 = new ExamPage.Builder()
+        ExamPage page1 = new ExamPageBuilder()
             .withId(UUID.randomUUID())
             .withExamId(exam.getId())
             .withSegmentId(mockExamSegment.getSegmentId())
@@ -93,7 +94,7 @@ public class ExamItemRepositoryIntegrationTests {
         // Now the above is marked as deleted.
         examPageCommandRepository.deleteAll(exam.getId());
 
-        ExamPage page2 = new ExamPage.Builder()
+        ExamPage page2 = new ExamPageBuilder()
             .withId(UUID.randomUUID())
             .withExamId(exam.getId())
             .withSegmentId(mockExamSegment.getSegmentId())
@@ -139,7 +140,7 @@ public class ExamItemRepositoryIntegrationTests {
         examSegmentCommandRepository.insert(Arrays.asList(mockExamSegment1, mockExamSegment2));
 
         // Page for 1st exam
-        ExamPage examPage1 = new ExamPage.Builder()
+        ExamPage examPage1 = new ExamPageBuilder()
             .withId(UUID.randomUUID())
             .withExamId(exam1.getId())
             .withSegmentId(mockExamSegment1.getSegmentId())
@@ -149,7 +150,7 @@ public class ExamItemRepositoryIntegrationTests {
             .build();
 
         // Page for 2nd exam
-        ExamPage examPage2 = new ExamPage.Builder()
+        ExamPage examPage2 = new ExamPageBuilder()
             .withId(UUID.randomUUID())
             .withExamId(exam2.getId())
             .withSegmentId(mockExamSegment2.getSegmentId())
