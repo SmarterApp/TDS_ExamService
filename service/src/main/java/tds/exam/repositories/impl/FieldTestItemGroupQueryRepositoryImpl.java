@@ -10,7 +10,6 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -103,7 +102,7 @@ public class FieldTestItemGroupQueryRepositoryImpl implements FieldTestItemGroup
                 "JOIN \n" +
                 "   exam_segment segment \n" +
                 "   ON segment.exam_id = page.exam_id \n" +
-                "   AND segment.segment_key = page.exam_segment_key \n" +
+                "   AND segment.segment_key = page.segment_key \n" +
                 "JOIN \n" +
                 "   exam_item item \n" +
                 "   ON page.id = item.exam_page_id \n" +
