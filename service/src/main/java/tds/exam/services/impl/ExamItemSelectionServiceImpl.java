@@ -57,7 +57,7 @@ public class ExamItemSelectionServiceImpl implements ExamItemSelectionService {
     public List<OpportunityItem> createNextPageGroup(final UUID examId, final int lastPage, final int lastPosition) {
         Exam exam = examService.findExam(examId).orElseThrow(() -> new IllegalArgumentException("Invalid exam id"));
         Assessment assessment = assessmentService.findAssessment(exam.getClientName(), exam.getAssessmentKey())
-            .orElseThrow(() -> new IllegalArgumentException("bad assessment"));
+            .orElseThrow(() -> new IllegalArgumentException(String.format("Could not find assessment for %s and %s", exam.getClientName(), exam.getAssessmentKey())));
 
         ItemResponse<ItemGroup> response = itemSelectionService.getNextItemGroup(exam.getId(), assessment.isMultiStageBraille());
 
@@ -125,10 +125,9 @@ public class ExamItemSelectionServiceImpl implements ExamItemSelectionService {
         return examItems.stream()
             .map(examItem -> {
                 OpportunityItem oppItem = new OpportunityItem();
-                Item item = itemByKey.get(examItem.getItemKey()).get(0);
 
                 oppItem.setGroupID(page.getItemGroupKey());
-                oppItem.setFormat(item.getItemType());
+                oppItem.setFormat(examItem.getItemType());
                 oppItem.setIsRequired(examItem.isRequired());
                 oppItem.setPage(page.getPagePosition());
                 oppItem.setSegmentID(page.getSegmentId());
@@ -151,6 +150,4 @@ public class ExamItemSelectionServiceImpl implements ExamItemSelectionService {
                 return oppItem;
             }).collect(Collectors.toList());
     }
-
-
 }
