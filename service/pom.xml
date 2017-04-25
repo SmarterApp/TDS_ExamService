@@ -64,7 +64,7 @@
         <dependency>
             <groupId>org.opentestsystem.delivery</groupId>
             <artifactId>student-library</artifactId>
-            <version>3.0.4</version>
+            <version>${tds-student-library.version}</version>
         </dependency>
 
         <!-- Spring -->

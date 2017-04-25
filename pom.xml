@@ -32,6 +32,7 @@
         <tds-student-client.version>0.0.1</tds-student-client.version>
         <tds-assessment-client.version>0.0.10</tds-assessment-client.version>
         <tds-config-client.version>0.0.2</tds-config-client.version>
+        <tds-student-library.version>3.0.5</tds-student-library.version>
         <tds-item-selection.version>3.0.1-SNAPSHOT</tds-item-selection.version>
 
         <maven.compiler.plugin.version>3.5.1</maven.compiler.plugin.version>
