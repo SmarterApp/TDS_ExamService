@@ -169,7 +169,7 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
         List<ExamSegment> segments = examSegmentService.findExamSegments(examId)
             .stream()
             .filter(examSegment -> !examSegment.isSatisfied())
-            .filter(examSegment -> examSegment.getSegmentPosition() != selectedSegmentPosition.intValue())
+            .filter(examSegment -> examSegment.getSegmentPosition() == selectedSegmentPosition.intValue())
             .map(examSegment -> ExamSegment.Builder.fromSegment(examSegment)
                 .withSatisfied(true)
                 .build())

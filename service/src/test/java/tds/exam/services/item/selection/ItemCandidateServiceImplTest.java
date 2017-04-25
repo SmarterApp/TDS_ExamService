@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import tds.assessment.Assessment;
 import tds.assessment.Segment;
@@ -64,7 +65,7 @@ public class ItemCandidateServiceImplTest {
     }
 
     @Test
-    public void shouldReturnFirstItemCandidates() throws ReturnStatusException {
+    public void shouldReturnNextItemCandidates() throws ReturnStatusException {
         Segment segment = new SegmentBuilder()
             .withKey("segmentKey")
             .withSegmentId("segmentId")
@@ -140,5 +141,91 @@ public class ItemCandidateServiceImplTest {
 
         assertThat(updatedExamSegment.getSegmentKey()).isEqualTo(examSegment.getSegmentKey());
         assertThat(updatedExamSegment.getSegmentPosition()).isEqualTo(examSegment.getSegmentPosition());
+    }
+
+    @Test
+    public void shouldReturnItemCandidates() throws ReturnStatusException {
+        Segment segment = new SegmentBuilder()
+            .withKey("segmentKey")
+            .withSegmentId("segmentId")
+            .withPosition(1)
+            .build();
+
+        Assessment assessment = new AssessmentBuilder()
+            .withSegments(Collections.singletonList(segment))
+            .build();
+
+        Exam exam = new ExamBuilder().build();
+
+        ExamSegment examSegment = new ExamSegmentBuilder()
+            .withExamId(exam.getId())
+            .withSegmentPosition(0)
+            .withSegmentKey(segment.getKey())
+            .withSegmentPosition(segment.getPosition())
+            .withExamItemCount(2)
+            .withIsSatisfied(false)
+            .build();
+
+        ExamPage page = new ExamPageBuilder()
+            .withSegmentKey(segment.getKey())
+            .withExamId(exam.getId())
+            .build();
+
+        ExamItem examItem = new ExamItemBuilder()
+            .withExamPageId(page.getId())
+            .build();
+
+        ExpandableExam expandableExam = new ExpandableExam.Builder(exam)
+            .withExamItems(Collections.singletonList(examItem))
+            .withExamSegments(Collections.singletonList(examSegment))
+            .withExamPages(Collections.singletonList(page))
+            .build();
+
+        when(mockExpandableExamService.findExam(exam.getId(), ExpandableExamAttributes.EXAM_SEGMENTS, ExpandableExamAttributes.EXAM_PAGE_AND_ITEMS)).thenReturn(Optional.of(expandableExam));
+        when(mockAssessmentService.findAssessment(exam.getClientName(), exam.getAssessmentKey())).thenReturn(Optional.of(assessment));
+
+        ItemCandidatesData data = itemCandidatesService.getItemCandidates(exam.getId());
+
+        assertThat(data.getSegmentKey()).isEqualTo(segment.getKey());
+    }
+
+    @Test
+    public void shouldCleanUpSegments() throws ReturnStatusException {
+        UUID examId = UUID.randomUUID();
+
+        ExamSegment examSegment = new ExamSegmentBuilder()
+            .withExamId(examId)
+            .withSegmentKey("segment1")
+            .withSegmentPosition(1)
+            .withExamItemCount(2)
+            .withIsSatisfied(true)
+            .build();
+
+        ExamSegment examSegment2 = new ExamSegmentBuilder()
+            .withExamId(examId)
+            .withSegmentKey("segment2")
+            .withSegmentPosition(1)
+            .withExamItemCount(1)
+            .withIsSatisfied(false)
+            .build();
+
+        ExamSegment examSegment3 = new ExamSegmentBuilder()
+            .withExamId(examId)
+            .withSegmentPosition(2)
+            .withSegmentKey("segment3")
+            .withExamItemCount(1)
+            .withIsSatisfied(false)
+            .build();
+
+
+        when(mockExamSegmentService.findExamSegments(examId)).thenReturn(Arrays.asList(examSegment, examSegment2, examSegment3));
+
+        itemCandidatesService.cleanupDismissedItemCandidates(1L, examId);
+
+        ArgumentCaptor<ExamSegment> varArgs = ArgumentCaptor.forClass(ExamSegment.class);
+        verify(mockExamSegmentService).update(varArgs.capture());
+
+        assertThat(varArgs.getAllValues()).hasSize(1);
+        assertThat(varArgs.getAllValues().get(0).getSegmentKey()).isEqualTo("segment2");
     }
 }
