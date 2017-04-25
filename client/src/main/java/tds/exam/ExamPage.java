@@ -43,7 +43,7 @@ public class ExamPage {
         groupItemsRequired = builder.groupItemsRequired;
         examId = checkNotNull(builder.examId);
         examItems = builder.examItems == null ? new ArrayList<ExamItem>() : builder.examItems;
-        createdAt = checkNotNull(builder.createdAt);
+        createdAt = builder.createdAt;
         deletedAt = builder.deletedAt;
         startedAt = builder.startedAt;
     }
