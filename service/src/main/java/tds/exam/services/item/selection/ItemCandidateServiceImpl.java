@@ -123,44 +123,11 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
 
         //Means that a segment has been satisfied but hasn't been updated to be satisfied
         if (!satisfiedSegments.isEmpty()) {
-            List<ExamSegment> segmentsToUpdate = satisfiedSegments.stream()
-                .map(examSegment -> ExamSegment.Builder
-                    .fromSegment(examSegment)
-                    .withSatisfied(true)
-                    .build())
-                .collect(Collectors.toList());
-
-            examSegmentService.update(segmentsToUpdate.toArray(new ExamSegment[segmentsToUpdate.size()]));
+            updateSatisfiedSegments(satisfiedSegments);
         }
 
         return nonSatisfiedSegments.stream()
-            .map(segmentHolder -> {
-                ExamSegment examSegment = segmentHolder.examSegment;
-
-                boolean isFieldTest = segmentHolder.items.stream()
-                    .filter(ExamItem::isFieldTest)
-                    .count() > 0;
-
-                GroupBlock groupBlock = findGroupBlock(examSegment.getSegmentKey(),
-                    assessment,
-                    fieldTestItemGroups,
-                    isFieldTest,
-                    exam.getExam().getLanguageCode(),
-                    segmentHolder);
-
-                return new ItemCandidatesData(
-                    examSegment.getExamId(),
-                    isFieldTest ? FIELD_TEST : examSegment.getAlgorithm().getType(),
-                    examSegment.getSegmentKey(),
-                    examSegment.getSegmentId(),
-                    examSegment.getSegmentPosition(),
-                    groupBlock.group,
-                    groupBlock.block,
-                    exam.getExam().getSessionId(),
-                    false,
-                    //TODO - Find out where isActive is coming from in legacy code
-                    null);
-            })
+            .map(segmentHolder -> convertSegmentHolderToItemCandidateData(exam, assessment, fieldTestItemGroups, segmentHolder))
             .collect(Collectors.toList());
     }
 
@@ -356,6 +323,45 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
         }
 
         return new GroupBlock(groupId, blockId);
+    }
+
+    private ItemCandidatesData convertSegmentHolderToItemCandidateData(final ExpandableExam exam, final Assessment assessment, final List<FieldTestItemGroup> fieldTestItemGroups, final SegmentHolder segmentHolder) {
+        ExamSegment examSegment = segmentHolder.examSegment;
+
+        boolean isFieldTest = segmentHolder.items.stream()
+            .filter(ExamItem::isFieldTest)
+            .count() > 0;
+
+        GroupBlock groupBlock = findGroupBlock(examSegment.getSegmentKey(),
+            assessment,
+            fieldTestItemGroups,
+            isFieldTest,
+            exam.getExam().getLanguageCode(),
+            segmentHolder);
+
+        return new ItemCandidatesData(
+            examSegment.getExamId(),
+            isFieldTest ? FIELD_TEST : examSegment.getAlgorithm().getType(),
+            examSegment.getSegmentKey(),
+            examSegment.getSegmentId(),
+            examSegment.getSegmentPosition(),
+            groupBlock.group,
+            groupBlock.block,
+            exam.getExam().getSessionId(),
+            false,
+            //TODO - Find out where isActive is coming from in legacy code
+            null);
+    }
+
+    private void updateSatisfiedSegments(final List<ExamSegment> satisfiedSegments) {
+        List<ExamSegment> segmentsToUpdate = satisfiedSegments.stream()
+            .map(examSegment -> ExamSegment.Builder
+                .fromSegment(examSegment)
+                .withSatisfied(true)
+                .build())
+            .collect(Collectors.toList());
+
+        examSegmentService.update(segmentsToUpdate.toArray(new ExamSegment[segmentsToUpdate.size()]));
     }
 
     private class SegmentHolder {
