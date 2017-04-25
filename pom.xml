@@ -5,7 +5,7 @@
     <artifactId>tds-exam</artifactId>
     <name>tds-exam</name>
     <packaging>pom</packaging>
-    <version>0.0.13-SNAPSHOT</version>
+    <version>0.0.13</version>
 
     <modules>
         <module>client</module>
@@ -83,7 +83,7 @@
         <connection>scm:git:https://github.com/SmarterApp/TDS_ExamService.git</connection>
         <developerConnection>scm:git:git://github.com/SmarterApp/TDS_ExamService.git</developerConnection>
         <url>https://github.com/SmarterApp/TDS_ExamService</url>
-        <tag>HEAD</tag>
+        <tag>0.0.13</tag>
     </scm>
 
     <distributionManagement>
