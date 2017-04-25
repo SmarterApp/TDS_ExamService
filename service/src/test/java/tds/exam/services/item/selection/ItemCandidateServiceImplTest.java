@@ -228,4 +228,27 @@ public class ItemCandidateServiceImplTest {
         assertThat(varArgs.getAllValues()).hasSize(1);
         assertThat(varArgs.getAllValues().get(0).getSegmentKey()).isEqualTo("segment2");
     }
+
+    @Test
+    public void shouldSetExamSegmentSatisifed() throws ReturnStatusException {
+        UUID examId = UUID.randomUUID();
+
+        ExamSegment examSegment = new ExamSegmentBuilder()
+            .withExamId(examId)
+            .withSegmentKey("segment1")
+            .withSegmentPosition(1)
+            .withExamItemCount(2)
+            .withIsSatisfied(false)
+            .build();
+
+        when(mockExamSegmentService.findByExamIdAndSegmentPosition(examId, 1)).thenReturn(Optional.of(examSegment));
+
+        assertThat(itemCandidatesService.setSegmentSatisfied(examId, 1, "reason")).isTrue();
+
+        ArgumentCaptor<ExamSegment> varArgs = ArgumentCaptor.forClass(ExamSegment.class);
+        verify(mockExamSegmentService).update(varArgs.capture());
+
+        assertThat(varArgs.getAllValues()).hasSize(1);
+        assertThat(varArgs.getValue().getSegmentKey()).isEqualTo("segment1");
+    }
 }
