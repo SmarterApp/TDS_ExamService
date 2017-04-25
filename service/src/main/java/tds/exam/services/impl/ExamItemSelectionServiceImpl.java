@@ -4,7 +4,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -29,6 +32,8 @@ import tds.student.sql.data.OpportunityItem;
 
 @Service
 public class ExamItemSelectionServiceImpl implements ExamItemSelectionService {
+    private static final String CREATED_AT_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS";
+
     private final ItemSelectionService itemSelectionService;
     private final ExamPageCommandRepository examPageCommandRepository;
     private final ExamItemCommandRepository examItemCommandRepository;
@@ -100,6 +105,9 @@ public class ExamItemSelectionServiceImpl implements ExamItemSelectionService {
         examPageCommandRepository.insert(page);
         examItemCommandRepository.insert(examItems.toArray(new ExamItem[examItems.size()]));
 
+        final SimpleDateFormat simpleDateFormat = new SimpleDateFormat(CREATED_AT_FORMAT);
+        final String dateCreated = simpleDateFormat.format(new Date(Instant.now().toEpochMilli()));
+
         List<OpportunityItem> opportunityItems = examItems.stream()
             .map(examItem -> {
                 OpportunityItem oppItem = new OpportunityItem();
@@ -115,15 +123,16 @@ public class ExamItemSelectionServiceImpl implements ExamItemSelectionService {
                 oppItem.setItemKey(examItem.getAssessmentItemKey());
                 oppItem.setGroupItemsRequired(segment.getMinItems());
                 oppItem.setPosition(examItem.getPosition());
+                oppItem.setDateCreated(dateCreated);
 
                 // manually set data (taken from the legacy adaptive service impl. ResponseRepository.insertItems lin 159
-                oppItem.setIsVisible (true);
-                oppItem.setIsSelected (false);
-                oppItem.setIsValid (false);
-                oppItem.setMarkForReview (false);
-                oppItem.setSequence (0);
-                oppItem.setStimulusFile (null);
-                oppItem.setItemFile (null);
+                oppItem.setIsVisible(true);
+                oppItem.setIsSelected(false);
+                oppItem.setIsValid(false);
+                oppItem.setMarkForReview(false);
+                oppItem.setSequence(0);
+                oppItem.setStimulusFile(null);
+                oppItem.setItemFile(null);
 
                 return oppItem;
             }).collect(Collectors.toList());
