@@ -1,6 +1,5 @@
 package tds.exam.services.item.selection;
 
-import AIR.Common.Helpers._Ref;
 import TDS.Shared.Exceptions.ReturnStatusException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -39,6 +38,7 @@ import tds.itemselection.base.ItemGroup;
 import tds.itemselection.impl.ItemResponse;
 import tds.itemselection.loader.StudentHistory2013;
 import tds.itemselection.loader.TestSegment;
+import tds.itemselection.model.OffGradeResponse;
 import tds.itemselection.services.ItemCandidatesService;
 import tds.itemselection.services.SegmentService;
 
@@ -276,10 +276,10 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
     }
 
     @Override
-    public String addOffGradeItems(UUID examId, String designation, String segmentKey, _Ref<String> reason) throws ReturnStatusException {
+    public OffGradeResponse addOffGradeItems(UUID examId, String designation, String segmentKey) throws ReturnStatusException {
         //AA_AddOffgradeItems_SP
         //TODO - figure out if this is really necessary
-        return "";
+        return new OffGradeResponse(OffGradeResponse.SUCCESS, "");
     }
 
     private List<SegmentHolder> mapSegmentToItems(ExpandableExam expandableExam) {

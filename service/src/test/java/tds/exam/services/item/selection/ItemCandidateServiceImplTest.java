@@ -4,9 +4,11 @@ import TDS.Shared.Exceptions.ReturnStatusException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -34,6 +36,7 @@ import tds.itemselection.services.ItemCandidatesService;
 import tds.itemselection.services.SegmentService;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -65,10 +68,17 @@ public class ItemCandidateServiceImplTest {
         Segment segment = new SegmentBuilder()
             .withKey("segmentKey")
             .withSegmentId("segmentId")
+            .withPosition(1)
+            .build();
+
+        Segment segment2 = new SegmentBuilder()
+            .withKey("segmentKey2")
+            .withSegmentId("segmentId2")
+            .withPosition(2)
             .build();
 
         Assessment assessment = new AssessmentBuilder()
-            .withSegments(Collections.singletonList(segment))
+            .withSegments(Arrays.asList(segment, segment2))
             .build();
 
         Exam exam = new ExamBuilder().build();
@@ -78,23 +88,35 @@ public class ItemCandidateServiceImplTest {
             .withSegmentPosition(0)
             .withSegmentKey(segment.getKey())
             .withSegmentPosition(segment.getPosition())
-//            .withExamItemCount(1)
+            .withExamItemCount(2)
+            .withIsSatisfied(false)
+            .build();
+
+        ExamSegment examSegment2 = new ExamSegmentBuilder()
+            .withExamId(exam.getId())
+            .withSegmentPosition(0)
+            .withSegmentKey(segment2.getKey())
+            .withSegmentPosition(segment2.getPosition())
+            .withExamItemCount(1)
             .withIsSatisfied(false)
             .build();
 
         ExamPage page = new ExamPageBuilder()
-            .withSegmentId(segment.getSegmentId())
             .withSegmentKey(segment.getKey())
-            .withSegmentPosition(examSegment.getSegmentPosition())
+            .withExamId(exam.getId())
             .build();
 
         ExamItem examItem = new ExamItemBuilder()
             .withExamPageId(page.getId())
             .build();
 
+        ExamItem examItem2 = new ExamItemBuilder()
+            .withExamPageId(page.getId())
+            .build();
+
         ExpandableExam expandableExam = new ExpandableExam.Builder(exam)
-            .withExamItems(Collections.singletonList(examItem))
-            .withExamSegments(Collections.singletonList(examSegment))
+            .withExamItems(Arrays.asList(examItem, examItem2))
+            .withExamSegments(Arrays.asList(examSegment, examSegment2))
             .withExamPages(Collections.singletonList(page))
             .build();
 
@@ -103,10 +125,20 @@ public class ItemCandidateServiceImplTest {
 
         List<ItemCandidatesData> candidates = itemCandidatesService.getAllItemCandidates(exam.getId());
 
+        ArgumentCaptor<ExamSegment> varArgs = ArgumentCaptor.forClass(ExamSegment.class);
+        verify(mockExamSegmentService).update(varArgs.capture());
+
         assertThat(candidates).hasSize(1);
 
         ItemCandidatesData data = candidates.get(0);
 
-        assertThat(data.getSegmentKey()).isEqualTo(segment.getKey());
+        assertThat(data.getSegmentKey()).isEqualTo(segment2.getKey());
+
+        assertThat(varArgs.getAllValues()).hasSize(1);
+
+        ExamSegment updatedExamSegment = varArgs.getValue();
+
+        assertThat(updatedExamSegment.getSegmentKey()).isEqualTo(examSegment.getSegmentKey());
+        assertThat(updatedExamSegment.getSegmentPosition()).isEqualTo(examSegment.getSegmentPosition());
     }
 }
