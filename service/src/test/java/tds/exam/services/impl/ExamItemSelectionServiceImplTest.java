@@ -123,7 +123,7 @@ public class ExamItemSelectionServiceImplTest {
         when(mockExamService.findExam(examId)).thenReturn(Optional.of(exam));
         when(mockAssessmentService.findAssessment(exam.getClientName(), assessment.getKey())).thenReturn(Optional.of(assessment));
 
-        List<OpportunityItem> items = examItemSelectionService.createNextPageGroup(examId, 1);
+        List<OpportunityItem> items = examItemSelectionService.createNextPageGroup(examId, 1, 2);
 
         ArgumentCaptor<ExamPage> examPageArgumentCaptor = ArgumentCaptor.forClass(ExamPage.class);
         ArgumentCaptor<ExamItem> varArgsExamItem = ArgumentCaptor.forClass(ExamItem.class);
@@ -158,7 +158,7 @@ public class ExamItemSelectionServiceImplTest {
         assertThat(examItem.getExamPageId()).isEqualTo(examPage.getId());
         assertThat(examItem.getItemFilePath()).isEqualTo(item.getItemFilePath());
         assertThat(examItem.getItemType()).isEqualTo(item.getItemType());
-        assertThat(examItem.getPosition()).isEqualTo(testItem.position);
+        assertThat(examItem.getPosition()).isEqualTo(3);
         assertThat(examItem.getResponse().isPresent()).isFalse();
 
         assertThat(examPage.getItemGroupKey()).isEqualTo(itemGroup.getGroupID());
@@ -169,7 +169,7 @@ public class ExamItemSelectionServiceImplTest {
     public void shouldThrowIfExamCannotBeFound() {
         UUID examId = UUID.randomUUID();
         when(mockExamService.findExam(examId)).thenReturn(Optional.empty());
-        examItemSelectionService.createNextPageGroup(examId, 1);
+        examItemSelectionService.createNextPageGroup(examId, 1, 2);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -178,7 +178,7 @@ public class ExamItemSelectionServiceImplTest {
         Exam exam = new ExamBuilder().withId(examId).build();
         when(mockExamService.findExam(examId)).thenReturn(Optional.of(exam));
         when(mockAssessmentService.findAssessment(exam.getClientName(), exam.getAssessmentKey())).thenReturn(Optional.empty());
-        examItemSelectionService.createNextPageGroup(examId, 1);
+        examItemSelectionService.createNextPageGroup(examId, 1, 2);
     }
 
     @Test(expected = RuntimeException.class)
@@ -191,7 +191,7 @@ public class ExamItemSelectionServiceImplTest {
         when(mockExamService.findExam(examId)).thenReturn(Optional.of(exam));
         when(mockAssessmentService.findAssessment(exam.getClientName(), exam.getAssessmentKey())).thenReturn(Optional.of(assessment));
         when(mockItemSelectionService.getNextItemGroup(examId, false)).thenReturn(new ItemResponse<>("Failed"));
-        examItemSelectionService.createNextPageGroup(examId, 1);
+        examItemSelectionService.createNextPageGroup(examId, 1, 2);
     }
 
     @Test(expected = IllegalStateException.class)
@@ -227,6 +227,6 @@ public class ExamItemSelectionServiceImplTest {
         when(mockExamService.findExam(examId)).thenReturn(Optional.of(exam));
         when(mockAssessmentService.findAssessment(exam.getClientName(), exam.getAssessmentKey())).thenReturn(Optional.of(assessment));
         when(mockItemSelectionService.getNextItemGroup(examId, false)).thenReturn(new ItemResponse<>(itemGroup));
-        examItemSelectionService.createNextPageGroup(examId, 1);
+        examItemSelectionService.createNextPageGroup(examId, 1, 2);
     }
 }

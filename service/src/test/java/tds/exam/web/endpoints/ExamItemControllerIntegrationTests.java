@@ -185,10 +185,10 @@ public class ExamItemControllerIntegrationTests {
         item.setIsSelected(true);
 
         UUID examId = UUID.randomUUID();
-        when(mockExamItemSelectionService.createNextPageGroup(isA(UUID.class), isA(Integer.class)))
+        when(mockExamItemSelectionService.createNextPageGroup(isA(UUID.class), isA(Integer.class), isA(Integer.class)))
             .thenReturn(Collections.singletonList(item));
 
-        MvcResult response = http.perform(post("/exam/{examId}/item?lastPagePosition={lastPagePosition}", examId, 1)
+        MvcResult response = http.perform(post("/exam/{examId}/item?lastPagePosition={lastPagePosition}&lastItemPosition={lastItemPosition}", examId, 1, 2)
             .contentType(MediaType.APPLICATION_JSON)
             .content(""))
             .andExpect(status().isOk())

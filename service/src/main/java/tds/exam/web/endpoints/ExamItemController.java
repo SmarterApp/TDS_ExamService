@@ -70,8 +70,10 @@ public class ExamItemController {
     }
 
     @PostMapping("/{examId}/item")
-    ResponseEntity<List<OpportunityItem>> getNextItemGroup(@PathVariable final UUID examId, @RequestParam int lastPagePosition) {
-        List<OpportunityItem> page = examItemSelectionService.createNextPageGroup(examId, lastPagePosition);
+    ResponseEntity<List<OpportunityItem>> getNextItemGroup(@PathVariable final UUID examId,
+                                                           @RequestParam int lastPagePosition,
+                                                           @RequestParam int lastItemPosition) {
+        List<OpportunityItem> page = examItemSelectionService.createNextPageGroup(examId, lastPagePosition, lastItemPosition);
         return ResponseEntity.ok(page);
     }
 }

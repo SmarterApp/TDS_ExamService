@@ -13,5 +13,5 @@ public interface ExamItemSelectionService {
      * @param lastPage the last page that had items
      * @return a {@link tds.student.services.data.PageGroup}
      */
-    List<OpportunityItem> createNextPageGroup(UUID examId, int lastPage);
+    List<OpportunityItem> createNextPageGroup(UUID examId, int lastPage, int lastItemPosition);
 }

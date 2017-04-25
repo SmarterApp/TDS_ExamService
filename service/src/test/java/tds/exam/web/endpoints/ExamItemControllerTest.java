@@ -107,11 +107,11 @@ public class ExamItemControllerTest {
     public void shouldReturnPageGroup() {
         UUID examId = UUID.randomUUID();
         OpportunityItem item = new OpportunityItem();
-        when(mockExamItemSelectionService.createNextPageGroup(examId, 1)).thenReturn(Collections.singletonList(item));
+        when(mockExamItemSelectionService.createNextPageGroup(examId, 1, 2)).thenReturn(Collections.singletonList(item));
 
-        ResponseEntity<List<OpportunityItem>> response = examItemController.getNextItemGroup(examId, 1);
+        ResponseEntity<List<OpportunityItem>> response = examItemController.getNextItemGroup(examId, 1, 2);
 
-        verify(mockExamItemSelectionService).createNextPageGroup(examId, 1);
+        verify(mockExamItemSelectionService).createNextPageGroup(examId, 1, 2);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).containsExactly(item);

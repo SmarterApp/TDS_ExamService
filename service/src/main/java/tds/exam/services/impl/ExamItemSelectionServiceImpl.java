@@ -6,7 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.util.Comparator;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +25,7 @@ import tds.exam.services.AssessmentService;
 import tds.exam.services.ExamItemSelectionService;
 import tds.exam.services.ExamService;
 import tds.itemselection.base.ItemGroup;
+import tds.itemselection.base.TestItem;
 import tds.itemselection.model.ItemResponse;
 import tds.itemselection.services.ItemSelectionService;
 import tds.student.sql.data.OpportunityItem;
@@ -40,7 +41,10 @@ public class ExamItemSelectionServiceImpl implements ExamItemSelectionService {
     private final AssessmentService assessmentService;
 
     @Autowired
-    public ExamItemSelectionServiceImpl(final ItemSelectionService itemSelectionService, final ExamPageCommandRepository examPageCommandRepository, final ExamItemCommandRepository examItemCommandRepository, final ExamService examService, final AssessmentService assessmentService) {
+    public ExamItemSelectionServiceImpl(final ItemSelectionService itemSelectionService,
+                                        final ExamPageCommandRepository examPageCommandRepository,
+                                        final ExamItemCommandRepository examItemCommandRepository,
+                                        final ExamService examService, final AssessmentService assessmentService) {
         this.itemSelectionService = itemSelectionService;
         this.examPageCommandRepository = examPageCommandRepository;
         this.examItemCommandRepository = examItemCommandRepository;
@@ -50,7 +54,7 @@ public class ExamItemSelectionServiceImpl implements ExamItemSelectionService {
 
     @Transactional
     @Override
-    public List<OpportunityItem> createNextPageGroup(UUID examId, int lastPage) {
+    public List<OpportunityItem> createNextPageGroup(final UUID examId, final int lastPage, final int lastPosition) {
         Exam exam = examService.findExam(examId).orElseThrow(() -> new IllegalArgumentException("Invalid exam id"));
         Assessment assessment = assessmentService.findAssessment(exam.getClientName(), exam.getAssessmentKey())
             .orElseThrow(() -> new IllegalArgumentException("bad assessment"));
@@ -82,30 +86,35 @@ public class ExamItemSelectionServiceImpl implements ExamItemSelectionService {
             .withSegmentPosition(itemGroup.getSegmentPosition())
             .build();
 
-        List<ExamItem> examItems = itemGroup.getItems().stream()
-            .sorted(Comparator.comparingInt(o -> o.position))
-            .map(testItem -> {
-                if (!itemByKey.containsKey(testItem.getItemID())) {
-                    throw new IllegalStateException(String.format("Could not find an assessment %s item with id %s",
-                        assessment.getKey(),
-                        testItem.getItemID()));
-                }
+        int examItemPosition = lastPosition;
+        List<ExamItem> examItems = new ArrayList<>();
+        for(TestItem testItem : itemGroup.getItems()) {
+            if (!itemByKey.containsKey(testItem.getItemID())) {
+                throw new IllegalStateException(String.format("Could not find an assessment %s item with id %s",
+                    assessment.getKey(),
+                    testItem.getItemID()));
+            }
 
-                Item item = itemByKey.get(testItem.getItemID()).get(0);
-                return new ExamItem.Builder(UUID.randomUUID())
-                    .withItemKey(item.getId())
-                    .withExamPageId(pageId)
-                    .withFieldTest(item.isFieldTest())
-                    .withPosition(testItem.position)
-                    .withRequired(item.isRequired())
-                    .withItemType(item.getItemType())
-                    .withItemFilePath(item.getItemFilePath())
-                    .withStimulusFilePath(item.getStimulusFilePath())
-                    .withAssessmentItemBankKey(item.getBankKey())
-                    .withAssessmentItemKey(item.getItemKey())
-                    .build();
-            })
-            .collect(Collectors.toList());
+            //Item position is the item position in the exam.  The TestItem or Item position is the position
+            //within a segment.  So we take the last position by student and then increment.
+            examItemPosition++;
+
+            Item item = itemByKey.get(testItem.getItemID()).get(0);
+            ExamItem examItem =new ExamItem.Builder(UUID.randomUUID())
+                .withItemKey(item.getId())
+                .withExamPageId(pageId)
+                .withFieldTest(item.isFieldTest())
+                .withPosition(examItemPosition)
+                .withRequired(item.isRequired())
+                .withItemType(item.getItemType())
+                .withItemFilePath(item.getItemFilePath())
+                .withStimulusFilePath(item.getStimulusFilePath())
+                .withAssessmentItemBankKey(item.getBankKey())
+                .withAssessmentItemKey(item.getItemKey())
+                .build();
+
+            examItems.add(examItem);
+        }
 
         examPageCommandRepository.insert(page);
         examItemCommandRepository.insert(examItems.toArray(new ExamItem[examItems.size()]));
