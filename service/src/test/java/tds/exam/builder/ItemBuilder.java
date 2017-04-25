@@ -19,6 +19,7 @@ public class ItemBuilder {
     private boolean required = true;
     private List<ItemProperty> itemProperties = new ArrayList<>();
     private Set<String> formKeys = new HashSet<>();
+    private String itemFilePath = "/item/item-123.xml";
 
     public ItemBuilder(String id) {
         this.id = id;
@@ -35,6 +36,7 @@ public class ItemBuilder {
         item.setFormKeys(formKeys);
         item.setRequired(required);
         item.setItemProperties(itemProperties);
+        item.setItemFilePath(itemFilePath);
         return item;
     }
 
@@ -65,6 +67,16 @@ public class ItemBuilder {
 
     public ItemBuilder withItemProperties(List<ItemProperty> itemProperties) {
         this.itemProperties = itemProperties;
+        return this;
+    }
+
+    public ItemBuilder withItemFilePath(final String itemFilePath) {
+        this.itemFilePath = itemFilePath;
+        return this;
+    }
+
+    public ItemBuilder withItemType(final String itemType) {
+        this.itemType = itemType;
         return this;
     }
 }
