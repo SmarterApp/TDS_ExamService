@@ -52,7 +52,11 @@ public class ExamItemSelectionServiceImpl implements ExamItemSelectionService {
     @Transactional
     @Override
     public List<OpportunityItem> createNextPageGroup(UUID examId, PageGroupRequest request) {
-        ItemResponse<ItemGroup> response = itemSelectionService.getNextItemGroup(examId, request.isMsb());
+        Exam exam = examService.findExam(examId).orElseThrow(() -> new IllegalArgumentException("Invalid exam id"));
+        Assessment assessment = assessmentService.findAssessment(exam.getClientName(), exam.getAssessmentKey())
+            .orElseThrow(() -> new IllegalArgumentException("bad assessment"));
+
+        ItemResponse<ItemGroup> response = itemSelectionService.getNextItemGroup(exam.getId(), request.isMsb());
 
         if (response.getErrorMessage().isPresent()) {
             throw new RuntimeException("Failed to create item group: " + response.getErrorMessage());
@@ -60,14 +64,10 @@ public class ExamItemSelectionServiceImpl implements ExamItemSelectionService {
             throw new IllegalStateException("No error nor item information was returned from selection.  Please check configuration");
         }
 
-        Exam exam = examService.findExam(examId).orElseThrow(() -> new IllegalArgumentException("Invalid exam id"));
-        Assessment assessment = assessmentService.findAssessment(exam.getClientName(), exam.getAssessmentKey())
-            .orElseThrow(() -> new IllegalArgumentException("bad assessment"));
-
         ItemGroup itemGroup = response.getResponseData().get();
 
         Segment segment = assessment.getSegment(itemGroup.getSegmentKey());
-        Map<String, List<Item>> itemByKey = segment.getItems(exam.getLanguageCode())
+        Map<String, List<Item>> itemByKey = segment.getItems()
             .stream()
             .collect(Collectors.groupingBy(Item::getId));
 
@@ -86,14 +86,20 @@ public class ExamItemSelectionServiceImpl implements ExamItemSelectionService {
         List<ExamItem> examItems = itemGroup.getItems().stream()
             .sorted(Comparator.comparingInt(o -> o.position))
             .map(testItem -> {
+                if (!itemByKey.containsKey(testItem.getItemID())) {
+                    throw new IllegalStateException(String.format("Could not find an assessment %s item with id %s",
+                        assessment.getKey(),
+                        testItem.getItemID()));
+                }
+
                 Item item = itemByKey.get(testItem.getItemID()).get(0);
                 return new ExamItem.Builder(UUID.randomUUID())
                     .withItemKey(item.getId())
                     .withExamPageId(pageId)
                     .withFieldTest(item.isFieldTest())
                     .withPosition(testItem.position)
-                    .withRequired(testItem.isRequired())
-                    .withItemType(testItem.getItemType())
+                    .withRequired(item.isRequired())
+                    .withItemType(item.getItemType())
                     .withItemFilePath(item.getItemFilePath())
                     .withStimulusFilePath(item.getStimulusFilePath())
                     .withAssessmentItemBankKey(item.getBankKey())
@@ -108,7 +114,7 @@ public class ExamItemSelectionServiceImpl implements ExamItemSelectionService {
         final SimpleDateFormat simpleDateFormat = new SimpleDateFormat(CREATED_AT_FORMAT);
         final String dateCreated = simpleDateFormat.format(new Date(Instant.now().toEpochMilli()));
 
-        List<OpportunityItem> opportunityItems = examItems.stream()
+        return examItems.stream()
             .map(examItem -> {
                 OpportunityItem oppItem = new OpportunityItem();
                 Item item = itemByKey.get(examItem.getItemKey()).get(0);
@@ -136,8 +142,6 @@ public class ExamItemSelectionServiceImpl implements ExamItemSelectionService {
 
                 return oppItem;
             }).collect(Collectors.toList());
-
-        return opportunityItems;
     }
 
 
