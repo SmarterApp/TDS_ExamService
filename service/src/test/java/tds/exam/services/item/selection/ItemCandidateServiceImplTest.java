@@ -8,6 +8,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -16,6 +17,7 @@ import java.util.UUID;
 
 import tds.assessment.Assessment;
 import tds.assessment.Segment;
+import tds.common.Algorithm;
 import tds.exam.Exam;
 import tds.exam.ExamItem;
 import tds.exam.ExamPage;
@@ -27,7 +29,9 @@ import tds.exam.builder.ExamBuilder;
 import tds.exam.builder.ExamItemBuilder;
 import tds.exam.builder.ExamPageBuilder;
 import tds.exam.builder.ExamSegmentBuilder;
+import tds.exam.builder.FieldTestItemGroupBuilder;
 import tds.exam.builder.SegmentBuilder;
+import tds.exam.models.FieldTestItemGroup;
 import tds.exam.services.AssessmentService;
 import tds.exam.services.ExamSegmentService;
 import tds.exam.services.ExpandableExamService;
@@ -250,5 +254,73 @@ public class ItemCandidateServiceImplTest {
 
         assertThat(varArgs.getAllValues()).hasSize(1);
         assertThat(varArgs.getValue().getSegmentKey()).isEqualTo("segment1");
+    }
+
+    @Test
+    public void shouldProcessFieldTestItems() throws ReturnStatusException {
+        Segment segment = new SegmentBuilder()
+            .withKey("segmentKey")
+            .withSegmentId("segmentId")
+            .withPosition(1)
+            .build();
+
+        Segment segment2 = new SegmentBuilder()
+            .withKey("segmentKey2")
+            .withSegmentId("segmentId2")
+            .withPosition(2)
+            .build();
+
+        Assessment assessment = new AssessmentBuilder()
+            .withSegments(Arrays.asList(segment, segment2))
+            .build();
+
+        Exam exam = new ExamBuilder().build();
+
+        ExamSegment examSegment = new ExamSegmentBuilder()
+            .withExamId(exam.getId())
+            .withSegmentPosition(0)
+            .withSegmentKey(segment.getKey())
+            .withSegmentPosition(segment.getPosition())
+            .withExamItemCount(1)
+            .withIsSatisfied(false)
+            .withAlgorithm(Algorithm.ADAPTIVE_2)
+            .build();
+
+        ExamPage page = new ExamPageBuilder()
+            .withSegmentKey(segment.getKey())
+            .withExamId(exam.getId())
+            .build();
+
+        ExamItem examItem = new ExamItemBuilder()
+            .withExamPageId(page.getId())
+            .build();
+
+        ExamItem examItem2 = new ExamItemBuilder()
+            .withExamPageId(page.getId())
+            .withFieldTest(true)
+            .build();
+
+        ExpandableExam expandableExam = new ExpandableExam.Builder(exam)
+            .withExamItems(Arrays.asList(examItem, examItem2))
+            .withExamSegments(Collections.singletonList(examSegment))
+            .withExamPages(Collections.singletonList(page))
+            .build();
+
+        FieldTestItemGroup fieldTestItemGroup = new FieldTestItemGroupBuilder("groupKey")
+            .withSegmentKey("segmentKey")
+            .withAdministeredAt(Instant.now())
+            .build();
+
+        when(mockFieldTestService.findUsageInExam(exam.getId())).thenReturn(Collections.singletonList(fieldTestItemGroup));
+
+        when(mockExpandableExamService.findExam(exam.getId(), ExpandableExamAttributes.EXAM_SEGMENTS, ExpandableExamAttributes.EXAM_PAGE_AND_ITEMS)).thenReturn(Optional.of(expandableExam));
+        when(mockAssessmentService.findAssessment(exam.getClientName(), exam.getAssessmentKey())).thenReturn(Optional.of(assessment));
+
+        itemCandidatesService.getAllItemCandidates(exam.getId());
+
+        ArgumentCaptor<ExamSegment> varArgs = ArgumentCaptor.forClass(ExamSegment.class);
+        verify(mockExamSegmentService).update(varArgs.capture());
+
+        assertThat(varArgs.getValue().getSegmentKey()).isEqualTo(examSegment.getSegmentKey());
     }
 }

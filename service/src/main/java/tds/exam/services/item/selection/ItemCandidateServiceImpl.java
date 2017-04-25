@@ -106,8 +106,8 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
                 .count();
 
             final ExamSegment examSegment = segment.examSegment;
-            boolean fieldTestItemsSatisfied = fieldTestItemsBySegmentKey.containsKey(examSegment.getSegmentKey())
-                && fieldTestItemsBySegmentKey.get(examSegment.getSegmentKey()).isEmpty();
+            boolean fieldTestItemsSatisfied = !fieldTestItemsBySegmentKey.containsKey(examSegment.getSegmentKey())
+                || fieldTestItemsBySegmentKey.get(examSegment.getSegmentKey()).isEmpty();
 
             if (examSegment.getAlgorithm().getType().contains(ADAPTIVE)
                 && examSegment.getExamItemCount() == nonFieldTestItemCount
