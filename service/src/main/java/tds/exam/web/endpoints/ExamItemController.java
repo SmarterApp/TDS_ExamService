@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -19,7 +20,6 @@ import tds.common.ValidationError;
 import tds.common.web.resources.NoContentResponseResource;
 import tds.exam.ExamItemResponse;
 import tds.exam.ExamPage;
-import tds.exam.item.PageGroupRequest;
 import tds.exam.services.ExamItemSelectionService;
 import tds.exam.services.ExamItemService;
 import tds.exam.web.annotations.VerifyAccess;
@@ -70,8 +70,8 @@ public class ExamItemController {
     }
 
     @PostMapping("/{examId}/item")
-    ResponseEntity<List<OpportunityItem>> getNextItemGroup(@PathVariable final UUID examId, @RequestBody PageGroupRequest request) {
-        List<OpportunityItem> page = examItemSelectionService.createNextPageGroup(examId, request);
+    ResponseEntity<List<OpportunityItem>> getNextItemGroup(@PathVariable final UUID examId, @RequestParam int lastPagePosition) {
+        List<OpportunityItem> page = examItemSelectionService.createNextPageGroup(examId, lastPagePosition);
         return ResponseEntity.ok(page);
     }
 }

@@ -23,7 +23,6 @@ import tds.exam.ExamPage;
 import tds.exam.builder.ExamItemBuilder;
 import tds.exam.builder.ExamItemResponseBuilder;
 import tds.exam.builder.ExamPageBuilder;
-import tds.exam.item.PageGroupRequest;
 import tds.exam.services.ExamItemSelectionService;
 import tds.exam.services.ExamItemService;
 import tds.student.sql.data.OpportunityItem;
@@ -107,13 +106,12 @@ public class ExamItemControllerTest {
     @Test
     public void shouldReturnPageGroup() {
         UUID examId = UUID.randomUUID();
-        PageGroupRequest pageGroupRequest = new PageGroupRequest(1, 1, true);
         OpportunityItem item = new OpportunityItem();
-        when(mockExamItemSelectionService.createNextPageGroup(examId, pageGroupRequest)).thenReturn(Collections.singletonList(item));
+        when(mockExamItemSelectionService.createNextPageGroup(examId, 1)).thenReturn(Collections.singletonList(item));
 
-        ResponseEntity<List<OpportunityItem>> response = examItemController.getNextItemGroup(examId, pageGroupRequest);
+        ResponseEntity<List<OpportunityItem>> response = examItemController.getNextItemGroup(examId, 1);
 
-        verify(mockExamItemSelectionService).createNextPageGroup(examId, pageGroupRequest);
+        verify(mockExamItemSelectionService).createNextPageGroup(examId, 1);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).containsExactly(item);

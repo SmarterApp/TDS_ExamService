@@ -19,7 +19,6 @@ import tds.assessment.Segment;
 import tds.exam.Exam;
 import tds.exam.ExamItem;
 import tds.exam.ExamPage;
-import tds.exam.item.PageGroupRequest;
 import tds.exam.repositories.ExamItemCommandRepository;
 import tds.exam.repositories.ExamPageCommandRepository;
 import tds.exam.services.AssessmentService;
@@ -51,12 +50,12 @@ public class ExamItemSelectionServiceImpl implements ExamItemSelectionService {
 
     @Transactional
     @Override
-    public List<OpportunityItem> createNextPageGroup(UUID examId, PageGroupRequest request) {
+    public List<OpportunityItem> createNextPageGroup(UUID examId, int lastPage) {
         Exam exam = examService.findExam(examId).orElseThrow(() -> new IllegalArgumentException("Invalid exam id"));
         Assessment assessment = assessmentService.findAssessment(exam.getClientName(), exam.getAssessmentKey())
             .orElseThrow(() -> new IllegalArgumentException("bad assessment"));
 
-        ItemResponse<ItemGroup> response = itemSelectionService.getNextItemGroup(exam.getId(), request.isMsb());
+        ItemResponse<ItemGroup> response = itemSelectionService.getNextItemGroup(exam.getId(), assessment.isMultiStageBraille());
 
         if (response.getErrorMessage().isPresent()) {
             throw new RuntimeException("Failed to create item group: " + response.getErrorMessage());
@@ -75,7 +74,7 @@ public class ExamItemSelectionServiceImpl implements ExamItemSelectionService {
 
         ExamPage page = new ExamPage.Builder()
             .withId(pageId)
-            .withPagePosition(request.getLastPage() + 1)
+            .withPagePosition(lastPage + 1)
             .withExamId(examId)
             .withItemGroupKey(itemGroup.getGroupID())
             .withSegmentKey(itemGroup.getSegmentKey())

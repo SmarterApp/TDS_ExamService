@@ -28,7 +28,6 @@ import tds.exam.builder.ExamItemBuilder;
 import tds.exam.builder.ExamItemResponseBuilder;
 import tds.exam.builder.ExamItemResponseScoreBuilder;
 import tds.exam.builder.ExamPageBuilder;
-import tds.exam.item.PageGroupRequest;
 import tds.exam.services.ExamItemSelectionService;
 import tds.exam.services.ExamItemService;
 import tds.student.sql.data.OpportunityItem;
@@ -186,13 +185,12 @@ public class ExamItemControllerIntegrationTests {
         item.setIsSelected(true);
 
         UUID examId = UUID.randomUUID();
-        PageGroupRequest request = new PageGroupRequest(1, 1, false);
-        when(mockExamItemSelectionService.createNextPageGroup(isA(UUID.class), isA(PageGroupRequest.class)))
+        when(mockExamItemSelectionService.createNextPageGroup(isA(UUID.class), isA(Integer.class)))
             .thenReturn(Collections.singletonList(item));
 
-        MvcResult response = http.perform(post("/exam/{examId}/item", examId)
+        MvcResult response = http.perform(post("/exam/{examId}/item?lastPagePosition={lastPagePosition}", examId, 1)
             .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsBytes(request)))
+            .content(""))
             .andExpect(status().isOk())
             .andReturn();
 
