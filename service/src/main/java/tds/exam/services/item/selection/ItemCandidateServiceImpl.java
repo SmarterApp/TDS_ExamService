@@ -391,7 +391,7 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
         }
     }
 
-    private class GroupBlock {
+    private static class GroupBlock {
         private final String group;
         private final String block;
 

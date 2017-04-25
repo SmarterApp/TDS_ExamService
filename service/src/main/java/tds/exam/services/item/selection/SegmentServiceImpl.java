@@ -73,7 +73,7 @@ public class SegmentServiceImpl implements SegmentService {
         ItemPool itemPool = testSegment.getPool();
 
         populateBlueprintFromSegment(blueprint, segment);
-        populateBlueprintConsraints(blueprint, segmentItemInformation.getContentLevelSpecifications());
+        populateBlueprintConstraints(blueprint, segmentItemInformation.getContentLevelSpecifications());
         populateItemGroups(itemPool, segmentItemInformation.getItemGroups());
         populateSegmentItems(itemPool, segmentItemInformation.getSegmentItems(), blueprint.segmentPosition);
         populateParentItems(itemPool, segmentItemInformation.getParentItems());
@@ -84,7 +84,13 @@ public class SegmentServiceImpl implements SegmentService {
         return testSegment;
     }
 
-    private static void populateBlueprintConsraints(final Blueprint blueprint, final List<ContentLevelSpecification> specs) {
+    /**
+     * Populates the {@link tds.itemselection.impl.blueprint.Blueprint} with blueprint constraints.
+     *
+     * @param blueprint {@link tds.itemselection.impl.blueprint.Blueprint} to update with constraints
+     * @param specs the {@link tds.assessment.ContentLevelSpecification} data to use to update the blueprint
+     */
+    private static void populateBlueprintConstraints(final Blueprint blueprint, final List<ContentLevelSpecification> specs) {
         //Blueprint.initializeBluePrintConstraints
         HashMap<String, ReportingCategory> reportingCategories = new HashMap<>();
         HashMap<String, BpElement> bluePrintElements = new HashMap<>();
@@ -146,6 +152,13 @@ public class SegmentServiceImpl implements SegmentService {
         return reportingCategory;
     }
 
+    /**
+     * Populates the {@link tds.itemselection.impl.blueprint.Blueprint} for how to select items in the segment when
+     * leveraging an adaptive exam
+     *
+     * @param blueprint the {@link tds.itemselection.impl.blueprint.Blueprint} to update
+     * @param segment the {@link tds.assessment.Segment} containing the information to add to the blueprint
+     */
     private static void populateBlueprintFromSegment(final Blueprint blueprint, final Segment segment) {
         //Port of Bluepring initialization in Blueprint.initializeOverallBluePrint
         blueprint.segmentKey = segment.getKey();
