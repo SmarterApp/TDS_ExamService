@@ -21,6 +21,7 @@ import tds.accommodation.Accommodation;
 import tds.assessment.Assessment;
 import tds.assessment.AssessmentWindow;
 import tds.assessment.Segment;
+import tds.assessment.SegmentItemInformation;
 import tds.common.Algorithm;
 import tds.exam.builder.ExternalSessionConfigurationBuilder;
 import tds.exam.configuration.ExamServiceProperties;
@@ -158,5 +159,26 @@ public class AssessmentServiceImplTest {
         List<Accommodation> accommodations = assessmentService.findAssessmentAccommodationsByAssessmentId("SBAC", "id");
 
         assertThat(accommodations).containsExactly(accommodation);
+    }
+
+    @Test
+    public void shouldReturnSegmentItemInformation() throws URISyntaxException {
+        URI uri = new URI(BASE_URL + "segment-items/key");
+
+        SegmentItemInformation segmentItemInformation = new SegmentItemInformation.Builder().build();
+        when(restTemplate.getForObject(uri, SegmentItemInformation.class)).thenReturn(segmentItemInformation);
+        Optional<SegmentItemInformation> maybeSegmentItemInfo = assessmentService.findSegmentItemInformation("key");
+        verify(restTemplate).getForObject(uri, SegmentItemInformation.class);
+
+        assertThat(maybeSegmentItemInfo.get()).isEqualTo(segmentItemInformation);
+    }
+
+    @Test
+    public void shouldReturnEmptyIfSegmentInformationNotFound() throws URISyntaxException {
+        URI uri = new URI(BASE_URL + "segment-items/key");
+
+        when(restTemplate.getForObject(uri, SegmentItemInformation.class)).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
+        assertThat(assessmentService.findSegmentItemInformation("key")).isNotPresent();
+        verify(restTemplate).getForObject(uri, SegmentItemInformation.class);
     }
 }

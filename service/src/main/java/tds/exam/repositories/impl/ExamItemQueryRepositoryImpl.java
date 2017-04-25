@@ -141,6 +141,8 @@ public class ExamItemQueryRepositoryImpl implements ExamItemQueryRepository {
             "  I.position,\n" +
             "  I.is_fieldtest,\n" +
             "  I.is_required,\n" +
+            "  I.item_file_path, \n" +
+            "  I.stimulus_file_path, \n" +
             "  I.created_at, \n" +
             "  R.id as responseId,\n" +
             "  R.response,\n" +
@@ -197,7 +199,12 @@ public class ExamItemQueryRepositoryImpl implements ExamItemQueryRepository {
                 .withFieldTest(rs.getBoolean("is_fieldtest"))
                 .withRequired(rs.getBoolean("is_required"))
                 .withCreatedAt(ResultSetMapperUtility.mapTimestampToJodaInstant(rs, "created_at"))
-                .withPosition(rs.getInt("position"));
+                .withPosition(rs.getInt("position"))
+                .withItemFilePath(rs.getString("item_file_path"));
+
+            if(rs.getObject("stimulus_file_path") != null) {
+                itemBuilder.withStimulusFilePath(rs.getString("stimulus_file_path"));
+            }
 
             //Since there is a left join in the query this could not have a response
             if (rs.getObject("responseId") != null) {

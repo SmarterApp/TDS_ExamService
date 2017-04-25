@@ -56,6 +56,16 @@
             <artifactId>tds-config-client</artifactId>
             <version>${tds-config-client.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.opentestsystem.delivery</groupId>
+            <artifactId>tds-item-selection-components</artifactId>
+            <version>${tds-item-selection.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.opentestsystem.delivery</groupId>
+            <artifactId>student-library</artifactId>
+            <version>${tds-student-library.version}</version>
+        </dependency>
 
         <!-- Spring -->
         <dependency>

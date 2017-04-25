@@ -1,8 +1,6 @@
 package tds.exam.web.endpoints;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.Link;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -10,8 +8,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -20,22 +20,22 @@ import tds.common.ValidationError;
 import tds.common.web.resources.NoContentResponseResource;
 import tds.exam.ExamItemResponse;
 import tds.exam.ExamPage;
-import tds.exam.ExamStatusCode;
+import tds.exam.services.ExamItemSelectionService;
 import tds.exam.services.ExamItemService;
 import tds.exam.web.annotations.VerifyAccess;
-
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
-import static tds.exam.ExamStatusStage.INACTIVE;
+import tds.student.sql.data.OpportunityItem;
 
 @RestController
 @RequestMapping("/exam")
 public class ExamItemController {
     private final ExamItemService examItemService;
+    private final ExamItemSelectionService examItemSelectionService;
 
     @Autowired
-    public ExamItemController(ExamItemService examItemService) {
+    public ExamItemController(final ExamItemService examItemService,
+                              final ExamItemSelectionService examItemSelectionService) {
         this.examItemService = examItemService;
+        this.examItemSelectionService = examItemSelectionService;
     }
 
     @PostMapping("/{examId}/page/{position}/responses")
@@ -67,5 +67,13 @@ public class ExamItemController {
         }
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @PostMapping("/{examId}/item")
+    ResponseEntity<List<OpportunityItem>> getNextItemGroup(@PathVariable final UUID examId,
+                                                           @RequestParam int lastPagePosition,
+                                                           @RequestParam int lastItemPosition) {
+        List<OpportunityItem> page = examItemSelectionService.createNextPageGroup(examId, lastPagePosition, lastItemPosition);
+        return ResponseEntity.ok(page);
     }
 }

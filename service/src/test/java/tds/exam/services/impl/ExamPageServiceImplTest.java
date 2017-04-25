@@ -19,8 +19,6 @@ import tds.exam.Exam;
 import tds.exam.ExamItem;
 import tds.exam.ExamItemResponse;
 import tds.exam.ExamPage;
-import tds.exam.ExpandableExam;
-import tds.exam.ExpandableExamAttributes;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.builder.ExamItemBuilder;
 import tds.exam.builder.ExamPageBuilder;

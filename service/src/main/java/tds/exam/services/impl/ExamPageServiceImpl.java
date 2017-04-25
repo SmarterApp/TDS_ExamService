@@ -5,25 +5,20 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import tds.common.Response;
 import tds.common.web.exceptions.NotFoundException;
 import tds.exam.ExamItem;
 import tds.exam.ExamPage;
-import tds.exam.ExpandableExam;
-import tds.exam.ExpandableExamAttributes;
 import tds.exam.repositories.ExamItemQueryRepository;
 import tds.exam.repositories.ExamPageCommandRepository;
 import tds.exam.repositories.ExamPageQueryRepository;
 import tds.exam.services.ExamPageService;
-import tds.exam.services.ExpandableExamService;
 
 @Service
 public class ExamPageServiceImpl implements ExamPageService {

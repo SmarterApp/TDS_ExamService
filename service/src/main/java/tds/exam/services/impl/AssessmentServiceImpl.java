@@ -18,6 +18,7 @@ import java.util.Optional;
 import tds.accommodation.Accommodation;
 import tds.assessment.Assessment;
 import tds.assessment.AssessmentWindow;
+import tds.assessment.SegmentItemInformation;
 import tds.common.cache.CacheType;
 import tds.exam.configuration.ExamServiceProperties;
 import tds.exam.services.AssessmentService;
@@ -88,6 +89,7 @@ class AssessmentServiceImpl implements AssessmentService {
     }
 
     @Override
+    @Cacheable(CacheType.LONG_TERM)
     public List<Accommodation> findAssessmentAccommodationsByAssessmentKey(final String clientName, final String assessmentKey) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
@@ -105,6 +107,7 @@ class AssessmentServiceImpl implements AssessmentService {
     }
 
     @Override
+    @Cacheable(CacheType.LONG_TERM)
     public List<Accommodation> findAssessmentAccommodationsByAssessmentId(final String clientName, final String assessmentId) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
@@ -122,4 +125,25 @@ class AssessmentServiceImpl implements AssessmentService {
         return responseEntity.getBody();
     }
 
+    @Override
+    @Cacheable(CacheType.LONG_TERM)
+    public Optional<SegmentItemInformation> findSegmentItemInformation(final String segmentKey) {
+        URI uri =
+            UriComponentsBuilder
+                .fromHttpUrl(String.format("%s/segment-items/%s",
+                    examServiceProperties.getAssessmentUrl(),
+                    segmentKey)).build().toUri();
+
+        Optional<SegmentItemInformation> maybeSegmentItemInfo = Optional.empty();
+        try {
+            final SegmentItemInformation segmentItemInformation = restTemplate.getForObject(uri, SegmentItemInformation.class);
+            maybeSegmentItemInfo = Optional.of(segmentItemInformation);
+        } catch (HttpClientErrorException hce) {
+            if (hce.getStatusCode() != HttpStatus.NOT_FOUND) {
+                throw hce;
+            }
+        }
+
+        return maybeSegmentItemInfo;
+    }
 }

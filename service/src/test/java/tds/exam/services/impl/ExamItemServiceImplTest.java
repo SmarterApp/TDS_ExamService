@@ -27,6 +27,7 @@ import tds.exam.ExamPage;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
 import tds.exam.builder.ExamBuilder;
+import tds.exam.builder.ExamItemBuilder;
 import tds.exam.builder.ExamItemResponseBuilder;
 import tds.exam.builder.ExamItemResponseScoreBuilder;
 import tds.exam.builder.ExamPageBuilder;
@@ -62,7 +63,6 @@ public class ExamItemServiceImplTest {
 
     @Mock
     private ExamQueryRepository mockExamQueryRepository;
-
 
     @Mock
     private ExamItemResponseScoringService mockExamItemResponseScoringService;
@@ -189,7 +189,7 @@ public class ExamItemServiceImplTest {
         final int position = 7;
         final boolean mark = true;
 
-        ExamItem examItem = new ExamItem.Builder(UUID.randomUUID())
+        ExamItem examItem = new ExamItemBuilder().withId(UUID.randomUUID())
             .withResponse(new ExamItemResponse.Builder()
                 .withSequence(3)
                 .withResponse("the response")
@@ -232,7 +232,7 @@ public class ExamItemServiceImplTest {
         final UUID examId = UUID.randomUUID();
         final int position = 7;
         final boolean mark = true;
-        ExamItem examItem = new ExamItem.Builder(UUID.randomUUID()).build();
+        ExamItem examItem = new ExamItemBuilder().withId(UUID.randomUUID()).build();
 
         when(mockExamItemQueryRepository.findExamItemAndResponse(examId, position)).thenReturn(Optional.of(examItem));
 
@@ -248,7 +248,7 @@ public class ExamItemServiceImplTest {
     @Test
     public void shouldFindItemAndResponsesForExam() {
         final UUID examId = UUID.randomUUID();
-        ExamItem examItem = new ExamItem.Builder(UUID.randomUUID()).build();
+        ExamItem examItem = new ExamItemBuilder().withId(UUID.randomUUID()).build();
 
         when(mockExamItemQueryRepository.findExamItemAndResponses(examId)).thenReturn(Collections.singletonList(examItem));
 
@@ -259,7 +259,7 @@ public class ExamItemServiceImplTest {
     public void shouldFindItemAndResponsesForExamAndPosition() {
         final UUID examId = UUID.randomUUID();
         final int position = 7;
-        ExamItem examItem = new ExamItem.Builder(UUID.randomUUID()).build();
+        ExamItem examItem = new ExamItemBuilder().withId(UUID.randomUUID()).build();
 
         when(mockExamItemQueryRepository.findExamItemAndResponse(examId, position)).thenReturn(Optional.of(examItem));
 

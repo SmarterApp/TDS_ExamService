@@ -1,7 +1,6 @@
 package tds.exam;
 
 import com.google.common.base.Optional;
-import org.joda.time.DateTime;
 import org.joda.time.Instant;
 
 import java.util.UUID;
@@ -34,16 +33,16 @@ public class ExamItem {
 
 
     private ExamItem(Builder builder) {
-        id = builder.id;
-        examPageId = builder.examPageId;
-        itemKey = builder.itemKey;
-        assessmentItemBankKey = builder.assessmentItemBankKey;
-        assessmentItemKey = builder.assessmentItemKey;
-        itemType = builder.itemType;
+        id = checkNotNull(builder.id);
+        examPageId = checkNotNull(builder.examPageId);
+        itemKey = checkNotNull(builder.itemKey);
+        assessmentItemBankKey = checkNotNull(builder.assessmentItemBankKey);
+        assessmentItemKey = checkNotNull(builder.assessmentItemKey);
+        itemType = checkNotNull(builder.itemType);
         position = builder.position;
         required = builder.required;
         fieldTest = builder.fieldTest;
-        itemFilePath = builder.itemFilePath;
+        itemFilePath = checkNotNull(builder.itemFilePath);
         stimulusFilePath = builder.stimulusFilePath;
         response = builder.response;
         createdAt = builder.createdAt;
