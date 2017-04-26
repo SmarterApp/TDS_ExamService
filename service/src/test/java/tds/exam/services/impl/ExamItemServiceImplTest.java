@@ -189,8 +189,10 @@ public class ExamItemServiceImplTest {
         final int position = 7;
         final boolean mark = true;
 
-        ExamItem examItem = new ExamItemBuilder().withId(UUID.randomUUID())
+        UUID examItemId = UUID.randomUUID();
+        ExamItem examItem = new ExamItemBuilder().withId(examItemId)
             .withResponse(new ExamItemResponse.Builder()
+                .withExamItemId(examItemId)
                 .withSequence(3)
                 .withResponse("the response")
                 .withMarkedForReview(false)

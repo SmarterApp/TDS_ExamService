@@ -30,8 +30,8 @@ public class ExamItemResponse {
 
     private ExamItemResponse(Builder builder) {
         id = builder.id;
-        examItemId = builder.examItemId;
-        response = builder.response;
+        examItemId = checkNotNull(builder.examItemId);
+        response = checkNotNull(builder.response);
         sequence = builder.sequence;
         valid = builder.valid;
         selected = builder.selected;

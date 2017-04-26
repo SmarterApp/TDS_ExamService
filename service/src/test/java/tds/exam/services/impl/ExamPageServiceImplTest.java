@@ -90,19 +90,23 @@ public class ExamPageServiceImplTest {
     public void shouldGetAnExamPageWithItems() {
         UUID mockExamId = UUID.randomUUID();
 
+        UUID firstItemId = UUID.randomUUID();
         Instant respondedAtInstant = Instant.now().minus(200000);
         ExamItem mockFirstExamItem = new ExamItemBuilder()
+            .withId(firstItemId)
             .withExamPageId(ExamPageBuilder.DEFAULT_ID)
             .withItemKey("187-1234")
             .withRequired(true)
             .withResponse(new ExamItemResponse.Builder()
+                .withExamItemId(firstItemId)
                 .withResponse("first item response")
                 .withValid(true)
                 .withCreatedAt(respondedAtInstant)
                 .build())
             .build();
+        UUID secondItemId = UUID.randomUUID();
         ExamItem mockSecondExamItem = new ExamItemBuilder()
-            .withId(UUID.randomUUID())
+            .withId(secondItemId)
             .withExamPageId(ExamPageBuilder.DEFAULT_ID)
             .withItemKey("187-5678")
             .withAssessmentItemKey(5678L)

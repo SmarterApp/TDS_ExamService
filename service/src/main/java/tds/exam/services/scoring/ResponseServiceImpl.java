@@ -12,6 +12,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Date;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+
 import tds.exam.Exam;
 import tds.exam.ExamItem;
 import tds.exam.ExamItemResponse;
@@ -27,11 +33,6 @@ import tds.score.model.ExamInstance;
 import tds.score.services.ResponseService;
 import tds.student.sql.data.IItemResponseScorable;
 import tds.student.sql.data.IItemResponseUpdate;
-
-import java.util.Date;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
 
 import static tds.exam.ExamStatusCode.STATUS_REVIEW;
 import static tds.exam.ExamStatusCode.STATUS_SEGMENT_ENTRY;
@@ -122,8 +123,15 @@ public class ResponseServiceImpl implements ResponseService {
         }
 
         ExamItem existingExamItem = maybeItem.get();
-        ExamItemResponse.Builder updatedResponseBuilder = ExamItemResponse.Builder
-            .fromExamItemResponse(existingExamItem.getResponse().get());
+        ExamItemResponse.Builder updatedResponseBuilder = new ExamItemResponse.Builder()
+            .withExamItemId(existingExamItem.getId())
+            .withResponse(responseUpdate.getValue());
+
+        if (existingExamItem.getResponse().isPresent()) {
+            updatedResponseBuilder = ExamItemResponse.Builder
+                .fromExamItemResponse(existingExamItem.getResponse().get());
+        }
+
         ExamItemResponseScore.Builder updatedScoreBuilder = new ExamItemResponseScore.Builder();
         final Instant now = Instant.now();
         if (responseUpdate.getValue() != null || DbComparator.lessThan(score, 0)) {
@@ -163,7 +171,7 @@ public class ResponseServiceImpl implements ResponseService {
             Optional<ExamPage> maybeExamPage = examPageService.find(existingExamItem.getExamPageId());
 
             //Something is misconfigured if this is ever true
-            if(!maybeExamPage.isPresent()) {
+            if (!maybeExamPage.isPresent()) {
                 throw new ReturnStatusException("Exam page is no longer present for the updated item");
             }
 
@@ -186,7 +194,7 @@ public class ResponseServiceImpl implements ResponseService {
                                         final String scoreDimensions) throws ReturnStatusException {
         ReturnStatus returnStatus = new ReturnStatus("updated");
         Optional<ExamItem> maybeItem = examItemQueryRepository.findExamItemAndResponse(examId, responseScorable.getPosition());
-        if(!maybeItem.isPresent()) {
+        if (!maybeItem.isPresent()) {
             throw new ReturnStatusException(String.format("The item does not exist at this position in this test opportunity: Position = %d; examId = %s; testeeresponse._efk_ItemKey found is %s",
                 responseScorable.getPosition(), examId, maybeItem.map(ExamItem::getItemKey).orElse("null")));
         }
@@ -195,7 +203,7 @@ public class ResponseServiceImpl implements ResponseService {
 
         //This simulates the conditional in StudentDLL.S_UpdateItemScore_SP (line 10009) comparing scoreMark and Sequence which will not match in our system
         //if the item does not have a response or score
-        if(existingItem.getResponse().isPresent()
+        if (existingItem.getResponse().isPresent()
             && existingItem.getResponse().get().getScore().isPresent()
             && DbComparator.isEqual(responseScorable.getScoreMark(), existingItem.getResponse().get().getScore().get().getScoreMark())
             && DbComparator.isEqual(responseScorable.getSequence(), existingItem.getResponse().get().getSequence())) {
@@ -231,12 +239,12 @@ public class ResponseServiceImpl implements ResponseService {
     }
 
     //Pulled directly from StudentDLL
-    private String buildScoreInfoNode (Integer score, String scoreDimConstant, String scoreStatus) {
+    private String buildScoreInfoNode(Integer score, String scoreDimConstant, String scoreStatus) {
         // (SELECT Score AS "@scorePoint" ,'overall' AS
         // "@scoreDimension",scorestatus AS "@scoreStatus",
         // Example
         // <ScoreInfo scorePoint="1" scoreDimension="overall" scoreStatus="Scored">
-        return String.format ("<ScoreInfo scorePoint=\"%d\" scoreDimension=\"%s\" scoreStatus=\"%s\"><SubScoreList /></ScoreInfo>",
+        return String.format("<ScoreInfo scorePoint=\"%d\" scoreDimension=\"%s\" scoreStatus=\"%s\"><SubScoreList /></ScoreInfo>",
             score, scoreDimConstant, scoreStatus);
     }
 }
