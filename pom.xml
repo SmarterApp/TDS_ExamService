@@ -27,7 +27,7 @@
         <mysql.version>5.1.39</mysql.version>
         <joda-time.version>2.9.5</joda-time.version>
 
-        <tds-common.version>0.0.14</tds-common.version>
+        <tds-common.version>0.0.15</tds-common.version>
         <tds-student-client.version>0.0.1</tds-student-client.version>
         <tds-assessment-client.version>0.0.10</tds-assessment-client.version>
         <tds-session.version>0.0.5</tds-session.version>
