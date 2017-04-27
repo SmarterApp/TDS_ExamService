@@ -25,6 +25,7 @@ import java.util.UUID;
 
 import tds.accommodation.Accommodation;
 import tds.assessment.Assessment;
+import tds.assessment.AssessmentInfo;
 import tds.assessment.AssessmentWindow;
 import tds.common.Response;
 import tds.common.ValidationError;
@@ -36,6 +37,7 @@ import tds.exam.ApproveAccommodationsRequest;
 import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
 import tds.exam.ExamApproval;
+import tds.exam.ExamAssessmentInfo;
 import tds.exam.ExamConfiguration;
 import tds.exam.ExamInfo;
 import tds.exam.ExamStatusCode;
@@ -68,12 +70,14 @@ import tds.exam.services.StudentService;
 import tds.exam.services.TimeLimitConfigurationService;
 import tds.session.ExternalSessionConfiguration;
 import tds.session.Session;
+import tds.session.SessionAssessment;
 import tds.student.RtsStudentPackageAttribute;
 import tds.student.Student;
 
 import static io.github.benas.randombeans.api.EnhancedRandom.random;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -90,6 +94,8 @@ import static tds.exam.ExamStatusStage.OPEN;
 import static tds.session.ExternalSessionConfiguration.DEVELOPMENT_ENVIRONMENT;
 import static tds.session.ExternalSessionConfiguration.SIMULATION_ENVIRONMENT;
 import static tds.student.RtsStudentPackageAttribute.ACCOMMODATIONS;
+import static tds.student.RtsStudentPackageAttribute.BLOCKED_SUBJECT;
+import static tds.student.RtsStudentPackageAttribute.ELIGIBLE_ASSESSMENTS;
 import static tds.student.RtsStudentPackageAttribute.ENTITY_NAME;
 import static tds.student.RtsStudentPackageAttribute.EXTERNAL_ID;
 
@@ -1407,5 +1413,208 @@ public class ExamServiceImplTest {
         verify(mockExamApprovalService).verifyAccess(any(), any());
         // Verify that the exam was updated with the custom accommodation flag
         verify(mockExamCommandRepository, never()).update(any());
+    }
+
+    @Test
+    public void shouldFindEligibleExamsForGuest() {
+        final String clientName = "SBAC_PT";
+        final long studentId = -1234;
+        final UUID sessionId = null;
+        final String grade = "3";
+
+        AssessmentInfo assessmentInfo1 = random(AssessmentInfo.class);
+        AssessmentInfo assessmentInfo2 = random(AssessmentInfo.class);
+
+        when(mockAssessmentService.findAssessmentInfosForGrade(clientName, grade)).thenReturn(Arrays.asList(assessmentInfo1, assessmentInfo2));
+        List<ExamAssessmentInfo> elligibleExams = examService.findExamAssessmentInfo(clientName, studentId, sessionId, grade);
+;
+        ExamAssessmentInfo retExamInfo1 = elligibleExams.get(0);
+        ExamAssessmentInfo retExamInfo2 = elligibleExams.get(1);
+
+        assertThat(retExamInfo1.getAssessmentKey()).isEqualTo(assessmentInfo1.getKey());
+        assertThat(retExamInfo1.getAssessmentId()).isEqualTo(assessmentInfo1.getId());
+        assertThat(retExamInfo1.getAssessmentLabel()).isEqualTo(assessmentInfo1.getLabel());
+        assertThat(retExamInfo1.getMaxAttempts()).isEqualTo(assessmentInfo1.getMaxAttempts());
+        assertThat(retExamInfo1.getSubject()).isEqualTo(assessmentInfo1.getSubject());
+        assertThat(retExamInfo1.getAttempt()).isEqualTo(1);
+        assertThat(retExamInfo1.getStatus()).isEqualTo(ExamStatusCode.STATUS_PENDING);
+        assertThat(retExamInfo1.getGrade()).isEqualTo(grade);
+        assertThat(retExamInfo2.getAssessmentKey()).isEqualTo(assessmentInfo2.getKey());
+        assertThat(retExamInfo2.getAssessmentId()).isEqualTo(assessmentInfo2.getId());
+        assertThat(retExamInfo2.getAssessmentLabel()).isEqualTo(assessmentInfo2.getLabel());
+        assertThat(retExamInfo2.getMaxAttempts()).isEqualTo(assessmentInfo2.getMaxAttempts());
+        assertThat(retExamInfo2.getSubject()).isEqualTo(assessmentInfo2.getSubject());
+        assertThat(retExamInfo2.getAttempt()).isEqualTo(1);
+        assertThat(retExamInfo2.getStatus()).isEqualTo(ExamStatusCode.STATUS_PENDING);
+        assertThat(retExamInfo2.getGrade()).isEqualTo(grade);
+    }
+
+    @Test
+    public void shouldFindEligibleExamsForStudent() {
+        final String clientName = "SBAC_PT";
+        final long studentId = 1184;
+        final UUID sessionId = UUID.randomUUID();
+        final String grade = "3";
+
+        Session currentSession = random(Session.class);
+        // New assessment that student has never taken
+        AssessmentInfo assessmentInfo1 = new AssessmentInfo.Builder()
+            .fromAssessmentInfo(random(AssessmentInfo.class))
+            .withMaxAttempts(20)
+            .build();
+        // Assessment that is not enabled by proctor, but student is elligible for
+        AssessmentInfo assessmentInfo2 = new AssessmentInfo.Builder()
+            .fromAssessmentInfo(random(AssessmentInfo.class))
+            .withMaxAttempts(20)
+            .build();
+        // Assessment that is enabled and student has already started
+        AssessmentInfo assessmentInfo3 = new AssessmentInfo.Builder()
+            .fromAssessmentInfo(random(AssessmentInfo.class))
+            .withMaxAttempts(20)
+            .build();
+        // Assessment that has been previously taken by student and completed
+        AssessmentInfo assessmentInfo4 = new AssessmentInfo.Builder()
+            .fromAssessmentInfo(random(AssessmentInfo.class))
+            .withMaxAttempts(20)
+            .build();
+        // Assessment that has a blocked subject
+        AssessmentInfo assessmentInfo5 = new AssessmentInfo.Builder()
+            .fromAssessmentInfo(random(AssessmentInfo.class))
+            .withMaxAttempts(20)
+            .withSubject("JUNKED!")
+            .build();
+
+        // Only first assessment will be enabled by proctor - assessment 2 should be unavailable.
+        List<SessionAssessment> sessionAssessments = Arrays.asList(
+            new SessionAssessment(sessionId, assessmentInfo1.getId(), assessmentInfo1.getKey()),
+            new SessionAssessment(sessionId, assessmentInfo3.getId(), assessmentInfo3.getKey()),
+            new SessionAssessment(sessionId, assessmentInfo4.getId(), assessmentInfo4.getKey()),
+            new SessionAssessment(sessionId, assessmentInfo5.getId(), assessmentInfo5.getKey())
+        );
+
+        Session session1 = new Session.Builder()
+            .fromSession(random(Session.class))
+            .withStatus("closed")
+            .build();
+
+        Exam resumableExam = new Exam.Builder()
+            .fromExam(random(Exam.class))
+            .withSessionId(session1.getId())
+            .withAssessmentKey(assessmentInfo3.getKey())
+            .withAssessmentId(assessmentInfo3.getId())
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_PAUSED), new Instant())
+            .withAttempts(1)
+            .build();
+
+        Exam completedExam = new Exam.Builder()
+            .fromExam(random(Exam.class))
+            .withSessionId(session1.getId())
+            .withAssessmentKey(assessmentInfo4.getKey())
+            .withAssessmentId(assessmentInfo4.getId())
+            .withAttempts(1)
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_COMPLETED), new Instant().minus(999999999))
+            .withCompletedAt(new Instant().minus(999999999))
+            .build();
+
+        when(mockSessionService.findSessionById(sessionId)).thenReturn(Optional.of(currentSession));
+        when(mockStudentService.findStudentPackageAttributes(studentId, clientName, ELIGIBLE_ASSESSMENTS, BLOCKED_SUBJECT)).thenReturn(
+            Arrays.asList(
+                new RtsStudentPackageAttribute(ELIGIBLE_ASSESSMENTS, assessmentInfo1.getKey() + ";" + assessmentInfo2.getKey()),
+                new RtsStudentPackageAttribute(BLOCKED_SUBJECT, "JUNKED!")
+            )
+        );
+        when(mockAssessmentService.findAssessmentInfosForAssessments(eq(clientName), Matchers.<String>anyVararg()))
+            .thenReturn(Arrays.asList(assessmentInfo1, assessmentInfo2, assessmentInfo3, assessmentInfo4, assessmentInfo5));
+        when(mockSessionService.findSessionAssessments(sessionId)).thenReturn(sessionAssessments);
+        when(mockExamQueryRepository.findAllExamsForStudent(studentId)).thenReturn(Arrays.asList(resumableExam, completedExam));
+        when(mockSessionService.findSessionsByIds(any())).thenReturn(Collections.singletonList(session1));
+        when(mockSessionService.findSessionById(session1.getId())).thenReturn(Optional.of(session1));
+        when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(any(), any()))
+            .thenReturn(Optional.of(new TimeLimitConfiguration.Builder().withExamDelayDays(1).build()));
+
+        List<ExamAssessmentInfo> elligibleExams = examService.findExamAssessmentInfo(clientName, studentId, sessionId, grade);
+        assertThat(elligibleExams).hasSize(5);
+
+        verify(mockSessionService).findSessionById(any());
+        verify(mockStudentService).findStudentPackageAttributes(studentId, clientName, ELIGIBLE_ASSESSMENTS, BLOCKED_SUBJECT);
+        verify(mockAssessmentService).findAssessmentInfosForAssessments(eq(clientName), Matchers.<String>anyVararg());
+        verify(mockSessionService).findSessionAssessments(sessionId);
+        verify(mockExamQueryRepository).findAllExamsForStudent(studentId);
+        verify(mockSessionService).findSessionsByIds(any());
+
+        ExamAssessmentInfo examAssessmentInfo1 = null;
+        ExamAssessmentInfo examAssessmentInfo2 = null;
+        ExamAssessmentInfo examAssessmentInfo3 = null;
+        ExamAssessmentInfo examAssessmentInfo4 = null;
+        ExamAssessmentInfo examAssessmentInfo5 = null;
+
+        for(ExamAssessmentInfo info : elligibleExams) {
+            if (info.getAssessmentKey().equals(assessmentInfo1.getKey())) {
+                examAssessmentInfo1 = info;
+            } else if (info.getAssessmentKey().equals(assessmentInfo2.getKey())) {
+                examAssessmentInfo2 = info;
+            } else if (info.getAssessmentKey().equals(assessmentInfo3.getKey())) {
+                examAssessmentInfo3 = info;
+            } else if (info.getAssessmentKey().equals(assessmentInfo4.getKey())) {
+                examAssessmentInfo4 = info;
+            } else if (info.getAssessmentKey().equals(assessmentInfo5.getKey())) {
+                examAssessmentInfo5 = info;
+            }
+        }
+
+        // Elligible NEW exam assessment
+        assertThat(examAssessmentInfo1.getAssessmentId()).isEqualTo(assessmentInfo1.getId());
+        assertThat(examAssessmentInfo1.getAssessmentKey()).isEqualTo(assessmentInfo1.getKey());
+        assertThat(examAssessmentInfo1.getAssessmentLabel()).isEqualTo(assessmentInfo1.getLabel());
+        assertThat(examAssessmentInfo1.getDeniedReason()).isNull();
+        assertThat(examAssessmentInfo1.getSubject()).isEqualTo(assessmentInfo1.getSubject());
+        assertThat(examAssessmentInfo1.getMaxAttempts()).isEqualTo(assessmentInfo1.getMaxAttempts());
+        assertThat(examAssessmentInfo1.getAttempt()).isEqualTo(1);
+        assertThat(examAssessmentInfo1.getGrade()).isEqualTo("3");
+        assertThat(examAssessmentInfo1.getStatus()).isEqualTo(ExamStatusCode.STATUS_PENDING);
+
+        // Exam assessment unavailable (not added to session by proctor)
+        assertThat(examAssessmentInfo2.getAssessmentId()).isEqualTo(assessmentInfo2.getId());
+        assertThat(examAssessmentInfo2.getAssessmentKey()).isEqualTo(assessmentInfo2.getKey());
+        assertThat(examAssessmentInfo2.getAssessmentLabel()).isEqualTo(assessmentInfo2.getLabel());
+        assertThat(examAssessmentInfo2.getDeniedReason()).isNotNull();
+        assertThat(examAssessmentInfo2.getSubject()).isEqualTo(assessmentInfo2.getSubject());
+        assertThat(examAssessmentInfo2.getMaxAttempts()).isEqualTo(assessmentInfo2.getMaxAttempts());
+        assertThat(examAssessmentInfo2.getAttempt()).isEqualTo(0);
+        assertThat(examAssessmentInfo2.getGrade()).isEqualTo("3");
+        assertThat(examAssessmentInfo2.getStatus()).isEqualTo(ExamStatusCode.STATUS_DENIED);
+
+        // Exam assessment that can be resumed
+        assertThat(examAssessmentInfo3.getAssessmentId()).isEqualTo(assessmentInfo3.getId());
+        assertThat(examAssessmentInfo3.getAssessmentKey()).isEqualTo(assessmentInfo3.getKey());
+        assertThat(examAssessmentInfo3.getAssessmentLabel()).isEqualTo(assessmentInfo3.getLabel());
+        assertThat(examAssessmentInfo3.getDeniedReason()).isNull();
+        assertThat(examAssessmentInfo3.getSubject()).isEqualTo(assessmentInfo3.getSubject());
+        assertThat(examAssessmentInfo3.getMaxAttempts()).isEqualTo(assessmentInfo3.getMaxAttempts());
+        assertThat(examAssessmentInfo3.getAttempt()).isEqualTo(1);
+        assertThat(examAssessmentInfo3.getGrade()).isEqualTo("3");
+        assertThat(examAssessmentInfo3.getStatus()).isEqualTo(ExamStatusCode.STATUS_SUSPENDED);
+
+        // Exam assessment with previously completed attempt - new attempt elligible
+        assertThat(examAssessmentInfo4.getAssessmentId()).isEqualTo(assessmentInfo4.getId());
+        assertThat(examAssessmentInfo4.getAssessmentKey()).isEqualTo(assessmentInfo4.getKey());
+        assertThat(examAssessmentInfo4.getAssessmentLabel()).isEqualTo(assessmentInfo4.getLabel());
+        assertThat(examAssessmentInfo4.getDeniedReason()).isNull();
+        assertThat(examAssessmentInfo4.getSubject()).isEqualTo(assessmentInfo4.getSubject());
+        assertThat(examAssessmentInfo4.getMaxAttempts()).isEqualTo(assessmentInfo4.getMaxAttempts());
+        assertThat(examAssessmentInfo4.getAttempt()).isEqualTo(2);
+        assertThat(examAssessmentInfo4.getGrade()).isEqualTo("3");
+        assertThat(examAssessmentInfo4.getStatus()).isEqualTo(ExamStatusCode.STATUS_PENDING);
+
+        // Exam assessment unavailable because the subject is blocked
+        assertThat(examAssessmentInfo5.getAssessmentId()).isEqualTo(assessmentInfo5.getId());
+        assertThat(examAssessmentInfo5.getAssessmentKey()).isEqualTo(assessmentInfo5.getKey());
+        assertThat(examAssessmentInfo5.getAssessmentLabel()).isEqualTo(assessmentInfo5.getLabel());
+        assertThat(examAssessmentInfo5.getDeniedReason()).isNotNull();
+        assertThat(examAssessmentInfo5.getSubject()).isEqualTo(assessmentInfo5.getSubject());
+        assertThat(examAssessmentInfo5.getMaxAttempts()).isEqualTo(assessmentInfo5.getMaxAttempts());
+        assertThat(examAssessmentInfo5.getAttempt()).isEqualTo(0);
+        assertThat(examAssessmentInfo5.getGrade()).isEqualTo("3");
+        assertThat(examAssessmentInfo5.getStatus()).isEqualTo(ExamStatusCode.STATUS_DENIED);
     }
 }

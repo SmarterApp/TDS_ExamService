@@ -2,7 +2,6 @@ package tds.exam.web.endpoints;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -13,6 +12,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.net.URI;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.UUID;
@@ -20,6 +20,7 @@ import java.util.UUID;
 import tds.common.ValidationError;
 import tds.exam.ApproveAccommodationsRequest;
 import tds.exam.Exam;
+import tds.exam.ExamAssessmentInfo;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusRequest;
 import tds.exam.ExamStatusStage;
@@ -255,5 +256,29 @@ public class ExamControllerIntegrationTests {
             .andExpect(status().isUnprocessableEntity());
 
         verify(mockExamService).updateExamAccommodationsAndExam(examId, request);
+    }
+
+    @Test
+    public void shouldGetEligibleExamAssessments() throws Exception {
+        final String clientName = "SBAC_PT";
+        final long studentId = 2112;
+        final UUID sessionId = UUID.randomUUID();
+        final String grade = "3";
+
+        ExamAssessmentInfo examAssessmentInfo1 = random(ExamAssessmentInfo.class);
+        ExamAssessmentInfo examAssessmentInfo2 = random(ExamAssessmentInfo.class);
+
+        when(mockExamService.findExamAssessmentInfo(clientName, studentId, sessionId, grade))
+            .thenReturn(Arrays.asList(examAssessmentInfo1, examAssessmentInfo2));
+
+        http.perform(get(new URI(String.format("/exam/eligible/%s/%s", clientName, studentId)))
+            .contentType(MediaType.APPLICATION_JSON)
+            .param("sessionId", sessionId.toString())
+            .param("grade", grade))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("data.[0].assessmentId", is(examAssessmentInfo1.getAssessmentId().toString())))
+            .andExpect(jsonPath("data.[1].assessmentId", is(examAssessmentInfo2.getAssessmentId().toString())));
+
+        verify(mockExamService).findExamAssessmentInfo(clientName, studentId, sessionId, grade);
     }
 }

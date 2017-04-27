@@ -107,7 +107,6 @@ public class ExamQueryRepositoryImplIntegrationTests {
             .withAssessmentId("assessmentId5")
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.INACTIVE), Instant.now())
             .withStudentId(7L)
-            .withAssessmentId("assessmentId5")
             .build());
         examsInSession.add(new ExamBuilder().withSessionId(mockSessionId)
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_STARTED, ExamStatusStage.INACTIVE), Instant.now())
@@ -118,6 +117,10 @@ public class ExamQueryRepositoryImplIntegrationTests {
             .withStudentId(9L)
             .withAssessmentId("assessmentId6")
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_FAILED, ExamStatusStage.INACTIVE), Instant.now())
+            .build());
+        examsInSession.add(new ExamBuilder().withSessionId(mockSessionId)
+            .withStudentId(5L)
+            .withAssessmentId("assessmentId7")
             .build());
 
         examsInSession.forEach(exam -> {
@@ -348,5 +351,12 @@ public class ExamQueryRepositoryImplIntegrationTests {
     public void shouldReturnListOfExamsPendingApproval() {
         List<Exam> examsPendingApproval = examQueryRepository.getExamsPendingApproval(mockSessionId);
         assertThat(examsPendingApproval.size()).isEqualTo(1);
+    }
+
+    @Test
+    public void shouldReturnListOfExamsForStudent() {
+        final long studentId = 5;
+        List<Exam> exams = examQueryRepository.findAllExamsForStudent(studentId);
+        assertThat(exams).hasSize(2);
     }
 }

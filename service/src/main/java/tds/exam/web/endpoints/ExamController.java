@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -24,10 +25,10 @@ import tds.common.web.exceptions.NotFoundException;
 import tds.common.web.resources.NoContentResponseResource;
 import tds.exam.ApproveAccommodationsRequest;
 import tds.exam.Exam;
+import tds.exam.ExamAssessmentInfo;
 import tds.exam.ExamConfiguration;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusRequest;
-import tds.exam.ExamStatusStage;
 import tds.exam.OpenExamRequest;
 import tds.exam.SegmentApprovalRequest;
 import tds.exam.services.ExamService;
@@ -155,5 +156,13 @@ public class ExamController {
         headers.add("Location", link.getHref());
 
         return new ResponseEntity<>(headers, HttpStatus.NO_CONTENT);
+    }
+
+    @RequestMapping(value = "/eligible/{clientName}/{studentId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<List<ExamAssessmentInfo>> findEligibleExamAssessments(@PathVariable final String clientName,
+                                                                        @PathVariable final long studentId,
+                                                                        @RequestParam final UUID sessionId,
+                                                                        @RequestParam final String grade) {
+        return ResponseEntity.ok(examService.findExamAssessmentInfo(clientName, studentId, sessionId, grade));
     }
 }
