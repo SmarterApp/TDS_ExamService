@@ -10,12 +10,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
 import tds.exam.Exam;
 import tds.exam.ExamItem;
 import tds.exam.ExamItemResponse;
@@ -33,12 +27,17 @@ import tds.exam.repositories.ExamItemQueryRepository;
 import tds.exam.repositories.ExamPageCommandRepository;
 import tds.exam.repositories.ExamSegmentCommandRepository;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest
 @Transactional
-public class ExamItemQueryRepositoryIntegrationTests {
+public class ExamItemQueryRepositoryImplIntegrationTests {
     @Autowired
     @Qualifier("commandJdbcTemplate")
     private NamedParameterJdbcTemplate jdbcTemplate;
@@ -127,6 +126,8 @@ public class ExamItemQueryRepositoryIntegrationTests {
         assertThat(response.getSequence()).isEqualTo(1);
         assertThat(response.getScore().isPresent()).isTrue();
         assertThat(response.isMarkedForReview()).isTrue();
+        assertThat(response.getExamItemId()).isEqualTo(fetchedItem.getId());
+        assertThat(response.getCreatedAt()).isLessThanOrEqualTo(Instant.now());
 
         ExamItemResponseScore score = response.getScore().get();
 
