@@ -30,7 +30,7 @@
         <tds-common.version>0.0.15</tds-common.version>
         <tds-session.version>0.0.5</tds-session.version>
         <tds-assessment-client.version>0.0.11</tds-assessment-client.version>
-        <tds-student-client.version>0.0.2-SNAPSHOT</tds-student-client.version>
+        <tds-student-client.version>0.0.2</tds-student-client.version>
         <tds-config-client.version>0.0.2</tds-config-client.version>
         <tds-student-library.version>3.0.5</tds-student-library.version>
         <tds-item-selection.version>3.0.1</tds-item-selection.version>
