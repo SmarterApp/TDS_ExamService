@@ -1,35 +1,35 @@
-package tds.exam.item;
+package tds.exam.repositories.impl;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
-import org.springframework.stereotype.Component;
+import org.apache.commons.io.IOUtils;
+import org.springframework.stereotype.Repository;
 import tds.exam.configuration.scoring.ScoringS3Properties;
-import tds.itemrenderer.processing.ItemDataReader;
+import tds.score.repositories.ItemDataRepository;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
 
+import static org.apache.commons.io.Charsets.UTF_8;
 import static org.apache.commons.io.FilenameUtils.getName;
 import static org.apache.commons.io.FilenameUtils.removeExtension;
 import static org.apache.commons.lang3.StringUtils.capitalize;
 
-@Component
-public class S3ItemReader implements ItemDataReader {
+@Repository
+public class S3ItemDataRepository implements ItemDataRepository {
     private final AmazonS3 s3Client;
     private final ScoringS3Properties s3Properties;
 
-    S3ItemReader(final AmazonS3 s3Client,
-                        final ScoringS3Properties s3Properties) {
+    S3ItemDataRepository(final AmazonS3 s3Client,
+                         final ScoringS3Properties s3Properties) {
         this.s3Client = s3Client;
         this.s3Properties = s3Properties;
     }
 
     @Override
-    public InputStream readData(final URI uri) throws IOException {
-        final String itemLocation = s3Properties.getItemPrefix() + buildPath(uri);
+    public String findOne(final String itemDataPath) throws IOException {
+        final String itemLocation = s3Properties.getItemPrefix() + buildPath(itemDataPath);
 
         try {
             final S3Object item = s3Client.getObject(new GetObjectRequest(
@@ -39,7 +39,7 @@ public class S3ItemReader implements ItemDataReader {
                 throw new IOException("Could not find file for " + itemLocation);
             }
 
-            return item.getObjectContent();
+            return IOUtils.toString(item.getObjectContent(), UTF_8);
         } catch (final AmazonS3Exception ex) {
             throw new IOException("Unable to read S3 item: " + itemLocation, ex);
         }
@@ -51,11 +51,11 @@ public class S3ItemReader implements ItemDataReader {
      * to
      * items/Item-187-2501/item-187-2501.xml
      *
-     * @param uri   A resource uri
+     * @param itemDataPath   The item resource path
      * @return The resource path relative to our S3 bucket and prefix
      */
-    private String buildPath(final URI uri) {
-        final String itemName = getName(uri.toString());
+    private String buildPath(final String itemDataPath) {
+        final String itemName = getName(itemDataPath);
         final String dirName = capitalize(removeExtension(itemName));
         return "items/" + dirName + "/" + itemName;
     }
