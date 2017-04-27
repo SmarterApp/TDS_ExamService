@@ -83,6 +83,22 @@ public class ExamController {
         return ResponseEntity.ok(examConfiguration);
     }
 
+    @RequestMapping(value ="/{examId}/review", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<NoContentResponseResource> reviewExam(@PathVariable final UUID examId) {
+        final Optional<ValidationError> maybeReviewExamFailure = examService.reviewExam(examId);
+
+        if (maybeReviewExamFailure.isPresent()) {
+            NoContentResponseResource response = new NoContentResponseResource(maybeReviewExamFailure.get());
+            return new ResponseEntity<>(response, HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+
+        Link link = linkTo(methodOn(ExamController.class).getExamById(examId)).withSelfRel();
+        final HttpHeaders headers = new HttpHeaders();
+        headers.add("Location", link.getHref());
+
+        return new ResponseEntity<>(headers, HttpStatus.NO_CONTENT);
+    }
+
     @RequestMapping(value = "/{examId}/status", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<NoContentResponseResource> updateStatus(@PathVariable final UUID examId,
                                                            @RequestBody final ExamStatusRequest examStatusRequest) {

@@ -33,6 +33,8 @@ import tds.exam.ExamAccommodation;
 import tds.exam.ExamApproval;
 import tds.exam.ExamConfiguration;
 import tds.exam.ExamInfo;
+import tds.exam.ExamItem;
+import tds.exam.ExamPage;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
 import tds.exam.ExamineeContext;
@@ -433,6 +435,19 @@ class ExamServiceImpl implements ExamService {
         }
 
         return new Response<>(examConfig);
+    }
+
+    @Override
+    public Optional<ValidationError> reviewExam(final UUID examId) {
+        boolean isComplete = examSegmentService.checkIfSegmentsCompleted(examId);
+        if (!isComplete) {
+            ValidationError error = new ValidationError(ValidationErrorCode.EXAM_INCOMPLETE, "Review Test: Cannot end test because test length is not met.");
+            return Optional.of(error);
+        }
+
+        updateExamStatus(examId, new ExamStatusCode(ExamStatusCode.STATUS_REVIEW));
+
+        return Optional.empty();
     }
 
     private Exam initializeExam(final Exam exam, final Assessment assessment, final String browserUserAgent) {
