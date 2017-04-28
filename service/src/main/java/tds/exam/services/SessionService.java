@@ -1,5 +1,6 @@
 package tds.exam.services;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -45,4 +46,20 @@ public interface SessionService {
      * @return {@link tds.session.SessionAssessment} if found otherwise empty
      */
     Optional<SessionAssessment> findSessionAssessment(final UUID sessionId, final String assessmentKey);
+
+    /**
+     * Finds the {@link tds.session.SessionAssessment}s for the session id
+     *
+     * @param sessionId session id
+     * @return The list of {@link tds.session.SessionAssessment}s for this session
+     */
+    List<SessionAssessment> findSessionAssessments(final UUID sessionId);
+
+    /**
+     * Finds the list of {@link tds.session.Session}s for the specified session ids
+     *
+     * @param sessionIds The ids of the {@link tds.session.Session}s to find
+     * @return A list of sessions for the provided ids
+     */
+    List<Session> findSessionsByIds(final List<UUID> sessionIds);
 }

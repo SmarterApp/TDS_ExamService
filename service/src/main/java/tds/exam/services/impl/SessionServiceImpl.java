@@ -2,12 +2,17 @@ package tds.exam.services.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -122,5 +127,46 @@ class SessionServiceImpl implements SessionService {
         }
 
         return maybeSessionAssessment;
+    }
+
+    @Override
+    @Cacheable(CacheType.SHORT_TERM)
+    public List<SessionAssessment> findSessionAssessments(UUID sessionId) {
+        UriComponentsBuilder builder =
+            UriComponentsBuilder.fromHttpUrl(String.format("%s/%s/%s/assessment",
+                examServiceProperties.getSessionUrl(),
+                SESSION_APP_CONTEXT,
+                sessionId));
+
+        ResponseEntity<List<SessionAssessment>> sessionAssessmentsResponse = restTemplate.exchange(
+            builder.build().toUri(),
+            HttpMethod.GET,
+            null,
+            new ParameterizedTypeReference<List<SessionAssessment>>() {});
+
+        return sessionAssessmentsResponse.getBody();
+    }
+
+    @Override
+    @Cacheable(CacheType.SHORT_TERM)
+    public List<Session> findSessionsByIds(final List<UUID> sessionIds) {
+        if (sessionIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        final UriComponentsBuilder builder =
+            UriComponentsBuilder
+                .fromHttpUrl(String.format("%s/%s",
+                    examServiceProperties.getSessionUrl(),
+                    SESSION_APP_CONTEXT));
+
+        for (UUID sessionId : sessionIds) {
+            builder.queryParam("sessionId", sessionId.toString());
+        }
+
+        final ResponseEntity<List<Session>> responseEntity = restTemplate.exchange(builder.build().toUri(),
+            HttpMethod.GET, null, new ParameterizedTypeReference<List<Session>>() {});
+
+        return responseEntity.getBody();
     }
 }

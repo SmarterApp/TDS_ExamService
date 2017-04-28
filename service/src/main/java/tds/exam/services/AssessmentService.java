@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import tds.accommodation.Accommodation;
 import tds.assessment.Assessment;
+import tds.assessment.AssessmentInfo;
 import tds.assessment.AssessmentWindow;
 import tds.assessment.SegmentItemInformation;
 import tds.session.ExternalSessionConfiguration;
@@ -58,4 +59,22 @@ public interface AssessmentService {
      * @return optional with the {@link tds.assessment.SegmentItemInformation} if found
      */
     Optional<SegmentItemInformation> findSegmentItemInformation(final String segmentKey);
+
+    /**
+     * Fetches the list of {@link tds.assessment.AssessmentInfo} for a given collection of assessmentKeys
+     *
+     * @param clientName     The client name of the TDS environment
+     * @param assessmentKeys The collection of keys to obtain {@link tds.assessment.AssessmentInfo} for
+     * @return A list of {@link tds.assessment.AssessmentInfo}
+     */
+    List<AssessmentInfo> findAssessmentInfosForAssessments(final String clientName, final String... assessmentKeys);
+
+    /**
+     * Finds all {@link tds.assessment.AssessmentInfo}s for the specified grade
+     *
+     * @param clientName the client name associated with the assessment
+     * @param grade      the grade to fetch all {@link tds.assessment.AssessmentInfo} for
+     * @return {@link tds.assessment.AssessmentInfo} if found otherwise empty
+     */
+    List<AssessmentInfo> findAssessmentInfosForGrade(final String clientName, final String grade);
 }

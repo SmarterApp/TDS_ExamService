@@ -1,12 +1,12 @@
 package tds.exam.services.item.selection;
 
 import TDS.Shared.Exceptions.ReturnStatusException;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -16,7 +16,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import tds.assessment.Assessment;
-import tds.assessment.Item;
+import tds.assessment.Form;
 import tds.assessment.Segment;
 import tds.common.Algorithm;
 import tds.dll.api.IItemSelectionDLL;
@@ -35,12 +35,11 @@ import tds.exam.services.FieldTestService;
 import tds.itemselection.api.ItemSelectionException;
 import tds.itemselection.base.ItemCandidatesData;
 import tds.itemselection.base.ItemGroup;
+import tds.itemselection.base.TestItem;
 import tds.itemselection.impl.ItemResponse;
 import tds.itemselection.loader.StudentHistory2013;
-import tds.itemselection.loader.TestSegment;
 import tds.itemselection.model.OffGradeResponse;
 import tds.itemselection.services.ItemCandidatesService;
-import tds.itemselection.services.SegmentService;
 
 @Service
 public class ItemCandidateServiceImpl implements ItemCandidatesService {
@@ -48,18 +47,19 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
     private final FieldTestService fieldTestService;
     private final ExamSegmentService examSegmentService;
     private final AssessmentService assessmentService;
-    private final SegmentService segmentService;
 
     private final static String ADAPTIVE = "adaptive";
     private final static String FIELD_TEST = "fieldtest";
 
     @Autowired
-    public ItemCandidateServiceImpl(final ExpandableExamService expandableExamService, final FieldTestService fieldTestService, final ExamSegmentService examSegmentService, final AssessmentService assessmentService, final SegmentService segmentService) {
+    public ItemCandidateServiceImpl(final ExpandableExamService expandableExamService,
+                                    final FieldTestService fieldTestService,
+                                    final ExamSegmentService examSegmentService,
+                                    final AssessmentService assessmentService) {
         this.expandableExamService = expandableExamService;
         this.fieldTestService = fieldTestService;
         this.examSegmentService = examSegmentService;
         this.assessmentService = assessmentService;
-        this.segmentService = segmentService;
     }
 
     @Override
@@ -77,10 +77,10 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
         Assessment assessment = assessmentService.findAssessment(exam.getExam().getClientName(), exam.getExam().getAssessmentKey())
             .orElseThrow(() -> new ReturnStatusException("Could not find assessment for " + exam.getExam().getAssessmentKey()));
 
-        List<SegmentHolder> segments = mapSegmentToItems(exam);
+        List<ExamSegmentWrapper> segments = mapSegmentToItems(exam);
 
-        List<SegmentHolder> unsatisfiedSegments = segments.stream()
-            .filter(segmentHolder -> !segmentHolder.examSegment.isSatisfied())
+        List<ExamSegmentWrapper> unsatisfiedSegments = segments.stream()
+            .filter(segmentHolder -> !segmentHolder.getExamSegment().isSatisfied())
             .collect(Collectors.toList());
 
         final List<FieldTestItemGroup> fieldTestItemGroups = fieldTestService.findUsageInExam(examId);
@@ -95,17 +95,17 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
         }
 
         List<ExamSegment> satisfiedSegments = new ArrayList<>();
-        List<SegmentHolder> nonSatisfiedSegments = new ArrayList<>();
-        for (SegmentHolder segment : unsatisfiedSegments) {
-            long nonFieldTestItemCount = segment.items.stream()
+        List<ExamSegmentWrapper> nonSatisfiedSegments = new ArrayList<>();
+        for (ExamSegmentWrapper examSegmentWrapper : unsatisfiedSegments) {
+            long nonFieldTestItemCount = examSegmentWrapper.getItems().stream()
                 .filter(examItem -> !examItem.isFieldTest())
                 .count();
 
-            long fieldTestItemCount = segment.items.stream()
+            long fieldTestItemCount = examSegmentWrapper.getItems().stream()
                 .filter(ExamItem::isFieldTest)
                 .count();
 
-            final ExamSegment examSegment = segment.examSegment;
+            final ExamSegment examSegment = examSegmentWrapper.getExamSegment();
             boolean fieldTestItemsSatisfied = !fieldTestItemsBySegmentKey.containsKey(examSegment.getSegmentKey())
                 || fieldTestItemsBySegmentKey.get(examSegment.getSegmentKey()).isEmpty();
 
@@ -117,7 +117,7 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
                 && examSegment.getExamItemCount() == (nonFieldTestItemCount + fieldTestItemCount)) {
                 satisfiedSegments.add(examSegment);
             } else {
-                nonSatisfiedSegments.add(segment);
+                nonSatisfiedSegments.add(examSegmentWrapper);
             }
         }
 
@@ -147,12 +147,37 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
 
     @Override
     public ItemGroup getItemGroup(UUID examId, String segmentKey, String groupID, String blockID, Boolean isFieldTest) throws ReturnStatusException {
-        try {
-            TestSegment testSegment = segmentService.getSegment(segmentKey);
-            return testSegment.getPool().getItemGroup(groupID);
-        } catch (Exception e) {
-            throw new ReturnStatusException(e);
+        ExpandableExam exam = expandableExamService.findExam(examId, ExpandableExamAttributes.EXAM_SEGMENTS)
+            .orElseThrow(() -> new ReturnStatusException("Could not find Exam for id" + examId));
+
+        ExamSegment examSegment = exam.getExamSegments().stream()
+            .filter(segment -> segment.getSegmentKey().equals(segmentKey))
+            .findFirst()
+            .orElseThrow(() -> new ReturnStatusException(String.format("Could not find exam segment with exam id %s and segment %s", examId, segmentKey)));
+
+        Assessment assessment = assessmentService.findAssessment(exam.getExam().getClientName(), exam.getExam().getAssessmentKey())
+            .orElseThrow(() -> new ReturnStatusException("Could not find assessment for " + exam.getExam().getAssessmentKey()));
+
+        Segment segment = assessment.getSegment(segmentKey);
+
+        Optional<tds.assessment.ItemGroup> maybeItemGroup = segment.getItemGroups().stream()
+            .filter(itemGroup1 -> itemGroup1.getGroupId().equals(groupID))
+            .findFirst();
+
+        ItemGroup itemGroup = null;
+
+        if (maybeItemGroup.isPresent()) {
+            itemGroup = new ItemGroup();
+            itemGroup.setGroupID(maybeItemGroup.get().getGroupId());
+            itemGroup.setNumberOfItemsRequired(maybeItemGroup.get().getRequiredItemCount());
+            itemGroup.setMaximumNumberOfItems(maybeItemGroup.get().getMaxItems());
         }
+
+        if (segment.getSelectionAlgorithm().equals(Algorithm.FIXED_FORM)) {
+            itemGroup = getItemGroupForFixedForm(groupID, exam, examSegment, segment, itemGroup);
+        }
+
+        return itemGroup;
     }
 
     @Override
@@ -190,25 +215,25 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
         ftFieldGroups.addAll(fieldTestItemGroups);
         history.set_previousFieldTestItemGroups(ftFieldGroups);
 
-        List<SegmentHolder> segmentHolders = mapSegmentToItems(exam);
+        List<ExamSegmentWrapper> segmentHolders = mapSegmentToItems(exam);
 
         ArrayList<ItemResponse> itemResponses = new ArrayList<>();
-        for(final SegmentHolder segmentHolder : segmentHolders) {
-            List<ItemResponse> responses = segmentHolder.items.stream()
+        for (final ExamSegmentWrapper segmentHolder : segmentHolders) {
+            List<ItemResponse> responses = segmentHolder.getItems().stream()
                 .filter(examItem -> examItem.getItemKey() != null)
                 .map(examItem -> {
                     ItemResponse response = new ItemResponse();
-                    response.segmentPosition = segmentHolder.examSegment.getSegmentPosition();
+                    response.segmentPosition = segmentHolder.getExamSegment().getSegmentPosition();
                     response.itemID = examItem.getItemKey();
                     //TODO - add group id to items
 //                    response.groupID = examItem.getGroupId();
                     response.itemPosition = examItem.getPosition();
                     response.isFieldTest = examItem.isFieldTest();
 
-                    if(examItem.getResponse().isPresent()) {
+                    if (examItem.getResponse().isPresent()) {
                         ExamItemResponse examItemResponse = examItem.getResponse().get();
 
-                        if(examItemResponse.getScore().isPresent()) {
+                        if (examItemResponse.getScore().isPresent()) {
                             ExamItemResponseScore score = examItemResponse.getScore().get();
                             response.setScore(score.getScore());
                             response.setScoreDimensions(score.getScoringDimensions());
@@ -230,11 +255,11 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
     @Override
     public boolean setSegmentSatisfied(UUID examId, Integer segmentPosition, String reason) throws ReturnStatusException {
         Optional<ExamSegment> maybeExamSegment = examSegmentService.findByExamIdAndSegmentPosition(examId, segmentPosition);
-        if(!maybeExamSegment.isPresent()) {
+        if (!maybeExamSegment.isPresent()) {
             return false;
         }
 
-        if(!maybeExamSegment.get().isSatisfied()) {
+        if (!maybeExamSegment.get().isSatisfied()) {
             ExamSegment examSegment = ExamSegment.Builder.fromSegment(maybeExamSegment.get()).withSatisfied(true).build();
             examSegmentService.update(examSegment);
         }
@@ -249,67 +274,53 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
         return new OffGradeResponse(OffGradeResponse.SUCCESS, "");
     }
 
-    private List<SegmentHolder> mapSegmentToItems(ExpandableExam expandableExam) {
+    private List<ExamSegmentWrapper> mapSegmentToItems(ExpandableExam expandableExam) {
         List<ExamSegment> segments = expandableExam.getExamSegments();
         List<ExamItem> items = expandableExam.getExamItems();
 
-        List<SegmentHolder> segmentHolders = segments.stream()
-            .map(SegmentHolder::new)
+        List<ExamSegmentWrapper> examSegments = segments.stream()
+            .map(ExamSegmentWrapper::new)
             .collect(Collectors.toList());
 
         for (ExamPage page : expandableExam.getExamPages()) {
-            for (SegmentHolder holder : segmentHolders) {
-                if (holder.isPageInSegment(page)) {
-                    holder.addPageId(page.getId());
+            for (ExamSegmentWrapper examSegment : examSegments) {
+                if (examSegment.isPageInSegment(page)) {
+                    examSegment.addPageId(page.getId());
                 }
             }
         }
 
         for (ExamItem examItem : items) {
-            for (SegmentHolder holder : segmentHolders) {
-                if (holder.isItemInSegment(examItem)) {
-                    holder.addItem(examItem);
+            for (ExamSegmentWrapper examSegment : examSegments) {
+                if (examSegment.isItemInSegment(examItem)) {
+                    examSegment.addItem(examItem);
                 }
             }
         }
 
-        return segmentHolders;
+        return examSegments;
     }
 
-    private GroupBlock findGroupBlock(final String segmentKey,
-                                      final Assessment assessment,
+    private GroupBlock findGroupBlock(final Assessment assessment,
                                       final List<FieldTestItemGroup> fieldTestItemGroups,
                                       final boolean isFieldTest,
                                       final String languageCode,
-                                      final SegmentHolder segmentHolder) {
+                                      final ExamSegmentWrapper examSegmentWrapper) {
         //Port of ItemSelectionDLL.ValidateAndReturnSegmentData get group and block data
         String groupId = "";
         String blockId = "";
 
-        Segment segment = assessment.getSegment(segmentKey);
-
-        //This needs ot look at exam items
-        Optional<ExamItem> maybeMinItem = segmentHolder.items.stream()
-            .min(Comparator.comparingInt(ExamItem::getPosition));
-
-        Optional<ExamItem> maybeMaxItem = segmentHolder.items.stream()
-            .max(Comparator.comparingInt(ExamItem::getPosition));
-
-        int firstPosition = 0;
-        int lastPosition = -1;
-        if (maybeMaxItem.isPresent() && maybeMinItem.isPresent()) {
-            firstPosition = maybeMinItem.get().getPosition();
-            lastPosition = maybeMaxItem.get().getPosition();
-        }
-
-        int relativePosition = lastPosition + 1 - firstPosition + 1;
+        ExamSegment examSegment = examSegmentWrapper.getExamSegment();
+        Segment segment = assessment.getSegment(examSegment.getSegmentKey());
 
         if (segment.getSelectionAlgorithm().equals(Algorithm.FIXED_FORM)) {
-            Optional<Item> maybeItem = segment.getItems().stream().filter(item -> item.getPosition() == relativePosition).findFirst();
+            com.google.common.base.Optional<Form> maybeForm = segment.getForm(languageCode, examSegment.getFormCohort());
 
-            if (maybeItem.isPresent()) {
-                groupId = maybeItem.get().getGroupId();
-                blockId = maybeItem.get().getBlockId();
+            if (maybeForm.isPresent()) {
+                Form form = maybeForm.get();
+                int position = examSegmentWrapper.getItems().size();
+                groupId = form.getItems().get(position).getGroupId();
+                blockId = form.getItems().get(position).getBlockId();
             }
         } else if (segment.getSelectionAlgorithm().equals(Algorithm.ADAPTIVE_2) && isFieldTest) {
             Optional<FieldTestItemGroup> maybeFieldTestItem = fieldTestItemGroups.stream()
@@ -325,19 +336,47 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
         return new GroupBlock(groupId, blockId);
     }
 
-    private ItemCandidatesData convertSegmentHolderToItemCandidateData(final ExpandableExam exam, final Assessment assessment, final List<FieldTestItemGroup> fieldTestItemGroups, final SegmentHolder segmentHolder) {
-        ExamSegment examSegment = segmentHolder.examSegment;
+    private ItemGroup getItemGroupForFixedForm(final String groupID, final ExpandableExam exam, final ExamSegment examSegment, final Segment segment, ItemGroup itemGroup) {
+        com.google.common.base.Optional<Form> maybeForm = segment.getForm(exam.getExam().getLanguageCode(), examSegment.getFormCohort());
+        if (!maybeForm.isPresent()) {
+            throw new IllegalStateException(String.format("Could not find a form with language %s and cohort %s", exam.getExam().getLanguageCode(), examSegment.getFormCohort()));
+        }
 
-        boolean isFieldTest = segmentHolder.items.stream()
+
+        List<TestItem> items = maybeForm.get().getItems().stream()
+            .map(ItemSelectionMappingUtility::convertItem)
+            .filter(testItem -> {
+                String itemGroupId = testItem.getGroupID();
+
+                if (StringUtils.isEmpty(itemGroupId)) {
+                    itemGroupId = "I-".concat(testItem.getItemID());
+                }
+
+                return itemGroupId.equals(groupID);
+            })
+            .collect(Collectors.toList());
+
+        if (itemGroup == null) {
+            itemGroup = new ItemGroup();
+            itemGroup.setGroupID(groupID);
+        }
+
+        items.forEach(itemGroup::addItem);
+        return itemGroup;
+    }
+
+    private ItemCandidatesData convertSegmentHolderToItemCandidateData(final ExpandableExam exam, final Assessment assessment, final List<FieldTestItemGroup> fieldTestItemGroups, final ExamSegmentWrapper examSegmentWrapper) {
+        ExamSegment examSegment = examSegmentWrapper.getExamSegment();
+
+        boolean isFieldTest = examSegmentWrapper.getItems().stream()
             .filter(ExamItem::isFieldTest)
             .count() > 0;
 
-        GroupBlock groupBlock = findGroupBlock(examSegment.getSegmentKey(),
-            assessment,
+        GroupBlock groupBlock = findGroupBlock(assessment,
             fieldTestItemGroups,
             isFieldTest,
             exam.getExam().getLanguageCode(),
-            segmentHolder);
+            examSegmentWrapper);
 
         return new ItemCandidatesData(
             examSegment.getExamId(),
@@ -345,8 +384,8 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
             examSegment.getSegmentKey(),
             examSegment.getSegmentId(),
             examSegment.getSegmentPosition(),
-            groupBlock.group,
-            groupBlock.block,
+            groupBlock.getItemGroupId(),
+            groupBlock.getBlock(),
             exam.getExam().getSessionId(),
             false,
             //TODO - Find out where isActive is coming from in legacy code
@@ -364,40 +403,24 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
         examSegmentService.update(segmentsToUpdate.toArray(new ExamSegment[segmentsToUpdate.size()]));
     }
 
-    private class SegmentHolder {
-        private final ExamSegment examSegment;
-        private Set<UUID> pageIds = new HashSet<>();
-        private List<ExamItem> items = new ArrayList<>();
-
-        SegmentHolder(final ExamSegment examSegment) {
-            this.examSegment = examSegment;
-        }
-
-        void addPageId(final UUID pageId) {
-            pageIds.add(pageId);
-        }
-
-        void addItem(final ExamItem item) {
-            items.add(item);
-        }
-
-        boolean isPageInSegment(final ExamPage examPage) {
-            return examSegment.getSegmentKey().equals(examPage.getSegmentKey())
-                && examSegment.getExamId().equals(examPage.getExamId());
-        }
-
-        boolean isItemInSegment(final ExamItem examItem) {
-            return pageIds.contains(examItem.getExamPageId());
-        }
-    }
-
+    /**
+     * Contains Item group id and block
+     */
     private static class GroupBlock {
-        private final String group;
+        private final String itemGroupId;
         private final String block;
 
-        GroupBlock(final String group, final String block) {
-            this.group = group;
+        GroupBlock(final String itemGroupId, final String block) {
+            this.itemGroupId = itemGroupId;
             this.block = block;
+        }
+
+        String getItemGroupId() {
+            return itemGroupId;
+        }
+
+        String getBlock() {
+            return block;
         }
     }
 }
