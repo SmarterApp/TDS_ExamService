@@ -5,7 +5,7 @@
     <artifactId>tds-exam</artifactId>
     <name>tds-exam</name>
     <packaging>pom</packaging>
-    <version>0.0.14-SNAPSHOT</version>
+    <version>0.0.15-SNAPSHOT</version>
 
     <modules>
         <module>client</module>
@@ -28,9 +28,9 @@
         <joda-time.version>2.9.5</joda-time.version>
 
         <tds-common.version>0.0.15</tds-common.version>
-        <tds-student-client.version>0.0.1</tds-student-client.version>
-        <tds-assessment-client.version>0.0.10</tds-assessment-client.version>
         <tds-session.version>0.0.5</tds-session.version>
+        <tds-assessment-client.version>0.0.13</tds-assessment-client.version>
+        <tds-student-client.version>0.0.2</tds-student-client.version>
         <tds-config-client.version>0.0.2</tds-config-client.version>
         <tds-student-library.version>3.0.5</tds-student-library.version>
         <tds-item-selection.version>3.0.1</tds-item-selection.version>
