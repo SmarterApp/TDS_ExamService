@@ -57,6 +57,7 @@ import tds.exam.services.SessionService;
 import tds.exam.services.StudentService;
 import tds.exam.services.TimeLimitConfigurationService;
 import tds.exam.utils.StatusTransitionValidator;
+import tds.exam.web.annotations.VerifyAccess;
 import tds.session.ExternalSessionConfiguration;
 import tds.session.Session;
 import tds.student.RtsStudentPackageAttribute;
@@ -437,6 +438,7 @@ class ExamServiceImpl implements ExamService {
         return new Response<>(examConfig);
     }
 
+    @VerifyAccess
     @Override
     public Optional<ValidationError> reviewExam(final UUID examId) {
         boolean isComplete = examSegmentService.checkIfSegmentsCompleted(examId);
