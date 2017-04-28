@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 
 import tds.assessment.Assessment;
 import tds.assessment.Form;
-import tds.assessment.Item;
 import tds.assessment.Segment;
 import tds.common.Algorithm;
 import tds.dll.api.IItemSelectionDLL;
@@ -41,7 +40,6 @@ import tds.itemselection.impl.ItemResponse;
 import tds.itemselection.loader.StudentHistory2013;
 import tds.itemselection.model.OffGradeResponse;
 import tds.itemselection.services.ItemCandidatesService;
-import tds.itemselection.services.SegmentService;
 
 @Service
 public class ItemCandidateServiceImpl implements ItemCandidatesService {
@@ -49,18 +47,19 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
     private final FieldTestService fieldTestService;
     private final ExamSegmentService examSegmentService;
     private final AssessmentService assessmentService;
-    private final SegmentService segmentService;
 
     private final static String ADAPTIVE = "adaptive";
     private final static String FIELD_TEST = "fieldtest";
 
     @Autowired
-    public ItemCandidateServiceImpl(final ExpandableExamService expandableExamService, final FieldTestService fieldTestService, final ExamSegmentService examSegmentService, final AssessmentService assessmentService, final SegmentService segmentService) {
+    public ItemCandidateServiceImpl(final ExpandableExamService expandableExamService,
+                                    final FieldTestService fieldTestService,
+                                    final ExamSegmentService examSegmentService,
+                                    final AssessmentService assessmentService) {
         this.expandableExamService = expandableExamService;
         this.fieldTestService = fieldTestService;
         this.examSegmentService = examSegmentService;
         this.assessmentService = assessmentService;
-        this.segmentService = segmentService;
     }
 
     @Override
@@ -148,7 +147,6 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
 
     @Override
     public ItemGroup getItemGroup(UUID examId, String segmentKey, String groupID, String blockID, Boolean isFieldTest) throws ReturnStatusException {
-        //This is wrong
         ExpandableExam exam = expandableExamService.findExam(examId, ExpandableExamAttributes.EXAM_SEGMENTS)
             .orElseThrow(() -> new ReturnStatusException("Could not find Exam for id" + examId));
 
@@ -183,7 +181,7 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
 
 
             List<TestItem> items = maybeForm.get().getItems().stream()
-                .map(ItemCandidateServiceImpl::convertItem)
+                .map(ItemSelectionMappingUtility::convertItem)
                 .filter(testItem -> {
                     String groupId = testItem.getGroupID();
 
@@ -204,22 +202,6 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
         }
 
         return itemGroup;
-    }
-
-    private static TestItem convertItem(Item item) {
-        TestItem testItem = new TestItem();
-        testItem.setItemID(item.getId());
-        testItem.setGroupID(item.getGroupId());
-        testItem.setFieldTest(item.isFieldTest());
-        testItem.setRequired(item.isRequired());
-        testItem.isActive = item.isActive();
-        testItem.strandName = item.getStrand();
-        testItem.position = item.getPosition();
-        testItem.setItemType(item.getItemType());
-
-        //We call this claims but the legacy application calls it content levels
-        testItem.setContentLevels(item.getClaims());
-        return testItem;
     }
 
     @Override

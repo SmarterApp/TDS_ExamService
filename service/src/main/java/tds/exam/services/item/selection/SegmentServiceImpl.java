@@ -33,6 +33,8 @@ import tds.itemselection.impl.sets.ItemPool;
 import tds.itemselection.loader.TestSegment;
 import tds.itemselection.services.SegmentService;
 
+import static tds.exam.services.item.selection.ItemSelectionMappingUtility.convertItem;
+
 /**
  * This is a port of the {@link tds.itemselection.loader.SegmentCollection2} for loading segment data
  */
@@ -88,7 +90,7 @@ public class SegmentServiceImpl implements SegmentService {
      * Populates the {@link tds.itemselection.impl.blueprint.Blueprint} with blueprint constraints.
      *
      * @param blueprint {@link tds.itemselection.impl.blueprint.Blueprint} to update with constraints
-     * @param specs the {@link tds.assessment.ContentLevelSpecification} data to use to update the blueprint
+     * @param specs     the {@link tds.assessment.ContentLevelSpecification} data to use to update the blueprint
      */
     private static void populateBlueprintConstraints(final Blueprint blueprint, final List<ContentLevelSpecification> specs) {
         //Blueprint.initializeBluePrintConstraints
@@ -157,7 +159,7 @@ public class SegmentServiceImpl implements SegmentService {
      * leveraging an adaptive exam
      *
      * @param blueprint the {@link tds.itemselection.impl.blueprint.Blueprint} to update
-     * @param segment the {@link tds.assessment.Segment} containing the information to add to the blueprint
+     * @param segment   the {@link tds.assessment.Segment} containing the information to add to the blueprint
      */
     private static void populateBlueprintFromSegment(final Blueprint blueprint, final Segment segment) {
         //Port of Bluepring initialization in Blueprint.initializeOverallBluePrint
@@ -222,22 +224,6 @@ public class SegmentServiceImpl implements SegmentService {
         }
     }
 
-    private static TestItem convertItem(Item item) {
-        TestItem testItem = new TestItem();
-        testItem.setItemID(item.getId());
-        testItem.setGroupID(item.getGroupId());
-        testItem.setFieldTest(item.isFieldTest());
-        testItem.setRequired(item.isRequired());
-        testItem.isActive = item.isActive();
-        testItem.strandName = item.getStrand();
-        testItem.position = item.getPosition();
-        testItem.setItemType(item.getItemType());
-
-        //We call this claims but the legacy application calls it content levels
-        testItem.setContentLevels(item.getClaims());
-        return testItem;
-    }
-
     private static void populateSegmentItems(ItemPool itemPool, List<Item> items, Integer segmentPosition) {
         for (Item item : items) {
             TestItem testItem = convertItem(item);
@@ -289,16 +275,16 @@ public class SegmentServiceImpl implements SegmentService {
 
     private static void populateBlueprintOffGradeItemProps(Blueprint blueprint, List<ItemControlParameter> itemControlParameters) {
         //Port of Blueprint.initializeBluePrintOffGradeItemsProps
-        for(ItemControlParameter param : itemControlParameters) {
-            if(StringUtils.isEmpty(param.getValue())) {
+        for (ItemControlParameter param : itemControlParameters) {
+            if (StringUtils.isEmpty(param.getValue())) {
                 continue;
             }
 
-            if(blueprint.segmentID.equals(param.getBlueprintElementId())) {
+            if (blueprint.segmentID.equals(param.getBlueprintElementId())) {
                 blueprint.offGradeItemsProps.populateBluePrintOffGradeItemsDesignator(param.getName(), param.getValue());
-            } else if(blueprint.getReportingCategory(param.getBlueprintElementId()) != null) {
+            } else if (blueprint.getReportingCategory(param.getBlueprintElementId()) != null) {
                 blueprint.getReportingCategory(param.getBlueprintElementId()).putItemSelectionParam(param.getName(), param.getValue());
-            } else if(blueprint.getBPElement(param.getBlueprintElementId()) != null){
+            } else if (blueprint.getBPElement(param.getBlueprintElementId()) != null) {
                 blueprint.getBPElement(param.getBlueprintElementId()).putItemSelectionParam(param.getName(), param.getValue());
             } else {
                 LOG.warn("There is no bpElement with bpElementId = " + param.getBlueprintElementId());
@@ -313,7 +299,7 @@ public class SegmentServiceImpl implements SegmentService {
             .filter(itemProperty -> itemProperty.getValue() != null)
             .collect(Collectors.groupingBy(ItemProperty::getValue));
 
-        for(Map.Entry<String, List<ItemProperty>> entry : groupedProperties.entrySet()) {
+        for (Map.Entry<String, List<ItemProperty>> entry : groupedProperties.entrySet()) {
             blueprint.offGradeItemsProps.countByDesignator.put(entry.getKey(), entry.getValue().size());
         }
     }

@@ -16,6 +16,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 import tds.assessment.Assessment;
+import tds.assessment.Form;
+import tds.assessment.Item;
 import tds.assessment.Segment;
 import tds.common.Algorithm;
 import tds.exam.Exam;
@@ -30,6 +32,7 @@ import tds.exam.builder.ExamItemBuilder;
 import tds.exam.builder.ExamPageBuilder;
 import tds.exam.builder.ExamSegmentBuilder;
 import tds.exam.builder.FieldTestItemGroupBuilder;
+import tds.exam.builder.ItemBuilder;
 import tds.exam.builder.SegmentBuilder;
 import tds.exam.models.FieldTestItemGroup;
 import tds.exam.services.AssessmentService;
@@ -37,8 +40,8 @@ import tds.exam.services.ExamSegmentService;
 import tds.exam.services.ExpandableExamService;
 import tds.exam.services.FieldTestService;
 import tds.itemselection.base.ItemCandidatesData;
+import tds.itemselection.base.ItemGroup;
 import tds.itemselection.services.ItemCandidatesService;
-import tds.itemselection.services.SegmentService;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.mockito.Mockito.verify;
@@ -60,12 +63,9 @@ public class ItemCandidateServiceImplTest {
     @Mock
     private ExamSegmentService mockExamSegmentService;
 
-    @Mock
-    private SegmentService mockSegmentService;
-
     @Before
     public void setUp() {
-        itemCandidatesService = new ItemCandidateServiceImpl(mockExpandableExamService, mockFieldTestService, mockExamSegmentService, mockAssessmentService, mockSegmentService);
+        itemCandidatesService = new ItemCandidateServiceImpl(mockExpandableExamService, mockFieldTestService, mockExamSegmentService, mockAssessmentService);
     }
 
     @Test
@@ -322,5 +322,80 @@ public class ItemCandidateServiceImplTest {
         verify(mockExamSegmentService).update(varArgs.capture());
 
         assertThat(varArgs.getValue().getSegmentKey()).isEqualTo(examSegment.getSegmentKey());
+    }
+
+    @Test
+    public void shouldGetTestItemGroupForFixedFormWithNoSegmentItemGroup() throws ReturnStatusException {
+        UUID examId = UUID.randomUUID();
+
+        Item item = new ItemBuilder("187-2345")
+            .withGroupId("")
+            .build();
+
+        Item item2 = new ItemBuilder("187-6789")
+            .withGroupId("")
+            .build();
+
+        Form form = new Form.Builder("form-123")
+            .withCohort("cohort")
+            .withSegmentKey("segmentKey")
+            .withLanguage("ENU")
+            .withItems(Arrays.asList(item, item2))
+            .build();
+
+        Segment segment = new SegmentBuilder()
+            .withKey("segmentKey")
+            .withSegmentId("segmentId")
+            .withPosition(1)
+            .withForms(Collections.singletonList(form))
+            .withItems(Arrays.asList(item, item2))
+            .build();
+
+        Assessment assessment = new AssessmentBuilder()
+            .withKey("(SBAC) MATH 3")
+            .withSegments(Collections.singletonList(segment))
+            .build();
+
+        Exam exam = new ExamBuilder()
+            .withId(examId)
+            .withClientName("client")
+            .withAssessmentKey(assessment.getKey())
+            .withLanguageCode("ENU")
+            .build();
+
+        ExamSegment examSegment = new ExamSegmentBuilder()
+            .withExamId(exam.getId())
+            .withSegmentPosition(0)
+            .withSegmentKey(segment.getKey())
+            .withSegmentPosition(segment.getPosition())
+            .withExamItemCount(2)
+            .withIsSatisfied(false)
+            .withFormCohort("cohort")
+            .build();
+
+        ExamPage page = new ExamPageBuilder()
+            .withSegmentKey(segment.getKey())
+            .withExamId(exam.getId())
+            .build();
+
+        ExamItem examItem = new ExamItemBuilder()
+            .withExamPageId(page.getId())
+            .build();
+
+
+        ExpandableExam expandableExam = new ExpandableExam.Builder(exam)
+            .withExamItems(Collections.singletonList(examItem))
+            .withExamSegments(Collections.singletonList(examSegment))
+            .withExamPages(Collections.singletonList(page))
+            .build();
+
+        when(mockExpandableExamService.findExam(examId, ExpandableExamAttributes.EXAM_SEGMENTS)).thenReturn(Optional.of(expandableExam));
+        when(mockAssessmentService.findAssessment("client", assessment.getKey())).thenReturn(Optional.of(assessment));
+
+        ItemGroup itemGroup = itemCandidatesService.getItemGroup(examId, segment.getKey(), "I-187-6789", "A", false);
+
+        assertThat(itemGroup.getGroupID()).isEqualTo("I-187-6789");
+        assertThat(itemGroup.getItemCount()).isEqualTo(1);
+        assertThat(itemGroup.getItems().get(0).getItemID()).isEqualTo(item2.getId());
     }
 }
