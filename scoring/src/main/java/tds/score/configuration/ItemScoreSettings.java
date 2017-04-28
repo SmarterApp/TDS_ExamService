@@ -6,7 +6,6 @@ public class ItemScoreSettings {
     private String serverUrl;
     private String callbackUrl;
     private boolean timerEnabled = true;
-    private boolean alwaysLoadRubric = false;
     private int timerInterval = 5;
     private int timerPendingMinutes = 15;
     private int timerMaxAttempts = 10;
@@ -50,14 +49,6 @@ public class ItemScoreSettings {
 
     public void setTimerEnabled(final boolean timerEnabled) {
         this.timerEnabled = timerEnabled;
-    }
-
-    public boolean isAlwaysLoadRubric() {
-        return alwaysLoadRubric;
-    }
-
-    public void setAlwaysLoadRubric(final boolean alwaysLoadRubric) {
-        this.alwaysLoadRubric = alwaysLoadRubric;
     }
 
     public int getTimerInterval() {

@@ -9,24 +9,9 @@ import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-
-import javax.xml.bind.JAXBException;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
-
 import tds.itemrenderer.data.AccLookup;
 import tds.itemrenderer.data.IITSDocument;
 import tds.itemrenderer.data.ITSMachineRubric;
-import tds.itemrenderer.processing.ITSDocumentHelper;
 import tds.itemscoringengine.IItemScorerManager;
 import tds.itemscoringengine.ItemScore;
 import tds.itemscoringengine.ItemScoreInfo;
@@ -42,12 +27,23 @@ import tds.score.model.ExamInstance;
 import tds.score.services.ContentService;
 import tds.score.services.ItemScoringService;
 import tds.score.services.ResponseService;
+import tds.score.services.RubricService;
 import tds.score.services.ScoreConfigService;
 import tds.student.sql.data.IItemResponseScorable;
 import tds.student.sql.data.IItemResponseUpdate;
 import tds.student.sql.data.ItemResponseUpdate;
 import tds.student.sql.data.ItemResponseUpdateStatus;
 import tds.student.sql.data.ItemScoringConfig;
+
+import javax.xml.bind.JAXBException;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Random;
+import java.util.UUID;
 
 @Service
 public class ItemScoringServiceImpl implements ItemScoringService {
@@ -58,17 +54,20 @@ public class ItemScoringServiceImpl implements ItemScoringService {
     private final IItemScorerManager itemScorer;
     private final ItemScoreSettings itemScoreSettings;
     private final ResponseService responseService;
+    private final RubricService rubricService;
 
     public ItemScoringServiceImpl(final ResponseService responseService,
                                   final ScoreConfigService scoreConfigService,
                                   final ContentService contentService,
                                   final IItemScorerManager itemScorer,
-                                  final ItemScoreSettings itemScoreSettings) {
+                                  final ItemScoreSettings itemScoreSettings,
+                                  final RubricService rubricService) {
         this.responseService = responseService;
         this.scoreConfigService = scoreConfigService;
         this.contentService = contentService;
         this.itemScorer = itemScorer;
         this.itemScoreSettings = itemScoreSettings;
+        this.rubricService = rubricService;
     }
 
     /**
@@ -361,45 +360,19 @@ public class ItemScoringServiceImpl implements ItemScoringService {
                 rubricContentType = RubricContentType.ContentString;
 
             // if this is true then load the rubric manually for the scoring engine
-            if (rubricContentType == RubricContentType.Uri && itemScoreSettings.isAlwaysLoadRubric()) {
-                rubricContentType = RubricContentType.ContentString;
-
-                // read text from stream
+            if (rubricContentType == RubricContentType.Uri) {
                 try {
-                    InputStream stream = ITSDocumentHelper.getStream(machineRubric.getData());
-                    BufferedReader streamReader = new BufferedReader(new InputStreamReader(stream));
-                    try {
-                        StringBuilder sb = new StringBuilder();
-                        String line;
-
-                        line = streamReader.readLine();
-
-                        while (line != null) {
-                            sb.append(line);
-                            sb.append(System.lineSeparator());
-                            line = streamReader.readLine();
-                        }
-                        machineRubric.setData(sb.toString());
-                    } finally {
-                        try {
-                            streamReader.close();
-                        } catch (Exception e) {
-                        }
-                    }
-                } catch (IOException e) {
-                    LOG.error(e.getMessage(), e);
-                    throw new ReturnStatusException("Failed to read rubric.");
+                    rubricContentType = RubricContentType.ContentString;
+                    machineRubric.setData(rubricService.findOne(machineRubric.getData()));
+                } catch (final IOException e) {
+                    LOG.error("Failed to load scoring rubric for item: {}", itemID, e);
+                    throw new ReturnStatusException(e);
                 }
             }
         }
 
         // create rubric object
-        Object rubricContent;
-        if (rubricContentType == RubricContentType.Uri) {
-            rubricContent = machineRubric.createUri();
-        } else {
-            rubricContent = machineRubric.getData(); // xml
-        }
+        final Object rubricContent = machineRubric.getData(); // xml
 
         ResponseInfo responseInfo = new ResponseInfo(itemFormat, itemID, responseScorable.getValue(), rubricContent, rubricContentType, null, true);
 
@@ -408,6 +381,7 @@ public class ItemScoringServiceImpl implements ItemScoringService {
             try {
                 return itemScorer.ScoreItem(responseInfo, null);
             } catch (final Exception ex) {
+                LOG.error("Problem scoring item: {}", itemID, ex);
                 return new ItemScore(-1, -1, ScoringStatus.ScoringError, null, new ScoreRationale() {
                     {
                         setMsg("Exception scoring item " + itemID + ": " + ex);
