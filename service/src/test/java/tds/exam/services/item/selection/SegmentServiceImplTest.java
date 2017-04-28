@@ -231,6 +231,6 @@ public class SegmentServiceImplTest {
 
         assertThat(testSegment.getBp()).isNotNull();
 
-        assertThat(testSegment.getPool().getItemGroup("item-123")).isNotNull();
+        assertThat(testSegment.getPool().getItemGroup("I-187-1792")).isNotNull();
     }
 }
