@@ -1,9 +1,11 @@
 package tds.exam;
 
+import static tds.common.util.Preconditions.checkNotNull;
+
 /**
  * An object containing recent exam data for an assessment
  */
-public class ExamAssessmentInfo {
+public class ExamAssessmentMetadata {
     private String assessmentKey;
     private String assessmentId;
     private int attempt;
@@ -17,17 +19,17 @@ public class ExamAssessmentInfo {
     /**
      * Private constructor for frameworks
      */
-    private ExamAssessmentInfo() {}
+    private ExamAssessmentMetadata() {}
 
-    private ExamAssessmentInfo(Builder builder) {
-        this.subject = builder.subject;
-        this.assessmentKey = builder.assessmentKey;
+    private ExamAssessmentMetadata(Builder builder) {
+        this.subject = checkNotNull(builder.subject);
+        this.assessmentKey = checkNotNull(builder.assessmentKey);
         this.assessmentLabel = builder.assessmentLabel;
-        this.status = builder.status;
-        this.grade = builder.grade;
-        this.attempt = builder.attempt;
-        this.maxAttempts = builder.maxAttempts;
-        this.assessmentId = builder.assessmentId;
+        this.status = checkNotNull(builder.status);
+        this.grade = checkNotNull(builder.grade);
+        this.attempt = checkNotNull(builder.attempt);
+        this.maxAttempts = checkNotNull(builder.maxAttempts);
+        this.assessmentId = checkNotNull(builder.assessmentId);
         this.deniedReason = builder.deniedReason;
     }
 
@@ -87,8 +89,8 @@ public class ExamAssessmentInfo {
             return this;
         }
 
-        public ExamAssessmentInfo build() {
-            return new ExamAssessmentInfo(this);
+        public ExamAssessmentMetadata build() {
+            return new ExamAssessmentMetadata(this);
         }
     }
 
@@ -107,7 +109,10 @@ public class ExamAssessmentInfo {
     }
 
     /**
-     * @return The current attempt number for the assessment
+     * If the assessment has already been completed before,
+     * this value will be the attempt number of the previous exam + 1.
+     *
+     * @return The current attempt number available for the assessment - 1 based.
      */
     public int getAttempt() {
         return attempt;

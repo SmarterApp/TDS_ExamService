@@ -25,7 +25,7 @@ import tds.common.web.exceptions.NotFoundException;
 import tds.common.web.resources.NoContentResponseResource;
 import tds.exam.ApproveAccommodationsRequest;
 import tds.exam.Exam;
-import tds.exam.ExamAssessmentInfo;
+import tds.exam.ExamAssessmentMetadata;
 import tds.exam.ExamConfiguration;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusRequest;
@@ -158,11 +158,16 @@ public class ExamController {
         return new ResponseEntity<>(headers, HttpStatus.NO_CONTENT);
     }
 
-    @RequestMapping(value = "/eligible/{clientName}/{studentId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<List<ExamAssessmentInfo>> findEligibleExamAssessments(@PathVariable final String clientName,
-                                                                        @PathVariable final long studentId,
-                                                                        @RequestParam final UUID sessionId,
-                                                                        @RequestParam final String grade) {
-        return ResponseEntity.ok(examService.findExamAssessmentInfo(clientName, studentId, sessionId, grade));
+    @RequestMapping(value = "/metadata", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<Response<List<ExamAssessmentMetadata>>> findExamAssessmentMetadata(@RequestParam final long studentId,
+                                                                            @RequestParam final UUID sessionId,
+                                                                            @RequestParam final String grade) {
+        Response<List<ExamAssessmentMetadata>> response = examService.findExamAssessmentMetadata(studentId, sessionId, grade);
+
+        if (response.getError().isPresent()) {
+            return new ResponseEntity<>(response, HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+
+        return ResponseEntity.ok(response);
     }
 }

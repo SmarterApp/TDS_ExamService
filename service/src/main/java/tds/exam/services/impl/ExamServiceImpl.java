@@ -37,7 +37,7 @@ import tds.exam.ApproveAccommodationsRequest;
 import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
 import tds.exam.ExamApproval;
-import tds.exam.ExamAssessmentInfo;
+import tds.exam.ExamAssessmentMetadata;
 import tds.exam.ExamConfiguration;
 import tds.exam.ExamInfo;
 import tds.exam.ExamStatusCode;
@@ -345,26 +345,35 @@ class ExamServiceImpl implements ExamService {
     }
 
     @Override
-    public List<ExamAssessmentInfo> findExamAssessmentInfo(final String clientName, final long studentId, final UUID sessionId, final String grade) {
+    public Response<List<ExamAssessmentMetadata>> findExamAssessmentMetadata(final long studentId, final UUID sessionId, final String grade) {
         /* Port of StudentDLL.T_GetEligibleTests_SP() */
-        List<ExamAssessmentInfo> examAssessmentInfos;
+        List<ExamAssessmentMetadata> examAssessmentMetadatas;
 
-        if (studentId > 0) {
-            examAssessmentInfos = findEligibleExamAssessmentsForStudent(clientName, studentId, sessionId, grade);
-        } else {
-            examAssessmentInfos = findEligibleExamAssessmentsForGuest(clientName, grade);
+        Optional<Session> maybeSession = sessionService.findSessionById(sessionId);
+
+        if (!maybeSession.isPresent()) {
+            return new Response<>(new ValidationError(
+                ExamStatusCode.STATUS_FAILED, String.format("No session found for session id %s", sessionId)));
         }
 
-        return examAssessmentInfos;
+        Session session = maybeSession.get();
+
+        if (studentId > 0) {
+            examAssessmentMetadatas = findEligibleExamAssessmentsForStudent(studentId, session, grade);
+        } else {
+            examAssessmentMetadatas = findEligibleExamAssessmentsForGuest(session.getClientName(), grade);
+        }
+
+        return new Response(examAssessmentMetadatas);
     }
 
-    private List<ExamAssessmentInfo> findEligibleExamAssessmentsForGuest(final String clientName, final String grade) {
-        final List<ExamAssessmentInfo> examAssessmentInfos = new ArrayList<>();
+    private List<ExamAssessmentMetadata> findEligibleExamAssessmentsForGuest(final String clientName, final String grade) {
+        final List<ExamAssessmentMetadata> examAssessmentMetadatas = new ArrayList<>();
         List<AssessmentInfo> eligibleAssessments = assessmentService.findAssessmentInfosForGrade(clientName, grade);
 
         for (AssessmentInfo assessment : eligibleAssessments) {
-            examAssessmentInfos.add(
-                new ExamAssessmentInfo.Builder()
+            examAssessmentMetadatas.add(
+                new ExamAssessmentMetadata.Builder()
                     .withAssessmentKey(assessment.getKey())
                     .withAssessmentId(assessment.getId())
                     .withAssessmentLabel(assessment.getLabel())
@@ -377,12 +386,13 @@ class ExamServiceImpl implements ExamService {
             );
         }
 
-        return examAssessmentInfos;
+        return examAssessmentMetadatas;
     }
 
-    private List<ExamAssessmentInfo> findEligibleExamAssessmentsForStudent(final String clientName, final long studentId, final UUID sessionId, final String grade) {
-        List<ExamAssessmentInfo> examAssessmentInfos = new ArrayList<>();
-        Set<String> sessionAssessmentIds = sessionService.findSessionAssessments(sessionId).stream()
+    private List<ExamAssessmentMetadata> findEligibleExamAssessmentsForStudent(final long studentId, final Session session, final String grade) {
+        final String clientName = session.getClientName();
+        List<ExamAssessmentMetadata> examAssessmentMetadatas = new ArrayList<>();
+        Set<String> sessionAssessmentIds = sessionService.findSessionAssessments(session.getId()).stream()
             .map(SessionAssessment::getAssessmentId)
             .collect(Collectors.toSet());
         /* StudentDLL - 10439 and 10535 - get both student package attributes at once */
@@ -407,7 +417,7 @@ class ExamServiceImpl implements ExamService {
             Optional<Exam> maybeMostRecentExam = getMostRecentExamForAssessment(assessment.getKey(), assessmentExams);
             boolean isNewOpportunity = false;
 
-            if (sessionId != null && !sessionAssessmentIds.contains(assessment.getId())) {
+            if (!sessionAssessmentIds.contains(assessment.getId())) {
                 deniedReason = configService.getFormattedMessage(clientName, "_CanOpenTestOpportunity",
                     "Test not available for this session.");
                 status = ExamStatusCode.STATUS_DENIED;
@@ -428,7 +438,7 @@ class ExamServiceImpl implements ExamService {
                             .withStudentId(studentId)
                             .withAssessmentKey(assessment.getKey())
                             .withMaxAttempts(assessment.getMaxAttempts())
-                            .withSessionId(sessionId)
+                            .withSessionId(session.getId())
                             .withBrowserId(recentExam.getBrowserId())
                             .build();
 
@@ -461,8 +471,8 @@ class ExamServiceImpl implements ExamService {
                 }
             }
 
-            examAssessmentInfos.add(
-                new ExamAssessmentInfo.Builder()
+            examAssessmentMetadatas.add(
+                new ExamAssessmentMetadata.Builder()
                     .withAssessmentKey(assessment.getKey())
                     .withAssessmentId(assessment.getId())
                     .withAssessmentLabel(assessment.getLabel())
@@ -476,7 +486,7 @@ class ExamServiceImpl implements ExamService {
             );
         }
 
-        return examAssessmentInfos;
+        return examAssessmentMetadatas;
     }
 
     @Transactional
@@ -926,34 +936,36 @@ class ExamServiceImpl implements ExamService {
             .findFirst();
     }
 
-    private String[] getEligibleAssessmentKeysFromAttributes(final List<RtsStudentPackageAttribute> attributes) {
-        final Optional<String> eligibleAssessmentStr = attributes.stream()
+    private static String[] getEligibleAssessmentKeysFromAttributes(final List<RtsStudentPackageAttribute> attributes) {
+        final Optional<String[]> eligibleAssessments = attributes.stream()
             .filter(attribute -> ELIGIBLE_ASSESSMENTS.equals(attribute.getName()))
             .map(RtsStudentPackageAttribute::getValue)
+            .map(assessments -> assessments.split(";"))
             .findFirst();
 
-        if (!eligibleAssessmentStr.isPresent()) {
+        if (!eligibleAssessments.isPresent()) {
             return new String[0];
         }
 
-        return eligibleAssessmentStr.get().split(";");
+        return eligibleAssessments.get();
     }
 
-    private boolean isSubjectBlocked(final List<RtsStudentPackageAttribute> blockedSubjectsAttributes, final String subject) {
+    private static boolean isSubjectBlocked(final List<RtsStudentPackageAttribute> blockedSubjectsAttributes, final String subject) {
         if (blockedSubjectsAttributes == null || blockedSubjectsAttributes.isEmpty()) {
             return false;
         }
 
-        final Optional<String> maybeBlockedSubject = blockedSubjectsAttributes.stream()
+        final Optional<Boolean> maybeBlockedSubject = blockedSubjectsAttributes.stream()
             .filter(attribute -> BLOCKED_SUBJECT.equals(attribute.getName()))
             .map(RtsStudentPackageAttribute::getValue)
+            .map(blockedSubject -> blockedSubject.contains(subject))
             .findFirst();
 
         if (!maybeBlockedSubject.isPresent()) {
             return false;
         }
 
-        return maybeBlockedSubject.get().equalsIgnoreCase(subject);
+        return maybeBlockedSubject.get();
     }
 
 }

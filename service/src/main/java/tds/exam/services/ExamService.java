@@ -8,7 +8,7 @@ import tds.common.Response;
 import tds.common.ValidationError;
 import tds.exam.ApproveAccommodationsRequest;
 import tds.exam.Exam;
-import tds.exam.ExamAssessmentInfo;
+import tds.exam.ExamAssessmentMetadata;
 import tds.exam.ExamConfiguration;
 import tds.exam.ExamStatusCode;
 import tds.exam.OpenExamRequest;
@@ -95,11 +95,10 @@ public interface ExamService {
     /**
      * Finds the list of assessments available for a student and session.
      *
-     * @param clientName The name of the client environment
-     * @param studentId  The id of the student to fetch {@link tds.exam.ExamAssessmentInfo}s for
+     * @param studentId  The id of the student to fetch {@link tds.exam.ExamAssessmentMetadata}s for
      * @param sessionId  The id current session
      * @param grade      The assessment grades to fetch
-     * @return A list of {@link tds.exam.ExamAssessmentInfo}, containing various metadata pertaining to the assessment and exams.
+     * @return A list of {@link tds.exam.ExamAssessmentMetadata}, containing various metadata pertaining to the assessment and exams.
      */
-    List<ExamAssessmentInfo> findExamAssessmentInfo(final String clientName, final long studentId, final UUID sessionId, final String grade);
+    Response<List<ExamAssessmentMetadata>> findExamAssessmentMetadata(final long studentId, final UUID sessionId, final String grade);
 }

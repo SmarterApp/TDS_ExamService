@@ -148,16 +148,17 @@ class SessionServiceImpl implements SessionService {
     }
 
     @Override
+    @Cacheable(CacheType.SHORT_TERM)
     public List<Session> findSessionsByIds(final List<UUID> sessionIds) {
+        if (sessionIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+
         final UriComponentsBuilder builder =
             UriComponentsBuilder
                 .fromHttpUrl(String.format("%s/%s",
                     examServiceProperties.getSessionUrl(),
                     SESSION_APP_CONTEXT));
-
-        if (sessionIds.isEmpty()) {
-            return new ArrayList<>();
-        }
 
         for (UUID sessionId : sessionIds) {
             builder.queryParam("sessionId", sessionId.toString());

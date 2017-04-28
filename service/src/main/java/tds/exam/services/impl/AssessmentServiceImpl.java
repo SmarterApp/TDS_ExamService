@@ -148,6 +148,8 @@ class AssessmentServiceImpl implements AssessmentService {
         return maybeSegmentItemInfo;
     }
 
+    @Override
+    @Cacheable(CacheType.LONG_TERM)
     public List<AssessmentInfo> findAssessmentInfosForAssessments(final String clientName, final String... assessmentKeys) {
         final UriComponentsBuilder builder =
             UriComponentsBuilder
@@ -168,6 +170,7 @@ class AssessmentServiceImpl implements AssessmentService {
     }
 
     @Override
+    @Cacheable(CacheType.LONG_TERM)
     public List<AssessmentInfo> findAssessmentInfosForGrade(final String clientName, final String grade) {
         final UriComponentsBuilder builder =
             UriComponentsBuilder

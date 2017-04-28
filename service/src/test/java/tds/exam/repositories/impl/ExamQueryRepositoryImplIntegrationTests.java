@@ -118,9 +118,15 @@ public class ExamQueryRepositoryImplIntegrationTests {
             .withAssessmentId("assessmentId6")
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_FAILED, ExamStatusStage.INACTIVE), Instant.now())
             .build());
-        examsInSession.add(new ExamBuilder().withSessionId(mockSessionId)
-            .withStudentId(5L)
+        examsInSession.add(new ExamBuilder().withSessionId(UUID.randomUUID())
+            .withStudentId(10L)
             .withAssessmentId("assessmentId7")
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_STARTED, ExamStatusStage.INACTIVE), Instant.now())
+            .build());
+        examsInSession.add(new ExamBuilder().withSessionId(UUID.randomUUID())
+            .withStudentId(10L)
+            .withAssessmentId("assessmentId7")
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_STARTED, ExamStatusStage.INACTIVE), Instant.now())
             .build());
 
         examsInSession.forEach(exam -> {
@@ -355,7 +361,7 @@ public class ExamQueryRepositoryImplIntegrationTests {
 
     @Test
     public void shouldReturnListOfExamsForStudent() {
-        final long studentId = 5;
+        final long studentId = 10;
         List<Exam> exams = examQueryRepository.findAllExamsForStudent(studentId);
         assertThat(exams).hasSize(2);
     }

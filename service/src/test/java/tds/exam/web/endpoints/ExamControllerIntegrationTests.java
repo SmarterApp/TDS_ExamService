@@ -1,5 +1,6 @@
 package tds.exam.web.endpoints;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import org.junit.Before;
@@ -10,17 +11,20 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 import java.net.URI;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import tds.common.Response;
 import tds.common.ValidationError;
 import tds.exam.ApproveAccommodationsRequest;
 import tds.exam.Exam;
-import tds.exam.ExamAssessmentInfo;
+import tds.exam.ExamAssessmentMetadata;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusRequest;
 import tds.exam.ExamStatusStage;
@@ -34,6 +38,7 @@ import tds.exam.services.ExamService;
 import tds.exam.web.interceptors.VerifyAccessInterceptor;
 
 import static io.github.benas.randombeans.api.EnhancedRandom.random;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -260,25 +265,61 @@ public class ExamControllerIntegrationTests {
 
     @Test
     public void shouldGetEligibleExamAssessments() throws Exception {
-        final String clientName = "SBAC_PT";
         final long studentId = 2112;
         final UUID sessionId = UUID.randomUUID();
         final String grade = "3";
 
-        ExamAssessmentInfo examAssessmentInfo1 = random(ExamAssessmentInfo.class);
-        ExamAssessmentInfo examAssessmentInfo2 = random(ExamAssessmentInfo.class);
+        ExamAssessmentMetadata examAssessmentMetadata1 = random(ExamAssessmentMetadata.class);
+        ExamAssessmentMetadata examAssessmentMetadata2 = random(ExamAssessmentMetadata.class);
 
-        when(mockExamService.findExamAssessmentInfo(clientName, studentId, sessionId, grade))
-            .thenReturn(Arrays.asList(examAssessmentInfo1, examAssessmentInfo2));
+        when(mockExamService.findExamAssessmentMetadata(studentId, sessionId, grade))
+            .thenReturn(new Response<>(Arrays.asList(examAssessmentMetadata1, examAssessmentMetadata2)));
 
-        http.perform(get(new URI(String.format("/exam/eligible/%s/%s", clientName, studentId)))
+        MvcResult result = http.perform(get(new URI("/exam/metadata"))
             .contentType(MediaType.APPLICATION_JSON)
+            .param("studentId", String.valueOf(studentId))
             .param("sessionId", sessionId.toString())
             .param("grade", grade))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("data.[0].assessmentId", is(examAssessmentInfo1.getAssessmentId().toString())))
-            .andExpect(jsonPath("data.[1].assessmentId", is(examAssessmentInfo2.getAssessmentId().toString())));
+            .andExpect(jsonPath("data.[0].assessmentId", is(examAssessmentMetadata1.getAssessmentId())))
+            .andExpect(jsonPath("data.[1].assessmentId", is(examAssessmentMetadata2.getAssessmentId())))
+            .andReturn();
 
-        verify(mockExamService).findExamAssessmentInfo(clientName, studentId, sessionId, grade);
+        Response<List<ExamAssessmentMetadata>> parsedResponse =
+            objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<Response<List<ExamAssessmentMetadata>>>() {});
+
+        verify(mockExamService).findExamAssessmentMetadata(studentId, sessionId, grade);
+        assertThat(parsedResponse.getError().isPresent()).isFalse();
+        List<ExamAssessmentMetadata> parsedExamAssessmentMetadata = parsedResponse.getData().get();
+
+        assertThat(parsedExamAssessmentMetadata.get(0).getAssessmentId()).isEqualTo(examAssessmentMetadata1.getAssessmentId());
+        assertThat(parsedExamAssessmentMetadata.get(1).getAssessmentId()).isEqualTo(examAssessmentMetadata2.getAssessmentId());
+    }
+
+    @Test
+    public void shouldFailToGetEligibleExamAssessments() throws Exception {
+        final long studentId = 2112;
+        final UUID sessionId = UUID.randomUUID();
+        final String grade = "3";
+        ValidationError error = random(ValidationError.class);
+        when(mockExamService.findExamAssessmentMetadata(studentId, sessionId, grade))
+            .thenReturn(new Response<>(error));
+
+        MvcResult result = http.perform(get(new URI("/exam/metadata"))
+            .contentType(MediaType.APPLICATION_JSON)
+            .param("studentId", String.valueOf(studentId))
+            .param("sessionId", sessionId.toString())
+            .param("grade", grade))
+            .andExpect(status().isUnprocessableEntity())
+            .andReturn();
+
+        Response<List<ExamAssessmentMetadata>> parsedResponse =
+            objectMapper.readValue(result.getResponse().getContentAsByteArray(), new TypeReference<Response<List<ExamAssessmentMetadata>>>() {});
+
+        verify(mockExamService).findExamAssessmentMetadata(studentId, sessionId, grade);
+        assertThat(parsedResponse.getError().isPresent()).isTrue();
+        ValidationError validationError = parsedResponse.getError().get();
+
+        assertThat(validationError.getCode()).isEqualTo(error.getCode());
     }
 }
