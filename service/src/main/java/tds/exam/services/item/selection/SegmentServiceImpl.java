@@ -250,14 +250,13 @@ public class SegmentServiceImpl implements SegmentService {
                 }
 
                 tds.itemselection.base.ItemGroup group = new tds.itemselection.base.ItemGroup(groupId, 0, 1);
+                group.addItem(testItem);
                 itemPool.addItemgroup(group);
             } else {
                 tds.itemselection.base.ItemGroup group = itemPool.getItemGroup(testItem.groupID);
                 group.getItems().add(testItem);
                 group.setMaximumNumberOfItems(group.getMaximumNumberOfItems() + 1);
             }
-
-            itemPool.addItem(testItem);
         }
     }
 
