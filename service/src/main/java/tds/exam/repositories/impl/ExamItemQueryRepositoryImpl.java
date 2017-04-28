@@ -9,6 +9,12 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
+import tds.common.data.mapping.ResultSetMapperUtility;
+import tds.exam.ExamItem;
+import tds.exam.ExamItemResponse;
+import tds.exam.ExamItemResponseScore;
+import tds.exam.ExamScoringStatus;
+import tds.exam.repositories.ExamItemQueryRepository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -19,13 +25,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
-import tds.common.data.mapping.ResultSetMapperUtility;
-import tds.exam.ExamItem;
-import tds.exam.ExamItemResponse;
-import tds.exam.ExamItemResponseScore;
-import tds.exam.ExamScoringStatus;
-import tds.exam.repositories.ExamItemQueryRepository;
 
 @Repository
 public class ExamItemQueryRepositoryImpl implements ExamItemQueryRepository {
@@ -157,7 +156,8 @@ public class ExamItemQueryRepositoryImpl implements ExamItemQueryRepository {
             "  R.scored_at, \n" +
             "  R.score_sent_at, \n" +
             "  R.score_latency, \n" +
-            "  R.score_mark \n" +
+            "  R.score_mark, \n" +
+            "  R.created_at as response_created_at \n" +
             "FROM exam_item I\n" +
             "JOIN exam_page P ON I.exam_page_id = P.id\n" +
             "JOIN exam_page_event EPE ON P.id = EPE.exam_page_id \n" +
@@ -214,7 +214,8 @@ public class ExamItemQueryRepositoryImpl implements ExamItemQueryRepository {
                     .withResponse(rs.getString("response"))
                     .withSequence(rs.getInt("sequence"))
                     .withSelected(rs.getBoolean("is_selected"))
-                    .withMarkedForReview(rs.getBoolean("is_marked_for_review"));
+                    .withMarkedForReview(rs.getBoolean("is_marked_for_review"))
+                    .withCreatedAt(ResultSetMapperUtility.mapTimestampToJodaInstant(rs, "response_created_at"));
 
                 //Means that the item has been scored
                 if (rs.getObject("scored_at") != null) {

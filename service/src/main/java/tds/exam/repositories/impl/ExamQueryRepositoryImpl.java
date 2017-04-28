@@ -401,6 +401,46 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
         return jdbcTemplate.query(SQL, parameters, examRowMapper);
     }
 
+    @Override
+    public List<Exam> findAllExamsForStudent(final long studentId) {
+        final SqlParameterSource parameters = new MapSqlParameterSource("studentId", studentId);
+
+        final String SQL =
+            "SELECT \n" +
+                EXAM_QUERY_COLUMN_LIST +
+                "FROM exam.exam e \n" +
+                "JOIN ( \n" +
+                "   SELECT \n" +
+                "       exam_id, \n" +
+                "       MAX(id) AS id \n" +
+                "   FROM \n" +
+                "       exam.exam_event \n" +
+                "   GROUP BY exam_id \n" +
+                ") last_event \n" +
+                "  ON e.id = last_event.exam_id \n" +
+                "JOIN exam.exam_event ee \n" +
+                "  ON last_event.exam_id = ee.exam_id AND \n" +
+                "     last_event.id = ee.id\n" +
+                "JOIN exam.exam_status_codes esc \n" +
+                "  ON esc.status = ee.status \n" +
+                "LEFT JOIN exam.exam_accommodation lang \n" +
+                "  ON lang.exam_id = e.id \n" +
+                "  AND lang.created_at = \n" +
+                "  ( \n" +
+                "       SELECT \n" +
+                "           MAX(eacc.created_at) \n" +
+                "       FROM \n" +
+                "          exam.exam_accommodation eacc \n" +
+                "          WHERE \n" +
+                "          eacc.exam_id = e.id \n" +
+                "          AND eacc.type = 'Language'\n" +
+                "  ) \n" +
+                "WHERE e.student_id = :studentId \n" +
+                "   AND ee.deleted_at IS NULL";
+
+        return jdbcTemplate.query(SQL, parameters, examRowMapper);
+    }
+
     private static class AbilityRowMapper implements RowMapper<Ability> {
         @Override
         public Ability mapRow(ResultSet rs, int rowNum) throws SQLException {

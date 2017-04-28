@@ -17,6 +17,7 @@ import java.util.Optional;
 
 import tds.accommodation.Accommodation;
 import tds.assessment.Assessment;
+import tds.assessment.AssessmentInfo;
 import tds.assessment.AssessmentWindow;
 import tds.assessment.SegmentItemInformation;
 import tds.common.cache.CacheType;
@@ -145,5 +146,44 @@ class AssessmentServiceImpl implements AssessmentService {
         }
 
         return maybeSegmentItemInfo;
+    }
+
+    @Override
+    @Cacheable(CacheType.LONG_TERM)
+    public List<AssessmentInfo> findAssessmentInfosForAssessments(final String clientName, final String... assessmentKeys) {
+        final UriComponentsBuilder builder =
+            UriComponentsBuilder
+                .fromHttpUrl(String.format("%s/%s/%s",
+                    examServiceProperties.getAssessmentUrl(),
+                    clientName,
+                    ASSESSMENT_APP_CONTEXT));
+
+        for (String assessmentKey : assessmentKeys) {
+            builder.queryParam("assessmentKeys", assessmentKey);
+        }
+
+        final ResponseEntity<List<AssessmentInfo>> responseEntity = restTemplate.exchange(builder.build().toUri(),
+            HttpMethod.GET, null, new ParameterizedTypeReference<List<AssessmentInfo>>() {
+            });
+
+        return responseEntity.getBody();
+    }
+
+    @Override
+    @Cacheable(CacheType.LONG_TERM)
+    public List<AssessmentInfo> findAssessmentInfosForGrade(final String clientName, final String grade) {
+        final UriComponentsBuilder builder =
+            UriComponentsBuilder
+                .fromHttpUrl(String.format("%s/%s/%s/grade/%s",
+                    examServiceProperties.getAssessmentUrl(),
+                    clientName,
+                    ASSESSMENT_APP_CONTEXT,
+                    grade));
+
+        final ResponseEntity<List<AssessmentInfo>> responseEntity = restTemplate.exchange(builder.build().toUri(),
+            HttpMethod.GET, null, new ParameterizedTypeReference<List<AssessmentInfo>>() {
+            });
+
+        return responseEntity.getBody();
     }
 }
