@@ -4,7 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,17 +32,17 @@ public class ExamSegmentController {
     }
 
     @VerifyAccess
-    @RequestMapping(value = "/{examId}/segments", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/{examId}/segments", produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<List<ExamSegment>> getExamSegments(@PathVariable final UUID examId) {
         return ResponseEntity.ok(examSegmentService.findExamSegments(examId));
     }
 
-    @RequestMapping(value ="/{examId}/segments/completed", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value ="/{examId}/segments/completed", produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<Boolean> checkIfSegmentsCompleted(@PathVariable final UUID examId) {
         return ResponseEntity.ok(examSegmentService.checkIfSegmentsCompleted(examId));
     }
 
-    @RequestMapping(value = "/{examId}/segments/{segmentPosition}/exit", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(value = "/{examId}/segments/{segmentPosition}/exit", produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<NoContentResponseResource> exitSegment(@PathVariable final UUID examId,
                                                           @PathVariable final int segmentPosition) {
         Optional<ValidationError> maybeError = examSegmentService.exitSegment(examId, segmentPosition);
