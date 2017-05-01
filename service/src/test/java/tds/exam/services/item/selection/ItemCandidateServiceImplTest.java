@@ -7,19 +7,12 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
 import tds.assessment.Assessment;
 import tds.assessment.Form;
 import tds.assessment.Item;
 import tds.assessment.Segment;
 import tds.common.Algorithm;
+import tds.dll.api.IItemSelectionDLL;
 import tds.exam.Exam;
 import tds.exam.ExamItem;
 import tds.exam.ExamPage;
@@ -42,6 +35,13 @@ import tds.exam.services.FieldTestService;
 import tds.itemselection.base.ItemCandidatesData;
 import tds.itemselection.base.ItemGroup;
 import tds.itemselection.services.ItemCandidatesService;
+
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.mockito.Mockito.verify;
@@ -191,6 +191,53 @@ public class ItemCandidateServiceImplTest {
         ItemCandidatesData data = itemCandidatesService.getItemCandidates(exam.getId());
 
         assertThat(data.getSegmentKey()).isEqualTo(segment.getKey());
+    }
+
+    @Test
+    public void shouldReturnASatisfiedItemCandidateIfThereAreNoItemCandidates() throws ReturnStatusException {
+        Segment segment = new SegmentBuilder()
+            .withKey("segmentKey")
+            .withSegmentId("segmentId")
+            .withPosition(1)
+            .build();
+
+        Assessment assessment = new AssessmentBuilder()
+            .withSegments(Collections.singletonList(segment))
+            .build();
+
+        Exam exam = new ExamBuilder().build();
+
+        ExamSegment examSegment = new ExamSegmentBuilder()
+            .withExamId(exam.getId())
+            .withSegmentPosition(0)
+            .withSegmentKey(segment.getKey())
+            .withSegmentPosition(segment.getPosition())
+            .withExamItemCount(1)
+            .withIsSatisfied(false)
+            .build();
+
+        ExamPage page = new ExamPageBuilder()
+            .withSegmentKey(segment.getKey())
+            .withExamId(exam.getId())
+            .build();
+
+        ExamItem examItem = new ExamItemBuilder()
+            .withExamPageId(page.getId())
+            .build();
+
+        ExpandableExam expandableExam = new ExpandableExam.Builder(exam)
+            .withExamItems(Collections.singletonList(examItem))
+            .withExamSegments(Collections.singletonList(examSegment))
+            .withExamPages(Collections.singletonList(page))
+            .build();
+
+        when(mockExpandableExamService.findExam(exam.getId(), ExpandableExamAttributes.EXAM_SEGMENTS, ExpandableExamAttributes.EXAM_PAGE_AND_ITEMS)).thenReturn(Optional.of(expandableExam));
+        when(mockAssessmentService.findAssessment(exam.getClientName(), exam.getAssessmentKey())).thenReturn(Optional.of(assessment));
+
+        ItemCandidatesData data = itemCandidatesService.getItemCandidates(exam.getId());
+
+        assertThat(data).isNotNull();
+        assertThat(data.getAlgorithm()).isEqualTo(IItemSelectionDLL.SATISFIED);
     }
 
     @Test
