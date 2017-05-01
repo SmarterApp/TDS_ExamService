@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import tds.common.Response;
 import tds.exam.ExamPage;
 
 /**
@@ -50,7 +49,7 @@ public interface ExamPageService {
      * @return An {@link tds.exam.ExamPage} containing a collection of {@link tds.exam.ExamItem}s that
      * should be displayed
      */
-    Response<ExamPage> getPage(final UUID examId, final int pageNumber);
+    ExamPage getPage(final UUID examId, final int pageNumber);
 
     /**
      * Finds an {@link tds.exam.ExamPage} by its id
