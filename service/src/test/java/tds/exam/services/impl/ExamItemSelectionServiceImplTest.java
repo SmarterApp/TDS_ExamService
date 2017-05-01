@@ -7,12 +7,6 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
 import tds.assessment.Assessment;
 import tds.assessment.Item;
 import tds.assessment.Segment;
@@ -34,9 +28,15 @@ import tds.itemselection.model.ItemResponse;
 import tds.itemselection.services.ItemSelectionService;
 import tds.student.sql.data.OpportunityItem;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static tds.itemselection.model.ItemResponse.Status.SATISFIED;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ExamItemSelectionServiceImplTest {
@@ -228,5 +228,19 @@ public class ExamItemSelectionServiceImplTest {
         when(mockAssessmentService.findAssessment(exam.getClientName(), exam.getAssessmentKey())).thenReturn(Optional.of(assessment));
         when(mockItemSelectionService.getNextItemGroup(examId, false)).thenReturn(new ItemResponse<>(itemGroup));
         examItemSelectionService.createNextPageGroup(examId, 1, 2);
+    }
+
+    @Test
+    public void itShouldReturnAnEmptyListIfExamIsSatisfied() {
+        final UUID examId = UUID.randomUUID();
+        final Exam exam = new ExamBuilder().withId(examId).build();
+
+        final Assessment assessment = new AssessmentBuilder()
+            .build();
+
+        when(mockExamService.findExam(examId)).thenReturn(Optional.of(exam));
+        when(mockAssessmentService.findAssessment(exam.getClientName(), exam.getAssessmentKey())).thenReturn(Optional.of(assessment));
+        when(mockItemSelectionService.getNextItemGroup(examId, false)).thenReturn(new ItemResponse<>(SATISFIED));
+        assertThat(examItemSelectionService.createNextPageGroup(examId, 1, 2)).isEmpty();
     }
 }
