@@ -3,16 +3,6 @@ package tds.exam.services.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
 import tds.assessment.Assessment;
 import tds.assessment.Item;
 import tds.assessment.Segment;
@@ -29,6 +19,18 @@ import tds.itemselection.base.TestItem;
 import tds.itemselection.model.ItemResponse;
 import tds.itemselection.services.ItemSelectionService;
 import tds.student.sql.data.OpportunityItem;
+
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import static tds.itemselection.model.ItemResponse.Status.SATISFIED;
 
 @Service
 public class ExamItemSelectionServiceImpl implements ExamItemSelectionService {
@@ -61,7 +63,9 @@ public class ExamItemSelectionServiceImpl implements ExamItemSelectionService {
 
         ItemResponse<ItemGroup> response = itemSelectionService.getNextItemGroup(exam.getId(), assessment.isMultiStageBraille());
 
-        if (response.getErrorMessage().isPresent()) {
+        if (response.getResponseStatus() == SATISFIED) {
+            return Collections.emptyList();
+        } else if (response.getErrorMessage().isPresent()) {
             throw new RuntimeException("Failed to create item group: " + response.getErrorMessage());
         } else if (!response.getResponseData().isPresent()) {
             throw new IllegalStateException("No error nor item information was returned from selection.  Please check configuration");

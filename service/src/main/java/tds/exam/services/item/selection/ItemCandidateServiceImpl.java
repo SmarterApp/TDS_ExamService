@@ -4,17 +4,6 @@ import TDS.Shared.Exceptions.ReturnStatusException;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
 import tds.assessment.Assessment;
 import tds.assessment.Form;
 import tds.assessment.Segment;
@@ -40,6 +29,16 @@ import tds.itemselection.impl.ItemResponse;
 import tds.itemselection.loader.StudentHistory2013;
 import tds.itemselection.model.OffGradeResponse;
 import tds.itemselection.services.ItemCandidatesService;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class ItemCandidateServiceImpl implements ItemCandidatesService {
@@ -90,10 +89,6 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
             .filter(fieldTestItemGroup -> !fieldTestItemGroup.isDeleted() && fieldTestItemGroup.getAdministeredAt() == null)
             .collect(Collectors.groupingBy(FieldTestItemGroup::getSegmentKey));
 
-        if (unsatisfiedSegments.isEmpty()) {
-            return Collections.singletonList(new ItemCandidatesData(examId, IItemSelectionDLL.SATISFIED));
-        }
-
         List<ExamSegment> satisfiedSegments = new ArrayList<>();
         List<ExamSegmentWrapper> nonSatisfiedSegments = new ArrayList<>();
         for (ExamSegmentWrapper examSegmentWrapper : unsatisfiedSegments) {
@@ -124,6 +119,10 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
         //Means that a segment has been satisfied but hasn't been updated to be satisfied
         if (!satisfiedSegments.isEmpty()) {
             updateSatisfiedSegments(satisfiedSegments);
+        }
+
+        if (nonSatisfiedSegments.isEmpty()) {
+            return Collections.singletonList(new ItemCandidatesData(examId, IItemSelectionDLL.SATISFIED));
         }
 
         return nonSatisfiedSegments.stream()
