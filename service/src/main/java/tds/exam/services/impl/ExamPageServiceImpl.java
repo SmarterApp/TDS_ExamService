@@ -11,7 +11,6 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import tds.common.Response;
 import tds.common.web.exceptions.NotFoundException;
 import tds.exam.ExamItem;
 import tds.exam.ExamPage;
@@ -78,7 +77,7 @@ public class ExamPageServiceImpl implements ExamPageService {
 
 
     @Override
-    public Response<ExamPage> getPage(final UUID examId, final int pageNumber) {
+    public ExamPage getPage(final UUID examId, final int pageNumber) {
         ExamPage examPage = examPageQueryRepository.findPageWithItems(examId, pageNumber)
             .orElseThrow(() -> new NotFoundException(String.format("Could not find an exam page for exam id %s and page number/position %s", examId, pageNumber)));
 
@@ -87,7 +86,7 @@ public class ExamPageServiceImpl implements ExamPageService {
         // database as the start time.
         examPageCommandRepository.update(examPage);
 
-        return new Response<>(examPage);
+        return examPage;
     }
 
     @Override

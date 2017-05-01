@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import tds.common.Response;
 import tds.exam.Exam;
 import tds.exam.ExamItem;
 import tds.exam.ExamItemResponse;
@@ -124,14 +123,10 @@ public class ExamPageServiceImplTest {
         when(mockExamPageQueryRepository.findPageWithItems(mockExamId, mockExamPage.getPagePosition()))
             .thenReturn(Optional.of(mockExamPage));
 
-        Response<ExamPage> examPageResponse = examPageService.getPage(mockExamId, mockExamPage.getPagePosition());
+        ExamPage examPage = examPageService.getPage(mockExamId, mockExamPage.getPagePosition());
         verify(mockExamPageQueryRepository).findPageWithItems(mockExamPage.getExamId(), mockExamPage.getPagePosition());
         verify(mockExamPageCommandRepository).update(any(ExamPage[].class));
 
-        assertThat(examPageResponse.getData().isPresent()).isTrue();
-        assertThat(examPageResponse.hasError()).isFalse();
-
-        ExamPage examPage = examPageResponse.getData().get();
         assertThat(examPage).isEqualToComparingFieldByFieldRecursively(mockExamPage);
     }
 
