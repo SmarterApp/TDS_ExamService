@@ -43,6 +43,7 @@ import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -224,6 +225,36 @@ public class ExamControllerTest {
         verifyNoMoreInteractions(mockExamService);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+    }
+
+    @Test
+    public void shouldReviewExam() {
+        final UUID examId = UUID.randomUUID();
+
+        when(mockExamService.reviewExam(any(UUID.class)))
+            .thenReturn(Optional.empty());
+
+        ResponseEntity<NoContentResponseResource> response = controller.reviewExam(examId);
+        verify(mockExamService).reviewExam(any(UUID.class));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+        assertThat(response.getHeaders().containsKey("Location")).isTrue();
+    }
+
+    @Test
+    public void shouldReturnUnprocessableEntityWhenExamCannotBeReviewedBecauseItIsIncomplete() {
+        final UUID examId = UUID.randomUUID();
+        final ValidationError error = new ValidationError(ValidationErrorCode.EXAM_INCOMPLETE,
+            "Review Test: Cannot end test because test length is not met.");
+
+        when(mockExamService.reviewExam(any(UUID.class)))
+            .thenReturn(Optional.of(error));
+
+        ResponseEntity<NoContentResponseResource> response = controller.reviewExam(examId);
+        verify(mockExamService).reviewExam(any(UUID.class));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        assertThat(response.getBody().getErrors()).isNotEmpty();
     }
 
     @Test

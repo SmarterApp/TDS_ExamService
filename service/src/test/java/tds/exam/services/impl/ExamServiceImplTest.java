@@ -78,8 +78,10 @@ import tds.student.Student;
 import static io.github.benas.randombeans.api.EnhancedRandom.random;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyVararg;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -1634,5 +1636,47 @@ public class ExamServiceImplTest {
         assertThat(examAssessmentMetadata5.getAttempt()).isEqualTo(0);
         assertThat(examAssessmentMetadata5.getGrade()).isEqualTo("3");
         assertThat(examAssessmentMetadata5.getStatus()).isEqualTo(ExamStatusCode.STATUS_DENIED);
+    }
+
+    @Test
+    public void shouldReviewAnExam() {
+        final Exam exam = new Exam.Builder()
+            .fromExam(random(Exam.class))
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_STARTED), Instant.now())
+            .build();
+
+        when(mockExamQueryRepository.getExamById(any(UUID.class)))
+            .thenReturn(Optional.of(exam));
+        when(mockExamSegmentService.checkIfSegmentsCompleted(any(UUID.class)))
+            .thenReturn(true);
+
+        final Optional<ValidationError> maybeError = examService.reviewExam(exam.getId());
+        verify(mockExamSegmentService).checkIfSegmentsCompleted(any(UUID.class));
+        verify(mockExamCommandRepository).update(examArgumentCaptor.capture());
+
+        assertThat(maybeError.isPresent()).isFalse();
+        assertThat(examArgumentCaptor.getValue().getStatus().getCode()).isEqualTo(ExamStatusCode.STATUS_REVIEW);
+    }
+
+    @Test
+    public void shouldNotReviewAnExamThatIsNotComplete() {
+        final Exam exam = new Exam.Builder()
+            .fromExam(random(Exam.class))
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_STARTED), Instant.now())
+            .build();
+
+        when(mockExamQueryRepository.getExamById(any(UUID.class)))
+            .thenReturn(Optional.of(exam));
+        when(mockExamSegmentService.checkIfSegmentsCompleted(any(UUID.class)))
+            .thenReturn(false);
+
+        final Optional<ValidationError> maybeError = examService.reviewExam(exam.getId());
+        verify(mockExamSegmentService).checkIfSegmentsCompleted(any(UUID.class));
+        verifyZeroInteractions(mockExamCommandRepository);
+
+        assertThat(maybeError.isPresent()).isTrue();
+        final ValidationError error = maybeError.get();
+        assertThat(error.getCode()).isEqualTo(ValidationErrorCode.EXAM_INCOMPLETE);
+        assertThat(error.getMessage()).isEqualTo("Review Test: Cannot end test because test length is not met.");
     }
 }
