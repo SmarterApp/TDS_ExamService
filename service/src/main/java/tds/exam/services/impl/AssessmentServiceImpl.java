@@ -174,11 +174,11 @@ class AssessmentServiceImpl implements AssessmentService {
     public List<AssessmentInfo> findAssessmentInfosForGrade(final String clientName, final String grade) {
         final UriComponentsBuilder builder =
             UriComponentsBuilder
-                .fromHttpUrl(String.format("%s/%s/%s/grade/%s",
+                .fromHttpUrl(String.format("%s/%s/%s",
                     examServiceProperties.getAssessmentUrl(),
                     clientName,
-                    ASSESSMENT_APP_CONTEXT,
-                    grade));
+                    ASSESSMENT_APP_CONTEXT))
+                .queryParam("grade", grade);
 
         final ResponseEntity<List<AssessmentInfo>> responseEntity = restTemplate.exchange(builder.build().toUri(),
             HttpMethod.GET, null, new ParameterizedTypeReference<List<AssessmentInfo>>() {

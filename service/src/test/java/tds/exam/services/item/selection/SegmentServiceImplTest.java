@@ -113,8 +113,8 @@ public class SegmentServiceImplTest {
             .withStrictMax(true)
             .build();
 
-        ItemProperty property = new ItemProperty("propName", "value", "item-123");
-        ItemProperty property2 = new ItemProperty("propName2", "value", "item-123");
+        ItemProperty property = new ItemProperty("propName", "value", "", "item-123");
+        ItemProperty property2 = new ItemProperty("propName2", "value", "", "item-123");
 
         ItemControlParameter control = new ItemControlParameter("elementId", "name", "value");
 
@@ -207,8 +207,8 @@ public class SegmentServiceImplTest {
             .withStrictMax(true)
             .build();
 
-        ItemProperty property = new ItemProperty("propName", "value", "item-123");
-        ItemProperty property2 = new ItemProperty("propName2", "value", "item-123");
+        ItemProperty property = new ItemProperty("propName", "value", "", "item-123");
+        ItemProperty property2 = new ItemProperty("propName2", "value", "", "item-123");
 
         ItemControlParameter control = new ItemControlParameter("elementId", "name", "value");
 

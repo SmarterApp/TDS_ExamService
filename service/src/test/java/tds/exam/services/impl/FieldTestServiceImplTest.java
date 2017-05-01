@@ -11,6 +11,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import tds.assessment.Assessment;
@@ -107,7 +108,6 @@ public class FieldTestServiceImplTest {
     @Test
     public void shouldReturnTrueForNonSegmentedAssessmentWithFieldTestItemsNullWindow() {
         final String segmentKey = "segment-key";
-        final String language = "ENU";
         final Exam exam = new ExamBuilder().build();
 
         List<Item> items = createTestItems(true);
@@ -319,19 +319,19 @@ public class FieldTestServiceImplTest {
         final String assessmentKey = "assessment-key123";
         Item item1 = new ItemBuilder("item1")
             .withGroupKey("group-key-1")
-            .withItemProperties(Arrays.asList(new ItemProperty("Language", "ENU")))
+            .withItemProperties(Collections.singletonList(new ItemProperty("Language", "ENU", "", "")))
             .build();
         Item item2 = new ItemBuilder("item2")
             .withGroupKey("group-key-2")
-            .withItemProperties(Arrays.asList(new ItemProperty("Language", "ENU")))
+            .withItemProperties(Collections.singletonList(new ItemProperty("Language", "ENU", "", "")))
             .build();
         Item item3 = new ItemBuilder("item3")
             .withGroupKey("group-key-3")
-            .withItemProperties(Arrays.asList(new ItemProperty("Language", "ENU")))
+            .withItemProperties(Collections.singletonList(new ItemProperty("Language", "ENU", "", "")))
             .build();
         Item item4 = new ItemBuilder("item4")
             .withGroupKey("group-key-4")
-            .withItemProperties(Arrays.asList(new ItemProperty("Language", "ENU")))
+            .withItemProperties(Collections.singletonList(new ItemProperty("Language", "ENU", "", "")))
             .build();
         Segment segment = new SegmentBuilder()
             .withAssessmentKey(assessmentKey)
@@ -343,7 +343,7 @@ public class FieldTestServiceImplTest {
             .withFieldTestMaxItems(4)
             .build();
         Assessment assessment = new AssessmentBuilder()
-            .withSegments(Arrays.asList(segment))
+            .withSegments(Collections.singletonList(segment))
             .build();
         FieldTestItemGroup ftItemGroup1 = new FieldTestItemGroupBuilder("group-key-1")
             .withGroupId("group-id-1")
@@ -372,7 +372,7 @@ public class FieldTestServiceImplTest {
             .build();
 
         when(mockFieldTestItemGroupQueryRepository.find(exam.getId(), segment.getKey()))
-            .thenReturn(Arrays.asList(ftItemGroup4));
+            .thenReturn(Collections.singletonList(ftItemGroup4));
         when(mockFieldTestItemGroupSelector.selectLeastUsedItemGroups(eq(exam), any(),
             any(), eq(segment), eq(segment.getFieldTestMinItems())))
             .thenReturn(Arrays.asList(ftItemGroup1, ftItemGroup2, ftItemGroup3));
@@ -401,7 +401,13 @@ public class FieldTestServiceImplTest {
                 notInsertedFtGroup = itemGroup;
             }
         }
+
         assertThat(totalItems).isEqualTo(4);
+
+        assertThat(insertedFtGroup1).isNotNull();
+        assertThat(insertedFtGroup2).isNotNull();
+        assertThat(insertedFtGroup3).isNotNull();
+
         assertThat(insertedFtGroup1.getGroupId()).isEqualTo(ftItemGroup1.getGroupId());
         assertThat(insertedFtGroup1.getBlockId()).isEqualTo(ftItemGroup1.getBlockId());
         assertThat(insertedFtGroup1.getPosition()).isGreaterThanOrEqualTo(segment.getFieldTestStartPosition());
@@ -432,20 +438,20 @@ public class FieldTestServiceImplTest {
         final String assessmentKey = "assessment-key123";
         Item item1G1 = new ItemBuilder("item1group1")
             .withGroupKey("group-key-1")
-            .withItemProperties(Arrays.asList(new ItemProperty("Language", "ENU")))
+            .withItemProperties(Collections.singletonList(new ItemProperty("Language", "ENU", "", "")))
             .build();
         Item item2G1 = new ItemBuilder("item2group1")
             .withGroupKey("group-key-1")
-            .withItemProperties(Arrays.asList(new ItemProperty("Language", "ENU")))
+            .withItemProperties(Collections.singletonList(new ItemProperty("Language", "ENU", "", "")))
             .build();
         Item item3G1 = new ItemBuilder("item3group1")
             .withGroupKey("group-key-1")
-            .withItemProperties(Arrays.asList(new ItemProperty("Language", "ENU")))
+            .withItemProperties(Collections.singletonList(new ItemProperty("Language", "ENU", "", "")))
             .build();
         // One (FT) item in second group
         Item item1G2 = new ItemBuilder("item1group2")
             .withGroupKey("group-key-2")
-            .withItemProperties(Arrays.asList(new ItemProperty("Language", "ENU")))
+            .withItemProperties(Collections.singletonList(new ItemProperty("Language", "ENU", "", "")))
             .build();
         Segment segment = new SegmentBuilder()
             .withAssessmentKey(assessmentKey)
@@ -457,7 +463,7 @@ public class FieldTestServiceImplTest {
             .withSelectionAlgorithm(Algorithm.ADAPTIVE_2)
             .build();
         Assessment assessment = new AssessmentBuilder()
-            .withSegments(Arrays.asList(segment))
+            .withSegments(Collections.singletonList(segment))
             .build();
         FieldTestItemGroup ftItemGroup1 = new FieldTestItemGroupBuilder("group-key-1")
             .withGroupId("group-id-1")
@@ -498,7 +504,8 @@ public class FieldTestServiceImplTest {
         }
 
         assertThat(insertedFtGroup1).isNull();
-
+        assertThat(insertedFtGroup2).isNotNull();
+        
         assertThat(totalItems).isEqualTo(1);
         assertThat(insertedFtGroup2.getGroupId()).isEqualTo(ftItemGroup2.getGroupId());
         assertThat(insertedFtGroup2.getBlockId()).isEqualTo(ftItemGroup2.getBlockId());
@@ -519,24 +526,24 @@ public class FieldTestServiceImplTest {
         // Four total items in item group (3 FT)
         Item item1G1 = new ItemBuilder("item1group1")
             .withGroupKey("group-key-1")
-            .withItemProperties(Arrays.asList(new ItemProperty("Language", "ENU")))
+            .withItemProperties(Collections.singletonList(new ItemProperty("Language", "ENU", "", "")))
             .build();
         Item item2G1 = new ItemBuilder("item2group1")
             .withGroupKey("group-key-1")
-            .withItemProperties(Arrays.asList(new ItemProperty("Language", "ENU")))
+            .withItemProperties(Collections.singletonList(new ItemProperty("Language", "ENU", "", "")))
             .build();
         Item item3G1 = new ItemBuilder("item3group1")
             .withGroupKey("group-key-1")
-            .withItemProperties(Arrays.asList(new ItemProperty("Language", "ENU")))
+            .withItemProperties(Collections.singletonList(new ItemProperty("Language", "ENU", "", "")))
             .build();
         Item nonFieldTestItemG1 = new ItemBuilder("nonFtItem-group1")
             .withGroupKey("group-key-1")
-            .withItemProperties(Arrays.asList(new ItemProperty("Language", "ENU")))
+            .withItemProperties(Collections.singletonList(new ItemProperty("Language", "ENU", "", "")))
             .build();
         // One (FT) item in second group
         Item item1G2 = new ItemBuilder("item1group2")
             .withGroupKey("group-key-2")
-            .withItemProperties(Arrays.asList(new ItemProperty("Language", "ENU")))
+            .withItemProperties(Collections.singletonList(new ItemProperty("Language", "ENU", "", "")))
             .build();
         Segment segment = new SegmentBuilder()
             .withAssessmentKey(assessmentKey)
@@ -548,7 +555,7 @@ public class FieldTestServiceImplTest {
             .withFieldTestMaxItems(4)
             .build();
         Assessment assessment = new AssessmentBuilder()
-            .withSegments(Arrays.asList(segment))
+            .withSegments(Collections.singletonList(segment))
             .build();
         FieldTestItemGroup ftItemGroup1 = new FieldTestItemGroupBuilder("group-key-1")
             .withGroupId("group-id-1")
@@ -583,19 +590,19 @@ public class FieldTestServiceImplTest {
         final String assessmentKey = "assessment-key123";
         Item item1G1 = new ItemBuilder("item1group1")
             .withGroupKey("group-key-1")
-            .withItemProperties(Arrays.asList(new ItemProperty("Language", "ENU")))
+            .withItemProperties(Collections.singletonList(new ItemProperty("Language", "ENU", "", "")))
             .build();
         Item item2G1 = new ItemBuilder("item2group1")
             .withGroupKey("group-key-1")
-            .withItemProperties(Arrays.asList(new ItemProperty("Language", "ENU")))
+            .withItemProperties(Collections.singletonList(new ItemProperty("Language", "ENU", "", "")))
             .build();
         Item item3G1 = new ItemBuilder("item3group1")
             .withGroupKey("group-key-1")
-            .withItemProperties(Arrays.asList(new ItemProperty("Language", "ENU")))
+            .withItemProperties(Collections.singletonList(new ItemProperty("Language", "ENU", "", "")))
             .build();
         Item item1G2 = new ItemBuilder("item1group2")
             .withGroupKey("group-key-2")
-            .withItemProperties(Arrays.asList(new ItemProperty("Language", "ENU")))
+            .withItemProperties(Collections.singletonList(new ItemProperty("Language", "ENU", "", "")))
             .build();
         Segment segment = new SegmentBuilder()
             .withAssessmentKey(assessmentKey)
@@ -608,7 +615,7 @@ public class FieldTestServiceImplTest {
             .withFieldTestMaxItems(4)
             .build();
         Assessment assessment = new AssessmentBuilder()
-            .withSegments(Arrays.asList(segment))
+            .withSegments(Collections.singletonList(segment))
             .build();
         FieldTestItemGroup ftItemGroup1 = new FieldTestItemGroupBuilder("group-key-1")
             .withGroupId("group-id-1")
@@ -647,6 +654,9 @@ public class FieldTestServiceImplTest {
         }
         assertThat(totalItems).isEqualTo(segment.getFieldTestMinItems());
 
+        assertThat(insertedFtGroup1).isNotNull();
+        assertThat(insertedFtGroup2).isNotNull();
+
         assertThat(insertedFtGroup1.getGroupId()).isEqualTo(ftItemGroup1.getGroupId());
         assertThat(insertedFtGroup1.getBlockId()).isEqualTo(ftItemGroup1.getBlockId());
         assertThat(insertedFtGroup1.getPosition()).isGreaterThanOrEqualTo(segment.getFieldTestStartPosition());
@@ -665,13 +675,13 @@ public class FieldTestServiceImplTest {
     private List<Item> createTestItems(boolean isFieldTest) {
         Item item1 = new Item("item-1");
         List<ItemProperty> props1 = new ArrayList<>();
-        props1.add(new ItemProperty("Language", "ENU"));
+        props1.add(new ItemProperty("Language", "ENU", "", ""));
         item1.setItemProperties(props1);
         item1.setFieldTest(isFieldTest);
 
         Item item2 = new Item("item-2");
         List<ItemProperty> props2 = new ArrayList<>();
-        props2.add(new ItemProperty("Language", "ESN"));
+        props2.add(new ItemProperty("Language", "ESN", "", ""));
         item2.setItemProperties(props2);
         item1.setFieldTest(isFieldTest);
 
