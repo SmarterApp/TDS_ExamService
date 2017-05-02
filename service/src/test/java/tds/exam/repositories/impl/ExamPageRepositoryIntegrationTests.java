@@ -10,7 +10,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -30,6 +30,7 @@ import tds.exam.repositories.ExamItemCommandRepository;
 import tds.exam.repositories.ExamPageCommandRepository;
 import tds.exam.repositories.ExamPageQueryRepository;
 import tds.exam.repositories.ExamSegmentCommandRepository;
+import tds.exam.wrapper.ExamPageWrapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -81,7 +82,7 @@ public class ExamPageRepositoryIntegrationTests {
 
         // Seed the database with mock records for integration testing
         examCommandRepository.insert(mockExam);
-        examSegmentCommandRepository.insert(Arrays.asList(mockExamSegment));
+        examSegmentCommandRepository.insert(Collections.singletonList(mockExamSegment));
         examPageCommandRepository.insert(mockExamPage);
         examItemCommandRepository.insert(mockFirstExamItem, mockSecondExamItem);
     }
@@ -134,43 +135,45 @@ public class ExamPageRepositoryIntegrationTests {
     @Test
     public void shouldFindAnExamPageWithSomeItemsThatHaveResponsesAndOthersDoNot() {
         // The student gets the page for the first time...
-        Optional<ExamPage> result = examPageQueryRepository.findPageWithItems(mockExam.getId(), 1);
+        Optional<ExamPageWrapper> result = examPageQueryRepository.findPageWithItems(mockExam.getId(), 1);
 
         assertThat(result).isPresent();
 
-        ExamPage examPage = result.get();
+        ExamPageWrapper wrapper = result.get();
+
+        ExamPage examPage = wrapper.getExamPage();
         assertThat(examPage.getCreatedAt()).isNotNull();
         assertThat(examPage.getId()).isEqualTo(mockExamPage.getId());
         assertThat(examPage.getPagePosition()).isEqualTo(1);
         assertThat(examPage.getSegmentKey()).isEqualTo("segment-key-1");
-        assertThat(examPage.getSegmentId()).isEqualTo("segment-id-1");
-        assertThat(examPage.getSegmentPosition()).isEqualTo(1);
         assertThat(examPage.getItemGroupKey()).isEqualTo("item-group-key");
         assertThat(examPage.isGroupItemsRequired()).isTrue();
         assertThat(examPage.getExamId()).isEqualTo(mockExam.getId());
 
-        assertThat(examPage.getExamItems()).hasSize(2);
-        for (ExamItem item : examPage.getExamItems()) {
+        assertThat(wrapper.getExamItems()).hasSize(2);
+        for (ExamItem item : wrapper.getExamItems()) {
             assertThat(item.getResponse().isPresent()).isFalse();
         }
 
         // ...and responds to the first item
         ExamItemResponse mockResponseForFirstItem = new ExamItemResponseBuilder()
-            .withExamItemId(examPage.getExamItems().get(0).getId())
+            .withExamItemId(wrapper.getExamItems().get(0).getId())
             .withResponse("first item response")
             .withSequence(1)
             .build();
 
         examItemCommandRepository.insertResponses(mockResponseForFirstItem);
 
-        Optional<ExamPage> resultWithItemResponses = examPageQueryRepository.findPageWithItems(mockExam.getId(), 1);
+        Optional<ExamPageWrapper> resultWithItemResponses = examPageQueryRepository.findPageWithItems(mockExam.getId(), 1);
         assertThat(resultWithItemResponses).isPresent();
 
-        ExamPage examPageWithResponses = resultWithItemResponses.get();
-        assertThat(examPageWithResponses.getExamItems()).hasSize(2);
+        ExamPageWrapper examPageWrapperWithResponses = resultWithItemResponses.get();
+
+        assertThat(examPageWrapperWithResponses.getExamItems()).hasSize(2);
+        assertThat(examPageWrapperWithResponses.getExamPage()).isNotNull();
 
         // Student responded to the first item, so it should contain a response
-        ExamItem firstExamItem = examPageWithResponses.getExamItems().get(0);
+        ExamItem firstExamItem = examPageWrapperWithResponses.getExamItems().get(0);
         assertThat(firstExamItem.getId()).isEqualTo(mockFirstExamItem.getId());
         assertThat(firstExamItem.getExamPageId()).isEqualTo(examPage.getId());
         assertThat(firstExamItem.getItemKey()).isEqualTo("187-1234");
@@ -191,7 +194,7 @@ public class ExamPageRepositoryIntegrationTests {
         assertThat(firstItemResponse.getCreatedAt()).isNotNull();
         assertThat(firstItemResponse.isMarkedForReview()).isFalse();
 
-        ExamItem secondExamItem = examPage.getExamItems().get(1);
+        ExamItem secondExamItem = examPageWrapperWithResponses.getExamItems().get(1);
         assertThat(secondExamItem.getId()).isEqualTo(mockSecondExamItem.getId());
         assertThat(secondExamItem.getExamPageId()).isEqualTo(examPage.getId());
         assertThat(secondExamItem.getItemKey()).isEqualTo(mockSecondExamItem.getItemKey());
@@ -204,13 +207,54 @@ public class ExamPageRepositoryIntegrationTests {
     }
 
     @Test
+    public void shouldFindExamPageWrappersForExam() {
+        ExamPage otherExamPage = new ExamPageBuilder()
+            .withId(UUID.randomUUID())
+            .withExamId(mockExamPage.getExamId())
+            .withPagePosition(mockExamPage.getPagePosition() + 1)
+            .build();
+
+        ExamItem otherExamItem = new ExamItemBuilder()
+            .withId(UUID.randomUUID())
+            .withExamPageId(otherExamPage.getId())
+            .build();
+
+        examPageCommandRepository.insert(otherExamPage);
+        examItemCommandRepository.insert(otherExamItem);
+
+        List<ExamPageWrapper> examPageWrappers = examPageQueryRepository.findPagesWithItems(mockExam.getId());
+
+        assertThat(examPageWrappers).hasSize(2);
+
+        assertThat(examPageWrappers.get(0).getExamPage().getId()).isEqualTo(mockExamPage.getId());
+        assertThat(examPageWrappers.get(0).getExamItems()).hasSize(2);
+        assertThat(examPageWrappers.get(0).getExamItems().get(0).getId()).isEqualTo(mockFirstExamItem.getId());
+        assertThat(examPageWrappers.get(0).getExamItems().get(1).getId()).isEqualTo(mockSecondExamItem.getId());
+
+        assertThat(examPageWrappers.get(1).getExamPage().getId()).isEqualTo(otherExamPage.getId());
+        assertThat(examPageWrappers.get(1).getExamItems()).hasSize(1);
+        assertThat(examPageWrappers.get(1).getExamItems().get(0).getId()).isEqualTo(otherExamItem.getId());
+    }
+
+    @Test
+    public void shouldFindExamPageWrappersForExamAndSegmentKey() {
+        List<ExamPageWrapper> examPageWrappers = examPageQueryRepository.findPagesForExamSegment(mockExam.getId(), mockExamSegment.getSegmentKey());
+
+        assertThat(examPageWrappers).hasSize(1);
+
+        assertThat(examPageWrappers.get(0).getExamPage().getId()).isEqualTo(mockExamPage.getId());
+        assertThat(examPageWrappers.get(0).getExamItems()).hasSize(2);
+        assertThat(examPageWrappers.get(0).getExamItems().get(0).getId()).isEqualTo(mockFirstExamItem.getId());
+        assertThat(examPageWrappers.get(0).getExamItems().get(1).getId()).isEqualTo(mockSecondExamItem.getId());
+    }
+
+    @Test
     public void shouldFindExamPageByExamIdAndPosition() {
         Optional<ExamPage> maybeExamPage = examPageQueryRepository.find(mockExam.getId(), mockFirstExamItem.getPosition());
         assertThat(maybeExamPage).isPresent();
 
         ExamPage page = maybeExamPage.get();
         assertThat(page.getId()).isEqualTo(mockExamPage.getId());
-        assertThat(page.getExamItems()).isEmpty();
     }
 
     @Test
@@ -226,7 +270,6 @@ public class ExamPageRepositoryIntegrationTests {
 
         ExamPage page = maybeExamPage.get();
         assertThat(page.getId()).isEqualTo(mockExamPage.getId());
-        assertThat(page.getExamItems()).isEmpty();
     }
 
     @Test

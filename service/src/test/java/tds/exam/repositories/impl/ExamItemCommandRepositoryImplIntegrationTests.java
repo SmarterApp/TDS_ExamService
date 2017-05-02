@@ -66,9 +66,7 @@ public class ExamItemCommandRepositoryImplIntegrationTests {
         examItemQueryRepository = new ExamItemQueryRepositoryImpl(jdbcTemplate);
 
         ExamSegment mockExamSegment = new ExamSegmentBuilder()
-            .withSegmentId(mockPage.getSegmentId())
             .withSegmentKey(mockPage.getSegmentKey())
-            .withSegmentPosition(mockPage.getSegmentPosition())
             .withExamId(mockExam.getId())
             .build();
 

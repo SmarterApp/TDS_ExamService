@@ -14,9 +14,13 @@ import org.springframework.stereotype.Repository;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import tds.common.data.mapping.ResultSetMapperUtility;
 import tds.exam.ExamItem;
@@ -25,12 +29,82 @@ import tds.exam.ExamItemResponseScore;
 import tds.exam.ExamPage;
 import tds.exam.ExamScoringStatus;
 import tds.exam.repositories.ExamPageQueryRepository;
+import tds.exam.wrapper.ExamPageWrapper;
 
 @Repository
 public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
     private static final ExamPageRowMapper examPageRowMapper = new ExamPageRowMapper();
     private static final ExamPageResultSetExtractor examPageResultExtractor = new ExamPageResultSetExtractor();
+
+    private static final String EXAM_PAGE_WRAPPER_WITH_ITEM_SELECT = "SELECT \n" +
+        "   page.id AS page_id, \n" +
+        "   page.page_position, \n" +
+        "   page.item_group_key, \n" +
+        "   page.are_group_items_required, \n" +
+        "   page.exam_id, \n" +
+        "   page.created_at, \n" +
+        "   page.segment_key, \n" +
+        "   page_event.started_at, \n" +
+        "   item.id AS item_id, \n" +
+        "   item.item_key, \n" +
+        "   item.assessment_item_bank_key, \n" +
+        "   item.assessment_item_key, \n" +
+        "   item.item_type, \n" +
+        "   item.exam_page_id, \n" +
+        "   item.position AS item_position, \n" +
+        "   item.is_fieldtest, \n" +
+        "   item.is_required, \n" +
+        "   item.item_file_path, \n" +
+        "   item.stimulus_file_path, \n" +
+        "   item.created_at, \n" +
+        "   response.response, \n" +
+        "   response.sequence, \n" +
+        "   response.is_valid, \n" +
+        "   response.is_selected, \n" +
+        "   response.score, \n" +
+        "   response.scoring_status, \n" +
+        "   response.scoring_rationale, \n" +
+        "   response.scoring_dimensions, \n" +
+        "   response.created_at AS response_created_at, \n" +
+        "   response.scored_at, \n" +
+        "   response.is_marked_for_review, \n" +
+        "   segment.segment_id, \n" +
+        "   segment.segment_position \n" +
+        "FROM \n" +
+        "   exam_page page \n" +
+        "JOIN ( \n" +
+        "   SELECT \n" +
+        "       exam_page_id, \n" +
+        "       MAX(id) AS id \n" +
+        "   FROM \n" +
+        "       exam_page_event \n" +
+        "   GROUP BY \n" +
+        "       exam_page_id \n" +
+        ") last_page_event \n" +
+        "   ON page.id = last_page_event.exam_page_id \n" +
+        "JOIN \n" +
+        "   exam_page_event page_event \n" +
+        "   ON page_event.id = last_page_event.id \n" +
+        "JOIN \n" +
+        "   exam_segment segment \n" +
+        "   ON segment.exam_id = page.exam_id \n" +
+        "   AND segment.segment_key = page.segment_key \n" +
+        "JOIN \n" +
+        "   exam_item item \n" +
+        "   ON page.id = item.exam_page_id \n" +
+        "LEFT JOIN \n" +
+        "   (SELECT \n" +
+        "       exam_item_id, \n" +
+        "       MAX(id) AS id\n" +
+        "   FROM \n" +
+        "       exam_item_response \n" +
+        "   GROUP BY \n" +
+        "       exam_item_id) most_recent_response \n" +
+        "   ON item.id = most_recent_response.exam_item_id \n" +
+        "LEFT JOIN \n" +
+        "   exam_item_response response \n" +
+        "   ON most_recent_response.id = response.id \n";
 
     private static final String EXAM_PAGE_STANDARD_SELECT = "SELECT \n" +
         "   P.id, \n" +
@@ -81,10 +155,10 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
             .addValue("position", position);
 
         final String SQL = EXAM_PAGE_STANDARD_SELECT +
-                " WHERE \n" +
-                "   P.exam_id = :examId " +
-                "   AND P.page_position = :position \n" +
-                "   AND PE.deleted_at IS NULL";
+            " WHERE \n" +
+            "   P.exam_id = :examId " +
+            "   AND P.page_position = :position \n" +
+            "   AND PE.deleted_at IS NULL";
 
         Optional<ExamPage> maybeExamPage;
         try {
@@ -116,82 +190,51 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
     }
 
     @Override
-    public Optional<ExamPage> findPageWithItems(final UUID examId, final int position) {
+    public Optional<ExamPageWrapper> findPageWithItems(final UUID examId, final int position) {
         final MapSqlParameterSource parameters = new MapSqlParameterSource("examId", examId.toString())
             .addValue("position", position);
 
         final String SQL =
-            "SELECT \n" +
-                "   page.id AS page_id, \n" +
-                "   page.page_position, \n" +
-                "   page.item_group_key, \n" +
-                "   page.are_group_items_required, \n" +
-                "   page.exam_id, \n" +
-                "   page.created_at, \n" +
-                "   page.segment_key, \n" +
-                "   page_event.started_at, \n" +
-                "   item.id AS item_id, \n" +
-                "   item.item_key, \n" +
-                "   item.assessment_item_bank_key, \n" +
-                "   item.assessment_item_key, \n" +
-                "   item.item_type, \n" +
-                "   item.exam_page_id, \n" +
-                "   item.position AS item_position, \n" +
-                "   item.is_fieldtest, \n" +
-                "   item.is_required, \n" +
-                "   item.item_file_path, \n" +
-                "   item.stimulus_file_path, \n" +
-                "   item.created_at, \n" +
-                "   response.response, \n" +
-                "   response.sequence, \n" +
-                "   response.is_valid, \n" +
-                "   response.is_selected, \n" +
-                "   response.score, \n" +
-                "   response.scoring_status, \n" +
-                "   response.scoring_rationale, \n" +
-                "   response.scoring_dimensions, \n" +
-                "   response.created_at AS response_created_at, \n" +
-                "   response.scored_at, \n" +
-                "   response.is_marked_for_review, \n" +
-                "   segment.segment_id, \n" +
-                "   segment.segment_position \n" +
-                "FROM \n" +
-                "   exam_page page \n" +
-                "JOIN ( \n" +
-                "   SELECT \n" +
-                "       exam_page_id, \n" +
-                "       MAX(id) AS id \n" +
-                "   FROM \n" +
-                "       exam_page_event \n" +
-                "   GROUP BY \n" +
-                "       exam_page_id \n" +
-                ") last_page_event \n" +
-                "   ON page.id = last_page_event.exam_page_id \n" +
-                "JOIN \n" +
-                "   exam_page_event page_event \n" +
-                "   ON page_event.id = last_page_event.id \n" +
-                "JOIN \n" +
-                "   exam_segment segment \n" +
-                "   ON segment.exam_id = page.exam_id \n" +
-                "   AND segment.segment_key = page.segment_key \n" +
-                "JOIN \n" +
-                "   exam_item item \n" +
-                "   ON page.id = item.exam_page_id \n" +
-                "LEFT JOIN \n" +
-                "   (SELECT \n" +
-                "       exam_item_id, \n" +
-                "       MAX(id) AS id\n" +
-                "   FROM \n" +
-                "       exam_item_response \n" +
-                "   GROUP BY \n" +
-                "       exam_item_id) most_recent_response \n" +
-                "   ON item.id = most_recent_response.exam_item_id \n" +
-                "LEFT JOIN \n" +
-                "   exam_item_response response \n" +
-                "   ON most_recent_response.id = response.id \n" +
+            EXAM_PAGE_WRAPPER_WITH_ITEM_SELECT +
                 "WHERE \n" +
                 "   page.exam_id = :examId \n" +
                 "   AND page.page_position = :position \n" +
+                "ORDER BY \n" +
+                "   item.position";
+
+        List<ExamPageWrapper> examPageWrappers = jdbcTemplate.query(SQL, parameters, examPageResultExtractor);
+
+        if (examPageWrappers.isEmpty()) {
+            return Optional.empty();
+        }
+
+        return Optional.of(examPageWrappers.get(0));
+    }
+
+    @Override
+    public List<ExamPageWrapper> findPagesWithItems(final UUID examId) {
+        final MapSqlParameterSource parameters = new MapSqlParameterSource("examId", examId.toString());
+
+        final String SQL =
+            EXAM_PAGE_WRAPPER_WITH_ITEM_SELECT +
+                "WHERE \n" +
+                "   page.exam_id = :examId \n" +
+                "ORDER BY \n" +
+                "   item.position";
+
+        return jdbcTemplate.query(SQL, parameters, examPageResultExtractor);
+    }
+
+    @Override
+    public List<ExamPageWrapper> findPagesForExamSegment(final UUID examId, final String segmentKey) {
+        final MapSqlParameterSource parameters = new MapSqlParameterSource("examId", examId.toString())
+            .addValue("segmentKey", segmentKey);
+
+        final String SQL =
+            EXAM_PAGE_WRAPPER_WITH_ITEM_SELECT +
+                "WHERE \n" +
+                "   page.exam_id = :examId \n" +
+                "   AND page.segment_key = :segmentKey \n" +
                 "ORDER BY \n" +
                 "   item.position";
 
@@ -213,27 +256,27 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
         }
     }
 
-    private static class ExamPageResultSetExtractor implements ResultSetExtractor<Optional<ExamPage>> {
+    private static class ExamPageResultSetExtractor implements ResultSetExtractor<List<ExamPageWrapper>> {
         @Override
-        public Optional<ExamPage> extractData(ResultSet resultExtractor) throws SQLException, DataAccessException {
-            Optional<ExamPage> page = Optional.empty();
-            List<ExamItem> items = new ArrayList<>();
+        public List<ExamPageWrapper> extractData(ResultSet resultExtractor) throws SQLException, DataAccessException {
+            Map<UUID, List<ExamItem>> itemsForPage = new HashMap<>();
+            Map<UUID, ExamPage> examPages = new HashMap<>();
 
             while (resultExtractor.next()) {
-                if (!page.isPresent()) {
-                    page = Optional.of(new ExamPage.Builder()
+                UUID pageId = UUID.fromString(resultExtractor.getString("page_id"));
+                if (!examPages.containsKey(pageId)) {
+                    ExamPage page = new ExamPage.Builder()
                         .withId(UUID.fromString(resultExtractor.getString("page_id")))
                         .withPagePosition(resultExtractor.getInt("page_position"))
                         .withSegmentKey(resultExtractor.getString("segment_key"))
-                        .withSegmentId(resultExtractor.getString("segment_id"))
-                        .withSegmentPosition(resultExtractor.getInt("segment_position"))
                         .withItemGroupKey(resultExtractor.getString("item_group_key"))
                         .withGroupItemsRequired(resultExtractor.getBoolean("are_group_items_required"))
                         .withExamId(UUID.fromString(resultExtractor.getString("exam_id")))
-                        .withExamItems(items)
                         .withCreatedAt(ResultSetMapperUtility.mapTimestampToJodaInstant(resultExtractor, "created_at"))
                         .withStartedAt(ResultSetMapperUtility.mapTimestampToJodaInstant(resultExtractor, "started_at"))
-                        .build());
+                        .build();
+
+                    examPages.put(pageId, page);
                 }
 
                 // An item might not have a response
@@ -257,6 +300,12 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
                         .build();
                 }
 
+                if (!itemsForPage.containsKey(pageId)) {
+                    itemsForPage.put(pageId, new ArrayList<>());
+                }
+
+                List<ExamItem> items = itemsForPage.get(pageId);
+
                 items.add(new ExamItem.Builder(UUID.fromString(resultExtractor.getString("item_id")))
                     .withItemKey(resultExtractor.getString("item_key"))
                     .withAssessmentItemBankKey(resultExtractor.getLong("assessment_item_bank_key"))
@@ -273,7 +322,19 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
                     .build());
             }
 
-            return page;
+            return examPages
+                .values()
+                .stream()
+                .map(examPage -> {
+                    List<ExamItem> items = itemsForPage.get(examPage.getId())
+                        .stream()
+                        .sorted(Comparator.comparingInt(ExamItem::getPosition))
+                        .collect(Collectors.toList());
+
+                    return new ExamPageWrapper(examPage, items);
+                })
+                .sorted(Comparator.comparingInt(o -> o.getExamPage().getPagePosition()))
+                .collect(Collectors.toList());
         }
     }
 }

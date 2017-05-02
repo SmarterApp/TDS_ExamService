@@ -138,19 +138,15 @@ public class FieldTestItemGroupRepositoryIntegrationTests {
             .build();
         ExamPage mockFirstPage = new ExamPageBuilder()
             .withExamId(mockExam.getId())
-            .withSegmentId(mockExamSegment.getSegmentId())
             .withSegmentKey(mockExamSegment.getSegmentKey())
             .withPagePosition(1)
-            .withSegmentPosition(1)
             .build();
         ExamPage mockSecondPage = new ExamPageBuilder()
             .withId(UUID.randomUUID())
             .withExamId(mockExam.getId())
-            .withSegmentId(mockExamSegment.getSegmentId())
             .withSegmentKey(mockExamSegment.getSegmentKey())
             .withItemGroupKey("item-group-key-2")
             .withPagePosition(2)
-            .withSegmentPosition(2)
             .build();
         ExamItem mockFirstPageFirstItem = new ExamItemBuilder()
             .withExamPageId(mockFirstPage.getId())

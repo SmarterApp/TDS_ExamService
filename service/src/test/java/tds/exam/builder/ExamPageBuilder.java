@@ -2,11 +2,8 @@ package tds.exam.builder;
 
 import org.joda.time.Instant;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
-import tds.exam.ExamItem;
 import tds.exam.ExamPage;
 
 /**
@@ -18,12 +15,9 @@ public class ExamPageBuilder {
     private UUID id = DEFAULT_ID;
     private int pagePosition = 1;
     private String segmentKey = "segment-key-1";
-    private String segmentId = "segment-id-1";
-    private int segmentPosition = 1;
     private String itemGroupKey = "item-group-key";
     private boolean groupItemsRequired = true;
     private UUID examId = UUID.randomUUID();
-    private List<ExamItem> examItems = new ArrayList<>();
     private Instant createdAt = Instant.now();
     private Instant deletedAt;
     private Instant startedAt;
@@ -34,12 +28,9 @@ public class ExamPageBuilder {
             .withId(id)
             .withPagePosition(pagePosition)
             .withSegmentKey(segmentKey)
-            .withSegmentId(segmentId)
-            .withSegmentPosition(segmentPosition)
             .withItemGroupKey(itemGroupKey)
             .withGroupItemsRequired(groupItemsRequired)
             .withExamId(examId)
-            .withExamItems(examItems)
             .withCreatedAt(createdAt)
             .withDeletedAt(deletedAt)
             .withStartedAt(startedAt)
@@ -62,16 +53,6 @@ public class ExamPageBuilder {
         return this;
     }
 
-    public ExamPageBuilder withSegmentId(String segmentId) {
-        this.segmentId = segmentId;
-        return this;
-    }
-
-    public ExamPageBuilder withSegmentPosition(int segmentPosition) {
-        this.segmentPosition = segmentPosition;
-        return this;
-    }
-
     public ExamPageBuilder withItemGroupKey(String itemGroupKey) {
         this.itemGroupKey = itemGroupKey;
         return this;
@@ -84,11 +65,6 @@ public class ExamPageBuilder {
 
     public ExamPageBuilder withExamId(UUID examId) {
         this.examId = examId;
-        return this;
-    }
-
-    public ExamPageBuilder withExamItems(List<ExamItem> examItems) {
-        this.examItems = examItems;
         return this;
     }
 
