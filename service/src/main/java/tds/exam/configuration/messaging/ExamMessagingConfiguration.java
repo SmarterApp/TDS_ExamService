@@ -56,7 +56,6 @@ public class ExamMessagingConfiguration {
         container.setMessageListener(new MessageListenerAdapter(listener, "handleMessage"));
         return container;
     }
-
     /**
      * Add a logging confirmation callback that will log errors if an exam could not be submitted.
      */
