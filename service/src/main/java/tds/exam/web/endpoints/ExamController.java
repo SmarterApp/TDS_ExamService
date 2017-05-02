@@ -93,6 +93,7 @@ public class ExamController {
             return new ResponseEntity<>(response, HttpStatus.UNPROCESSABLE_ENTITY);
         }
 
+        // TODO: remove
         Link link = linkTo(methodOn(ExamController.class).getExamById(examId)).withSelfRel();
         final HttpHeaders headers = new HttpHeaders();
         headers.add("Location", link.getHref());

@@ -40,8 +40,6 @@ import tds.exam.ExamApproval;
 import tds.exam.ExamAssessmentMetadata;
 import tds.exam.ExamConfiguration;
 import tds.exam.ExamInfo;
-import tds.exam.ExamItem;
-import tds.exam.ExamPage;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
 import tds.exam.ExamineeContext;
@@ -63,7 +61,7 @@ import tds.exam.services.ExamineeService;
 import tds.exam.services.SessionService;
 import tds.exam.services.StudentService;
 import tds.exam.services.TimeLimitConfigurationService;
-import tds.exam.utils.StatusTransitionValidator;
+import tds.exam.utils.ExamStatusChangeValidator;
 import tds.exam.web.annotations.VerifyAccess;
 import tds.session.ExternalSessionConfiguration;
 import tds.session.Session;
@@ -108,6 +106,7 @@ class ExamServiceImpl implements ExamService {
     private final Set<String> statusesThatCanTransitionToPaused;
 
     private final Collection<ChangeListener<Exam>> examStatusChangeListeners;
+    private final Collection<ExamStatusChangeValidator> statusChangeValidators;
 
     @Autowired
     public ExamServiceImpl(ExamQueryRepository examQueryRepository,
@@ -124,7 +123,8 @@ class ExamServiceImpl implements ExamService {
                            ExamAccommodationService examAccommodationService,
                            ExamApprovalService examApprovalService,
                            ExamineeService examineeService,
-                           Collection<ChangeListener<Exam>> examStatusChangeListeners) {
+                           Collection<ChangeListener<Exam>> examStatusChangeListeners,
+                           Collection<ExamStatusChangeValidator> statusChangeValidators) {
         this.examQueryRepository = examQueryRepository;
         this.sessionService = sessionService;
         this.studentService = studentService;
@@ -140,6 +140,7 @@ class ExamServiceImpl implements ExamService {
         this.examApprovalService = examApprovalService;
         this.examineeService = examineeService;
         this.examStatusChangeListeners = examStatusChangeListeners;
+        this.statusChangeValidators = statusChangeValidators;
 
         // From CommondDLL._IsValidStatusTransition_FN(): a collection of all the statuses that can transition to
         // "paused".  That is, each of these status values has a nested switch statement that contains the "paused"
@@ -249,9 +250,11 @@ class ExamServiceImpl implements ExamService {
         Exam exam = examQueryRepository.getExamById(examId)
             .orElseThrow(() -> new NotFoundException(String.format("Exam could not be found for id %s", examId)));
 
-        if (!StatusTransitionValidator.isValidTransition(exam.getStatus().getCode(), newStatus.getCode())) {
+        if (!statusChangeValidators.stream().allMatch(v -> v.validate(exam, newStatus))) {
             return Optional.of(new ValidationError(ValidationErrorCode.EXAM_STATUS_TRANSITION_FAILURE,
-                String.format("Transitioning exam status from %s to %s is not allowed", exam.getStatus().getCode(), newStatus.getCode())));
+                String.format("Transitioning exam status from %s to %s is not allowed",
+                    exam.getStatus().getCode(),
+                    newStatus.getCode())));
         }
 
         Exam updatedExam = new Exam.Builder()
@@ -593,7 +596,7 @@ class ExamServiceImpl implements ExamService {
         return new Response<>(examConfig);
     }
 
-    @VerifyAccess
+    @VerifyAccess // TODO: move this to the controller
     @Override
     public Optional<ValidationError> reviewExam(final UUID examId) {
         boolean isComplete = examSegmentService.checkIfSegmentsCompleted(examId);
