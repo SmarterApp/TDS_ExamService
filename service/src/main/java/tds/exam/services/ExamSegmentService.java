@@ -5,7 +5,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 import tds.assessment.Assessment;
-import tds.common.Response;
 import tds.common.ValidationError;
 import tds.exam.Exam;
 import tds.exam.ExamSegment;
@@ -27,7 +26,7 @@ public interface ExamSegmentService {
     /**
      * Fetches the {@link tds.exam.ExamSegment}s for the exam id after validating the exam and session.
      *
-     * @param examId    The id of the exam to fetch the exam segments for
+     * @param examId The id of the exam to fetch the exam segments for
      * @return The list of {@link tds.exam.ExamSegment}s for the exam
      */
     List<ExamSegment> findExamSegments(final UUID examId);
