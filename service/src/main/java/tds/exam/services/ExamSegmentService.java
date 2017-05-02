@@ -8,6 +8,7 @@ import tds.assessment.Assessment;
 import tds.common.ValidationError;
 import tds.exam.Exam;
 import tds.exam.ExamSegment;
+import tds.exam.wrapper.ExamSegmentWrapper;
 
 /**
  * Service that handles interactions with exam segments.
@@ -59,7 +60,13 @@ public interface ExamSegmentService {
      * Checks if all the segments for the exam are completed/"satisfied"
      *
      * @param examId The id of the {@link tds.exam.Exam} to check for
-     * @return
+     * @return {@code true} if the segment is completed
      */
     boolean checkIfSegmentsCompleted(final UUID examId);
+
+    List<ExamSegmentWrapper> findAllExamSegments(final UUID examId);
+
+    Optional<ExamSegmentWrapper> findExamSegment(final UUID examId, final int segmentPosition);
+
+    Optional<ExamSegmentWrapper> findExamSegmentWithPageAtPosition(final UUID examId, final int segmentPosition, final int pagePosition);
 }

@@ -7,8 +7,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -26,10 +28,13 @@ import tds.exam.error.ValidationErrorCode;
 import tds.exam.models.SegmentPoolInfo;
 import tds.exam.repositories.ExamSegmentCommandRepository;
 import tds.exam.repositories.ExamSegmentQueryRepository;
+import tds.exam.services.ExamPageService;
 import tds.exam.services.ExamSegmentService;
 import tds.exam.services.FieldTestService;
 import tds.exam.services.FormSelector;
 import tds.exam.services.SegmentPoolService;
+import tds.exam.wrapper.ExamPageWrapper;
+import tds.exam.wrapper.ExamSegmentWrapper;
 
 @Service
 public class ExamSegmentServiceImpl implements ExamSegmentService {
@@ -38,18 +43,21 @@ public class ExamSegmentServiceImpl implements ExamSegmentService {
     private final SegmentPoolService segmentPoolService;
     private final FormSelector formSelector;
     private final FieldTestService fieldTestService;
+    private final ExamPageService examPageService;
 
     @Autowired
     public ExamSegmentServiceImpl(final ExamSegmentCommandRepository examSegmentCommandRepository,
                                   final ExamSegmentQueryRepository examSegmentQueryRepository,
                                   final SegmentPoolService segmentPoolService,
                                   final FormSelector formSelector,
-                                  final FieldTestService fieldTestService) {
+                                  final FieldTestService fieldTestService,
+                                  final ExamPageService examPageService) {
         this.examSegmentCommandRepository = examSegmentCommandRepository;
         this.examSegmentQueryRepository = examSegmentQueryRepository;
         this.segmentPoolService = segmentPoolService;
         this.fieldTestService = fieldTestService;
         this.formSelector = formSelector;
+        this.examPageService = examPageService;
     }
 
     /*
@@ -183,7 +191,7 @@ public class ExamSegmentServiceImpl implements ExamSegmentService {
             return Optional.of(new ValidationError(ValidationErrorCode.EXAM_SEGMENT_DOES_NOT_EXIST, "The exam segment does not exist"));
         }
 
-        ExamSegment updatedExamSegment = new ExamSegment.Builder()
+        ExamSegment updatedExamSegment = ExamSegment.Builder
             .fromSegment(maybeExamSegment.get())
             .withExitedAt(Instant.now())
             .build();
@@ -196,5 +204,36 @@ public class ExamSegmentServiceImpl implements ExamSegmentService {
     @Override
     public boolean checkIfSegmentsCompleted(final UUID examId) {
         return examSegmentQueryRepository.findCountOfUnsatisfiedSegments(examId) == 0;
+    }
+
+    @Override
+    public List<ExamSegmentWrapper> findAllExamSegments(final UUID examId) {
+        Map<String, List<ExamPageWrapper>> examPageWrappersBySegmentKey = examPageService.findPagesWithItems(examId)
+            .stream()
+            .collect(Collectors.groupingBy(examPageWrapper -> examPageWrapper.getExamPage().getSegmentKey()));
+
+        return examSegmentQueryRepository.findByExamId(examId)
+            .stream()
+            .map(examSegment -> new ExamSegmentWrapper(examSegment, examPageWrappersBySegmentKey.get(examSegment.getSegmentKey())))
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    public Optional<ExamSegmentWrapper> findExamSegment(final UUID examId, final int segmentPosition) {
+        Optional<ExamSegment> maybeExamSegment = examSegmentQueryRepository.findByExamIdAndSegmentPosition(examId, segmentPosition);
+
+        return maybeExamSegment.map(examSegment -> new ExamSegmentWrapper(examSegment, examPageService.findPagesForExamSegment(examId, examSegment.getSegmentKey())));
+    }
+
+    @Override
+    public Optional<ExamSegmentWrapper> findExamSegmentWithPageAtPosition(final UUID examId, final int segmentPosition, final int pagePosition) {
+        Optional<ExamSegment> maybeExamSegment = examSegmentQueryRepository.findByExamIdAndSegmentPosition(examId, segmentPosition);
+        Optional<ExamPageWrapper> maybeExamPageWrapper = examPageService.findPageWithItems(examId, pagePosition);
+
+        if (!maybeExamSegment.isPresent() || !maybeExamPageWrapper.isPresent()) {
+            return Optional.empty();
+        }
+
+        return Optional.of(new ExamSegmentWrapper(maybeExamSegment.get(), Collections.singletonList(maybeExamPageWrapper.get())));
     }
 }
