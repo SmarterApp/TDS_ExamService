@@ -9,6 +9,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -31,6 +32,7 @@ import tds.exam.error.ValidationErrorCode;
 import tds.exam.models.SegmentPoolInfo;
 import tds.exam.repositories.ExamSegmentCommandRepository;
 import tds.exam.repositories.ExamSegmentQueryRepository;
+import tds.exam.services.ExamPageService;
 import tds.exam.services.FieldTestService;
 import tds.exam.services.FormSelector;
 import tds.exam.services.SegmentPoolService;
@@ -62,6 +64,9 @@ public class ExamSegmentServiceImplTest {
     @Mock
     private FormSelector mockFormSelector;
 
+    @Mock
+    private ExamPageService mockExamPageService;
+
     @Captor
     private ArgumentCaptor<List<ExamSegment>> examSegmentsCaptor;
 
@@ -71,7 +76,7 @@ public class ExamSegmentServiceImplTest {
     @Before
     public void setUp() {
         examSegmentService = new ExamSegmentServiceImpl(mockExamSegmentCommandRepository, mockExamSegmentQueryRepository,
-            mockSegmentPoolService, mockFormSelector, mockFieldTestService);
+            mockSegmentPoolService, mockFormSelector, mockFieldTestService, mockExamPageService);
     }
 
     @Test(expected = IllegalStateException.class)
@@ -172,7 +177,7 @@ public class ExamSegmentServiceImplTest {
         Segment segment2 = new SegmentBuilder()
             .withKey("segment2-key")
             .withSelectionAlgorithm(Algorithm.FIXED_FORM)
-            .withForms(Arrays.asList(enuForm))
+            .withForms(Collections.singletonList(enuForm))
             .withPosition(2)
             .build();
         Assessment assessment = new AssessmentBuilder()
@@ -215,6 +220,9 @@ public class ExamSegmentServiceImplTest {
                 examSegment2 = seg;
             }
         }
+
+        assertThat(examSegment1).isNotNull();
+        assertThat(examSegment2).isNotNull();
 
         assertThat(examSegment1.getExamId()).isEqualTo(exam.getId());
         assertThat(examSegment1.getSegmentId()).isEqualTo(segment1.getSegmentId());
@@ -360,7 +368,7 @@ public class ExamSegmentServiceImplTest {
             .withSelectionAlgorithm(Algorithm.ADAPTIVE_2)
             .build();
         Assessment assessment = new AssessmentBuilder()
-            .withSegments(Arrays.asList(segment))
+            .withSegments(Collections.singletonList(segment))
             .build();
         SegmentPoolInfo segmentPoolInfo = new SegmentPoolInfo(3, 4,
             new HashSet<>(Arrays.asList(
@@ -407,7 +415,7 @@ public class ExamSegmentServiceImplTest {
             .withMaxItems(7)
             .build();
         Assessment assessment = new AssessmentBuilder()
-            .withSegments(Arrays.asList(segment))
+            .withSegments(Collections.singletonList(segment))
             .build();
         SegmentPoolInfo segmentPoolInfo = new SegmentPoolInfo(5, 4,
             new HashSet<>(Arrays.asList(
@@ -451,7 +459,7 @@ public class ExamSegmentServiceImplTest {
         final String language = "ENU";
         // Items are just used for formLength calculation
         List<Item> items1 = Arrays.asList(new Item("item1"), new Item("item2"));
-        List<Item> items2 = Arrays.asList(new Item("item3"));
+        List<Item> items2 = Collections.singletonList(new Item("item3"));
 
         Form enuForm1Seg1 = new Form.Builder("formKey1")
             .withCohort("churro")
@@ -636,7 +644,7 @@ public class ExamSegmentServiceImplTest {
     public void shouldExitExamSegment() {
         final UUID examId = UUID.randomUUID();
         final int segmentPosition = 1;
-        ExamSegment segment = new ExamSegment.Builder()
+        ExamSegment segment = ExamSegment.Builder
             .fromSegment(random(ExamSegment.class))
             .withExitedAt(null)
             .withSegmentPosition(segmentPosition)
@@ -690,4 +698,6 @@ public class ExamSegmentServiceImplTest {
         assertThat(examSegmentService.checkIfSegmentsCompleted(examId)).isFalse();
         verify(mockExamSegmentQueryRepository).findCountOfUnsatisfiedSegments(examId);
     }
+
+
 }
