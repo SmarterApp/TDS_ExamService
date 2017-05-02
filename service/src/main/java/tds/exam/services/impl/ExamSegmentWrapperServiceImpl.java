@@ -58,4 +58,24 @@ public class ExamSegmentWrapperServiceImpl implements ExamSegmentWrapperService 
 
         return Optional.of(new ExamSegmentWrapper(maybeExamSegment.get(), Collections.singletonList(maybeExamPageWrapper.get())));
     }
+
+    @Override
+    public Optional<ExamSegmentWrapper> findExamSegmentWithPageAtPosition(final UUID examId, final int pagePosition) {
+        Optional<ExamPageWrapper> maybeExamPageWrapper = examPageService.findPageWithItems(examId, pagePosition);
+
+        if(!maybeExamPageWrapper.isPresent()) {
+            return Optional.empty();
+        }
+
+        Optional<ExamSegment> maybeExamSegment = examSegmentService.findExamSegments(examId)
+            .stream()
+            .filter(examSegment -> examSegment.getSegmentKey().equals(maybeExamPageWrapper.get().getExamPage().getSegmentKey()))
+            .findFirst();
+
+        if(!maybeExamSegment.isPresent()) {
+            throw new IllegalStateException(String.format("Exam segment couldn't be found for an existing page. Please check data.  examId: %s pagePosition: %d", examId, pagePosition));
+        }
+
+        return Optional.of(new ExamSegmentWrapper(maybeExamSegment.get(), Collections.singletonList(maybeExamPageWrapper.get())));
+    }
 }

@@ -34,4 +34,13 @@ public interface ExamSegmentWrapperService {
      * @return an {@link tds.exam.wrapper.ExamSegmentWrapper} otherwise empty
      */
     Optional<ExamSegmentWrapper> findExamSegmentWithPageAtPosition(final UUID examId, final int segmentPosition, final int pagePosition);
+
+    /**
+     * Finds the exam segment and page at for the exam id at the page position
+     *
+     * @param examId       exam id
+     * @param pagePosition the {@link tds.exam.wrapper.ExamPageWrapper} page position
+     * @return an {@link tds.exam.wrapper.ExamSegmentWrapper} if segment/page are found otherwise empty
+     */
+    Optional<ExamSegmentWrapper> findExamSegmentWithPageAtPosition(final UUID examId, final int pagePosition);
 }

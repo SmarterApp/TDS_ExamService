@@ -168,4 +168,40 @@ public class ExamSegmentWrapperServiceImplTest {
         assertThat(wrapper.getExamSegment()).isEqualTo(examSegment);
         assertThat(wrapper.getExamPages()).containsExactly(examPageWrapper);
     }
+
+    @Test
+    public void shouldReturnExamSegmentWrapperByExamIdAndPageNumber() {
+        UUID examId = UUID.randomUUID();
+        ExamPageWrapper examPageWrapper = new ExamPageWrapper(new ExamPageBuilder().withSegmentKey("segmentKey").build(), Collections.emptyList());
+        ExamSegment examSegment = new ExamSegmentBuilder().withSegmentKey("segmentKey").build();
+
+        when(mockExamPageWrapperService.findPageWithItems(examId, 2)).thenReturn(Optional.of(examPageWrapper));
+        when(mockExamSegmentService.findExamSegments(examId)).thenReturn(Collections.singletonList(examSegment));
+
+        ExamSegmentWrapper wrapper = examSegmentWrapperService.findExamSegmentWithPageAtPosition(examId, 2).get();
+
+        assertThat(wrapper.getExamSegment()).isEqualTo(examSegment);
+        assertThat(wrapper.getExamPages()).containsExactly(examPageWrapper);
+    }
+
+    @Test
+    public void shouldReturnEmptyExamSegmentWrapperByExamIdAndPageNumber() {
+        UUID examId = UUID.randomUUID();
+
+        when(mockExamPageWrapperService.findPageWithItems(examId, 2)).thenReturn(Optional.empty());
+
+        assertThat(examSegmentWrapperService.findExamSegmentWithPageAtPosition(examId, 2)).isNotPresent();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldThrowWhenExamSegmentCannotBeFoundForExamPage() {
+        UUID examId = UUID.randomUUID();
+        ExamPageWrapper examPageWrapper = new ExamPageWrapper(new ExamPageBuilder().withSegmentKey("segmentKey").build(), Collections.emptyList());
+        ExamSegment examSegment = new ExamSegmentBuilder().withSegmentKey("bogusKey").build();
+
+        when(mockExamPageWrapperService.findPageWithItems(examId, 2)).thenReturn(Optional.of(examPageWrapper));
+        when(mockExamSegmentService.findExamSegments(examId)).thenReturn(Collections.singletonList(examSegment));
+
+        examSegmentWrapperService.findExamSegmentWithPageAtPosition(examId, 2);
+    }
 }
