@@ -40,7 +40,7 @@ public class ExamSegmentWrapperControllerTest {
 
         when(mockExamSegmentWrapperService.findAllExamSegments(examId)).thenReturn(Collections.emptyList());
 
-        examSegmentWrapperController.findExamSegmentWrappersForExam(examId);
+        examSegmentWrapperController.findExamSegmentWrappersForExam(examId, null);
     }
 
     @Test
@@ -50,7 +50,29 @@ public class ExamSegmentWrapperControllerTest {
 
         when(mockExamSegmentWrapperService.findAllExamSegments(examId)).thenReturn(Collections.singletonList(wrapper));
 
-        ResponseEntity<List<ExamSegmentWrapper>> response = examSegmentWrapperController.findExamSegmentWrappersForExam(examId);
+        ResponseEntity<List<ExamSegmentWrapper>> response = examSegmentWrapperController.findExamSegmentWrappersForExam(examId, null);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).containsExactly(wrapper);
+    }
+
+    @Test (expected = NotFoundException.class)
+    public void shouldThrowNotFoundWhenExamSegmentWrappersCannotBeFoundAtPagePosition() {
+        UUID examId = UUID.randomUUID();
+
+        when(mockExamSegmentWrapperService.findExamSegmentWithPageAtPosition(examId, 1)).thenReturn(Optional.empty());
+
+        examSegmentWrapperController.findExamSegmentWrappersForExam(examId, 1);
+    }
+
+    @Test
+    public void shouldReturnExamSegmentWrappersByExamIdAndPagePosition() {
+        UUID examId = UUID.randomUUID();
+        ExamSegmentWrapper wrapper = mock(ExamSegmentWrapper.class);
+
+        when(mockExamSegmentWrapperService.findExamSegmentWithPageAtPosition(examId,1)).thenReturn(Optional.of(wrapper));
+
+        ResponseEntity<List<ExamSegmentWrapper>> response = examSegmentWrapperController.findExamSegmentWrappersForExam(examId, 1);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).containsExactly(wrapper);
