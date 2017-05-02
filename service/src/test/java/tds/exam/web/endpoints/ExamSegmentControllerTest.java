@@ -14,14 +14,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 import tds.common.ValidationError;
-import tds.common.web.exceptions.NotFoundException;
 import tds.common.web.resources.NoContentResponseResource;
 import tds.exam.ExamSegment;
 import tds.exam.services.ExamSegmentService;
-import tds.exam.wrapper.ExamSegmentWrapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -90,71 +87,5 @@ public class ExamSegmentControllerTest {
 
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(responseEntity.getBody()).containsExactly(examSegment);
-    }
-
-    @Test(expected = NotFoundException.class)
-    public void shouldThrowNotFoundWhenExamSegmentWrappersCannotBeFound() {
-        UUID examId = UUID.randomUUID();
-
-        when(mockExamSegmentService.findAllExamSegments(examId)).thenReturn(Collections.emptyList());
-
-        examSegmentController.findExamSegmentWrappersForExam(examId);
-    }
-
-    @Test
-    public void shouldReturnExamSegmentWrappersByExamId() {
-        UUID examId = UUID.randomUUID();
-        ExamSegmentWrapper wrapper = mock(ExamSegmentWrapper.class);
-
-        when(mockExamSegmentService.findAllExamSegments(examId)).thenReturn(Collections.singletonList(wrapper));
-
-        ResponseEntity<List<ExamSegmentWrapper>> response = examSegmentController.findExamSegmentWrappersForExam(examId);
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).containsExactly(wrapper);
-    }
-
-    @Test (expected = NotFoundException.class)
-    public void shouldThrowNotFoundIfExamSegmentWrapperCannotBeFoundAtExamIdAndSegmentPosition() {
-        UUID examId = UUID.randomUUID();
-
-        when(mockExamSegmentService.findExamSegment(examId, 1)).thenReturn(Optional.empty());
-        examSegmentController.findExamSegmentWrapperForExamAndSegmentPosition(examId, 1, null);
-    }
-
-    @Test
-    public void shouldReturnExamSegmentWrapperAtExamIdAndSegmentPosition() {
-        UUID examId = UUID.randomUUID();
-        ExamSegmentWrapper wrapper = mock(ExamSegmentWrapper.class);
-
-        when(mockExamSegmentService.findExamSegment(examId, 1)).thenReturn(Optional.of(wrapper));
-        ResponseEntity<ExamSegmentWrapper> response = examSegmentController.findExamSegmentWrapperForExamAndSegmentPosition(examId, 1, null);
-
-        verify(mockExamSegmentService).findExamSegment(examId, 1);
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).isEqualTo(wrapper);
-    }
-
-    @Test (expected = NotFoundException.class)
-    public void shouldThrowNotFoundIfExamSegmentWrapperCannotBeFoundAtExamIdAndSegmentPositionAndPage() {
-        UUID examId = UUID.randomUUID();
-
-        when(mockExamSegmentService.findExamSegmentWithPageAtPosition(examId, 1, 2)).thenReturn(Optional.empty());
-        examSegmentController.findExamSegmentWrapperForExamAndSegmentPosition(examId, 1, 2);
-    }
-
-    @Test
-    public void shouldReturnExamSegmentWrapperAtExamIdAndSegmentPositionAndPage() {
-        UUID examId = UUID.randomUUID();
-        ExamSegmentWrapper wrapper = mock(ExamSegmentWrapper.class);
-
-        when(mockExamSegmentService.findExamSegmentWithPageAtPosition(examId, 1, 2)).thenReturn(Optional.of(wrapper));
-        ResponseEntity<ExamSegmentWrapper> response = examSegmentController.findExamSegmentWrapperForExamAndSegmentPosition(examId, 1, 2);
-
-        verify(mockExamSegmentService).findExamSegmentWithPageAtPosition(examId, 1, 2);
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).isEqualTo(wrapper);
     }
 }

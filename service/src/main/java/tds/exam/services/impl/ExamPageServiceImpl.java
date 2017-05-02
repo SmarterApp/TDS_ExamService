@@ -12,7 +12,6 @@ import tds.exam.ExamPage;
 import tds.exam.repositories.ExamPageCommandRepository;
 import tds.exam.repositories.ExamPageQueryRepository;
 import tds.exam.services.ExamPageService;
-import tds.exam.wrapper.ExamPageWrapper;
 
 @Service
 public class ExamPageServiceImpl implements ExamPageService {
@@ -52,20 +51,5 @@ public class ExamPageServiceImpl implements ExamPageService {
     @Override
     public void update(final ExamPage... examPages) {
         examPageCommandRepository.update(examPages);
-    }
-
-    @Override
-    public Optional<ExamPageWrapper> findPageWithItems(final UUID examId, final int pagePosition) {
-        return examPageQueryRepository.findPageWithItems(examId, pagePosition);
-    }
-
-    @Override
-    public List<ExamPageWrapper> findPagesWithItems(final UUID examId) {
-        return examPageQueryRepository.findPagesWithItems(examId);
-    }
-
-    @Override
-    public List<ExamPageWrapper> findPagesForExamSegment(final UUID examId, final String segmentKey) {
-        return examPageQueryRepository.findPagesForExamSegment(examId, segmentKey);
     }
 }

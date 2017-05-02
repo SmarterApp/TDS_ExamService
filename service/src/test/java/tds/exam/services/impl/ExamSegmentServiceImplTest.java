@@ -25,7 +25,6 @@ import tds.exam.Exam;
 import tds.exam.ExamSegment;
 import tds.exam.builder.AssessmentBuilder;
 import tds.exam.builder.ExamBuilder;
-import tds.exam.builder.ExamPageBuilder;
 import tds.exam.builder.ExamSegmentBuilder;
 import tds.exam.builder.ItemBuilder;
 import tds.exam.builder.SegmentBuilder;
@@ -37,14 +36,11 @@ import tds.exam.services.ExamPageService;
 import tds.exam.services.FieldTestService;
 import tds.exam.services.FormSelector;
 import tds.exam.services.SegmentPoolService;
-import tds.exam.wrapper.ExamPageWrapper;
-import tds.exam.wrapper.ExamSegmentWrapper;
 
 import static io.github.benas.randombeans.api.EnhancedRandom.random;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -92,7 +88,7 @@ public class ExamSegmentServiceImplTest {
             .withMaxItems(5)
             .build();
         Assessment assessment = new AssessmentBuilder()
-            .withSegments(Arrays.asList(segment))
+            .withSegments(Collections.singletonList(segment))
             .build();
         // Empty segment pool should result in an error
         SegmentPoolInfo segmentPoolInfo = new SegmentPoolInfo(0, 0, new HashSet<>());
@@ -115,7 +111,7 @@ public class ExamSegmentServiceImplTest {
             .withMaxItems(5)
             .build();
         Assessment assessment = new AssessmentBuilder()
-            .withSegments(Arrays.asList(segment))
+            .withSegments(Collections.singletonList(segment))
             .build();
         // Empty segment pool should result in an error
         SegmentPoolInfo segmentPoolInfo = new SegmentPoolInfo(0, 0, new HashSet<>());
@@ -146,18 +142,16 @@ public class ExamSegmentServiceImplTest {
         Segment segment1 = new SegmentBuilder()
             .withSelectionAlgorithm(Algorithm.FIXED_FORM)
             .withMaxItems(5)
-            .withForms(Arrays.asList(form1))
+            .withForms(Collections.singletonList(form1))
             .build();
         Segment segment2 = new SegmentBuilder()
             .withSelectionAlgorithm(Algorithm.FIXED_FORM)
             .withMaxItems(5)
-            .withForms(Arrays.asList(form2))
+            .withForms(Collections.singletonList(form2))
             .build();
         Assessment assessment = new AssessmentBuilder()
             .withSegments(Arrays.asList(segment1, segment2))
             .build();
-        // Empty segment pool should result in an error
-        SegmentPoolInfo segmentPoolInfo = new SegmentPoolInfo(0, 0, new HashSet<>());
 
         when(mockFormSelector.selectForm(segment1, language)).thenReturn(Optional.of(form1));
         examSegmentService.initializeExamSegments(exam, assessment);
@@ -340,7 +334,7 @@ public class ExamSegmentServiceImplTest {
             .withForms(Arrays.asList(enuForm, esnForm))
             .build();
         Assessment assessment = new AssessmentBuilder()
-            .withSegments(Arrays.asList(segment))
+            .withSegments(Collections.singletonList(segment))
             .build();
 
         when(mockFormSelector.selectForm(segment, language)).thenReturn(Optional.of(enuForm));
@@ -557,7 +551,7 @@ public class ExamSegmentServiceImplTest {
             .withMaxItems(5)
             .build();
         Assessment assessment = new AssessmentBuilder()
-            .withSegments(Arrays.asList(segment))
+            .withSegments(Collections.singletonList(segment))
             .build();
         SegmentPoolInfo segmentPoolInfo = new SegmentPoolInfo(segment.getMaxItems(), 4,
             new HashSet<>(Arrays.asList(
@@ -686,6 +680,7 @@ public class ExamSegmentServiceImplTest {
         verify(mockExamSegmentCommandRepository, never()).update(isA(ExamSegment.class));
     }
 
+
     @Test
     public void shouldReturnTrueForAllSegmentsSatisfied() {
         final UUID examId = UUID.randomUUID();
@@ -701,133 +696,5 @@ public class ExamSegmentServiceImplTest {
         when(mockExamSegmentQueryRepository.findCountOfUnsatisfiedSegments(examId)).thenReturn(1);
         assertThat(examSegmentService.checkIfSegmentsCompleted(examId)).isFalse();
         verify(mockExamSegmentQueryRepository).findCountOfUnsatisfiedSegments(examId);
-    }
-
-    @Test
-    public void shouldReturnExamSegmentWrappersForExamId() {
-        UUID examId = UUID.randomUUID();
-        ExamSegment examSegment = new ExamSegmentBuilder()
-            .withExamId(examId)
-            .withSegmentKey("segmentKey")
-            .withSegmentPosition(1)
-            .build();
-
-        ExamSegment examSegment2 = new ExamSegmentBuilder()
-            .withExamId(examId)
-            .withSegmentKey("segmentKey2")
-            .withSegmentPosition(2)
-            .build();
-
-        ExamPageWrapper examPageWrapper = new ExamPageWrapper(new ExamPageBuilder()
-            .withExamId(examId)
-            .withSegmentKey("segmentKey")
-            .withPagePosition(1)
-            .build(),
-            Collections.emptyList());
-
-        ExamPageWrapper examPageWrapper2 = new ExamPageWrapper(new ExamPageBuilder()
-            .withExamId(examId)
-            .withSegmentKey("segmentKey")
-            .withPagePosition(2)
-            .build(),
-            Collections.emptyList());
-
-        ExamPageWrapper examPageWrapper3 = new ExamPageWrapper(new ExamPageBuilder()
-            .withExamId(examId)
-            .withSegmentKey("segmentKey2")
-            .withPagePosition(3)
-            .build(),
-            Collections.emptyList());
-
-
-        when(mockExamSegmentQueryRepository.findByExamId(examId)).thenReturn(Arrays.asList(examSegment, examSegment2));
-        when(mockExamPageService.findPagesWithItems(examId)).thenReturn(Arrays.asList(examPageWrapper, examPageWrapper2, examPageWrapper3));
-
-        List<ExamSegmentWrapper> examSegmentWrappers = examSegmentService.findAllExamSegments(examId);
-
-        assertThat(examSegmentWrappers).hasSize(2);
-
-        ExamSegmentWrapper wrapper = examSegmentWrappers.get(0);
-
-        assertThat(wrapper.getExamSegment()).isEqualTo(examSegment);
-        assertThat(wrapper.getExamPages()).containsExactly(examPageWrapper, examPageWrapper2);
-
-        wrapper = examSegmentWrappers.get(1);
-
-        assertThat(wrapper.getExamSegment()).isEqualTo(examSegment2);
-        assertThat(wrapper.getExamPages()).containsExactly(examPageWrapper3);
-    }
-
-
-    public void shouldReturnEmptyExamSegmentWrapperWhenNotFoundForExamIdAndPosition() {
-        UUID examId = UUID.randomUUID();
-        when(mockExamSegmentQueryRepository.findByExamIdAndSegmentPosition(examId, 1)).thenReturn(Optional.empty());
-        assertThat(examSegmentService.findExamSegment(examId, 1)).isNotPresent();
-    }
-
-    @Test
-    public void shouldReturnSegmentWrapperForExamAndPosition() {
-        UUID examId = UUID.randomUUID();
-        ExamSegment examSegment = new ExamSegmentBuilder()
-            .withExamId(examId)
-            .withSegmentKey("segmentKey")
-            .withSegmentPosition(1)
-            .build();
-
-        ExamPageWrapper examPageWrapper = new ExamPageWrapper(new ExamPageBuilder()
-            .withExamId(examId)
-            .withSegmentKey("segmentKey")
-            .withPagePosition(1)
-            .build(),
-            Collections.emptyList());
-
-        when(mockExamSegmentQueryRepository.findByExamIdAndSegmentPosition(examId, 1)).thenReturn(Optional.of(examSegment));
-        when(mockExamPageService.findPagesForExamSegment(examId, examSegment.getSegmentKey())).thenReturn(Collections.singletonList(examPageWrapper));
-
-        Optional<ExamSegmentWrapper> maybeWrapper = examSegmentService.findExamSegment(examId, 1);
-
-        assertThat(maybeWrapper).isPresent();
-
-        ExamSegmentWrapper wrapper = maybeWrapper.get();
-
-        assertThat(wrapper.getExamSegment()).isEqualTo(examSegment);
-        assertThat(wrapper.getExamPages()).containsExactly(examPageWrapper);
-    }
-
-    @Test
-    public void shouldReturnEmptyExamSegmentWrapperWhenExamSegmentCannotBeFound() {
-        UUID examId = UUID.randomUUID();
-        ExamPageWrapper examPageWrapper = mock(ExamPageWrapper.class);
-
-        when(mockExamSegmentQueryRepository.findByExamIdAndSegmentPosition(examId, 1)).thenReturn(Optional.empty());
-        when(mockExamPageService.findPageWithItems(examId, 2)).thenReturn(Optional.of(examPageWrapper));
-
-        assertThat(examSegmentService.findExamSegmentWithPageAtPosition(examId, 1, 2)).isNotPresent();
-    }
-
-    @Test
-    public void shouldReturnEmptyExamSegmentWrapperWhenExamPageCannotBeFound() {
-        UUID examId = UUID.randomUUID();
-        ExamSegment examSegment = mock(ExamSegment.class);
-
-        when(mockExamSegmentQueryRepository.findByExamIdAndSegmentPosition(examId, 1)).thenReturn(Optional.of(examSegment));
-        when(mockExamPageService.findPageWithItems(examId, 2)).thenReturn(Optional.empty());
-
-        assertThat(examSegmentService.findExamSegmentWithPageAtPosition(examId, 1, 2)).isNotPresent();
-    }
-
-    @Test
-    public void shouldReturnExamSegmentWrapperWithSinglePage() {
-        UUID examId = UUID.randomUUID();
-        ExamPageWrapper examPageWrapper = mock(ExamPageWrapper.class);
-        ExamSegment examSegment = mock(ExamSegment.class);
-
-        when(mockExamPageService.findPageWithItems(examId, 2)).thenReturn(Optional.of(examPageWrapper));
-        when(mockExamSegmentQueryRepository.findByExamIdAndSegmentPosition(examId, 1)).thenReturn(Optional.of(examSegment));
-
-        ExamSegmentWrapper wrapper = examSegmentService.findExamSegmentWithPageAtPosition(examId, 1, 2).get();
-
-        assertThat(wrapper.getExamSegment()).isEqualTo(examSegment);
-        assertThat(wrapper.getExamPages()).containsExactly(examPageWrapper);
     }
 }

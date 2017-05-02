@@ -8,7 +8,6 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -18,16 +17,13 @@ import tds.exam.builder.ExamPageBuilder;
 import tds.exam.repositories.ExamPageCommandRepository;
 import tds.exam.repositories.ExamPageQueryRepository;
 import tds.exam.services.ExamPageService;
-import tds.exam.wrapper.ExamPageWrapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ExamPageServiceImplTest {
-
     @Mock
     private ExamPageCommandRepository mockExamPageCommandRepository;
 
@@ -95,41 +91,4 @@ public class ExamPageServiceImplTest {
 
         assertThat(captor.getValue()).isEqualTo(examPage);
     }
-
-    @Test
-    public void findExamPageByExamId() {
-        ExamPageWrapper examPageWrapper = mock(ExamPageWrapper.class);
-        UUID examId = UUID.randomUUID();
-
-        when(mockExamPageQueryRepository.findPagesWithItems(examId)).thenReturn(Collections.singletonList(examPageWrapper));
-
-        assertThat(examPageService.findPagesWithItems(examId)).containsExactly(examPageWrapper);
-
-        verify(mockExamPageQueryRepository).findPagesWithItems(examId);
-    }
-
-    @Test
-    public void findExamPageByExamIdAndPagePosition() {
-        ExamPageWrapper examPageWrapper = mock(ExamPageWrapper.class);
-        UUID examId = UUID.randomUUID();
-
-        when(mockExamPageQueryRepository.findPageWithItems(examId, 1)).thenReturn(Optional.of(examPageWrapper));
-
-        assertThat(examPageService.findPageWithItems(examId, 1).get()).isEqualTo(examPageWrapper);
-
-        verify(mockExamPageQueryRepository).findPageWithItems(examId, 1);
-    }
-
-    @Test
-    public void findExamPageByExamIdAndSegmentKey() {
-        ExamPageWrapper examPageWrapper = mock(ExamPageWrapper.class);
-        UUID examId = UUID.randomUUID();
-
-        when(mockExamPageQueryRepository.findPagesForExamSegment(examId, "segmentKey")).thenReturn(Collections.singletonList(examPageWrapper));
-
-        assertThat(examPageService.findPagesForExamSegment(examId, "segmentKey")).containsExactly(examPageWrapper);
-
-        verify(mockExamPageQueryRepository).findPagesForExamSegment(examId, "segmentKey");
-    }
-
 }

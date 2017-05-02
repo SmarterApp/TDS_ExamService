@@ -8,7 +8,6 @@ import tds.assessment.Assessment;
 import tds.common.ValidationError;
 import tds.exam.Exam;
 import tds.exam.ExamSegment;
-import tds.exam.wrapper.ExamSegmentWrapper;
 
 /**
  * Service that handles interactions with exam segments.
@@ -63,31 +62,4 @@ public interface ExamSegmentService {
      * @return {@code true} if the segment is completed
      */
     boolean checkIfSegmentsCompleted(final UUID examId);
-
-    /**
-     * Finds all the {@link tds.exam.wrapper.ExamSegmentWrapper} for an exam
-     *
-     * @param examId the exam id
-     * @return list of {@link tds.exam.wrapper.ExamSegmentWrapper}
-     */
-    List<ExamSegmentWrapper> findAllExamSegments(final UUID examId);
-
-    /**
-     * Finds an {@link tds.exam.wrapper.ExamSegmentWrapper} with all its {@link tds.exam.ExamPage} by exam id and segment position
-     *
-     * @param examId          the exam id
-     * @param segmentPosition the segment position
-     * @return an {@link tds.exam.wrapper.ExamSegmentWrapper} otherwise empty
-     */
-    Optional<ExamSegmentWrapper> findExamSegment(final UUID examId, final int segmentPosition);
-
-    /**
-     * Finds an {@link tds.exam.wrapper.ExamSegmentWrapper} with only a single {@link tds.exam.ExamPage} populated
-     *
-     * @param examId          the exam id
-     * @param segmentPosition the segment position
-     * @param pagePosition    the page position within the exam
-     * @return an {@link tds.exam.wrapper.ExamSegmentWrapper} otherwise empty
-     */
-    Optional<ExamSegmentWrapper> findExamSegmentWithPageAtPosition(final UUID examId, final int segmentPosition, final int pagePosition);
 }

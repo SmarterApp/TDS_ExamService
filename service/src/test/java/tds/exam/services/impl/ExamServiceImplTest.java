@@ -14,7 +14,6 @@ import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import javax.swing.text.html.Option;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -1431,7 +1430,7 @@ public class ExamServiceImplTest {
         assertThat(response.getError().isPresent()).isFalse();
 
         List<ExamAssessmentMetadata> elligibleExams = response.getData().get();
-;
+
         ExamAssessmentMetadata retExamInfo1 = elligibleExams.get(0);
         ExamAssessmentMetadata retExamInfo2 = elligibleExams.get(1);
 
@@ -1468,32 +1467,31 @@ public class ExamServiceImplTest {
     @Test
     public void shouldFindEligibleExamsForStudent() {
         final long studentId = 1184;
-        final UUID sessionId = UUID.randomUUID();
         final String grade = "3";
 
         Session currentSession = random(Session.class);
         // New assessment that student has never taken
-        AssessmentInfo assessmentInfo1 = new AssessmentInfo.Builder()
+        AssessmentInfo assessmentInfo1 = AssessmentInfo.Builder
             .fromAssessmentInfo(random(AssessmentInfo.class))
             .withMaxAttempts(20)
             .build();
         // Assessment that is not enabled by proctor, but student is elligible for
-        AssessmentInfo assessmentInfo2 = new AssessmentInfo.Builder()
+        AssessmentInfo assessmentInfo2 = AssessmentInfo.Builder
             .fromAssessmentInfo(random(AssessmentInfo.class))
             .withMaxAttempts(20)
             .build();
         // Assessment that is enabled and student has already started
-        AssessmentInfo assessmentInfo3 = new AssessmentInfo.Builder()
+        AssessmentInfo assessmentInfo3 = AssessmentInfo.Builder
             .fromAssessmentInfo(random(AssessmentInfo.class))
             .withMaxAttempts(20)
             .build();
         // Assessment that has been previously taken by student and completed
-        AssessmentInfo assessmentInfo4 = new AssessmentInfo.Builder()
+        AssessmentInfo assessmentInfo4 = AssessmentInfo.Builder
             .fromAssessmentInfo(random(AssessmentInfo.class))
             .withMaxAttempts(20)
             .build();
         // Assessment that has a blocked subject
-        AssessmentInfo assessmentInfo5 = new AssessmentInfo.Builder()
+        AssessmentInfo assessmentInfo5 = AssessmentInfo.Builder
             .fromAssessmentInfo(random(AssessmentInfo.class))
             .withMaxAttempts(20)
             .withSubject("JUNKED!")
