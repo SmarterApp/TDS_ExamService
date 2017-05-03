@@ -23,6 +23,9 @@ public class ValidationErrorCode {
     // Save responses error codes
     public static final String EXAM_INTERRUPTED = "examInterrupted";
 
+    // Review Exam error codes
+    public static final String EXAM_INCOMPLETE = "examIncomplete";
+
     // Exam acccommodations approval validation errors
     public static final String EXAM_DOES_NOT_EXIST = "examDoesNotExist";
     public static final String EXAM_NOT_ENROLLED_IN_SESSION = "examNotEnrolledInSession";
