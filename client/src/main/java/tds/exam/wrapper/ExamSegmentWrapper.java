@@ -1,5 +1,6 @@
 package tds.exam.wrapper;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import tds.exam.ExamSegment;
@@ -9,7 +10,7 @@ import tds.exam.ExamSegment;
  */
 public class ExamSegmentWrapper {
     private ExamSegment examSegment;
-    private List<ExamPageWrapper> examPages;
+    private List<ExamPageWrapper> examPages = new ArrayList<>();
 
     public ExamSegmentWrapper(final ExamSegment examSegment, final List<ExamPageWrapper> examPages) {
         this.examSegment = examSegment;
