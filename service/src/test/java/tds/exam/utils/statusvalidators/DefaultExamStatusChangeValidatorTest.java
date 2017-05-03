@@ -4,9 +4,13 @@ import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Optional;
+
+import tds.common.ValidationError;
 import tds.exam.Exam;
 import tds.exam.ExamStatusCode;
 import tds.exam.builder.ExamBuilder;
+import tds.exam.error.ValidationErrorCode;
 import tds.exam.utils.ExamStatusChangeValidator;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,9 +30,9 @@ public class DefaultExamStatusChangeValidatorTest {
             .build();
         final ExamStatusCode newStatus = new ExamStatusCode(ExamStatusCode.STATUS_APPROVED);
 
-        final boolean result = defaultExamStatusChangeValidator.validate(exam, newStatus);
+        final Optional<ValidationError> maybeValidationError = defaultExamStatusChangeValidator.validate(exam, newStatus);
 
-        assertThat(result).isTrue();
+        assertThat(maybeValidationError).isNotPresent();
     }
 
     @Test
@@ -38,8 +42,13 @@ public class DefaultExamStatusChangeValidatorTest {
             .build();
         final ExamStatusCode newStatus = new ExamStatusCode(ExamStatusCode.STATUS_STARTED);
 
-        final boolean result = defaultExamStatusChangeValidator.validate(exam, newStatus);
+        final Optional<ValidationError> maybeValidationError = defaultExamStatusChangeValidator.validate(exam, newStatus);
 
-        assertThat(result).isFalse();
+        assertThat(maybeValidationError).isPresent();
+        ValidationError error = maybeValidationError.get();
+        assertThat(error.getCode()).isEqualTo(ValidationErrorCode.EXAM_STATUS_TRANSITION_FAILURE);
+        assertThat(error.getMessage()).isEqualTo(String.format("Transitioning exam status from %s to %s is not allowed",
+            exam.getStatus().getCode(),
+            newStatus.getCode()));
     }
 }

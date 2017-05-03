@@ -7,6 +7,9 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.Optional;
+
+import tds.common.ValidationError;
 import tds.exam.Exam;
 import tds.exam.ExamStatusCode;
 import tds.exam.builder.ExamBuilder;
@@ -29,7 +32,7 @@ public class ReviewExamStatusChangeValidatorTest {
     }
 
     @Test
-    public void shouldReturnTrueWhenTransitioningToReviewStatusFromAValidPreviousStatus() {
+    public void shouldValidateTransitioningToReviewStatusFromAValidPreviousStatus() {
         final Exam exam = new ExamBuilder()
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_STARTED), Instant.now())
             .build();
@@ -38,28 +41,13 @@ public class ReviewExamStatusChangeValidatorTest {
         when(mockExamSegementService.checkIfSegmentsCompleted(exam.getId()))
             .thenReturn(true);
 
-        final boolean result = reviewExamStatusChangeValidator.validate(exam, newStatus);
+        final Optional<ValidationError> maybeValidationError = reviewExamStatusChangeValidator.validate(exam, newStatus);
 
-        assertThat(result).isTrue();
+        assertThat(maybeValidationError).isNotPresent();
     }
 
     @Test
-    public void shouldReturnFalseWhenTransitioningToReviewStatusFromAnInvalidPreviousStatus() {
-        final Exam exam = new ExamBuilder()
-            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_COMPLETED), Instant.now())
-            .build();
-        final ExamStatusCode newStatus = new ExamStatusCode(ExamStatusCode.STATUS_REVIEW);
-
-        when(mockExamSegementService.checkIfSegmentsCompleted(exam.getId()))
-            .thenReturn(true);
-
-        final boolean result = reviewExamStatusChangeValidator.validate(exam, newStatus);
-
-        assertThat(result).isFalse();
-    }
-
-    @Test
-    public void shouldReturnFalseWhenTheExamIsNotComplete() {
+    public void shouldReturnValidationErrorMessageWhenTheExamIsNotComplete() {
         final Exam exam = new ExamBuilder()
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_STARTED), Instant.now())
             .build();
@@ -68,8 +56,8 @@ public class ReviewExamStatusChangeValidatorTest {
         when(mockExamSegementService.checkIfSegmentsCompleted(exam.getId()))
             .thenReturn(false);
 
-        final boolean result = reviewExamStatusChangeValidator.validate(exam, newStatus);
+        final Optional<ValidationError> maybeValidationError = reviewExamStatusChangeValidator.validate(exam, newStatus);
 
-        assertThat(result).isFalse();
+        assertThat(maybeValidationError).isPresent();
     }
 }

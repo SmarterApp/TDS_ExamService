@@ -1,6 +1,5 @@
 package tds.exam.services.impl;
 
-import com.sun.xml.internal.ws.developer.MemberSubmissionAddressing;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.Minutes;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -254,11 +253,11 @@ class ExamServiceImpl implements ExamService {
         final Exam exam = examQueryRepository.getExamById(examId)
             .orElseThrow(() -> new NotFoundException(String.format("Exam could not be found for id %s", examId)));
 
-        if (!statusChangeValidators.stream().allMatch(v -> v.validate(exam, newStatus))) {
-            return Optional.of(new ValidationError(ValidationErrorCode.EXAM_STATUS_TRANSITION_FAILURE,
-                String.format("Transitioning exam status from %s to %s is not allowed",
-                    exam.getStatus().getCode(),
-                    newStatus.getCode())));
+        for (ExamStatusChangeValidator validator : statusChangeValidators) {
+            Optional<ValidationError> maybeError = validator.validate(exam, newStatus);
+            if (maybeError.isPresent()) {
+                return maybeError;
+            }
         }
 
         final Exam updatedExam = new Exam.Builder()
