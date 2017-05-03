@@ -15,12 +15,12 @@ import tds.exam.utils.ExamStatusChangeValidator;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class DefaultExamStatusChangeValidatorTest {
+public class StatusTransitionChangeValidatorTest {
     private ExamStatusChangeValidator defaultExamStatusChangeValidator;
 
     @Before
     public void setUp() {
-        defaultExamStatusChangeValidator = new DefaultStatusChangeValidator();
+        defaultExamStatusChangeValidator = new StatusTransitionChangeValidator();
     }
 
     @Test

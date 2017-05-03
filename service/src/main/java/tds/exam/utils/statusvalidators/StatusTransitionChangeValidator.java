@@ -12,7 +12,7 @@ import tds.exam.utils.ExamStatusChangeValidator;
 import tds.exam.utils.StatusTransitionValidator;
 
 @Component
-public class DefaultStatusChangeValidator implements ExamStatusChangeValidator {
+public class StatusTransitionChangeValidator implements ExamStatusChangeValidator {
     @Override
     public Optional<ValidationError> validate(final Exam exam, final ExamStatusCode intendedStatus) {
         if (!StatusTransitionValidator.isValidTransition(exam.getStatus().getCode(), intendedStatus.getCode())) {
