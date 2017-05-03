@@ -68,6 +68,7 @@ import tds.exam.services.ExamineeService;
 import tds.exam.services.SessionService;
 import tds.exam.services.StudentService;
 import tds.exam.services.TimeLimitConfigurationService;
+import tds.exam.utils.ExamStatusChangeValidator;
 import tds.session.ExternalSessionConfiguration;
 import tds.session.Session;
 import tds.session.SessionAssessment;
@@ -146,6 +147,12 @@ public class ExamServiceImplTest {
     @Mock
     private ChangeListener<Exam> mockOnCompletedExamChangeListener;
 
+    @Mock
+    private ExamStatusChangeValidator mockDefaultExamStatusChangeValidator;
+
+    @Mock
+    private ExamStatusChangeValidator mockReviewExamStatusChangeValidator;
+
     @Captor
     private ArgumentCaptor<Exam> examArgumentCaptor;
 
@@ -153,7 +160,6 @@ public class ExamServiceImplTest {
 
     @Before
     public void setUp() {
-
         examService = new ExamServiceImpl(
             mockExamQueryRepository,
             mockSessionService,
@@ -169,8 +175,8 @@ public class ExamServiceImplTest {
             mockExamAccommodationService,
             mockExamApprovalService,
             mockExamineeService,
-            Collections.singletonList(mockOnCompletedExamChangeListener));
-
+            Collections.singletonList(mockOnCompletedExamChangeListener),
+            Arrays.asList(mockDefaultExamStatusChangeValidator, mockReviewExamStatusChangeValidator));
 
         // Calls to get formatted message are throughout the exam service
         // Since we aren't testing that it returns anything specific in these tests I each option here for simplicity
@@ -824,6 +830,10 @@ public class ExamServiceImplTest {
 
         when(mockExamQueryRepository.getExamById(examId))
             .thenReturn(Optional.of(mockExam));
+        when(mockDefaultExamStatusChangeValidator.validate(any(Exam.class), any(ExamStatusCode.class)))
+            .thenReturn(Optional.empty());
+        when(mockReviewExamStatusChangeValidator.validate(any(Exam.class), any(ExamStatusCode.class)))
+            .thenReturn(Optional.empty());
 
         Optional<ValidationError> maybeStatusTransitionFailure = examService.updateExamStatus(examId,
             new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE));
@@ -839,12 +849,15 @@ public class ExamServiceImplTest {
             .withId(examId)
             .withStatus(new ExamStatusCode("foo", ExamStatusStage.INACTIVE), Instant.now())
             .build();
+        ExamStatusCode pausedStatus = new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE);
 
         when(mockExamQueryRepository.getExamById(examId))
             .thenReturn(Optional.of(mockExam));
+        when(mockDefaultExamStatusChangeValidator.validate(any(Exam.class), any(ExamStatusCode.class)))
+            .thenReturn(Optional.of(new ValidationError(ValidationErrorCode.EXAM_STATUS_TRANSITION_FAILURE, String.format("Transitioning exam status from %s to %s is not allowed", mockExam.getStatus().getCode(), pausedStatus.getCode()))));
 
         Optional<ValidationError> maybeStatusTransitionFailure = examService.updateExamStatus(examId,
-            new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE));
+            pausedStatus);
         verifyZeroInteractions(mockOnCompletedExamChangeListener);
 
         assertThat(maybeStatusTransitionFailure).isPresent();
@@ -1215,7 +1228,6 @@ public class ExamServiceImplTest {
     }
 
 
-
     @Test
     public void shouldMarkExamAsWaitingForSegmentEntryApproval() {
         Exam exam = new Exam.Builder()
@@ -1227,6 +1239,10 @@ public class ExamServiceImplTest {
         when(mockExamQueryRepository.getExamById(exam.getId())).thenReturn(Optional.of(exam));
         when(mockExamApprovalService.getApproval(new ExamInfo(exam.getId(), request.getSessionId(), request.getBrowserId())))
             .thenReturn(new Response<>(new ExamApproval(exam.getId(), exam.getStatus(), null)));
+        when(mockDefaultExamStatusChangeValidator.validate(any(Exam.class), any(ExamStatusCode.class)))
+            .thenReturn(Optional.empty());
+        when(mockReviewExamStatusChangeValidator.validate(any(Exam.class), any(ExamStatusCode.class)))
+            .thenReturn(Optional.empty());
 
         Optional<ValidationError> maybeError = examService.waitForSegmentApproval(exam.getId(), request);
         assertThat(maybeError).isNotPresent();
@@ -1251,6 +1267,10 @@ public class ExamServiceImplTest {
         when(mockExamQueryRepository.getExamById(exam.getId())).thenReturn(Optional.of(exam));
         when(mockExamApprovalService.getApproval(new ExamInfo(exam.getId(), request.getSessionId(), request.getBrowserId())))
             .thenReturn(new Response<>(new ExamApproval(exam.getId(), exam.getStatus(), null)));
+        when(mockDefaultExamStatusChangeValidator.validate(any(Exam.class), any(ExamStatusCode.class)))
+            .thenReturn(Optional.empty());
+        when(mockReviewExamStatusChangeValidator.validate(any(Exam.class), any(ExamStatusCode.class)))
+            .thenReturn(Optional.empty());
 
         Optional<ValidationError> maybeError = examService.waitForSegmentApproval(exam.getId(), request);
         assertThat(maybeError).isNotPresent();
@@ -1271,6 +1291,8 @@ public class ExamServiceImplTest {
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_SUSPENDED), Instant.now())
             .build();
         SegmentApprovalRequest request = new SegmentApprovalRequest(exam.getSessionId(), exam.getBrowserId(), 1, false);
+        when(mockDefaultExamStatusChangeValidator.validate(any(Exam.class), any(ExamStatusCode.class)))
+            .thenReturn(Optional.of(new ValidationError(ValidationErrorCode.EXAM_STATUS_TRANSITION_FAILURE, "failure message")));
 
         when(mockExamQueryRepository.getExamById(exam.getId())).thenReturn(Optional.of(exam));
         when(mockExamApprovalService.getApproval(new ExamInfo(exam.getId(), request.getSessionId(), request.getBrowserId())))
@@ -1282,6 +1304,7 @@ public class ExamServiceImplTest {
 
         verify(mockExamQueryRepository).getExamById(exam.getId());
         verify(mockExamApprovalService).getApproval(new ExamInfo(exam.getId(), request.getSessionId(), request.getBrowserId()));
+        verify(mockDefaultExamStatusChangeValidator).validate(any(Exam.class), any(ExamStatusCode.class));
         verify(mockExamCommandRepository, never()).update(isA(Exam.class));
     }
 
@@ -1430,7 +1453,7 @@ public class ExamServiceImplTest {
         assertThat(response.getError().isPresent()).isFalse();
 
         List<ExamAssessmentMetadata> elligibleExams = response.getData().get();
-
+        ;
         ExamAssessmentMetadata retExamInfo1 = elligibleExams.get(0);
         ExamAssessmentMetadata retExamInfo2 = elligibleExams.get(1);
 
@@ -1467,10 +1490,12 @@ public class ExamServiceImplTest {
     @Test
     public void shouldFindEligibleExamsForStudent() {
         final long studentId = 1184;
+        final UUID sessionId = UUID.randomUUID();
         final String grade = "3";
 
         Session currentSession = random(Session.class);
         // New assessment that student has never taken
+        new AssessmentInfo.Builder();
         AssessmentInfo assessmentInfo1 = AssessmentInfo.Builder
             .fromAssessmentInfo(random(AssessmentInfo.class))
             .withMaxAttempts(20)
@@ -1564,7 +1589,7 @@ public class ExamServiceImplTest {
         ExamAssessmentMetadata examAssessmentMetadata4 = null;
         ExamAssessmentMetadata examAssessmentMetadata5 = null;
 
-        for(ExamAssessmentMetadata info : elligibleExams) {
+        for (ExamAssessmentMetadata info : elligibleExams) {
             if (info.getAssessmentKey().equals(assessmentInfo1.getKey())) {
                 examAssessmentMetadata1 = info;
             } else if (info.getAssessmentKey().equals(assessmentInfo2.getKey())) {
@@ -1632,5 +1657,52 @@ public class ExamServiceImplTest {
         assertThat(examAssessmentMetadata5.getAttempt()).isEqualTo(0);
         assertThat(examAssessmentMetadata5.getGrade()).isEqualTo("3");
         assertThat(examAssessmentMetadata5.getStatus()).isEqualTo(ExamStatusCode.STATUS_DENIED);
+    }
+
+    @Test
+    public void shouldUpdateAnExamToReviewStatus() {
+        final Exam exam = new ExamBuilder()
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_STARTED), Instant.now())
+            .build();
+        final ExamStatusCode reviewStatus = new ExamStatusCode(ExamStatusCode.STATUS_REVIEW);
+
+        when(examService.findExam(any(UUID.class)))
+            .thenReturn(Optional.of(exam));
+        when(mockDefaultExamStatusChangeValidator.validate(any(Exam.class), any(ExamStatusCode.class)))
+            .thenReturn(Optional.empty());
+        when(mockReviewExamStatusChangeValidator.validate(any(Exam.class), any(ExamStatusCode.class)))
+            .thenReturn(Optional.empty());
+
+        final Optional<ValidationError> maybeValidationError = examService.updateExamStatus(exam.getId(), reviewStatus);
+
+        verify(mockDefaultExamStatusChangeValidator).validate(any(Exam.class), any(ExamStatusCode.class));
+        verify(mockReviewExamStatusChangeValidator).validate(any(Exam.class), any(ExamStatusCode.class));
+
+        assertThat(maybeValidationError).isNotPresent();
+    }
+
+    @Test
+    public void shouldNotUpdateAnExamToReviewStatusBecauseStatusAStatusChangeValidatorIsFalse() {
+        final Exam exam = new ExamBuilder()
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_COMPLETED), Instant.now())
+            .build();
+        final ExamStatusCode reviewStatus = new ExamStatusCode(ExamStatusCode.STATUS_REVIEW);
+
+        when(examService.findExam(any(UUID.class)))
+            .thenReturn(Optional.of(exam));
+        when(mockDefaultExamStatusChangeValidator.validate(any(Exam.class), any(ExamStatusCode.class)))
+            .thenReturn(Optional.of(new ValidationError(ValidationErrorCode.EXAM_STATUS_TRANSITION_FAILURE,
+                String.format("Transitioning exam status from %s to %s is not allowed", exam.getStatus().getCode(), reviewStatus.getCode()))));
+        when(mockReviewExamStatusChangeValidator.validate(any(Exam.class), any(ExamStatusCode.class)))
+            .thenReturn(Optional.empty());
+
+        final Optional<ValidationError> maybeValidationError = examService.updateExamStatus(exam.getId(), reviewStatus);
+
+        verify(mockDefaultExamStatusChangeValidator).validate(any(Exam.class), any(ExamStatusCode.class));
+
+        assertThat(maybeValidationError).isPresent();
+        final ValidationError validationError = maybeValidationError.get();
+        assertThat(validationError.getCode()).isEqualTo(ValidationErrorCode.EXAM_STATUS_TRANSITION_FAILURE);
+        assertThat(validationError.getMessage()).isEqualTo(String.format("Transitioning exam status from %s to %s is not allowed", exam.getStatus().getCode(), reviewStatus.getCode()));
     }
 }

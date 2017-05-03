@@ -1,22 +1,23 @@
-package tds.exam.utils;
+package tds.exam.utils.statusvalidators;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
+import org.springframework.stereotype.Component;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
+import tds.common.ValidationError;
+import tds.exam.Exam;
 import tds.exam.ExamStatusCode;
+import tds.exam.error.ValidationErrorCode;
+import tds.exam.utils.ExamStatusChangeValidator;
 
-/**
- * A utility class for validating transitions between various exam states
- */
-public class StatusTransitionValidator {
-    // Create private constructor to ensure this class is never instantiated
-    private StatusTransitionValidator() {}
-
+@Component
+public class StatusTransitionChangeValidator implements ExamStatusChangeValidator {
     // Build a map of current states -> valid next states
-    /* This logic is contained in the legacy application in CommonDLL._IsValidStatusTransition_FN() */
+    // This logic is contained in the legacy application in CommonDLL._IsValidStatusTransition_FN()
     private static final Map<String, Set<String>> stateMap = ImmutableMap.<String, Set<String>>builder()
         .put(ExamStatusCode.STATUS_PENDING.toLowerCase(), Sets.newHashSet(
             ExamStatusCode.STATUS_INITIALIZING,
@@ -145,15 +146,18 @@ public class StatusTransitionValidator {
         ))
         .build();
 
-    /**
-     * Validates that an exam can transition between the currentStatus and newStatus
-     *
-     * @param currentStatus the status the exam is currently in
-     * @param newStatus     The status the exam is being transitioned to
-     * @return true if this a valid transition - false otherwise
-     */
-    public static boolean isValidTransition(final String currentStatus, final String newStatus) {
-        return stateMap.get(currentStatus.toLowerCase()) != null
-          && stateMap.get(currentStatus.toLowerCase()).contains(newStatus.toLowerCase());
+    @Override
+    public Optional<ValidationError> validate(final Exam exam, final ExamStatusCode intendedStatus) {
+        final boolean isValidTransition = stateMap.get(exam.getStatus().getCode().toLowerCase()) != null
+            && stateMap.get(exam.getStatus().getCode().toLowerCase()).contains(intendedStatus.getCode().toLowerCase());
+
+        if (!isValidTransition) {
+            return Optional.of(new ValidationError(ValidationErrorCode.EXAM_STATUS_TRANSITION_FAILURE,
+                String.format("Transitioning exam status from %s to %s is not allowed",
+                    exam.getStatus().getCode(),
+                    intendedStatus.getCode())));
+        }
+
+        return Optional.empty();
     }
 }

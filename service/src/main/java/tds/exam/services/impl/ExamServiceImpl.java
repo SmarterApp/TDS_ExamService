@@ -61,7 +61,7 @@ import tds.exam.services.ExamineeService;
 import tds.exam.services.SessionService;
 import tds.exam.services.StudentService;
 import tds.exam.services.TimeLimitConfigurationService;
-import tds.exam.utils.StatusTransitionValidator;
+import tds.exam.utils.ExamStatusChangeValidator;
 import tds.session.ExternalSessionConfiguration;
 import tds.session.Session;
 import tds.session.SessionAssessment;
@@ -105,6 +105,7 @@ class ExamServiceImpl implements ExamService {
     private final Set<String> statusesThatCanTransitionToPaused;
 
     private final Collection<ChangeListener<Exam>> examStatusChangeListeners;
+    private final Collection<ExamStatusChangeValidator> statusChangeValidators;
 
     @Autowired
     public ExamServiceImpl(ExamQueryRepository examQueryRepository,
@@ -121,7 +122,8 @@ class ExamServiceImpl implements ExamService {
                            ExamAccommodationService examAccommodationService,
                            ExamApprovalService examApprovalService,
                            ExamineeService examineeService,
-                           Collection<ChangeListener<Exam>> examStatusChangeListeners) {
+                           Collection<ChangeListener<Exam>> examStatusChangeListeners,
+                           Collection<ExamStatusChangeValidator> statusChangeValidators) {
         this.examQueryRepository = examQueryRepository;
         this.sessionService = sessionService;
         this.studentService = studentService;
@@ -137,6 +139,7 @@ class ExamServiceImpl implements ExamService {
         this.examApprovalService = examApprovalService;
         this.examineeService = examineeService;
         this.examStatusChangeListeners = examStatusChangeListeners;
+        this.statusChangeValidators = statusChangeValidators;
 
         // From CommondDLL._IsValidStatusTransition_FN(): a collection of all the statuses that can transition to
         // "paused".  That is, each of these status values has a nested switch statement that contains the "paused"
@@ -237,21 +240,27 @@ class ExamServiceImpl implements ExamService {
 
     @Transactional
     @Override
-    public Optional<ValidationError> updateExamStatus(final UUID examId, final ExamStatusCode newStatus, final String statusChangeReason) {
+    public Optional<ValidationError> updateExamStatus(final UUID examId,
+                                                      final ExamStatusCode newStatus,
+                                                      final String statusChangeReason) {
         return updateExamStatus(examId, newStatus, statusChangeReason, -1);
     }
 
-    private Optional<ValidationError> updateExamStatus(final UUID examId, final ExamStatusCode newStatus, final String statusChangeReason,
+    private Optional<ValidationError> updateExamStatus(final UUID examId,
+                                                       final ExamStatusCode newStatus,
+                                                       final String statusChangeReason,
                                                        final int waitingForSegmentPosition) {
-        Exam exam = examQueryRepository.getExamById(examId)
+        final Exam exam = examQueryRepository.getExamById(examId)
             .orElseThrow(() -> new NotFoundException(String.format("Exam could not be found for id %s", examId)));
 
-        if (!StatusTransitionValidator.isValidTransition(exam.getStatus().getCode(), newStatus.getCode())) {
-            return Optional.of(new ValidationError(ValidationErrorCode.EXAM_STATUS_TRANSITION_FAILURE,
-                String.format("Transitioning exam status from %s to %s is not allowed", exam.getStatus().getCode(), newStatus.getCode())));
+        for (ExamStatusChangeValidator validator : statusChangeValidators) {
+            Optional<ValidationError> maybeError = validator.validate(exam, newStatus);
+            if (maybeError.isPresent()) {
+                return maybeError;
+            }
         }
 
-        Exam updatedExam = new Exam.Builder()
+        final Exam updatedExam = new Exam.Builder()
             .fromExam(exam)
             .withStatus(newStatus, org.joda.time.Instant.now())
             .withStatusChangeReason(statusChangeReason)
@@ -364,7 +373,7 @@ class ExamServiceImpl implements ExamService {
             examAssessmentMetadatas = findEligibleExamAssessmentsForGuest(session.getClientName(), grade);
         }
 
-        return new Response(examAssessmentMetadatas);
+        return new Response<>(examAssessmentMetadatas);
     }
 
     private List<ExamAssessmentMetadata> findEligibleExamAssessmentsForGuest(final String clientName, final String grade) {
@@ -943,11 +952,8 @@ class ExamServiceImpl implements ExamService {
             .map(assessments -> assessments.split(";"))
             .findFirst();
 
-        if (!eligibleAssessments.isPresent()) {
-            return new String[0];
-        }
+        return eligibleAssessments.orElseGet(() -> new String[0]);
 
-        return eligibleAssessments.get();
     }
 
     private static boolean isSubjectBlocked(final List<RtsStudentPackageAttribute> blockedSubjectsAttributes, final String subject) {
@@ -961,11 +967,8 @@ class ExamServiceImpl implements ExamService {
             .map(blockedSubject -> blockedSubject.contains(subject))
             .findFirst();
 
-        if (!maybeBlockedSubject.isPresent()) {
-            return false;
-        }
+        return maybeBlockedSubject.orElse(false);
 
-        return maybeBlockedSubject.get();
     }
 
 }
