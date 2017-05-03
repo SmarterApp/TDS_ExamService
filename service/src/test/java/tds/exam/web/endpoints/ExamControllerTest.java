@@ -39,7 +39,6 @@ import static io.github.benas.randombeans.api.EnhancedRandom.random;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -187,18 +186,18 @@ public class ExamControllerTest {
         verify(mockExamService).pauseAllExamsInSession(sessionId);
     }
 
-    
+
     @Test
     public void shouldUpdateStatusWithStageAndReasonProvided() {
         final UUID examId = UUID.randomUUID();
         final ExamStatusRequest request = random(ExamStatusRequest.class);
-        
+
         when(mockExamService.updateExamStatus(eq(examId), any(), eq(request.getReason()))).thenReturn(Optional.empty());
         ResponseEntity<NoContentResponseResource> response = controller.updateStatus(examId, request);
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
     }
-    
+
     @Test
     public void shouldReturn422ForValidationErrors() {
         final UUID examId = UUID.randomUUID();
