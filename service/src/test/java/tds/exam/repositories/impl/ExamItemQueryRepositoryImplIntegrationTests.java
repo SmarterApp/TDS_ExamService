@@ -10,6 +10,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 import tds.exam.Exam;
 import tds.exam.ExamItem;
 import tds.exam.ExamItemResponse;
@@ -26,11 +32,6 @@ import tds.exam.repositories.ExamItemCommandRepository;
 import tds.exam.repositories.ExamItemQueryRepository;
 import tds.exam.repositories.ExamPageCommandRepository;
 import tds.exam.repositories.ExamSegmentCommandRepository;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -61,9 +62,7 @@ public class ExamItemQueryRepositoryImplIntegrationTests {
         examItemQueryRepository = new ExamItemQueryRepositoryImpl(jdbcTemplate);
 
         ExamSegment mockExamSegment = new ExamSegmentBuilder()
-            .withSegmentId(mockPage.getSegmentId())
             .withSegmentKey(mockPage.getSegmentKey())
-            .withSegmentPosition(mockPage.getSegmentPosition())
             .withExamId(mockExam.getId())
             .build();
 

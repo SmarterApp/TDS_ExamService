@@ -3,6 +3,17 @@ package tds.exam.services.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
 import tds.assessment.Assessment;
 import tds.assessment.Item;
 import tds.assessment.Segment;
@@ -19,16 +30,6 @@ import tds.itemselection.base.TestItem;
 import tds.itemselection.model.ItemResponse;
 import tds.itemselection.services.ItemSelectionService;
 import tds.student.sql.data.OpportunityItem;
-
-import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static tds.itemselection.model.ItemResponse.Status.SATISFIED;
 
@@ -86,8 +87,6 @@ public class ExamItemSelectionServiceImpl implements ExamItemSelectionService {
             .withExamId(examId)
             .withItemGroupKey(itemGroup.getGroupID())
             .withSegmentKey(itemGroup.getSegmentKey())
-            .withSegmentId(itemGroup.getSegmentID())
-            .withSegmentPosition(itemGroup.getSegmentPosition())
             .build();
 
         int examItemPosition = lastPosition;
@@ -134,8 +133,8 @@ public class ExamItemSelectionServiceImpl implements ExamItemSelectionService {
                 oppItem.setFormat(examItem.getItemType());
                 oppItem.setIsRequired(examItem.isRequired());
                 oppItem.setPage(page.getPagePosition());
-                oppItem.setSegmentID(page.getSegmentId());
-                oppItem.setSegment(page.getSegmentPosition());
+                oppItem.setSegmentID(segment.getSegmentId());
+                oppItem.setSegment(segment.getPosition());
                 oppItem.setBankKey(examItem.getAssessmentItemBankKey());
                 oppItem.setItemKey(examItem.getAssessmentItemKey());
                 oppItem.setGroupItemsRequired(segment.getMinItems());

@@ -26,6 +26,7 @@ import tds.exam.error.ValidationErrorCode;
 import tds.exam.models.SegmentPoolInfo;
 import tds.exam.repositories.ExamSegmentCommandRepository;
 import tds.exam.repositories.ExamSegmentQueryRepository;
+import tds.exam.services.ExamPageService;
 import tds.exam.services.ExamSegmentService;
 import tds.exam.services.FieldTestService;
 import tds.exam.services.FormSelector;
@@ -38,18 +39,21 @@ public class ExamSegmentServiceImpl implements ExamSegmentService {
     private final SegmentPoolService segmentPoolService;
     private final FormSelector formSelector;
     private final FieldTestService fieldTestService;
+    private final ExamPageService examPageService;
 
     @Autowired
     public ExamSegmentServiceImpl(final ExamSegmentCommandRepository examSegmentCommandRepository,
                                   final ExamSegmentQueryRepository examSegmentQueryRepository,
                                   final SegmentPoolService segmentPoolService,
                                   final FormSelector formSelector,
-                                  final FieldTestService fieldTestService) {
+                                  final FieldTestService fieldTestService,
+                                  final ExamPageService examPageService) {
         this.examSegmentCommandRepository = examSegmentCommandRepository;
         this.examSegmentQueryRepository = examSegmentQueryRepository;
         this.segmentPoolService = segmentPoolService;
         this.fieldTestService = fieldTestService;
         this.formSelector = formSelector;
+        this.examPageService = examPageService;
     }
 
     /*
@@ -183,7 +187,7 @@ public class ExamSegmentServiceImpl implements ExamSegmentService {
             return Optional.of(new ValidationError(ValidationErrorCode.EXAM_SEGMENT_DOES_NOT_EXIST, "The exam segment does not exist"));
         }
 
-        ExamSegment updatedExamSegment = new ExamSegment.Builder()
+        ExamSegment updatedExamSegment = ExamSegment.Builder
             .fromSegment(maybeExamSegment.get())
             .withExitedAt(Instant.now())
             .build();

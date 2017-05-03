@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -37,7 +36,7 @@ public class ExamSegmentController {
         return ResponseEntity.ok(examSegmentService.findExamSegments(examId));
     }
 
-    @GetMapping(value ="/{examId}/segments/completed", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/{examId}/segments/completed", produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<Boolean> checkIfSegmentsCompleted(@PathVariable final UUID examId) {
         return ResponseEntity.ok(examSegmentService.checkIfSegmentsCompleted(examId));
     }

@@ -15,11 +15,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import tds.common.Response;
 import tds.common.ValidationError;
 import tds.common.web.resources.NoContentResponseResource;
-import tds.exam.ExamItemResponse;
-import tds.exam.ExamPage;
 import tds.exam.services.ExamItemSelectionService;
 import tds.exam.services.ExamItemService;
 import tds.exam.web.annotations.VerifyAccess;
@@ -36,22 +33,6 @@ public class ExamItemController {
                               final ExamItemSelectionService examItemSelectionService) {
         this.examItemService = examItemService;
         this.examItemSelectionService = examItemSelectionService;
-    }
-
-    @PostMapping("/{examId}/page/{position}/responses")
-    @VerifyAccess
-    ResponseEntity<Response<ExamPage>> insertResponses(@PathVariable final UUID examId,
-                                                       @PathVariable final int position,
-                                                       @RequestBody final ExamItemResponse[] responses) {
-        Response<ExamPage> nextPage = examItemService.insertResponses(examId,
-            position,
-            responses);
-
-        if (nextPage.hasError()) {
-            return new ResponseEntity<>(nextPage, HttpStatus.UNPROCESSABLE_ENTITY);
-        }
-
-        return ResponseEntity.ok(nextPage);
     }
 
     @PutMapping("/{examId}/item/{position}/review")

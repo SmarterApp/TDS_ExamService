@@ -2,8 +2,6 @@ package tds.exam;
 
 import org.joda.time.Instant;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 import static tds.common.util.Preconditions.checkNotNull;
@@ -16,12 +14,9 @@ public class ExamPage {
     private UUID id;
     private int pagePosition;
     private String segmentKey;
-    private String segmentId;
-    private int segmentPosition;
     private String itemGroupKey;
     private boolean groupItemsRequired;
     private UUID examId;
-    private List<ExamItem> examItems;
     private Instant createdAt;
     private Instant deletedAt;
     private Instant startedAt;
@@ -37,12 +32,9 @@ public class ExamPage {
         id = checkNotNull(builder.id);
         pagePosition = builder.pagePosition;
         segmentKey = checkNotNull(builder.segmentKey);
-        segmentId = builder.segmentId;
-        segmentPosition = builder.segmentPosition;
         itemGroupKey = checkNotNull(builder.itemGroupKey);
         groupItemsRequired = builder.groupItemsRequired;
         examId = checkNotNull(builder.examId);
-        examItems = builder.examItems == null ? new ArrayList<ExamItem>() : builder.examItems;
         createdAt = builder.createdAt;
         deletedAt = builder.deletedAt;
         startedAt = builder.startedAt;
@@ -52,12 +44,9 @@ public class ExamPage {
         private UUID id;
         private int pagePosition;
         private String segmentKey;
-        private String segmentId;
-        private int segmentPosition;
         private String itemGroupKey;
         private boolean groupItemsRequired;
         private UUID examId;
-        private List<ExamItem> examItems;
         private Instant createdAt;
         private Instant deletedAt;
         private Instant startedAt;
@@ -70,16 +59,6 @@ public class ExamPage {
 
         public Builder withSegmentKey(String segmentKey) {
             this.segmentKey = segmentKey;
-            return this;
-        }
-
-        public Builder withSegmentId(String segmentId) {
-            this.segmentId = segmentId;
-            return this;
-        }
-
-        public Builder withSegmentPosition(int segmentPosition) {
-            this.segmentPosition = segmentPosition;
             return this;
         }
 
@@ -100,11 +79,6 @@ public class ExamPage {
 
         public Builder withCreatedAt(Instant createdAt) {
             this.createdAt = createdAt;
-            return this;
-        }
-
-        public Builder withExamItems(List<ExamItem> examItems) {
-            this.examItems = examItems;
             return this;
         }
 
@@ -137,11 +111,9 @@ public class ExamPage {
                 .withId(examPage.getId())
                 .withPagePosition(examPage.getPagePosition())
                 .withSegmentKey(examPage.getSegmentKey())
-                .withSegmentId(examPage.getSegmentId())
                 .withItemGroupKey(examPage.getItemGroupKey())
                 .withGroupItemsRequired(examPage.isGroupItemsRequired())
                 .withExamId(examPage.getExamId())
-                .withExamItems(examPage.getExamItems())
                 .withCreatedAt(examPage.getCreatedAt())
                 .withDeletedAt(examPage.getDeletedAt())
                 .withStartedAt(examPage.getStartedAt())
@@ -171,20 +143,6 @@ public class ExamPage {
     }
 
     /**
-     * @return The id of which segment owns this page. This is only populated if the query joins ExamSegment
-     */
-    public String getSegmentId() {
-        return segmentId;
-    }
-
-    /**
-     * @return The position of the segment owns this page.  This is only populated if the query joins ExamSegment
-     */
-    public int getSegmentPosition() {
-        return segmentPosition;
-    }
-
-    /**
      * @return The item group key of the page
      */
     public String getItemGroupKey() {
@@ -209,13 +167,6 @@ public class ExamPage {
      */
     public UUID getExamId() {
         return examId;
-    }
-
-    /**
-     * @return The collection of {@link tds.exam.ExamItem}s for this page
-     */
-    public List<ExamItem> getExamItems() {
-        return examItems;
     }
 
     /**

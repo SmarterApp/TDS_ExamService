@@ -13,23 +13,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import tds.common.Response;
 import tds.common.ValidationError;
 import tds.common.web.resources.NoContentResponseResource;
-import tds.exam.ExamInfo;
-import tds.exam.ExamItem;
-import tds.exam.ExamItemResponse;
-import tds.exam.ExamPage;
-import tds.exam.builder.ExamItemBuilder;
-import tds.exam.builder.ExamItemResponseBuilder;
-import tds.exam.builder.ExamPageBuilder;
 import tds.exam.services.ExamItemSelectionService;
 import tds.exam.services.ExamItemService;
 import tds.student.sql.data.OpportunityItem;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -46,37 +36,6 @@ public class ExamItemControllerTest {
     @Before
     public void setUp() {
         examItemController = new ExamItemController(mockExamItemService, mockExamItemSelectionService);
-    }
-
-    @Test
-    public void shouldInsertExamItemResponses() {
-        ExamInfo mockExamInfo = new ExamInfo(UUID.randomUUID(),
-            UUID.randomUUID(),
-            UUID.randomUUID());
-        ExamItem mockExamItem = new ExamItemBuilder().build();
-        List<ExamItem> mockExamItems = Collections.singletonList(mockExamItem);
-        ExamPage mockNextExamPage = new ExamPageBuilder()
-            .withExamId(mockExamInfo.getExamId())
-            .withPagePosition(2)
-            .withExamItems(mockExamItems)
-            .build();
-
-
-        when(mockExamItemService.insertResponses(isA(UUID.class),
-            isA(Integer.class),
-            any(ExamItemResponse[].class)))
-            .thenReturn(new Response<>(mockNextExamPage));
-
-        ExamItemResponse[] responses = new ExamItemResponse[]{new ExamItemResponseBuilder().build()};
-
-        ResponseEntity<Response<ExamPage>> result = examItemController.insertResponses(mockExamInfo.getExamId(),
-            1,
-            responses);
-        verify(mockExamItemService).insertResponses(isA(UUID.class), isA(Integer.class), any(ExamItemResponse[].class));
-
-        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(result.getBody().getData().isPresent()).isTrue();
-        assertThat(result.getBody().getError().isPresent()).isFalse();
     }
 
     @Test

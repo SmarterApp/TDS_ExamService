@@ -1,5 +1,6 @@
 package tds.exam.web.endpoints;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,6 +36,9 @@ public class ExamSegmentControllerIntegrationTests {
     @Autowired
     private MockMvc http;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @MockBean
     private ExamSegmentService mockExamSegmentService;
 
@@ -68,25 +72,6 @@ public class ExamSegmentControllerIntegrationTests {
 
         verify(mockExamSegmentService).findExamSegments(examId);
     }
-
-//    @Test
-//    public void shouldReturnErrorResponseForValidationErrorPresent() throws Exception {
-//        final UUID examId = UUID.randomUUID();
-//        final UUID sessionId = UUID.randomUUID();
-//        final UUID browserId = UUID.randomUUID();
-//        ValidationError error = new ValidationError("ruh", "roh");
-//
-//
-//        http.perform(get(new URI(String.format("/exam/%s/segments", examId)))
-//            .param("sessionId", sessionId.toString())
-//            .param("browserId", browserId.toString())
-//            .contentType(MediaType.APPLICATION_JSON))
-//            .andExpect(status().isUnprocessableEntity())
-//            .andExpect(jsonPath("error.code", is("ruh")))
-//            .andExpect(jsonPath("error.message", is("roh")));
-//
-//        verifyZeroInteractions(mockExamSegmentService.findExamSegments(examId));
-//    }
 
     @Test
     public void shouldReturnEmptyListForNoExamSegmentsPresent() throws Exception {
@@ -138,8 +123,8 @@ public class ExamSegmentControllerIntegrationTests {
         when(mockExamSegmentService.checkIfSegmentsCompleted(examId)).thenReturn(true);
 
         http.perform(get(new URI(String.format("/exam/%s/segments/completed", examId)))
-          .contentType(MediaType.APPLICATION_JSON))
-          .andExpect(status().isOk())
-          .andExpect(jsonPath("$", is(true)));
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", is(true)));
     }
 }

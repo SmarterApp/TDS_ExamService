@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import tds.common.Response;
 import tds.exam.ExamPage;
 
 /**
@@ -32,25 +31,6 @@ public interface ExamPageService {
      * @return A collection of all {@link tds.exam.ExamPage}s for the specified exam Id
      */
     List<ExamPage> findAllPages(final UUID examId);
-
-    /**
-     * Fetches a list of all {@link tds.exam.ExamPage}s for an exam.  Each {@link tds.exam.ExamPage} will have its
-     * collection of {@link tds.exam.ExamItem}s.
-     *
-     * @param examId the id of the {@link tds.exam.Exam}
-     * @return A collection of all {@link tds.exam.ExamPage}s for the specified exam Id
-     */
-    List<ExamPage> findAllPagesWithItems(final UUID examId);
-
-    /**
-     * Fetch an {@link tds.exam.ExamPage} for the specified {@link tds.exam.Exam} id and page number.
-     *
-     * @param examId     The exam ID
-     * @param pageNumber The page number (1-based) of the page to return
-     * @return An {@link tds.exam.ExamPage} containing a collection of {@link tds.exam.ExamItem}s that
-     * should be displayed
-     */
-    Response<ExamPage> getPage(final UUID examId, final int pageNumber);
 
     /**
      * Finds an {@link tds.exam.ExamPage} by its id

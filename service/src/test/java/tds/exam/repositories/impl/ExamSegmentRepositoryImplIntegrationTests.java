@@ -401,17 +401,17 @@ public class ExamSegmentRepositoryImplIntegrationTests {
     public void shouldReturnCountOfUnsatisfiedSegments() {
         EnhancedRandom rand = EnhancedRandomBuilder.aNewEnhancedRandomBuilder().stringLengthRange(3, 10).build();
 
-        ExamSegment satisfiedSegment1 = new ExamSegment.Builder()
+        ExamSegment satisfiedSegment1 = ExamSegment.Builder
             .fromSegment(rand.nextObject(ExamSegment.class))
             .withExamId(exam.getId())
             .withSatisfied(true)
             .build();
-        ExamSegment satisfiedSegment2 = new ExamSegment.Builder()
+        ExamSegment satisfiedSegment2 = ExamSegment.Builder
             .fromSegment(rand.nextObject(ExamSegment.class))
             .withExamId(exam.getId())
             .withSatisfied(true)
             .build();
-        ExamSegment unsatisfiedSegment = new ExamSegment.Builder()
+        ExamSegment unsatisfiedSegment = ExamSegment.Builder
             .fromSegment(rand.nextObject(ExamSegment.class))
             .withExamId(exam.getId())
             .withSatisfied(false)
@@ -421,7 +421,7 @@ public class ExamSegmentRepositoryImplIntegrationTests {
 
         assertThat(queryRepository.findCountOfUnsatisfiedSegments(exam.getId())).isEqualTo(1);
 
-        ExamSegment nowSatisfiedSegment = new ExamSegment.Builder()
+        ExamSegment nowSatisfiedSegment = ExamSegment.Builder
             .fromSegment(unsatisfiedSegment)
             .withExamId(exam.getId())
             .withSatisfied(true)
