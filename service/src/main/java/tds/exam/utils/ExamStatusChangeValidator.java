@@ -4,7 +4,7 @@ import tds.exam.Exam;
 import tds.exam.ExamStatusCode;
 
 /**
- * An interface to allow for conducting status transition business logic that is beyond the scope of the
+ * An interface to allow for conducting status transition business logic beyond the scope of the
  * {@link tds.exam.utils.StatusTransitionValidator}.
  */
 public interface ExamStatusChangeValidator {

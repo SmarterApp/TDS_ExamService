@@ -45,16 +45,6 @@ public interface ExamService {
     Response<ExamConfiguration> startExam(final UUID examId, final String browserUserAgent);
 
     /**
-     * Final review the {@link tds.exam.Exam} to verify it is complete and ready for transmission to downstream systems
-     * prior to submitting it.
-     *
-     * @param examId The exam to review
-     * @return A {@link tds.common.ValidationError} if the review process fails; otherwise {@code Optional.empty}, which
-     * indicates success
-     */
-    Optional<ValidationError> reviewExam(final UUID examId);
-
-    /**
      * Change the {@link tds.exam.Exam}'s status to a new status.
      *
      * @param examId             The id of the exam whose status is being changed

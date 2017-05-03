@@ -1,5 +1,6 @@
 package tds.exam.services.impl;
 
+import com.sun.xml.internal.ws.developer.MemberSubmissionAddressing;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.Minutes;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,7 +63,6 @@ import tds.exam.services.SessionService;
 import tds.exam.services.StudentService;
 import tds.exam.services.TimeLimitConfigurationService;
 import tds.exam.utils.ExamStatusChangeValidator;
-import tds.exam.web.annotations.VerifyAccess;
 import tds.session.ExternalSessionConfiguration;
 import tds.session.Session;
 import tds.session.SessionAssessment;
@@ -241,13 +241,17 @@ class ExamServiceImpl implements ExamService {
 
     @Transactional
     @Override
-    public Optional<ValidationError> updateExamStatus(final UUID examId, final ExamStatusCode newStatus, final String statusChangeReason) {
+    public Optional<ValidationError> updateExamStatus(final UUID examId,
+                                                      final ExamStatusCode newStatus,
+                                                      final String statusChangeReason) {
         return updateExamStatus(examId, newStatus, statusChangeReason, -1);
     }
 
-    private Optional<ValidationError> updateExamStatus(final UUID examId, final ExamStatusCode newStatus, final String statusChangeReason,
+    private Optional<ValidationError> updateExamStatus(final UUID examId,
+                                                       final ExamStatusCode newStatus,
+                                                       final String statusChangeReason,
                                                        final int waitingForSegmentPosition) {
-        Exam exam = examQueryRepository.getExamById(examId)
+        final Exam exam = examQueryRepository.getExamById(examId)
             .orElseThrow(() -> new NotFoundException(String.format("Exam could not be found for id %s", examId)));
 
         if (!statusChangeValidators.stream().allMatch(v -> v.validate(exam, newStatus))) {
@@ -257,7 +261,7 @@ class ExamServiceImpl implements ExamService {
                     newStatus.getCode())));
         }
 
-        Exam updatedExam = new Exam.Builder()
+        final Exam updatedExam = new Exam.Builder()
             .fromExam(exam)
             .withStatus(newStatus, org.joda.time.Instant.now())
             .withStatusChangeReason(statusChangeReason)
@@ -370,7 +374,7 @@ class ExamServiceImpl implements ExamService {
             examAssessmentMetadatas = findEligibleExamAssessmentsForGuest(session.getClientName(), grade);
         }
 
-        return new Response(examAssessmentMetadatas);
+        return new Response<>(examAssessmentMetadatas);
     }
 
     private List<ExamAssessmentMetadata> findEligibleExamAssessmentsForGuest(final String clientName, final String grade) {
@@ -594,20 +598,6 @@ class ExamServiceImpl implements ExamService {
         }
 
         return new Response<>(examConfig);
-    }
-
-    @VerifyAccess // TODO: move this to the controller
-    @Override
-    public Optional<ValidationError> reviewExam(final UUID examId) {
-        boolean isComplete = examSegmentService.checkIfSegmentsCompleted(examId);
-        if (!isComplete) {
-            ValidationError error = new ValidationError(ValidationErrorCode.EXAM_INCOMPLETE, "Review Test: Cannot end test because test length is not met.");
-            return Optional.of(error);
-        }
-
-        updateExamStatus(examId, new ExamStatusCode(ExamStatusCode.STATUS_REVIEW));
-
-        return Optional.empty();
     }
 
     private Exam initializeExam(final Exam exam, final Assessment assessment, final String browserUserAgent) {
@@ -963,11 +953,8 @@ class ExamServiceImpl implements ExamService {
             .map(assessments -> assessments.split(";"))
             .findFirst();
 
-        if (!eligibleAssessments.isPresent()) {
-            return new String[0];
-        }
+        return eligibleAssessments.orElseGet(() -> new String[0]);
 
-        return eligibleAssessments.get();
     }
 
     private static boolean isSubjectBlocked(final List<RtsStudentPackageAttribute> blockedSubjectsAttributes, final String subject) {
@@ -981,11 +968,8 @@ class ExamServiceImpl implements ExamService {
             .map(blockedSubject -> blockedSubject.contains(subject))
             .findFirst();
 
-        if (!maybeBlockedSubject.isPresent()) {
-            return false;
-        }
+        return maybeBlockedSubject.orElse(false);
 
-        return maybeBlockedSubject.get();
     }
 
 }
