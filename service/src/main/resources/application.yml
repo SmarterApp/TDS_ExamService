@@ -89,4 +89,4 @@ exam:
       bucketName: tds-resources
       accessKey: ${s3.key}
       secretKey: ${s3.secret}
-      itemPrefix: item-content/local/
+      itemPrefix: item-content/dev/
