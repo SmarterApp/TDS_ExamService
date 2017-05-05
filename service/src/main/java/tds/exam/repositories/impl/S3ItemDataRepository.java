@@ -5,11 +5,13 @@ import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import org.apache.commons.io.IOUtils;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
-import tds.exam.configuration.scoring.ScoringS3Properties;
-import tds.score.repositories.ItemDataRepository;
 
 import java.io.IOException;
+
+import tds.exam.configuration.scoring.ScoringS3Properties;
+import tds.score.repositories.ItemDataRepository;
 
 import static org.apache.commons.io.Charsets.UTF_8;
 import static org.apache.commons.io.FilenameUtils.getName;
@@ -17,6 +19,7 @@ import static org.apache.commons.io.FilenameUtils.removeExtension;
 import static org.apache.commons.lang3.StringUtils.capitalize;
 
 @Repository
+@Primary
 public class S3ItemDataRepository implements ItemDataRepository {
     private final AmazonS3 s3Client;
     private final ScoringS3Properties s3Properties;

@@ -5,11 +5,13 @@ import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import org.apache.commons.io.IOUtils;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
-import tds.exam.configuration.scoring.ScoringS3Properties;
-import tds.score.repositories.RubricRepository;
 
 import java.io.IOException;
+
+import tds.exam.configuration.scoring.ScoringS3Properties;
+import tds.score.repositories.RubricRepository;
 
 import static net.logstash.logback.encoder.org.apache.commons.lang.ArrayUtils.subarray;
 import static org.apache.commons.lang3.StringUtils.join;
@@ -18,6 +20,7 @@ import static org.apache.commons.lang3.StringUtils.join;
  * This RubricRepository implementation serves rubric content from S3.
  */
 @Repository
+@Primary
 public class S3RubricRepository implements RubricRepository {
 
     private final AmazonS3 s3Client;
