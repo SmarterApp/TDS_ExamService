@@ -230,24 +230,6 @@ public class ExamItemServiceImplTest {
     }
 
     @Test
-    public void shouldFailToMarkItemForReviewNoExamItemResponse() {
-        final UUID examId = UUID.randomUUID();
-        final int position = 7;
-        final boolean mark = true;
-        ExamItem examItem = new ExamItemBuilder().withId(UUID.randomUUID()).build();
-
-        when(mockExamItemQueryRepository.findExamItemAndResponse(examId, position)).thenReturn(Optional.of(examItem));
-
-        Optional<ValidationError> maybeError = examItemService.markForReview(examId, position, mark);
-
-        verify(mockExamItemQueryRepository).findExamItemAndResponse(examId, position);
-        verify(mockExamItemCommandRepository, never()).insertResponses(any());
-
-        assertThat(maybeError).isPresent();
-        assertThat(maybeError.get().getCode()).isEqualTo(ValidationErrorCode.EXAM_ITEM_RESPONSE_DOES_NOT_EXIST);
-    }
-
-    @Test
     public void shouldFindItemAndResponsesForExam() {
         final UUID examId = UUID.randomUUID();
         ExamItem examItem = new ExamItemBuilder().withId(UUID.randomUUID()).build();
