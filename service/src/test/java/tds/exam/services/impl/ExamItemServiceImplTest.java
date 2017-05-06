@@ -213,6 +213,32 @@ public class ExamItemServiceImplTest {
     }
 
     @Test
+    public void shouldMarkItemWithNoResponseForReviewSuccessfully() {
+        final UUID examId = UUID.randomUUID();
+        final int position = 7;
+        final boolean mark = true;
+
+        UUID examItemId = UUID.randomUUID();
+        ExamItem examItem = new ExamItemBuilder()
+            .withId(examItemId)
+            .build();
+
+        when(mockExamItemQueryRepository.findExamItemAndResponse(examId, position)).thenReturn(Optional.of(examItem));
+
+        Optional<ValidationError> maybeError = examItemService.markForReview(examId, position, mark);
+
+        verify(mockExamItemQueryRepository).findExamItemAndResponse(examId, position);
+        verify(mockExamItemCommandRepository).insertResponses(examItemResponseCaptor.capture());
+
+        assertThat(maybeError).isNotPresent();
+        ExamItemResponse markedResponse = examItemResponseCaptor.getValue();
+        assertThat(markedResponse.isMarkedForReview()).isTrue();
+        assertThat(markedResponse.getExamItemId()).isEqualTo(examItem.getId());
+        assertThat(markedResponse.getResponse()).isEqualTo("");
+        assertThat(markedResponse.getSequence()).isEqualTo(1);
+    }
+
+    @Test
     public void shouldFailToMarkItemForReviewNoExamItem() {
         final UUID examId = UUID.randomUUID();
         final int position = 7;
