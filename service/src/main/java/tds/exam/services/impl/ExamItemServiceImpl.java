@@ -118,16 +118,22 @@ public class ExamItemServiceImpl implements ExamItemService {
         ExamItem examItem = maybeExamItem.get();
 
         if (!examItem.getResponse().isPresent()) {
-            return Optional.of(new ValidationError(EXAM_ITEM_RESPONSE_DOES_NOT_EXIST,
-                String.format("No exam response found for exam id '%s' at item position '%s'.", examId, position)));
+            // If the item has no response yet, mark the item and create an "empty" response
+            examItemCommandRepository.insertResponses(new ExamItemResponse.Builder()
+                .withExamItemId(examItem.getId())
+                .withResponse("")
+                .withMarkedForReview(mark)
+                .withSequence(1)
+                .build()
+            );
+        } else {
+            examItemCommandRepository.insertResponses(ExamItemResponse.Builder
+                .fromExamItemResponse(examItem.getResponse().get())
+                .withMarkedForReview(mark)
+                .build()
+            );
         }
 
-        ExamItemResponse updatedResponse = ExamItemResponse.Builder
-            .fromExamItemResponse(examItem.getResponse().get())
-            .withMarkedForReview(mark)
-            .build();
-
-        examItemCommandRepository.insertResponses(updatedResponse);
 
         return Optional.empty();
     }
