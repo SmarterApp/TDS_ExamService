@@ -572,7 +572,10 @@ public class ExamServiceImplTest {
             .withAuditObject(RESTORE_ACCOMMODATIONS_TYPE)
             .withEnabled(true)
             .build();
+        TimeLimitConfiguration configuration = new TimeLimitConfiguration.Builder().withExamDelayDays(0).build();
 
+        when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(currentSession.getClientName(), request.getAssessmentKey()))
+            .thenReturn(Optional.of(configuration));
         when(mockSessionService.findSessionById(request.getSessionId())).thenReturn(Optional.of(currentSession));
         when(mockStudentService.getStudentById(currentSession.getClientName(), request.getStudentId())).thenReturn(Optional.of(student));
         when(mockAssessmentService.findAssessment("SBAC_PT", request.getAssessmentKey())).thenReturn(Optional.of(assessment));
@@ -633,7 +636,10 @@ public class ExamServiceImplTest {
             .withAuditObject(RESTORE_ACCOMMODATIONS_TYPE)
             .withEnabled(true)
             .build();
+        TimeLimitConfiguration configuration = new TimeLimitConfiguration.Builder().withExamDelayDays(0).build();
 
+        when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(currentSession.getClientName(), request.getAssessmentKey()))
+            .thenReturn(Optional.of(configuration));
         when(mockSessionService.findExternalSessionConfigurationByClientName("SBAC_PT")).thenReturn(Optional.of(extSessionConfig));
         when(mockSessionService.findSessionById(request.getSessionId())).thenReturn(Optional.of(currentSession));
         when(mockStudentService.getStudentById(currentSession.getClientName(), request.getStudentId())).thenReturn(Optional.of(student));
@@ -685,7 +691,10 @@ public class ExamServiceImplTest {
             .build();
 
         ExamAccommodation examAccommodation = new ExamAccommodationBuilder().withCustom(true).build();
+        TimeLimitConfiguration configuration = new TimeLimitConfiguration.Builder().withExamDelayDays(0).build();
 
+        when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(currentSession.getClientName(), request.getAssessmentKey()))
+            .thenReturn(Optional.of(configuration));
         when(mockSessionService.findExternalSessionConfigurationByClientName("SBAC_PT")).thenReturn(Optional.of(externalSessionConfiguration));
         when(mockSessionService.findSessionById(request.getSessionId())).thenReturn(Optional.of(currentSession));
         when(mockStudentService.getStudentById(currentSession.getClientName(), request.getStudentId())).thenReturn(Optional.of(student));
@@ -742,7 +751,10 @@ public class ExamServiceImplTest {
             .withAuditObject(RESTORE_ACCOMMODATIONS_TYPE)
             .withEnabled(true)
             .build();
+        TimeLimitConfiguration configuration = new TimeLimitConfiguration.Builder().withExamDelayDays(0).build();
 
+        when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(currentSession.getClientName(), request.getAssessmentKey()))
+            .thenReturn(Optional.of(configuration));
         when(mockSessionService.findSessionById(request.getSessionId())).thenReturn(Optional.of(currentSession));
         when(mockStudentService.getStudentById(currentSession.getClientName(), request.getStudentId())).thenReturn(Optional.of(student));
         when(mockAssessmentService.findAssessment("SBAC_PT", request.getAssessmentKey())).thenReturn(Optional.of(assessment));
@@ -797,7 +809,10 @@ public class ExamServiceImplTest {
             .withAuditObject(RESTORE_ACCOMMODATIONS_TYPE)
             .withEnabled(true)
             .build();
+        TimeLimitConfiguration configuration = new TimeLimitConfiguration.Builder().withExamDelayDays(0).build();
 
+        when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(currentSession.getClientName(), request.getAssessmentKey()))
+            .thenReturn(Optional.of(configuration));
         when(mockSessionService.findExternalSessionConfigurationByClientName("SBAC_PT")).thenReturn(Optional.of(externalSessionConfiguration));
         when(mockSessionService.findSessionById(request.getSessionId())).thenReturn(Optional.of(currentSession));
         when(mockExamQueryRepository.getLastAvailableExam(request.getStudentId(), assessment.getAssessmentId(), "SBAC_PT")).thenReturn(Optional.of(previousExam));
