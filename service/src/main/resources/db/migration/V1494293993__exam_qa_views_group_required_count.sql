@@ -5,6 +5,8 @@
 
 ***********************************************************************************************************************/
 
+USE exam;
+
 CREATE OR REPLACE VIEW qa_session_testeeresponse AS
   SELECT
     page.exam_id AS _fk_testopportunity,
