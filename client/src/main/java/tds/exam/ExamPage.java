@@ -15,7 +15,7 @@ public class ExamPage {
     private int pagePosition;
     private String segmentKey;
     private String itemGroupKey;
-    private boolean groupItemsRequired;
+    private int groupItemsRequired;
     private UUID examId;
     private Instant createdAt;
     private Instant deletedAt;
@@ -45,7 +45,7 @@ public class ExamPage {
         private int pagePosition;
         private String segmentKey;
         private String itemGroupKey;
-        private boolean groupItemsRequired;
+        private int groupItemsRequired;
         private UUID examId;
         private Instant createdAt;
         private Instant deletedAt;
@@ -67,7 +67,7 @@ public class ExamPage {
             return this;
         }
 
-        public Builder withGroupItemsRequired(boolean groupItemsRequired) {
+        public Builder withGroupItemsRequired(final int groupItemsRequired) {
             this.groupItemsRequired = groupItemsRequired;
             return this;
         }
@@ -112,7 +112,7 @@ public class ExamPage {
                 .withPagePosition(examPage.getPagePosition())
                 .withSegmentKey(examPage.getSegmentKey())
                 .withItemGroupKey(examPage.getItemGroupKey())
-                .withGroupItemsRequired(examPage.isGroupItemsRequired())
+                .withGroupItemsRequired(examPage.getGroupItemsRequired())
                 .withExamId(examPage.getExamId())
                 .withCreatedAt(examPage.getCreatedAt())
                 .withDeletedAt(examPage.getDeletedAt())
@@ -150,15 +150,10 @@ public class ExamPage {
     }
 
     /**
-     * @return True if all items in this page's item group are required; otherwise false
+     * @return the number of items required for the group.  -1 means that the all the items in the
+     * group are required.
      */
-    public boolean isGroupItemsRequired() {
-        // This value is only ever 0 or -1 in the database.  When the value is -1 all items are required (from comment
-        // in https://github.com/SmarterApp/TDS_TestDeliverySystemDataAccess/blob/cebc3996ab000dc604b539da51235eaf20039d0d/database%20scripts%20-%20mysql/Session/User-Defined%20Functions/iscomplete.sql#L46)
-
-        // In legacy, this value is stored in the session.testeeresponse table.  Since it pertains to an item group
-        // (which is a super-set of items), it seems appropriate to store it at the page level.  From here, it can be
-        // mapped to the legacy OpportunityItem.
+    public int getGroupItemsRequired() {
         return groupItemsRequired;
     }
 

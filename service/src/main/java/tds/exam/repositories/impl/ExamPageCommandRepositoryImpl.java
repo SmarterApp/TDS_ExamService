@@ -36,7 +36,7 @@ public class ExamPageCommandRepositoryImpl implements ExamPageCommandRepository 
                 "   page_position, \n" +
                 "   segment_key, \n" +
                 "   item_group_key, \n" +
-                "   are_group_items_required, \n" +
+                "   group_items_required, \n" +
                 "   exam_id, \n" +
                 "   created_at) \n" +
                 "VALUES (\n" +
@@ -54,7 +54,7 @@ public class ExamPageCommandRepositoryImpl implements ExamPageCommandRepository 
                 .addValue("pagePosition", examPage.getPagePosition())
                 .addValue("segmentKey", examPage.getSegmentKey())
                 .addValue("itemGroupKey", examPage.getItemGroupKey())
-                .addValue("groupItemsRequired", examPage.isGroupItemsRequired())
+                .addValue("groupItemsRequired", examPage.getGroupItemsRequired())
                 .addValue("createdAt", createdAt))
             .toArray(SqlParameterSource[]::new);
 

@@ -30,7 +30,7 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
         "   P.item_group_key, \n" +
         "   P.exam_id, \n" +
         "   P.created_at, \n" +
-        "   P.are_group_items_required, \n" +
+        "   P.group_items_required, \n" +
         "   P.segment_key, \n" +
         "   PE.started_at \n" +
         "FROM \n" +
