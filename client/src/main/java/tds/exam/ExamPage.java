@@ -151,7 +151,7 @@ public class ExamPage {
 
     /**
      * @return the number of items required for the group.  -1 means that the all the items in the
-     * group are required.
+     * group are required.  Item groups (group starts with an 'I-') seem to always have a size of 0.
      */
     public int getGroupItemsRequired() {
         return groupItemsRequired;
