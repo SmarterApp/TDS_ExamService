@@ -208,28 +208,31 @@ class ExamServiceImpl implements ExamService {
         //Previous exam is retrieved in lines 5492 - 5530 and 5605 - 5645 in StudentDLL
         Optional<Exam> maybePreviousExam = examQueryRepository.getLastAvailableExam(openExamRequest.getStudentId(), assessment.getAssessmentId(), currentSession.getClientName());
 
-        boolean canOpenPreviousExam = false;
         if (maybePreviousExam.isPresent()) {
             Optional<ValidationError> canOpenPreviousExamError = canOpenPreviousExam(maybePreviousExam.get(), currentSession);
-
+            Exam previousExam = maybePreviousExam.get();
             if (canOpenPreviousExamError.isPresent()) {
                 return new Response<>(canOpenPreviousExamError.get());
+            } else {
+                Optional<ValidationError> maybeOpenNewExamValidationError = canCreateNewExam(currentSession.getClientName(),
+                    openExamRequest, maybePreviousExam.get(), assessment.getMaxOpportunities());
+
+                // If we are able to open a previous, exam, but not a new one, we should resume our current exam
+                if (maybeOpenNewExamValidationError.isPresent()) {
+                    return openPreviousExam(currentSession.getClientName(), openExamRequest, maybePreviousExam.get(), assessment);
+                }
+                // Otherwise, open a fresh exam
+                return createExam(currentSession.getClientName(), openExamRequest, currentSession, assessment, externalSessionConfiguration, previousExam, student);
             }
-
-            canOpenPreviousExam = true;
+        } else {
+            Exam previousExam = maybePreviousExam.orElse(null);
+            Optional<ValidationError> maybeOpenNewExamValidationError = canCreateNewExam(currentSession.getClientName(),
+                openExamRequest, previousExam, assessment.getMaxOpportunities());
+            if (maybeOpenNewExamValidationError.isPresent()) {
+                return new Response<>(maybeOpenNewExamValidationError.get());
+            }
+            return createExam(currentSession.getClientName(), openExamRequest, currentSession, assessment, externalSessionConfiguration, previousExam, student);
         }
-
-        if (canOpenPreviousExam) {
-            return openPreviousExam(currentSession.getClientName(), openExamRequest, maybePreviousExam.get(), assessment);
-        }
-
-        Exam previousExam = maybePreviousExam.orElse(null);
-        Optional<ValidationError> maybeOpenNewExamValidationError = canCreateNewExam(currentSession.getClientName(), openExamRequest, previousExam);
-        if (maybeOpenNewExamValidationError.isPresent()) {
-            return new Response<>(maybeOpenNewExamValidationError.get());
-        }
-
-        return createExam(currentSession.getClientName(), openExamRequest, currentSession, assessment, externalSessionConfiguration, previousExam, student);
     }
 
     @Transactional
@@ -446,12 +449,11 @@ class ExamServiceImpl implements ExamService {
                         OpenExamRequest request = new OpenExamRequest.Builder()
                             .withStudentId(studentId)
                             .withAssessmentKey(assessment.getKey())
-                            .withMaxAttempts(assessment.getMaxAttempts())
                             .withSessionId(session.getId())
                             .withBrowserId(recentExam.getBrowserId())
                             .build();
 
-                        maybeError = canCreateNewExam(clientName, request, recentExam);
+                        maybeError = canCreateNewExam(clientName, request, recentExam, assessment.getMaxAttempts());
                         isNewOpportunity = !maybeError.isPresent();
                         currentAttempt = isNewOpportunity
                             ? recentExam.getAttempts() + 1
@@ -844,7 +846,8 @@ class ExamServiceImpl implements ExamService {
 
     private Optional<ValidationError> canCreateNewExam(final String clientName,
                                                        final OpenExamRequest openExamRequest,
-                                                       final Exam previousExam) {
+                                                       final Exam previousExam,
+                                                       final int maxAttempts) {
         //Lines 5610 - 5618 in StudentDLL was not implemented.  The reason is that the max opportunities is always
         //3 via the loader scripts.  So the the conditional in the StudentDLL code will always allow one to open a new
         //Exam if previous exam is null (0 ocnt in the legacy code)
@@ -869,10 +872,10 @@ class ExamServiceImpl implements ExamService {
             boolean daysSinceLastExamThreshold = previousExam.getCompletedAt() == null ||
                 LegacyComparer.greaterThan(Duration.between(convertJodaInstant(previousExam.getCompletedAt()), Instant.now()).toDays(), numberOfDaysToDelay);
 
-            if (LegacyComparer.lessThan(previousExam.getAttempts(), openExamRequest.getMaxAttempts()) &&
+            if (LegacyComparer.lessThan(previousExam.getAttempts(), maxAttempts) &&
                 daysSinceLastExamThreshold) {
                 return Optional.empty();
-            } else if (LegacyComparer.greaterOrEqual(previousExam.getAttempts(), openExamRequest.getMaxAttempts())) {
+            } else if (LegacyComparer.greaterOrEqual(previousExam.getAttempts(), maxAttempts)) {
                 return Optional.of(new ValidationError(
                     ValidationErrorCode.MAX_OPPORTUNITY_EXCEEDED,
                     configService.getFormattedMessage(clientName, "_CanOpenTestOpportunity", "All opportunities have been used for this test")

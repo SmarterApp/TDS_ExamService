@@ -15,9 +15,6 @@ public class OpenExamRequest {
     private String assessmentKey;
 
     @NotNull
-    private int maxAttempts;
-
-    @NotNull
     private UUID sessionId;
 
     private String guestAccommodations;
@@ -28,7 +25,6 @@ public class OpenExamRequest {
     private OpenExamRequest(Builder builder) {
         this.studentId = builder.studentId;
         this.assessmentKey = builder.assessmentKey;
-        this.maxAttempts = builder.maxAttempts;
         this.sessionId = builder.sessionId;
         this.guestAccommodations = builder.guestAccommodations;
         this.browserId = builder.browserId;
@@ -61,16 +57,6 @@ public class OpenExamRequest {
         return assessmentKey;
     }
 
-
-    //TODO I guess exam should fetch this via client_testproperty
-
-    /**
-     * @return max number of attempts the student has to take the exam
-     */
-    public Integer getMaxAttempts() {
-        return maxAttempts;
-    }
-
     /**
      * @return unique identifier for the session
      */
@@ -92,7 +78,6 @@ public class OpenExamRequest {
     public static final class Builder {
         private long studentId;
         private String assessmentKey;
-        private int maxAttempts;
         private UUID sessionId;
         private String guestAccommodations;
         private UUID browserId;
@@ -104,11 +89,6 @@ public class OpenExamRequest {
 
         public Builder withAssessmentKey(String assessmentKey) {
             this.assessmentKey = assessmentKey;
-            return this;
-        }
-
-        public Builder withMaxAttempts(int maxAttempts) {
-            this.maxAttempts = maxAttempts;
             return this;
         }
 
@@ -137,7 +117,6 @@ public class OpenExamRequest {
         return "OpenExamRequest{" +
             "studentId=" + studentId +
             ", assessmentKey='" + assessmentKey + '\'' +
-            ", maxAttempts=" + maxAttempts +
             ", sessionId=" + sessionId +
             ", guestAccommodations='" + guestAccommodations + '\'' +
             ", browserId=" + browserId +
