@@ -7,6 +7,12 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 import tds.assessment.Assessment;
 import tds.assessment.Item;
 import tds.assessment.Segment;
@@ -27,11 +33,6 @@ import tds.itemselection.base.TestItem;
 import tds.itemselection.model.ItemResponse;
 import tds.itemselection.services.ItemSelectionService;
 import tds.student.sql.data.OpportunityItem;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
@@ -101,6 +102,7 @@ public class ExamItemSelectionServiceImplTest {
         itemGroup.setSegmentKey("segmentKey");
         itemGroup.setSegmentID("segmentId");
         itemGroup.setGroupID("group");
+        itemGroup.setNumberOfItemsRequired(-1);
 
         TestItem testItem = new TestItem(
             "187-2345",
@@ -144,7 +146,6 @@ public class ExamItemSelectionServiceImplTest {
         assertThat(opportunityItem.getFormat()).isEqualTo(item.getItemType());
         assertThat(opportunityItem.getPage()).isEqualTo(examPage.getPagePosition());
         assertThat(opportunityItem.getPosition()).isEqualTo(examItem.getPosition());
-        assertThat(opportunityItem.getGroupItemsRequired()).isEqualTo(0);
         assertThat(opportunityItem.getValue()).isNull();
         assertThat(opportunityItem.isVisible()).isTrue();
         assertThat(opportunityItem.getIsSelected()).isFalse();
@@ -152,6 +153,7 @@ public class ExamItemSelectionServiceImplTest {
         assertThat(opportunityItem.isMarkForReview()).isFalse();
         assertThat(opportunityItem.getStimulusFile()).isNull();
         assertThat(opportunityItem.getItemFile()).isNull();
+        assertThat(opportunityItem.getGroupItemsRequired()).isEqualTo(-1);
 
         assertThat(examItem.getAssessmentItemBankKey()).isEqualTo(item.getBankKey());
         assertThat(examItem.getAssessmentItemKey()).isEqualTo(item.getItemKey());
@@ -163,6 +165,7 @@ public class ExamItemSelectionServiceImplTest {
 
         assertThat(examPage.getItemGroupKey()).isEqualTo(itemGroup.getGroupID());
         assertThat(examPage.getPagePosition()).isEqualTo(2);
+        assertThat(examPage.getGroupItemsRequired()).isEqualTo(-1);
     }
 
     @Test(expected = IllegalArgumentException.class)

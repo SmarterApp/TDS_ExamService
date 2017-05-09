@@ -101,7 +101,7 @@ public class ExamPageWrapperQueryRepositoryIntegrationTests {
         assertThat(examPage.getPagePosition()).isEqualTo(1);
         assertThat(examPage.getSegmentKey()).isEqualTo("segment-key-1");
         assertThat(examPage.getItemGroupKey()).isEqualTo("item-group-key");
-        assertThat(examPage.isGroupItemsRequired()).isTrue();
+        assertThat(examPage.getGroupItemsRequired()).isEqualTo(-1);
         assertThat(examPage.getExamId()).isEqualTo(mockExam.getId());
 
         assertThat(wrapper.getExamItems()).hasSize(2);

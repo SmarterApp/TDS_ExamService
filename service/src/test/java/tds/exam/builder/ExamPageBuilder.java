@@ -16,7 +16,7 @@ public class ExamPageBuilder {
     private int pagePosition = 1;
     private String segmentKey = "segment-key-1";
     private String itemGroupKey = "item-group-key";
-    private boolean groupItemsRequired = true;
+    private int groupItemsRequired = -1;
     private UUID examId = UUID.randomUUID();
     private Instant createdAt = Instant.now();
     private Instant deletedAt;
@@ -58,7 +58,7 @@ public class ExamPageBuilder {
         return this;
     }
 
-    public ExamPageBuilder withGroupItemsRequired(boolean groupItemsRequired) {
+    public ExamPageBuilder withGroupItemsRequired(int groupItemsRequired) {
         this.groupItemsRequired = groupItemsRequired;
         return this;
     }

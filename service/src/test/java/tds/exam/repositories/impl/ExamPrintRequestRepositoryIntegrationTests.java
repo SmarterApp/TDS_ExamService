@@ -90,8 +90,9 @@ public class ExamPrintRequestRepositoryIntegrationTests {
 
         examSegmentCommandRepository.insert(Arrays.asList(segment));
 
-        ExamPage page = new ExamPage.Builder()
+        ExamPage page = ExamPage.Builder
             .fromExamPage(random(ExamPage.class))
+            .withGroupItemsRequired(-1)
             .withExamId(exam.getId())
             .withDeletedAt(null)
             .withSegmentKey(segment.getSegmentKey())
