@@ -209,6 +209,7 @@ public class ExamItemSelectionServiceImplTest {
         itemGroup.setSegmentKey(assessment.getSegments().get(0).getKey());
         itemGroup.setSegmentID("segmentId");
         itemGroup.setGroupID("group");
+        itemGroup.setNumberOfItemsRequired(-1);
 
         TestItem testItem = new TestItem(
             "187-2345",
