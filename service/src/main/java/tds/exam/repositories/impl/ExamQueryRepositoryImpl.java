@@ -179,7 +179,8 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "   AND e.client_name = :clientName \n" +
                 "   AND lang.type = 'Language'" +
                 "ORDER BY \n" +
-                "   e.created_at DESC";
+                "   e.created_at DESC \n" +
+                "LIMIT 1";
 
 
         Optional<Exam> examOptional;
