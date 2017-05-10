@@ -65,6 +65,10 @@ public class ExamQueryRepositoryImplIntegrationTests {
         // Build a basic exam record
         exams.add(new ExamBuilder().build());
 
+        exams.add(new ExamBuilder()
+            .withCreatedAt(Instant.now().minus(99999))
+            .build());
+
         // Build an exam record that has been marked as deleted
         exams.add(new ExamBuilder()
             .withId(UUID.fromString("ab880054-d1d2-4c24-805c-0dfdb45a0d24"))
