@@ -20,15 +20,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ReviewExamStatusChangeValidatorTest {
-    private ExamStatusChangeValidator reviewExamStatusChangeValidator;
+public class CompletedStatusChangeValidatorTest {
+    private ExamStatusChangeValidator validator;
 
     @Mock
-    private ExamSegmentService mockExamSegementService;
+    private ExamSegmentService mockExamSegmentService;
 
     @Before
     public void setUp() {
-        reviewExamStatusChangeValidator = new ReviewStatusChangeValidator(mockExamSegementService);
+        validator = new CompletedStatusChangeValidator(mockExamSegmentService);
     }
 
     @Test
@@ -38,10 +38,10 @@ public class ReviewExamStatusChangeValidatorTest {
             .build();
         final ExamStatusCode newStatus = new ExamStatusCode(ExamStatusCode.STATUS_REVIEW);
 
-        when(mockExamSegementService.checkIfSegmentsCompleted(exam.getId()))
+        when(mockExamSegmentService.checkIfSegmentsCompleted(exam.getId()))
             .thenReturn(true);
 
-        final Optional<ValidationError> maybeValidationError = reviewExamStatusChangeValidator.validate(exam, newStatus);
+        final Optional<ValidationError> maybeValidationError = validator.validate(exam, newStatus);
 
         assertThat(maybeValidationError).isNotPresent();
     }
@@ -53,10 +53,10 @@ public class ReviewExamStatusChangeValidatorTest {
             .build();
         final ExamStatusCode newStatus = new ExamStatusCode(ExamStatusCode.STATUS_REVIEW);
 
-        when(mockExamSegementService.checkIfSegmentsCompleted(exam.getId()))
+        when(mockExamSegmentService.checkIfSegmentsCompleted(exam.getId()))
             .thenReturn(false);
 
-        final Optional<ValidationError> maybeValidationError = reviewExamStatusChangeValidator.validate(exam, newStatus);
+        final Optional<ValidationError> maybeValidationError = validator.validate(exam, newStatus);
 
         assertThat(maybeValidationError).isPresent();
     }
