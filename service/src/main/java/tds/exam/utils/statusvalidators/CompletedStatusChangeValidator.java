@@ -15,7 +15,7 @@ import tds.exam.utils.ExamStatusChangeValidator;
 
 /**
  * A {@link tds.exam.utils.ExamStatusChangeValidator} for verifying that an {@link tds.exam.Exam} can transition to the
- * "review" or "submitted" status.
+ * "review" or "completed" status.
  */
 @Component
 public class CompletedStatusChangeValidator implements ExamStatusChangeValidator {
@@ -33,9 +33,12 @@ public class CompletedStatusChangeValidator implements ExamStatusChangeValidator
             return Optional.empty();
         }
 
-        if (!examSegmentService.checkIfSegmentsCompleted(exam.getId())) {
+        if (ExamStatusCode.STATUS_REVIEW.equals(intendedStatus) && !examSegmentService.checkIfSegmentsCompleted(exam.getId())) {
             return Optional.of(new ValidationError(ValidationErrorCode.EXAM_INCOMPLETE,
                 "Cannot move exam to 'review' status because some segments are incomplete"));
+        } else if (ExamStatusCode.STATUS_COMPLETED.equals(intendedStatus) && !examSegmentService.checkIfSegmentsCompleted(exam.getId())) {
+            return Optional.of(new ValidationError(ValidationErrorCode.EXAM_INCOMPLETE,
+              "A student has tried to complete the test but there are still more items left to be generated."));
         }
 
         return Optional.empty();
