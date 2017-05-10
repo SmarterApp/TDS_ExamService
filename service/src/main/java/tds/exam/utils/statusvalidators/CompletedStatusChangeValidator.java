@@ -33,12 +33,9 @@ public class CompletedStatusChangeValidator implements ExamStatusChangeValidator
             return Optional.empty();
         }
 
-        if (ExamStatusCode.STATUS_REVIEW.equals(intendedStatus) && !examSegmentService.checkIfSegmentsCompleted(exam.getId())) {
+        if (!examSegmentService.checkIfSegmentsCompleted(exam.getId())) {
             return Optional.of(new ValidationError(ValidationErrorCode.EXAM_INCOMPLETE,
                 "Cannot move exam to 'review' status because some segments are incomplete"));
-        } else if (ExamStatusCode.STATUS_COMPLETED.equals(intendedStatus) && !examSegmentService.checkIfSegmentsCompleted(exam.getId())) {
-            return Optional.of(new ValidationError(ValidationErrorCode.EXAM_INCOMPLETE,
-              "A student has tried to complete the test but there are still more items left to be generated."));
         }
 
         return Optional.empty();
