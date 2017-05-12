@@ -5,7 +5,7 @@ import org.joda.time.Instant;
 
 import java.util.UUID;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static tds.common.util.Preconditions.checkNotNull;
 
 /**
  * Represent the item on a page of an exam
@@ -14,6 +14,7 @@ public class ExamItem {
     private UUID id;
     private UUID examPageId;
     private String itemKey;
+    private String groupId;
     private long assessmentItemBankKey;
     private long assessmentItemKey;
     private String itemType;
@@ -37,7 +38,7 @@ public class ExamItem {
         examPageId = checkNotNull(builder.examPageId);
         itemKey = checkNotNull(builder.itemKey);
         assessmentItemBankKey = checkNotNull(builder.assessmentItemBankKey);
-        assessmentItemKey = checkNotNull(builder.assessmentItemKey);
+        assessmentItemKey = builder.assessmentItemKey;
         itemType = checkNotNull(builder.itemType);
         position = builder.position;
         required = builder.required;
@@ -46,6 +47,7 @@ public class ExamItem {
         stimulusFilePath = builder.stimulusFilePath;
         response = builder.response;
         createdAt = builder.createdAt;
+        groupId = checkNotNull(builder.groupId);
     }
 
     public static final class Builder {
@@ -62,23 +64,24 @@ public class ExamItem {
         private String stimulusFilePath;
         private ExamItemResponse response;
         private Instant createdAt;
+        private String groupId;
 
         public Builder(final UUID id) {
-            this.id = id;
+            this.id = checkNotNull(id);
         }
 
         public Builder withExamPageId(final UUID examPageId) {
-            this.examPageId = examPageId;
+            this.examPageId = checkNotNull(examPageId);
             return this;
         }
 
         public Builder withItemKey(final String itemKey) {
-            this.itemKey = itemKey;
+            this.itemKey = checkNotNull(itemKey);
             return this;
         }
 
         public Builder withAssessmentItemBankKey(final long assessmentItemBankKey) {
-            this.assessmentItemBankKey = assessmentItemBankKey;
+            this.assessmentItemBankKey = checkNotNull(assessmentItemBankKey);
             return this;
         }
 
@@ -88,7 +91,7 @@ public class ExamItem {
         }
 
         public Builder withItemType(final String itemType) {
-            this.itemType = itemType;
+            this.itemType = checkNotNull(itemType);
             return this;
         }
 
@@ -128,6 +131,11 @@ public class ExamItem {
 
         public Builder withCreatedAt(final Instant createdAt) {
             this.createdAt = createdAt;
+            return this;
+        }
+
+        public Builder withGroupId(final String groupId){
+            this.groupId = checkNotNull(groupId);
             return this;
         }
 
@@ -226,5 +234,12 @@ public class ExamItem {
      */
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    /**
+     * @return the associated group id
+     */
+    public String getGroupId() {
+        return groupId;
     }
 }

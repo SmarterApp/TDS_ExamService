@@ -54,6 +54,7 @@ public class ExamPageWrapperQueryRepositoryImpl implements ExamPageWrapperQueryR
         "   item.item_file_path, \n" +
         "   item.stimulus_file_path, \n" +
         "   item.created_at, \n" +
+        "   item.group_id, \n" +
         "   response.response, \n" +
         "   response.sequence, \n" +
         "   response.is_valid, \n" +
@@ -222,6 +223,7 @@ public class ExamPageWrapperQueryRepositoryImpl implements ExamPageWrapperQueryR
                     .withItemFilePath(resultExtractor.getString("item_file_path"))
                     .withStimulusFilePath(resultExtractor.getString("stimulus_file_path"))
                     .withResponse(response)
+                    .withGroupId(resultExtractor.getString("group_id"))
                     .withCreatedAt(ResultSetMapperUtility.mapTimestampToJodaInstant(resultExtractor, "created_at"))
                     .build());
             }

@@ -298,8 +298,8 @@ public class ExamQueryRepositoryImplIntegrationTests {
         final String insertPageEventSQL =
             "INSERT INTO exam_page_event (exam_page_id, started_at, created_at) VALUES (805, UTC_TIMESTAMP(), UTC_TIMESTAMP())";
         final String insertItemSQL =
-            "INSERT INTO exam_item (id, item_key, assessment_item_bank_key, assessment_item_key, item_type, exam_page_id, position, item_file_path, created_at)" +
-                "VALUES (2112, '187-1234', 187, 1234, 'MS', 805, 1, '/path/to/item/187-1234.xml', UTC_TIMESTAMP())";
+            "INSERT INTO exam_item (id, item_key, assessment_item_bank_key, assessment_item_key, item_type, exam_page_id, position, item_file_path, created_at, group_id)" +
+                "VALUES (2112, '187-1234', 187, 1234, 'MS', 805, 1, '/path/to/item/187-1234.xml', UTC_TIMESTAMP(), 'group-123')";
         final String insertResponsesSQL =
             "INSERT INTO exam_item_response (id, exam_item_id, response, sequence, created_at) " +
                 "VALUES " +
