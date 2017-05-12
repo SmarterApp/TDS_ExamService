@@ -29,21 +29,28 @@ import tds.exam.builder.ExamBuilder;
 import tds.exam.mappers.ExpandableExamMapper;
 import tds.exam.mappers.impl.ExamAccommodationsExpandableExamMapper;
 import tds.exam.mappers.impl.ExamSegmentExpandableExamMapper;
+import tds.exam.mappers.impl.ExamSegmentWrappersExpandableExamMapper;
 import tds.exam.mappers.impl.ExamStatusExpandableExamMapper;
 import tds.exam.mappers.impl.ExamineeAttributesExpandableExamMapper;
 import tds.exam.mappers.impl.ExamineeNotesExpandableExamMapper;
-import tds.exam.mappers.impl.ItemResponseExpandableExamMapper;
+import tds.exam.mappers.impl.ItemResponseCountExpandableExamMapper;
+import tds.exam.mappers.impl.ItemResponseUpdateExpandableExamMapper;
 import tds.exam.mappers.impl.PrintRequestsExpandableExamMapper;
+import tds.exam.mappers.impl.WindowAttemptsExpandableExamMapper;
 import tds.exam.services.ExamAccommodationService;
 import tds.exam.services.ExamItemService;
 import tds.exam.services.ExamPageService;
 import tds.exam.services.ExamPrintRequestService;
 import tds.exam.services.ExamSegmentService;
+import tds.exam.services.ExamSegmentWrapperService;
+import tds.exam.services.ExamService;
 import tds.exam.services.ExamStatusService;
 import tds.exam.services.ExamineeNoteService;
 import tds.exam.services.ExamineeService;
+import tds.exam.wrapper.ExamSegmentWrapper;
 
 import static io.github.benas.randombeans.api.EnhancedRandom.random;
+import static io.github.benas.randombeans.api.EnhancedRandom.randomListOf;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -61,6 +68,9 @@ public class ExpandableExamMappersTest {
     private ExpandableExamMapper examineeNotesExpandableExamMapper;
     private ExpandableExamMapper examineeAttributesExpandableExamMapper;
     private ExpandableExamMapper examStatusExpandableExamMapper;
+    private ExpandableExamMapper windowAttemptsExpandableExamMapper;
+    private ExpandableExamMapper itemResponseUpdateExpandableExamMapper;
+    private ExpandableExamMapper examSegmentWrappersExpandableExamMapper;
 
     private final Set<ExpandableExamAttributes> expandableExamAttributes = ImmutableSet.of(
         ExpandableExamAttributes.EXAM_ACCOMMODATIONS,
@@ -73,7 +83,10 @@ public class ExpandableExamMappersTest {
         ExpandableExamAttributes.EXAM_NOTES,
         ExpandableExamAttributes.EXAMINEE_ATTRIBUTES_AND_RELATIONSHIPS,
         ExpandableExamAttributes.EXAM_PAGE_AND_ITEMS,
-        ExpandableExamAttributes.EXAM_STATUS_DATES
+        ExpandableExamAttributes.EXAM_STATUS_DATES,
+        ExpandableExamAttributes.WINDOW_ATTEMPTS,
+        ExpandableExamAttributes.ITEM_RESPONSE_UPDATES,
+        ExpandableExamAttributes.EXAM_SEGMENT_WRAPPERS
     );
 
     @Mock
@@ -100,15 +113,24 @@ public class ExpandableExamMappersTest {
     @Mock
     private ExamStatusService mockExamStatusService;
 
+    @Mock
+    private ExamSegmentWrapperService mockExamSegmentWrapperService;
+
+    @Mock
+    private ExamService mockExamService;
+
     @Before
     public void setup() {
-        itemResponseExpandableExamMapper = new ItemResponseExpandableExamMapper(mockExamItemService);
+        itemResponseExpandableExamMapper = new ItemResponseCountExpandableExamMapper(mockExamItemService);
         examAccommodationsExpandableExamMapper = new ExamAccommodationsExpandableExamMapper(mockExamAccommodationService);
         printRequestsExpandableExamMapper = new PrintRequestsExpandableExamMapper(mockExamPrintRequestService);
         examSegmentExpandableExamMapper = new ExamSegmentExpandableExamMapper(mockExamSegmentService);
         examineeNotesExpandableExamMapper = new ExamineeNotesExpandableExamMapper(mockExamineeNoteService);
         examineeAttributesExpandableExamMapper = new ExamineeAttributesExpandableExamMapper(mockExamineeService);
         examStatusExpandableExamMapper = new ExamStatusExpandableExamMapper(mockExamStatusService);
+        examSegmentWrappersExpandableExamMapper = new ExamSegmentWrappersExpandableExamMapper(mockExamSegmentWrapperService);
+        windowAttemptsExpandableExamMapper = new WindowAttemptsExpandableExamMapper(mockExamService);
+        itemResponseUpdateExpandableExamMapper = new ItemResponseUpdateExpandableExamMapper(mockExamItemService);
     }
 
     @Test
@@ -123,7 +145,6 @@ public class ExpandableExamMappersTest {
         when(mockExamPrintRequestService.findRequestCountsForExamIds(eq(sessionId), any(), any())).thenReturn(ImmutableMap.of(
             exam1.getId(), 2
         ));
-
 
         printRequestsExpandableExamMapper.updateExpandableMapper(expandableExamAttributes,
             ImmutableMap.of(
@@ -277,5 +298,76 @@ public class ExpandableExamMappersTest {
         verify(mockExamStatusService).findRecentTimeAtStatus(exam.getId(), ExamStatusCode.STATUS_FORCE_COMPLETED);
         ExpandableExam expandableExam = expandableExamBuilder.build();
         assertThat(expandableExam.getForceCompletedAt()).isEqualTo(dateForceCompleted);
+    }
+
+    @Test
+    public void shouldMapWindowAttemptsToExpandableExam() {
+        Exam currentExam = random(Exam.class);
+        ExpandableExam.Builder expandableExamBuilder = new ExpandableExam.Builder(currentExam);
+        // Same assessment/window
+        Exam exam1 = new Exam.Builder()
+            .fromExam(random(Exam.class))
+            .withClientName(currentExam.getClientName())
+            .withAssessmentKey(currentExam.getAssessmentKey())
+            .withAssessmentWindowId(currentExam.getAssessmentWindowId())
+            .build();
+
+        // Different assessment
+        Exam exam2 = new Exam.Builder()
+            .fromExam(random(Exam.class))
+            .withClientName(currentExam.getClientName())
+            .withAssessmentWindowId(currentExam.getAssessmentWindowId())
+            .build();
+
+        // Different window
+        Exam exam3 = new Exam.Builder()
+            .fromExam(random(Exam.class))
+            .withClientName(currentExam.getClientName())
+            .withAssessmentKey(currentExam.getAssessmentKey())
+            .build();
+
+        when(mockExamService.findExam(currentExam.getId())).thenReturn(java.util.Optional.of(currentExam));
+        when(mockExamService.findAllExamsForStudent(currentExam.getStudentId())).thenReturn(Arrays.asList(exam1, exam2, exam3, currentExam));
+        windowAttemptsExpandableExamMapper.updateExpandableMapper(expandableExamParametersTrt,
+            ImmutableMap.of(currentExam.getId(), expandableExamBuilder), currentExam.getSessionId());
+        verify(mockExamService).findExam(currentExam.getId());
+        verify(mockExamService).findAllExamsForStudent(currentExam.getStudentId());
+        ExpandableExam expandableExam = expandableExamBuilder.build();
+        assertThat(expandableExam.getWindowAttempts()).isEqualTo(2);
+    }
+
+    @Test
+    public void shouldMapExamSegmentWrappersToExpandableExam() {
+        Exam currentExam = random(Exam.class);
+        ExpandableExam.Builder expandableExamBuilder = new ExpandableExam.Builder(currentExam);
+        List<ExamSegmentWrapper> wrappers = randomListOf(2, ExamSegmentWrapper.class);
+
+        when(mockExamSegmentWrapperService.findAllExamSegments(currentExam.getId())).thenReturn(wrappers);
+        examSegmentWrappersExpandableExamMapper.updateExpandableMapper(expandableExamParametersTrt,
+            ImmutableMap.of(currentExam.getId(), expandableExamBuilder), currentExam.getSessionId());
+        verify(mockExamSegmentWrapperService).findAllExamSegments(currentExam.getId());
+        ExpandableExam expandableExam = expandableExamBuilder.build();
+        assertThat(expandableExam.getExamSegmentWrappers()).isEqualTo(wrappers);
+    }
+
+    @Test
+    public void shouldMapItemResponseUpdatesToExpandableExam() {
+        Exam currentExam = random(Exam.class);
+        ExpandableExam.Builder expandableExamBuilder = new ExpandableExam.Builder(currentExam);
+        UUID examItemId1 = UUID.randomUUID();
+        UUID examItemId2 = UUID.randomUUID();
+
+        when(mockExamItemService.getResponseUpdateCounts(currentExam.getId())).thenReturn(
+            ImmutableMap.of(
+                examItemId1, 2,
+                examItemId2, 3
+            )
+        );
+        itemResponseUpdateExpandableExamMapper.updateExpandableMapper(expandableExamParametersTrt,
+            ImmutableMap.of(currentExam.getId(), expandableExamBuilder), currentExam.getSessionId());
+        verify(mockExamItemService).getResponseUpdateCounts(currentExam.getId());
+        ExpandableExam expandableExam = expandableExamBuilder.build();
+        assertThat(expandableExam.getItemResponseUpdates().get(examItemId1)).isEqualTo(2);
+        assertThat(expandableExam.getItemResponseUpdates().get(examItemId2)).isEqualTo(3);
     }
 }

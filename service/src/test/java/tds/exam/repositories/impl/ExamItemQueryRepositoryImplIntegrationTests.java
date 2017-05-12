@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -33,6 +34,7 @@ import tds.exam.repositories.ExamItemQueryRepository;
 import tds.exam.repositories.ExamPageCommandRepository;
 import tds.exam.repositories.ExamSegmentCommandRepository;
 
+import static io.github.benas.randombeans.api.EnhancedRandom.random;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -248,5 +250,46 @@ public class ExamItemQueryRepositoryImplIntegrationTests {
         assertThat(score.getScoreSentAt()).isEqualTo(initialScore.getScoreSentAt());
         assertThat(score.getScoredAt()).isEqualTo(initialScore.getScoredAt());
         assertThat(score.getScoreMark()).isEqualTo(initialScore.getScoreMark());
+    }
+
+    @Test
+    public void shouldFindItemResponseUpdateCounts() {
+        ExamItem examItem1 = new ExamItemBuilder()
+            .withId(UUID.randomUUID())
+            .withExamPageId(mockPage.getId())
+            .build();
+        ExamItem examItem2 = new ExamItemBuilder()
+            .withId(UUID.randomUUID())
+            .withExamPageId(mockPage.getId())
+            .build();
+
+        examItemCommandRepository.insert(examItem1, examItem2);
+
+        ExamItemResponse item1Response1 = new ExamItemResponse.Builder()
+            .withExamItemId(examItem1.getId())
+            .withResponse("response1")
+            .build();
+        ExamItemResponse item1Response2 = new ExamItemResponse.Builder()
+            .withExamItemId(examItem1.getId())
+            .withResponse("response2")
+            .build();
+        ExamItemResponse item2Response1 = new ExamItemResponse.Builder()
+            .withExamItemId(examItem2.getId())
+            .withResponse("response1")
+            .build();
+        ExamItemResponse item2Response2 = new ExamItemResponse.Builder()
+            .withExamItemId(examItem2.getId())
+            .withResponse("response2")
+            .build();
+        ExamItemResponse item2Response3 = new ExamItemResponse.Builder()
+            .withExamItemId(examItem2.getId())
+            .withResponse("response3")
+            .build();
+
+        examItemCommandRepository.insertResponses(item1Response1, item1Response2, item2Response1, item2Response2, item2Response3);
+
+        Map<UUID, Integer> responseUpdateCounts = examItemQueryRepository.getResponseUpdateCounts(mockExam.getId());
+        assertThat(responseUpdateCounts.get(examItem1.getId())).isEqualTo(2);
+        assertThat(responseUpdateCounts.get(examItem2.getId())).isEqualTo(3);
     }
 }

@@ -101,4 +101,12 @@ public interface ExamService {
      * @return A list of {@link tds.exam.ExamAssessmentMetadata}, containing various metadata pertaining to the assessment and exams.
      */
     Response<List<ExamAssessmentMetadata>> findExamAssessmentMetadata(final long studentId, final UUID sessionId, final String grade);
+
+    /**
+     * Finds all exams taken by a student
+     *
+     * @param studentId the id of the student to fetch exams for
+     * @return The list of {@link tds.exam.Exam}s the student has taken
+     */
+    List<Exam> findAllExamsForStudent(final long studentId);
 }
