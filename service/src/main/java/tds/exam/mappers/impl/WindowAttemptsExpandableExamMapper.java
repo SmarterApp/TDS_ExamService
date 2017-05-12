@@ -30,8 +30,7 @@ public class WindowAttemptsExpandableExamMapper implements ExpandableExamMapper 
         }
 
         examBuilders.forEach((examId, builder) -> {
-            Exam exam = examService.findExam(examId)
-                .orElseThrow(() -> new IllegalArgumentException(String.format("Cannot find exam for examId %s", examId)));
+            Exam exam = builder.build().getExam();
             List<Exam> exams = examService.findAllExamsForStudent(exam.getStudentId());
             // Get the count of all exams within this window, with the same assessment/client
             builder.withWindowAttempts((int) exams.stream()

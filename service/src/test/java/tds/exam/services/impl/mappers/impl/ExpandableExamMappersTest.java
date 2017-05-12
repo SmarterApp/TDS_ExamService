@@ -326,11 +326,9 @@ public class ExpandableExamMappersTest {
             .withAssessmentKey(currentExam.getAssessmentKey())
             .build();
 
-        when(mockExamService.findExam(currentExam.getId())).thenReturn(java.util.Optional.of(currentExam));
         when(mockExamService.findAllExamsForStudent(currentExam.getStudentId())).thenReturn(Arrays.asList(exam1, exam2, exam3, currentExam));
         windowAttemptsExpandableExamMapper.updateExpandableMapper(expandableExamParametersTrt,
             ImmutableMap.of(currentExam.getId(), expandableExamBuilder), currentExam.getSessionId());
-        verify(mockExamService).findExam(currentExam.getId());
         verify(mockExamService).findAllExamsForStudent(currentExam.getStudentId());
         ExpandableExam expandableExam = expandableExamBuilder.build();
         assertThat(expandableExam.getWindowAttempts()).isEqualTo(2);

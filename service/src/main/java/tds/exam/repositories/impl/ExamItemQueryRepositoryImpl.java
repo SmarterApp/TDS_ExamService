@@ -128,13 +128,13 @@ public class ExamItemQueryRepositoryImpl implements ExamItemQueryRepository {
         // Needs to toString() each UUID individually
         final SqlParameterSource params = new MapSqlParameterSource("examId", examId.toString());
         final String SQL =
-            "SELECT \n" +
+            "SELECT DISTINCT \n" +
                 "   exam_item_id, \n" +
-                "   COUNT(exam_item_response_id) AS response_count \n" +
+                "   COUNT(responses) AS response_count \n" +
                 "FROM ( \n" +
                 "   SELECT\n" +
                 "       I.id AS exam_item_id, \n" +
-                "       IR.id AS exam_item_response_id \n" +
+                "       IR.response AS responses \n" +
                 "   FROM \n" +
                 "       exam.exam_item I \n" +
                 "   JOIN \n" +
