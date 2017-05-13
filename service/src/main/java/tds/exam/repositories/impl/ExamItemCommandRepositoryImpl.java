@@ -42,6 +42,7 @@ public class ExamItemCommandRepositoryImpl implements ExamItemCommandRepository 
                 .addValue("isRequired", examItem.isRequired())
                 .addValue("itemFilePath", examItem.getItemFilePath())
                 .addValue("stimulusFilePath", examItem.getStimulusFilePath().orNull())
+                .addValue("groupId", examItem.getGroupId())
                 .addValue("createdAt", createdAt))
             .toArray(MapSqlParameterSource[]::new);
 
@@ -58,6 +59,7 @@ public class ExamItemCommandRepositoryImpl implements ExamItemCommandRepository 
                 "   is_required, \n" +
                 "   item_file_path, \n" +
                 "   stimulus_file_path, \n" +
+                "   group_id, \n" +
                 "   created_at) \n" +
                 "VALUES( " +
                 "   :id, \n" +
@@ -71,6 +73,7 @@ public class ExamItemCommandRepositoryImpl implements ExamItemCommandRepository 
                 "   :isRequired, \n" +
                 "   :itemFilePath, \n" +
                 "   :stimulusFilePath, \n" +
+                "   :groupId, \n" +
                 "   :createdAt)";
 
         jdbcTemplate.batchUpdate(SQL, batchParameters);
