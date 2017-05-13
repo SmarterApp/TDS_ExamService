@@ -1,6 +1,8 @@
 package tds.exam.web.endpoints;
 
 import com.google.common.collect.ImmutableSet;
+import io.github.benas.randombeans.EnhancedRandomBuilder;
+import io.github.benas.randombeans.api.EnhancedRandom;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,9 +66,12 @@ public class ExpandableExamControllerIntegrationTests {
             ExamStatusCode.STATUS_PENDING,
             ExamStatusCode.STATUS_DENIED
         );
+        EnhancedRandom rand = EnhancedRandomBuilder.aNewEnhancedRandomBuilder()
+            .collectionSizeRange(1, 3)
+            .build();
 
-        final ExpandableExam expandableExam1 = random(ExpandableExam.class);
-        final ExpandableExam expandableExam2 = random(ExpandableExam.class);
+        final ExpandableExam expandableExam1 = rand.nextObject(ExpandableExam.class);
+        final ExpandableExam expandableExam2 = rand.nextObject(ExpandableExam.class);
 
         when(mockExpandableExamService.findExamsBySessionId(sessionId, invalidStatuses, ExpandableExamAttributes.EXAM_ACCOMMODATIONS,
             ExpandableExamAttributes.ITEM_RESPONSE_COUNT))
