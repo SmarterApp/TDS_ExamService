@@ -97,7 +97,10 @@ public class ExpandableExamControllerIntegrationTests {
 
     @Test
     public void shouldReturnSingleExpandableExam() throws Exception {
-        final ExpandableExam expandableExam = random(ExpandableExam.class);
+        EnhancedRandom rand = EnhancedRandomBuilder.aNewEnhancedRandomBuilder()
+            .collectionSizeRange(1, 3)
+            .build();
+        final ExpandableExam expandableExam = rand.nextObject(ExpandableExam.class);
 
         when(mockExpandableExamService.findExam(expandableExam.getExam().getId(), ExpandableExamAttributes.EXAM_NOTES,
             ExpandableExamAttributes.EXAM_SEGMENTS, ExpandableExamAttributes.EXAM_STATUS_DATES))
