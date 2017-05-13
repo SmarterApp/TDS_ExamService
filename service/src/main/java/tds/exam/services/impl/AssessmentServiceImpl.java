@@ -63,7 +63,7 @@ class AssessmentServiceImpl implements AssessmentService {
     }
 
     @Override
-    @Cacheable(CacheType.MEDIUM_TERM)
+    @Cacheable(CacheType.LONG_TERM)
     public List<AssessmentWindow> findAssessmentWindows(final String clientName,
                                                         final String assessmentId,
                                                         final long studentId,

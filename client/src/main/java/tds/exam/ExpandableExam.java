@@ -4,6 +4,10 @@ import org.joda.time.Instant;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import tds.exam.wrapper.ExamSegmentWrapper;
 
 /**
  * A model representing an {@link tds.exam.Exam} as well as other optional exam-specific data
@@ -19,8 +23,11 @@ public class ExpandableExam {
     private List<ExamineeNote> examineeNotes;
     private List<ExamineeAttribute> examineeAttributes;
     private List<ExamineeRelationship> examineeRelationships;
+    private List<ExamSegmentWrapper> examSegmentWrappers;
     private boolean multiStageBraille;
     private Instant forceCompletedAt;
+    private int windowAttempts;
+    private Map<UUID, Integer> itemResponseUpdates;
 
     /* Empty private constructor for frameworks */
     private ExpandableExam() {}
@@ -38,6 +45,9 @@ public class ExpandableExam {
         this.requestCount = builder.requestCount;
         this.multiStageBraille = builder.multiStageBraille;
         this.forceCompletedAt = builder.forceCompletedAt;
+        this.windowAttempts = builder.windowAttempts;
+        this.itemResponseUpdates = builder.itemResponseUpdates;
+        this.examSegmentWrappers = builder.examSegmentWrappers;
     }
 
     public static class Builder {
@@ -52,9 +62,10 @@ public class ExpandableExam {
         private int itemsResponseCount;
         private int requestCount;
         private boolean multiStageBraille;
-        private Instant startedAt;
-        private Instant completedAt;
         private Instant forceCompletedAt;
+        private int windowAttempts;
+        private Map<UUID, Integer> itemResponseUpdates;
+        private List<ExamSegmentWrapper> examSegmentWrappers;
 
         public Builder(Exam exam) {
             this.exam = exam;
@@ -110,18 +121,23 @@ public class ExpandableExam {
             return this;
         }
 
-        public Builder withStartedAt(Instant startedAt) {
-            this.startedAt = startedAt;
-            return this;
-        }
-
-        public Builder withCompletedAt(Instant completedAt) {
-            this.completedAt = completedAt;
-            return this;
-        }
-
         public Builder withForceCompletedAt(Instant forceCompletedAt) {
             this.forceCompletedAt = forceCompletedAt;
+            return this;
+        }
+
+        public Builder withWindowAttempts(int windowAttempts) {
+            this.windowAttempts = windowAttempts;
+            return this;
+        }
+
+        public Builder withItemResponseUpdates(Map<UUID, Integer> itemResponseUpdates) {
+            this.itemResponseUpdates = itemResponseUpdates;
+            return this;
+        }
+
+        public Builder withExamSegmentWrappers(List<ExamSegmentWrapper> examSegmentWrappers) {
+            this.examSegmentWrappers = examSegmentWrappers;
             return this;
         }
 
@@ -208,9 +224,30 @@ public class ExpandableExam {
     }
 
     /**
-     * @return the {@link org.joda.time.Instant} the exam was force-completed at
+     * @return The {@link org.joda.time.Instant} the exam was force-completed at
      */
     public Instant getForceCompletedAt() {
         return forceCompletedAt;
+    }
+
+    /**
+     * @return The number of exam attempts the student has within a specific assessment and assessment window period
+     */
+    public int getWindowAttempts() {
+        return windowAttempts;
+    }
+
+    /**
+     * @return The number of updates to each {@link tds.exam.ExamItem} in the exam
+     */
+    public Map<UUID, Integer> getItemResponseUpdates() {
+        return itemResponseUpdates;
+    }
+
+    /**
+     * @return The {@link tds.exam.wrapper.ExamSegmentWrapper} containing pages, items, and responses
+     */
+    public List<ExamSegmentWrapper> getExamSegmentWrappers() {
+        return examSegmentWrappers;
     }
 }

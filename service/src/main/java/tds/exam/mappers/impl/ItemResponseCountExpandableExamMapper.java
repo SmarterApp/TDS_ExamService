@@ -13,11 +13,11 @@ import tds.exam.services.ExamItemService;
 import tds.exam.mappers.ExpandableExamMapper;
 
 @Component
-public class ItemResponseExpandableExamMapper implements ExpandableExamMapper {
+public class ItemResponseCountExpandableExamMapper implements ExpandableExamMapper {
     private final ExamItemService examItemService;
 
     @Autowired
-    public ItemResponseExpandableExamMapper(final ExamItemService examItemService) {
+    public ItemResponseCountExpandableExamMapper(final ExamItemService examItemService) {
         this.examItemService = examItemService;
     }
 

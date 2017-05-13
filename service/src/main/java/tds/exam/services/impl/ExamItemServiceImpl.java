@@ -29,7 +29,6 @@ import tds.exam.services.ExamItemResponseScoringService;
 import tds.exam.services.ExamItemService;
 
 import static tds.exam.error.ValidationErrorCode.EXAM_ITEM_DOES_NOT_EXIST;
-import static tds.exam.error.ValidationErrorCode.EXAM_ITEM_RESPONSE_DOES_NOT_EXIST;
 
 @Service
 public class ExamItemServiceImpl implements ExamItemService {
@@ -146,5 +145,10 @@ public class ExamItemServiceImpl implements ExamItemService {
     @Override
     public Optional<ExamItem> findExamItemAndResponse(final UUID examId, final int position) {
         return examItemQueryRepository.findExamItemAndResponse(examId, position);
+    }
+
+    @Override
+    public Map<UUID, Integer> getResponseUpdateCounts(final UUID examId) {
+        return examItemQueryRepository.getResponseUpdateCounts(examId);
     }
 }

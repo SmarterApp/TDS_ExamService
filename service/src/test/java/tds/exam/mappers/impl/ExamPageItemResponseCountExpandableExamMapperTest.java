@@ -29,7 +29,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ExamPageItemResponseExpandableExamMapperTest {
+public class ExamPageItemResponseCountExpandableExamMapperTest {
     @Mock
     private ExamPageService mockExamPageService;
 

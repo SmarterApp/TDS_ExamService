@@ -76,6 +76,7 @@ import tds.student.RtsStudentPackageAttribute;
 import tds.student.Student;
 
 import static io.github.benas.randombeans.api.EnhancedRandom.random;
+import static io.github.benas.randombeans.api.EnhancedRandom.randomListOf;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -1694,6 +1695,16 @@ public class ExamServiceImplTest {
         verify(mockReviewExamStatusChangeValidator).validate(any(Exam.class), any(ExamStatusCode.class));
 
         assertThat(maybeValidationError).isNotPresent();
+    }
+
+    @Test
+    public void shouldFindAllExamForStudentId() {
+        long studentId = 1234;
+        List<Exam> exams = randomListOf(3, Exam.class);
+        when(mockExamQueryRepository.findAllExamsForStudent(studentId)).thenReturn(exams);
+        List<Exam> retExams = examService.findAllExamsForStudent(studentId);
+        verify(mockExamQueryRepository).findAllExamsForStudent(studentId);
+        assertThat(retExams).isEqualTo(exams);
     }
 
     @Test

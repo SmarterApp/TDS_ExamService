@@ -69,4 +69,12 @@ public interface ExamItemService {
      * @return ExamItem if found otherwise empty.  ExamItemResponse will be empty if a response is not present
      */
     Optional<ExamItem> findExamItemAndResponse(final UUID examId, int position);
+
+    /**
+     * Fetches a mapping of the ids of the {@link tds.exam.ExamItem} to their number of responses
+     *
+     * @param examId the exam UUID
+     * @return A map of the item id to the number of response updates
+     */
+    Map<UUID,Integer> getResponseUpdateCounts(final UUID examId);
 }
