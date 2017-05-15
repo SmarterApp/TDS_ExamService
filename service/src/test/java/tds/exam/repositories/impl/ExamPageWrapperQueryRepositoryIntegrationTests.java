@@ -161,6 +161,48 @@ public class ExamPageWrapperQueryRepositoryIntegrationTests {
     }
 
     @Test
+    public void shouldFindExamPageWrappersForExamWithMarkedItems() {
+        ExamPage otherExamPage = new ExamPageBuilder()
+            .withId(UUID.randomUUID())
+            .withExamId(mockExamPage.getExamId())
+            .withPagePosition(mockExamPage.getPagePosition() + 1)
+            .build();
+
+        ExamItem otherExamItem = new ExamItemBuilder()
+            .withId(UUID.randomUUID())
+            .withExamPageId(otherExamPage.getId())
+            .build();
+
+        examPageCommandRepository.insert(otherExamPage);
+        examItemCommandRepository.insert(otherExamItem);
+        // Mark for review
+        examItemCommandRepository.insertResponses(new ExamItemResponse.Builder()
+            .withExamItemId(otherExamItem.getId())
+            .withMarkedForReview(true)
+            .withResponse("")
+            .withSequence(1)
+            .build()
+        );
+
+        List<ExamPageWrapper> examPageWrappers = examPageQueryRepository.findPagesWithItems(mockExam.getId());
+
+        assertThat(examPageWrappers).hasSize(2);
+
+        assertThat(examPageWrappers.get(0).getExamPage().getId()).isEqualTo(mockExamPage.getId());
+        assertThat(examPageWrappers.get(0).getExamItems()).hasSize(2);
+        assertThat(examPageWrappers.get(0).getExamItems().get(0).getId()).isEqualTo(mockFirstExamItem.getId());
+        assertThat(examPageWrappers.get(0).getExamItems().get(1).getId()).isEqualTo(mockSecondExamItem.getId());
+
+        assertThat(examPageWrappers.get(1).getExamPage().getId()).isEqualTo(otherExamPage.getId());
+        assertThat(examPageWrappers.get(1).getExamItems()).hasSize(1);
+        assertThat(examPageWrappers.get(1).getExamItems().get(0).getId()).isEqualTo(otherExamItem.getId());
+        assertThat(examPageWrappers.get(1).getExamItems().get(0).getResponse().isPresent()).isTrue();
+
+        ExamItemResponse markForReviewResponse = examPageWrappers.get(1).getExamItems().get(0).getResponse().get();
+        assertThat(markForReviewResponse.isMarkedForReview()).isTrue();
+    }
+
+    @Test
     public void shouldFindExamPageWrappersForExam() {
         ExamPage otherExamPage = new ExamPageBuilder()
             .withId(UUID.randomUUID())

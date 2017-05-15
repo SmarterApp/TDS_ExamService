@@ -196,7 +196,9 @@ public class ExamPageWrapperQueryRepositoryImpl implements ExamPageWrapperQueryR
                         .withMarkedForReview(resultExtractor.getBoolean("is_marked_for_review"))
                         .withScore(new ExamItemResponseScore.Builder()
                             .withScore(resultExtractor.getInt("score"))
-                            .withScoringStatus(ExamScoringStatus.fromType(resultExtractor.getString("scoring_status")))
+                            .withScoringStatus(resultExtractor.getString("scoring_status") != null
+                                ? ExamScoringStatus.fromType(resultExtractor.getString("scoring_status"))
+                                : null)
                             .withScoringRationale(resultExtractor.getString("scoring_rationale"))
                             .withScoringDimensions(resultExtractor.getString("scoring_dimensions"))
                             .withScoredAt(ResultSetMapperUtility.mapTimestampToJodaInstant(resultExtractor, "scored_at"))
