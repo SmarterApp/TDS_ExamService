@@ -44,4 +44,12 @@ public interface ExamItemQueryRepository {
      * @return List of {@link tds.exam.ExamItem} with the most active {@link tds.exam.ExamItemResponse}
      */
     List<ExamItem> findExamItemAndResponses(final UUID examId);
+
+    /**
+     * Fetches a mapping of the ids of the {@link tds.exam.ExamItem} to their number of responses
+     *
+     * @param examId the exam UUID
+     * @return A map of the item id to the number of response updates
+     */
+    Map<UUID,Integer> getResponseUpdateCounts(final UUID examId);
 }

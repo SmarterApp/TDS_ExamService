@@ -11,7 +11,7 @@ import tds.exam.ExamItemResponse;
  * Build an {@link tds.exam.ExamItem} with test data
  */
 public class ExamItemBuilder {
-    public static final UUID EXAM_ITEM_DEFAULT_ID = UUID.fromString("be1205f4-3cea-4b9b-9d91-86b566c3ada3");
+    private static final UUID EXAM_ITEM_DEFAULT_ID = UUID.fromString("be1205f4-3cea-4b9b-9d91-86b566c3ada3");
 
     private UUID id = EXAM_ITEM_DEFAULT_ID;
     private UUID examPageId = ExamPageBuilder.DEFAULT_ID;
@@ -26,6 +26,7 @@ public class ExamItemBuilder {
     private String stimulusFilePath;
     private ExamItemResponse response;
     private Instant createdAt = Instant.now();
+    private String groupId = "I-187-1234";
 
     public ExamItem build() {
         return new ExamItem.Builder(id)
@@ -41,6 +42,7 @@ public class ExamItemBuilder {
             .withStimulusFilePath(stimulusFilePath)
             .withResponse(response)
             .withCreatedAt(createdAt)
+            .withGroupId(groupId)
             .build();
     }
 
@@ -106,6 +108,11 @@ public class ExamItemBuilder {
 
     public ExamItemBuilder withCreatedAt(final Instant createdAt) {
         this.createdAt = createdAt;
+        return this;
+    }
+
+    public ExamItemBuilder withGroupId(final String groupId) {
+        this.groupId = groupId;
         return this;
     }
 }

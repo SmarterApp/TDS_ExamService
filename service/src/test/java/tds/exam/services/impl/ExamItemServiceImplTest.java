@@ -162,6 +162,19 @@ public class ExamItemServiceImplTest {
         verify(mockExamItemQueryRepository).getResponseCounts(examId1, examId2);
     }
 
+    @Test
+    public void shouldReturnResponseUpdateCountMap() {
+        UUID examId = UUID.randomUUID();
+        Map<UUID, Integer> mockMap = ImmutableMap.of(
+            UUID.randomUUID(), 1,
+            UUID.randomUUID(), 2
+        );
+        when(mockExamItemQueryRepository.getResponseUpdateCounts(examId)).thenReturn(mockMap);
+        Map<UUID, Integer> returnMap = examItemService.getResponseUpdateCounts(examId);
+        assertThat(returnMap).hasSize(2);
+        verify(mockExamItemQueryRepository).getResponseUpdateCounts(examId);
+    }
+
     @Test(expected = NotFoundException.class)
     public void shouldThrowNotFoundExceptionWhenExamPageForCurrentPositionCannotBeFound() {
         UUID mockExamId = UUID.randomUUID();

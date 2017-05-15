@@ -123,6 +123,48 @@ public class ExamItemQueryRepositoryImpl implements ExamItemQueryRepository {
         return findExamItemAndResponses(examId, null);
     }
 
+    @Override
+    public Map<UUID, Integer> getResponseUpdateCounts(final UUID examId) {
+        // Needs to toString() each UUID individually
+        final SqlParameterSource params = new MapSqlParameterSource("examId", examId.toString());
+        final String SQL =
+            "SELECT DISTINCT \n" +
+                "   exam_item_id, \n" +
+                "   COUNT(responses) AS response_count \n" +
+                "FROM ( \n" +
+                "   SELECT\n" +
+                "       I.id AS exam_item_id, \n" +
+                "       IR.response AS responses \n" +
+                "   FROM \n" +
+                "       exam.exam_item I \n" +
+                "   JOIN \n" +
+                "       exam.exam_item_response IR \n" +
+                "   ON \n" +
+                "       I.id = IR.exam_item_id \n" +
+                "   JOIN \n" +
+                "       exam.exam_page P \n" +
+                "   ON \n" +
+                "       P.id = I.exam_page_id \n" +
+                "   JOIN \n" +
+                "       exam.exam_page_event PE \n" +
+                "   ON \n" +
+                "       PE.exam_page_id = P.id \n" +
+                "   WHERE \n" +
+                "       PE.deleted_at IS NULL \n" +
+                "       AND P.exam_id = :examId \n" +
+                "   GROUP BY I.id, IR.id \n" +
+                ") item_response_counts \n" +
+                "GROUP BY exam_item_id";
+
+        return jdbcTemplate.query(SQL, params, (ResultSetExtractor<Map<UUID, Integer>>) rs -> {
+            HashMap<UUID, Integer> examIdResponseCounts = new HashMap<>();
+            while (rs.next()) {
+                examIdResponseCounts.put(UUID.fromString(rs.getString("exam_item_id")), rs.getInt("response_count"));
+            }
+            return examIdResponseCounts;
+        });
+    }
+
     private List<ExamItem> findExamItemAndResponses(final UUID examId, final Integer position) {
         final MapSqlParameterSource parameters = new MapSqlParameterSource("examId", examId.toString());
 
@@ -143,6 +185,7 @@ public class ExamItemQueryRepositoryImpl implements ExamItemQueryRepository {
             "  I.item_file_path, \n" +
             "  I.stimulus_file_path, \n" +
             "  I.created_at, \n" +
+            "  I.group_id, \n" +
             "  R.id as responseId,\n" +
             "  R.response,\n" +
             "  R.sequence,\n" +
@@ -200,6 +243,7 @@ public class ExamItemQueryRepositoryImpl implements ExamItemQueryRepository {
                 .withRequired(rs.getBoolean("is_required"))
                 .withCreatedAt(ResultSetMapperUtility.mapTimestampToJodaInstant(rs, "created_at"))
                 .withPosition(rs.getInt("position"))
+                .withGroupId(rs.getString("group_id"))
                 .withItemFilePath(rs.getString("item_file_path"));
 
             if(rs.getObject("stimulus_file_path") != null) {

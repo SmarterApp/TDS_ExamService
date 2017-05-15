@@ -224,8 +224,7 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
                     ItemResponse response = new ItemResponse();
                     response.segmentPosition = segmentHolder.getExamSegment().getSegmentPosition();
                     response.itemID = examItem.getItemKey();
-                    //TODO - add group id to items
-//                    response.groupID = examItem.getGroupId();
+                    response.groupID = examItem.getGroupId();
                     response.itemPosition = examItem.getPosition();
                     response.isFieldTest = examItem.isFieldTest();
 

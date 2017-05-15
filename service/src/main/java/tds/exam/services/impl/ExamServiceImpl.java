@@ -379,6 +379,11 @@ class ExamServiceImpl implements ExamService {
         return new Response<>(examAssessmentMetadatas);
     }
 
+    @Override
+    public List<Exam> findAllExamsForStudent(final long studentId) {
+        return examQueryRepository.findAllExamsForStudent(studentId);
+    }
+
     private List<ExamAssessmentMetadata> findEligibleExamAssessmentsForGuest(final String clientName, final String grade) {
         final List<ExamAssessmentMetadata> examAssessmentMetadatas = new ArrayList<>();
         List<AssessmentInfo> eligibleAssessments = assessmentService.findAssessmentInfosForGrade(clientName, grade);
