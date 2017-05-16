@@ -116,6 +116,8 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
                 .addValue("customAccommodations", exam.isCustomAccommodations())
                 .addValue("startedAt", mapJodaInstantToTimestamp(exam.getStartedAt()))
                 .addValue("browserUserAgent", exam.getBrowserUserAgent())
+                .addValue("restartsAndResumptions", exam.getRestartsAndResumptions())
+                .addValue("resumptions", exam.getResumptions())
                 .addValue("createdAt", now))
             .toArray(MapSqlParameterSource[]::new);
 
@@ -141,6 +143,8 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
                 "custom_accommodations, \n" +
                 "abnormal_starts, \n" +
                 "browser_user_agent, \n" +
+                "resumptions, \n" +
+                "restarts_and_resumptions, \n" +
                 "created_at \n" +
                 ") \n" +
                 "VALUES \n" +
@@ -165,6 +169,8 @@ class ExamCommandRepositoryImpl implements ExamCommandRepository {
                 ":customAccommodations, \n" +
                 ":abnormalStarts, \n" +
                 ":browserUserAgent, \n" +
+                ":resumptions, \n" +
+                ":restartsAndResumptions, \n" +
                 ":createdAt \n" +
                 ")";
 

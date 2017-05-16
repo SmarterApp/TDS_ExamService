@@ -74,6 +74,8 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
         "ee.current_segment_position, \n" +
         "ee.custom_accommodations, \n" +
         "ee.browser_user_agent, \n" +
+        "ee.resumptions, \n" +
+        "ee.restarts_and_resumptions, \n" +
         "e.created_at, \n" +
         "esc.description, \n" +
         "esc.status, \n" +
@@ -494,6 +496,8 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 .withCurrentSegmentPosition(rs.getInt("current_segment_position"))
                 .withCustomAccommodation(rs.getBoolean("custom_accommodations"))
                 .withBrowserUserAgent(rs.getString("browser_user_agent"))
+                .withRestartsAndResumptions(rs.getInt("restarts_and_resumptions"))
+                .withResumptions(rs.getInt("resumptions"))
                 .withMultiStageBraille(rs.getBoolean("msb"))
                 .build();
         }

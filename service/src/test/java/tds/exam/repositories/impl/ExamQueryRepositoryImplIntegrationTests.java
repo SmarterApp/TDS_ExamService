@@ -83,6 +83,8 @@ public class ExamQueryRepositoryImplIntegrationTests {
             .withAssessmentId("assessmentId3")
             .withStudentId(9999L)
             .withAttempts(2)
+            .withResumptions(2)
+            .withRestartsAndResumptions(3)
             .withScoredAt(Instant.now().minus(Minutes.minutes(5).toStandardDuration()))
             .build());
 
@@ -158,6 +160,8 @@ public class ExamQueryRepositoryImplIntegrationTests {
     public void shouldRetrieveExamForUniqueKey() {
         Optional<Exam> examOptional = examQueryRepository.getExamById(currentExamId);
         assertThat(examOptional.isPresent()).isTrue();
+        assertThat(examOptional.get().getRestartsAndResumptions()).isEqualTo(3);
+        assertThat(examOptional.get().getResumptions()).isEqualTo(2);
     }
 
     @Test
