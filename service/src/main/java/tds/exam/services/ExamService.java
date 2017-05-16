@@ -13,6 +13,7 @@ import tds.exam.ExamConfiguration;
 import tds.exam.ExamStatusCode;
 import tds.exam.OpenExamRequest;
 import tds.exam.SegmentApprovalRequest;
+import tds.exam.models.ItemGroupHistory;
 
 /**
  * Main entry point for interacting with {@link Exam}
@@ -95,9 +96,9 @@ public interface ExamService {
     /**
      * Finds the list of assessments available for a student and session.
      *
-     * @param studentId  The id of the student to fetch {@link tds.exam.ExamAssessmentMetadata}s for
-     * @param sessionId  The id current session
-     * @param grade      The assessment grades to fetch
+     * @param studentId The id of the student to fetch {@link tds.exam.ExamAssessmentMetadata}s for
+     * @param sessionId The id current session
+     * @param grade     The assessment grades to fetch
      * @return A list of {@link tds.exam.ExamAssessmentMetadata}, containing various metadata pertaining to the assessment and exams.
      */
     Response<List<ExamAssessmentMetadata>> findExamAssessmentMetadata(final long studentId, final UUID sessionId, final String grade);
@@ -109,4 +110,14 @@ public interface ExamService {
      * @return The list of {@link tds.exam.Exam}s the student has taken
      */
     List<Exam> findAllExamsForStudent(final long studentId);
+
+    /**
+     * Finds the previous item groups administered in previous exams for the student and assessment id
+     *
+     * @param studentId     the student id
+     * @param currentExamId the current exam id
+     * @param assessmentId  the assessment id for the exam
+     * @return a list of {@link tds.exam.models.ItemGroupHistory} for previous exams taken by the student for the assessment id
+     */
+    List<ItemGroupHistory> findPreviousItemGroups(final long studentId, final UUID currentExamId, final String assessmentId);
 }
