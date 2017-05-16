@@ -437,6 +437,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "          AND eacc.type = 'Language'\n" +
                 "  ) \n" +
                 "WHERE e.student_id = :studentId \n" +
+                "   AND lang.type = 'Language' \n" +
                 "   AND ee.deleted_at IS NULL";
 
         return jdbcTemplate.query(SQL, parameters, examRowMapper);

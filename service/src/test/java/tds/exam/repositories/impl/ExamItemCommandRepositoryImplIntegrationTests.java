@@ -132,11 +132,11 @@ public class ExamItemCommandRepositoryImplIntegrationTests {
             "INSERT INTO exam_page_event (exam_page_id, started_at, deleted_at, created_at) " +
                 "VALUES (805, now(), NULL, UTC_TIMESTAMP()), (806, UTC_TIMESTAMP(), UTC_TIMESTAMP(), UTC_TIMESTAMP())";
         final String insertItemSQL = // Two items on first page, 1 item on deleted (second) page
-            "INSERT INTO exam_item (id, item_key, assessment_item_bank_key, assessment_item_key, item_type, exam_page_id, position, item_file_Path, created_at)" +
+            "INSERT INTO exam_item (id, item_key, assessment_item_bank_key, assessment_item_key, item_type, exam_page_id, position, item_file_Path, created_at, group_id)" +
                 "VALUES " +
-                "(:item1Id, '187-1234', 187, 1234, 'MS', 805, 1, '/path/to/item/187-1234.xml', UTC_TIMESTAMP())," +
-                "(:item2Id, '187-1235', 187, 1235, 'MS', 805, 2, '/path/to/item/187-1235.xml', UTC_TIMESTAMP())," +
-                "(:item3Id, '187-1236', 187, 1236, 'ER', 806, 3, '/path/to/item/187-1236.xml', UTC_TIMESTAMP())";
+                "(:item1Id, '187-1234', 187, 1234, 'MS', 805, 1, '/path/to/item/187-1234.xml', UTC_TIMESTAMP(), 'group-id-123')," +
+                "(:item2Id, '187-1235', 187, 1235, 'MS', 805, 2, '/path/to/item/187-1235.xml', UTC_TIMESTAMP(), 'group-id-123')," +
+                "(:item3Id, '187-1236', 187, 1236, 'ER', 806, 3, '/path/to/item/187-1236.xml', UTC_TIMESTAMP(), 'group-id-123')";
 
         jdbcTemplate.update(insertSegmentSQL, testParams);
         jdbcTemplate.update(insertPageSQL, testParams);
@@ -196,6 +196,7 @@ public class ExamItemCommandRepositoryImplIntegrationTests {
             .withRequired(rs.getBoolean("is_required"))
             .withItemFilePath(rs.getString("item_file_path"))
             .withStimulusFilePath(rs.getString("stimulus_file_path"))
+            .withGroupId(rs.getString("group_id"))
             .build());
     }
 }

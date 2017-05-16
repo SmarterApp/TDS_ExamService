@@ -111,6 +111,7 @@ public class ExamItemSelectionServiceImpl implements ExamItemSelectionService {
                 .withPosition(examItemPosition)
                 .withRequired(item.isRequired())
                 .withItemType(item.getItemType())
+                .withGroupId(item.getGroupId())
                 .withItemFilePath(item.getItemFilePath())
                 .withStimulusFilePath(item.getStimulusFilePath())
                 .withAssessmentItemBankKey(item.getBankKey())

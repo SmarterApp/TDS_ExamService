@@ -185,6 +185,7 @@ public class ExamItemQueryRepositoryImpl implements ExamItemQueryRepository {
             "  I.item_file_path, \n" +
             "  I.stimulus_file_path, \n" +
             "  I.created_at, \n" +
+            "  I.group_id, \n" +
             "  R.id as responseId,\n" +
             "  R.response,\n" +
             "  R.sequence,\n" +
@@ -242,6 +243,7 @@ public class ExamItemQueryRepositoryImpl implements ExamItemQueryRepository {
                 .withRequired(rs.getBoolean("is_required"))
                 .withCreatedAt(ResultSetMapperUtility.mapTimestampToJodaInstant(rs, "created_at"))
                 .withPosition(rs.getInt("position"))
+                .withGroupId(rs.getString("group_id"))
                 .withItemFilePath(rs.getString("item_file_path"));
 
             if(rs.getObject("stimulus_file_path") != null) {

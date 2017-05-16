@@ -54,6 +54,7 @@ public class ExamPageWrapperQueryRepositoryImpl implements ExamPageWrapperQueryR
         "   item.item_file_path, \n" +
         "   item.stimulus_file_path, \n" +
         "   item.created_at, \n" +
+        "   item.group_id, \n" +
         "   response.response, \n" +
         "   response.sequence, \n" +
         "   response.is_valid, \n" +
@@ -195,7 +196,9 @@ public class ExamPageWrapperQueryRepositoryImpl implements ExamPageWrapperQueryR
                         .withMarkedForReview(resultExtractor.getBoolean("is_marked_for_review"))
                         .withScore(new ExamItemResponseScore.Builder()
                             .withScore(resultExtractor.getInt("score"))
-                            .withScoringStatus(ExamScoringStatus.fromType(resultExtractor.getString("scoring_status")))
+                            .withScoringStatus(resultExtractor.getString("scoring_status") != null
+                                ? ExamScoringStatus.fromType(resultExtractor.getString("scoring_status"))
+                                : null)
                             .withScoringRationale(resultExtractor.getString("scoring_rationale"))
                             .withScoringDimensions(resultExtractor.getString("scoring_dimensions"))
                             .withScoredAt(ResultSetMapperUtility.mapTimestampToJodaInstant(resultExtractor, "scored_at"))
@@ -222,6 +225,7 @@ public class ExamPageWrapperQueryRepositoryImpl implements ExamPageWrapperQueryR
                     .withItemFilePath(resultExtractor.getString("item_file_path"))
                     .withStimulusFilePath(resultExtractor.getString("stimulus_file_path"))
                     .withResponse(response)
+                    .withGroupId(resultExtractor.getString("group_id"))
                     .withCreatedAt(ResultSetMapperUtility.mapTimestampToJodaInstant(resultExtractor, "created_at"))
                     .build());
             }
