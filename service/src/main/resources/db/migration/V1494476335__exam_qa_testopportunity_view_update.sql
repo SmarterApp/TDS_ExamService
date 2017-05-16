@@ -63,7 +63,7 @@ CREATE OR REPLACE VIEW qa_session_testopportunity AS
         ee.custom_accommodations AS customaccommodations,
         'not migrated' AS numresponses,
         ee.current_segment_position AS insegment,
-        ee.waiting_for_segment_approval_position AS waitingforsegment,
+        NULLIF(ee.waiting_for_segment_approval_position = -1, ee.waiting_for_segment_approval_position) AS waitingforsegment,
         e.assessment_window_id AS windowid,
         (SELECT MAX(created_at) FROM exam.exam_event WHERE exam_id = e.id AND exam.exam_event.status = 'forceCompleted') AS dateforcecompleted,
         'not migrated' AS dateexpiredreported,
@@ -86,4 +86,3 @@ CREATE OR REPLACE VIEW qa_session_testopportunity AS
     JOIN
         exam_status_codes esc
         ON esc.status = ee.status;
-
