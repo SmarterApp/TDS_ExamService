@@ -74,25 +74,21 @@ public class ResponseServiceImpl implements ResponseService {
         //Replaces the implementation in StudentDLL.T_UpdateScoredResponse_common
         //Decision was made to not worry about verify access.  This should be done prior to this call.
 
-        Optional<Exam> maybeExam = examService.findExam(examInstance.getExamId());
-        if (!maybeExam.isPresent()) {
-            throw new ReturnStatusException(String.format("Could not find exam %s associated with response", examInstance.getExamId()));
-        }
-
-        Exam exam = maybeExam.get();
+        final Exam exam = examService.findExam(examInstance.getExamId())
+            .orElseThrow(() -> new ReturnStatusException(String.format("Could not find exam %s associated with response", examInstance.getExamId())));
 
         if (!VALID_EXAM_STATUS_CODES.contains(exam.getStatus().getCode())) {
-            String message = configService.getFormattedMessage(examInstance.getClientName(), "T_UpdateScoredResponse", "Your test opportunity has been interrupted. Please check with your Test Administrator to resume your test.");
+            final String message = configService.getFormattedMessage(examInstance.getClientName(), "T_UpdateScoredResponse", "Your test opportunity has been interrupted. Please check with your Test Administrator to resume your test.");
             throw new ReturnStatusException(message);
         }
 
-        Optional<ExamItem> maybeItem = examItemQueryRepository.findExamItemAndResponse(examInstance.getExamId(), responseUpdate.getPosition());
+        final Optional<ExamItem> maybeItem = examItemQueryRepository.findExamItemAndResponse(examInstance.getExamId(), responseUpdate.getPosition());
 
         Date dt = null;
         String dateCreated = responseUpdate.getDateCreated();
         try {
             if (responseUpdate.getDateCreated() != null) {
-                String[] tokens = dateCreated.split("\\.");
+                final String[] tokens = dateCreated.split("\\.");
                 if (tokens.length == 2 && tokens[1].length() > 3) {
                     dateCreated = String.format("%s.%s", tokens[0], tokens[1].substring(0, 3));
                 }
@@ -137,7 +133,7 @@ public class ResponseServiceImpl implements ResponseService {
             .withValid(responseUpdate.getIsValid())
             .withSequence(responseUpdate.getSequence());
 
-        ExamItemResponseScore.Builder updatedScoreBuilder = new ExamItemResponseScore.Builder();
+        final ExamItemResponseScore.Builder updatedScoreBuilder = new ExamItemResponseScore.Builder();
 
         if (responseUpdate.getValue() == null) {
             updatedResponseBuilder.withScore(updatedScoreBuilder.build());
@@ -154,7 +150,7 @@ public class ResponseServiceImpl implements ResponseService {
             // once it is determined asynchronously
             updatedScoreBuilder.withScoreSentAt(now); // start the scoring clock running
         } else if (DbComparator.greaterOrEqual(scoreLatency, 0)) {
-//            updatedScoreBuilder.withScoreMark(null); // any previous scoremark is now obsolete
+            updatedScoreBuilder.withScoreMark(null); // any previous scoremark is now obsolete
             updatedScoreBuilder.withScore(score); // use the provided score
             updatedScoreBuilder.withScoreSentAt(now); // 'instantaneous' time lag - TODO - check if we should do this
             updatedScoreBuilder.withScoredAt(now);
@@ -170,18 +166,14 @@ public class ResponseServiceImpl implements ResponseService {
 
         examItemCommandRepository.insertResponses(updatedResponseBuilder.build());
 
-        final Optional<ExamPage> maybeExamPage = examPageService.find(existingExamItem.getExamPageId());
+        final ExamPage examPage = examPageService.find(existingExamItem.getExamPageId())
+            .orElseThrow(() -> new ReturnStatusException("Exam page is no longer present for the updated item"));
 
-        //Something is misconfigured if this is ever true
-        if (!maybeExamPage.isPresent()) {
-            throw new ReturnStatusException("Exam page is no longer present for the updated item");
-        }
-
-        final ExamPage examPage = ExamPage.Builder.fromExamPage(maybeExamPage.get())
+        final ExamPage updatedExamPage = ExamPage.Builder.fromExamPage(examPage)
             .withDuration(pageDuration)
             .build();
 
-        examPageService.update(examPage);
+        examPageService.update(updatedExamPage);
         return new ReturnStatus("updated");
     }
 
