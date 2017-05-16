@@ -320,7 +320,7 @@ public class ExamServiceImplTest {
         when(mockAssessmentService.findAssessment("SBAC_PT", openExamRequest.getAssessmentKey())).thenReturn(Optional.of(assessment));
         when(mockExamQueryRepository.getLastAvailableExam(openExamRequest.getStudentId(), assessment.getAssessmentId(), "SBAC_PT")).thenReturn(Optional.empty());
         when(mockSessionService.findExternalSessionConfigurationByClientName("SBAC_PT")).thenReturn(Optional.of(extSessionConfig));
-        when(mockAssessmentService.findAssessmentWindows("SBAC_PT", assessment.getAssessmentId(), openExamRequest.getStudentId(), extSessionConfig))
+        when(mockAssessmentService.findAssessmentWindows("SBAC_PT", assessment.getAssessmentId(), true, extSessionConfig))
             .thenReturn(Collections.singletonList(window));
         when(mockTimeLimitConfigurationService.findTimeLimitConfiguration("SBAC_PT", openExamRequest.getAssessmentKey())).thenReturn(Optional.of(configuration));
         when(mockExamStatusQueryRepository.findExamStatusCode(STATUS_PENDING)).thenReturn(new ExamStatusCode(STATUS_PENDING, OPEN));
@@ -377,7 +377,7 @@ public class ExamServiceImplTest {
         when(mockAssessmentService.findAssessment("SBAC_PT", openExamRequest.getAssessmentKey())).thenReturn(Optional.of(assessment));
         when(mockExamQueryRepository.getLastAvailableExam(openExamRequest.getStudentId(), assessment.getAssessmentId(), "SBAC_PT")).thenReturn(Optional.empty());
         when(mockSessionService.findExternalSessionConfigurationByClientName("SBAC_PT")).thenReturn(Optional.of(extSessionConfig));
-        when(mockAssessmentService.findAssessmentWindows("SBAC_PT", assessment.getAssessmentId(), openExamRequest.getStudentId(), extSessionConfig))
+        when(mockAssessmentService.findAssessmentWindows("SBAC_PT", assessment.getAssessmentId(), true, extSessionConfig))
             .thenReturn(Collections.singletonList(window));
         when(mockTimeLimitConfigurationService.findTimeLimitConfiguration("SBAC_PT", openExamRequest.getAssessmentKey())).thenReturn(Optional.empty());
 
@@ -420,7 +420,7 @@ public class ExamServiceImplTest {
         when(mockSessionService.findSessionById(openExamRequest.getSessionId())).thenReturn(Optional.of(currentSession));
         when(mockAssessmentService.findAssessment("SBAC_PT", openExamRequest.getAssessmentKey())).thenReturn(Optional.of(assessment));
         when(mockExamQueryRepository.getLastAvailableExam(openExamRequest.getStudentId(), assessment.getAssessmentId(), "SBAC_PT")).thenReturn(Optional.empty());
-        when(mockAssessmentService.findAssessmentWindows("SBAC_PT", assessment.getAssessmentId(), openExamRequest.getStudentId(), extSessionConfig))
+        when(mockAssessmentService.findAssessmentWindows("SBAC_PT", assessment.getAssessmentId(), true, extSessionConfig))
             .thenReturn(Collections.singletonList(window));
         when(mockAssessmentService.findAssessmentAccommodationsByAssessmentKey("SBAC_PT", openExamRequest.getAssessmentKey()))
             .thenReturn(Collections.singletonList(accommodation));
@@ -470,7 +470,7 @@ public class ExamServiceImplTest {
         when(mockSessionService.findExternalSessionConfigurationByClientName("SBAC_PT")).thenReturn(Optional.of(extSessionConfig));
         when(mockStudentService.findStudentPackageAttributes(openExamRequest.getStudentId(), "SBAC_PT", EXTERNAL_ID, ENTITY_NAME, ACCOMMODATIONS))
             .thenReturn(Arrays.asList(externalIdAttribute, entityNameAttribute, entityAccommodationAttribute));
-        when(mockAssessmentService.findAssessmentWindows(currentSession.getClientName(), assessment.getAssessmentId(), openExamRequest.getStudentId(), extSessionConfig))
+        when(mockAssessmentService.findAssessmentWindows(currentSession.getClientName(), assessment.getAssessmentId(), false, extSessionConfig))
             .thenReturn(Collections.singletonList(window));
         when(mockTimeLimitConfigurationService.findTimeLimitConfiguration("SBAC_PT", openExamRequest.getAssessmentKey())).thenReturn(Optional.of(configuration));
         when(mockExamStatusQueryRepository.findExamStatusCode(STATUS_PENDING)).thenReturn(new ExamStatusCode(STATUS_PENDING, OPEN));
@@ -525,7 +525,7 @@ public class ExamServiceImplTest {
         when(mockSessionService.findExternalSessionConfigurationByClientName("SBAC_PT")).thenReturn(Optional.of(extSessionConfig));
         when(mockStudentService.findStudentPackageAttributes(openExamRequest.getStudentId(), "SBAC_PT", EXTERNAL_ID, ENTITY_NAME, ACCOMMODATIONS))
             .thenReturn(Arrays.asList(externalIdAttribute, entityNameAttribute, entityAccommodationsAttribute));
-        when(mockAssessmentService.findAssessmentWindows(currentSession.getClientName(), assessment.getAssessmentId(), openExamRequest.getStudentId(), extSessionConfig))
+        when(mockAssessmentService.findAssessmentWindows(currentSession.getClientName(), assessment.getAssessmentId(), false, extSessionConfig))
             .thenReturn(Collections.singletonList(window));
         when(mockTimeLimitConfigurationService.findTimeLimitConfiguration("SBAC_PT", openExamRequest.getAssessmentKey())).thenReturn(Optional.of(configuration));
         when(mockExamStatusQueryRepository.findExamStatusCode(STATUS_PENDING)).thenReturn(new ExamStatusCode(STATUS_PENDING, OPEN));

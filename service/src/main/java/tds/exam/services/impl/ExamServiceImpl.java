@@ -684,11 +684,12 @@ class ExamServiceImpl implements ExamService {
             }
         }
 
+        boolean guestStudent = openExamRequest.getStudentId() < 0;
         //OpenTestServiceImpl lines 317 - 341
         List<AssessmentWindow> assessmentWindows = assessmentService.findAssessmentWindows(
             clientName,
             assessment.getAssessmentId(),
-            openExamRequest.getStudentId(),
+            guestStudent,
             externalSessionConfiguration
         );
 
