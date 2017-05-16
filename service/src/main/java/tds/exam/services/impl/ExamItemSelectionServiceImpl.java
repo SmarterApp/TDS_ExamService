@@ -20,10 +20,12 @@ import tds.assessment.Segment;
 import tds.exam.Exam;
 import tds.exam.ExamItem;
 import tds.exam.ExamPage;
+import tds.exam.ExamSegment;
 import tds.exam.repositories.ExamItemCommandRepository;
 import tds.exam.repositories.ExamPageCommandRepository;
 import tds.exam.services.AssessmentService;
 import tds.exam.services.ExamItemSelectionService;
+import tds.exam.services.ExamSegmentService;
 import tds.exam.services.ExamService;
 import tds.itemselection.base.ItemGroup;
 import tds.itemselection.base.TestItem;
@@ -41,18 +43,22 @@ public class ExamItemSelectionServiceImpl implements ExamItemSelectionService {
     private final ExamPageCommandRepository examPageCommandRepository;
     private final ExamItemCommandRepository examItemCommandRepository;
     private final ExamService examService;
+    private final ExamSegmentService examSegmentService;
     private final AssessmentService assessmentService;
 
     @Autowired
     public ExamItemSelectionServiceImpl(final ItemSelectionService itemSelectionService,
                                         final ExamPageCommandRepository examPageCommandRepository,
                                         final ExamItemCommandRepository examItemCommandRepository,
-                                        final ExamService examService, final AssessmentService assessmentService) {
+                                        final ExamService examService,
+                                        final AssessmentService assessmentService,
+                                        final ExamSegmentService examSegmentService) {
         this.itemSelectionService = itemSelectionService;
         this.examPageCommandRepository = examPageCommandRepository;
         this.examItemCommandRepository = examItemCommandRepository;
         this.examService = examService;
         this.assessmentService = assessmentService;
+        this.examSegmentService = examSegmentService;
     }
 
     @Transactional
@@ -123,6 +129,19 @@ public class ExamItemSelectionServiceImpl implements ExamItemSelectionService {
 
         examPageCommandRepository.insert(page);
         examItemCommandRepository.insert(examItems.toArray(new ExamItem[examItems.size()]));
+
+        ExamSegment examSegment = examSegmentService.findByExamIdAndSegmentPosition(examId, itemGroup.getSegmentPosition())
+            .orElseThrow(() -> new IllegalStateException(String.format("Could not find the exam segment for exam %s and segment position %s.",
+                examId, itemGroup.getSegmentPosition())));
+
+        // For assessments with a single page, we should mark the exam segment as satisfied if it is not already
+        if (examSegment.getExamItemCount() == examItems.size() && !examSegment.isSatisfied()) {
+            examSegmentService.update(new ExamSegment.Builder()
+                .fromSegment(examSegment)
+                .withSatisfied(true)
+                .build()
+            );
+        }
 
         final SimpleDateFormat simpleDateFormat = new SimpleDateFormat(CREATED_AT_FORMAT);
         final String dateCreated = simpleDateFormat.format(new Date(Instant.now().toEpochMilli()));
