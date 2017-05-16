@@ -92,7 +92,7 @@ public class AssessmentServiceImplTest {
     public void shouldFindAssessmentWindows() {
         AssessmentWindow window = new AssessmentWindow.Builder().build();
         URI url = UriComponentsBuilder
-            .fromHttpUrl(String.format("%s/%s/%s/%s/windows/student/%d",
+            .fromHttpUrl(String.format("%s/%s/%s/%s/windows",
                 BASE_URL,
                 "SBAC_PT",
                 ASSESSMENT_APP_CONTEXT,
@@ -102,6 +102,7 @@ public class AssessmentServiceImplTest {
             .queryParam("shiftWindowEnd", 2)
             .queryParam("shiftFormStart", 10)
             .queryParam("shiftFormEnd", 11)
+            .queryParam("guestStudent", true)
             .build()
             .toUri();
 
@@ -118,7 +119,7 @@ public class AssessmentServiceImplTest {
         }))
             .thenReturn(entity);
 
-        List<AssessmentWindow> windows = assessmentService.findAssessmentWindows("SBAC_PT", "ELA 11", 23, config);
+        List<AssessmentWindow> windows = assessmentService.findAssessmentWindows("SBAC_PT", "ELA 11", true, config);
 
         assertThat(windows).containsExactly(window);
     }

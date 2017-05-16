@@ -66,21 +66,21 @@ class AssessmentServiceImpl implements AssessmentService {
     @Cacheable(CacheType.LONG_TERM)
     public List<AssessmentWindow> findAssessmentWindows(final String clientName,
                                                         final String assessmentId,
-                                                        final long studentId,
+                                                        final boolean guestStudent,
                                                         final ExternalSessionConfiguration configuration) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
-                .fromHttpUrl(String.format("%s/%s/%s/%s/windows/student/%d",
+                .fromHttpUrl(String.format("%s/%s/%s/%s/windows",
                     examServiceProperties.getAssessmentUrl(),
                     clientName,
                     ASSESSMENT_APP_CONTEXT,
-                    assessmentId,
-                    studentId));
+                    assessmentId));
 
         builder.queryParam("shiftWindowStart", configuration.getShiftWindowStart());
         builder.queryParam("shiftWindowEnd", configuration.getShiftWindowEnd());
         builder.queryParam("shiftFormStart", configuration.getShiftFormStart());
         builder.queryParam("shiftFormEnd", configuration.getShiftFormEnd());
+        builder.queryParam("guestStudent", guestStudent);
 
         ResponseEntity<List<AssessmentWindow>> responseEntity = restTemplate.exchange(builder.build().toUri(),
             HttpMethod.GET, null, new ParameterizedTypeReference<List<AssessmentWindow>>() {
