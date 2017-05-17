@@ -75,7 +75,7 @@ public class HistoryQueryRepositoryImpl implements HistoryQueryRepository {
             .addValue("studentId", studentId)
             .addValue("assessmentId", assessmentId);
 
-        final String SQL = "SELECT e.id, item.item_type FROM exam_item\n" +
+        final String SQL = "SELECT e.id as examId, item.group_id as groupId FROM exam_item\n" +
             "JOIN exam e\n" +
             "JOIN ( \n" +
             "  SELECT\n" +
@@ -133,7 +133,12 @@ public class HistoryQueryRepositoryImpl implements HistoryQueryRepository {
                     itemGroups = new HashSet<>();
                 }
 
-                itemGroups.add(resultSet.getString("itemGroup"));
+                itemGroups.add(resultSet.getString("groupId"));
+            }
+
+            //Add the last item group history
+            if(!itemGroups.isEmpty()) {
+                itemGroupHistories.add(new ItemGroupHistory(examId, itemGroups));
             }
 
             return itemGroupHistories;

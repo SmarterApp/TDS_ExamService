@@ -10,9 +10,21 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
+import tds.exam.Exam;
+import tds.exam.ExamItem;
+import tds.exam.ExamPage;
+import tds.exam.ExamSegment;
+import tds.exam.builder.ExamBuilder;
+import tds.exam.builder.ExamItemBuilder;
+import tds.exam.builder.ExamPageBuilder;
+import tds.exam.builder.ExamSegmentBuilder;
+import tds.exam.models.ItemGroupHistory;
 import tds.exam.repositories.ExamCommandRepository;
 import tds.exam.repositories.ExamItemCommandRepository;
 import tds.exam.repositories.ExamPageCommandRepository;
@@ -99,5 +111,44 @@ public class HistoryQueryRepositoryImplIntegrationTests {
         assertThat(maxAbility).isNotPresent();
     }
 
+    @Test
+    public void shouldFindItemGroupHistories() {
+        UUID examId = UUID.randomUUID();
+        Exam exam = new ExamBuilder()
+            .withId(examId)
+            .withStudentId(1)
+            .withAssessmentId("assessmentId")
+            .build();
 
+        examCommandRepository.insert(exam);
+
+        ExamSegment examSegment = new ExamSegmentBuilder()
+            .withExamId(examId)
+            .withSegmentKey("segmentKey")
+            .withSegmentPosition(1)
+            .build();
+
+        examSegmentCommandRepository.insert(Collections.singletonList(examSegment));
+
+        ExamPage examPage = new ExamPageBuilder()
+            .withId(UUID.randomUUID())
+            .withSegmentKey("segmentKey")
+            .withPagePosition(1)
+            .withExamId(examId)
+            .build();
+
+        examPageCommandRepository.insert(examPage);
+
+        ExamItem examItem = new ExamItemBuilder()
+            .withId(UUID.randomUUID())
+            .withExamPageId(examPage.getId())
+            .withGroupId("groupId")
+            .build();
+
+        examItemCommandRepository.insert(examItem);
+
+        List<ItemGroupHistory> histories = historyQueryRepository.findPreviousItemGroups(1, UUID.randomUUID(), "assessmentId");
+
+        assertThat(histories).hasSize(1);
+    }
 }
