@@ -366,7 +366,9 @@ public class ItemScoringServiceImpl implements ItemScoringService {
                     machineRubric.setData(rubricService.findOne(machineRubric.getData()));
                 } catch (final IOException e) {
                     LOG.error("Failed to load scoring rubric for item: {}", itemID, e);
-                    throw new ReturnStatusException(e);
+                    final ScoreRationale scoreRationale = new ScoreRationale();
+                    scoreRationale.setMsg("Exception loading rubric for item " + itemID);
+                    return new ItemScore (-1, -1, ScoringStatus.ScoringError, null, scoreRationale, null);
                 }
             }
         }
