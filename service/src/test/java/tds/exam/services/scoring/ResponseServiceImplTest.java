@@ -6,13 +6,14 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import java.util.Optional;
-import java.util.UUID;
-
 import tds.exam.Exam;
+import tds.exam.ExamItem;
+import tds.exam.ExamItemResponse;
+import tds.exam.ExamItemResponseScore;
+import tds.exam.ExamPage;
 import tds.exam.ExamScoringStatus;
 import tds.exam.ExamStatusCode;
 import tds.exam.builder.ExamBuilder;
@@ -26,8 +27,14 @@ import tds.score.services.ResponseService;
 import tds.student.sql.data.IItemResponseUpdate;
 import tds.student.sql.data.ItemResponseUpdate;
 
+import java.util.Optional;
+import java.util.UUID;
+
 import static io.github.benas.randombeans.api.EnhancedRandom.random;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static tds.exam.services.scoring.ResponseServiceImpl.VALID_EXAM_STATUS_CODES;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ResponseServiceImplTest {
@@ -79,5 +86,58 @@ public class ResponseServiceImplTest {
         IItemResponseUpdate update = random(ItemResponseUpdate.class);
         when(mockExamService.findExam(exam.getId())).thenReturn(Optional.of(exam));
         responseService.updateScoredResponse(examInstance, update, 1, ExamScoringStatus.SCORED.toString(), "rationale", 1, 200);
+    }
+
+    @Test
+    public void itShouldSaveAPositiveScore() throws Exception {
+        final ExamInstance examInstance = ExamInstance.create(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), "clientName");
+
+        final ItemResponseUpdate itemResponseUpdate = random(ItemResponseUpdate.class);
+        itemResponseUpdate.setDateCreated(null);
+        itemResponseUpdate.setSequence(1);
+
+        final ExamStatusCode validStatus = new ExamStatusCode(VALID_EXAM_STATUS_CODES.iterator().next());
+        final Exam exam = new Exam.Builder()
+            .fromExam(random(Exam.class))
+            .withStatus(validStatus, Instant.now())
+            .build();
+        when(mockExamService.findExam(examInstance.getExamId())).thenReturn(Optional.of(exam));
+
+        final ExamItemResponse examItemResponse = new ExamItemResponse.Builder()
+            .withScore(new ExamItemResponseScore.Builder().build())
+            .withCreatedAt(Instant.now())
+            .withExamItemId(UUID.randomUUID())
+            .withResponse("Response")
+            .withValid(true)
+            .withSequence(1)
+            .build();
+        final ExamItem examItem = new ExamItem.Builder(examItemResponse.getExamItemId())
+            .withResponse(examItemResponse)
+            .withGroupId("groupId")
+            .withCreatedAt(Instant.now())
+            .withStimulusFilePath("stimulus")
+            .withAssessmentItemBankKey(123)
+            .withAssessmentItemKey(456)
+            .withStimulusFilePath("stimulus")
+            .withItemFilePath("item")
+            .withExamPageId(UUID.randomUUID())
+            .withItemKey(itemResponseUpdate.getItemID())
+            .withItemType("itemType")
+            .withPosition(1)
+            .build();
+        when(mockExamItemQueryRepository.findExamItemAndResponse(examInstance.getExamId(), itemResponseUpdate.getPosition()))
+            .thenReturn(Optional.of(examItem));
+
+        final ExamPage examPage = random(ExamPage.class);
+        when(mockExamPageService.find(examItem.getExamPageId())).thenReturn(Optional.of(examPage));
+
+        responseService.updateScoredResponse(examInstance, itemResponseUpdate,
+            1, "Scored", "scoreRationale", 123L, 456L);
+
+        final ArgumentCaptor<ExamItemResponse> responseCaptor = ArgumentCaptor.forClass(ExamItemResponse.class);
+        verify(mockExamItemCommandRepository).insertResponses(responseCaptor.capture());
+
+        final ExamItemResponse persisted = responseCaptor.getValue();
+        assertThat(persisted.getScore().get().getScore()).isEqualTo(1);
     }
 }

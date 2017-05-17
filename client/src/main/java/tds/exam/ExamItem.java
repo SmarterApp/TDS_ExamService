@@ -70,6 +70,11 @@ public class ExamItem {
             this.id = checkNotNull(id);
         }
 
+        public Builder withId(final UUID id) {
+            this.id = id;
+            return this;
+        }
+
         public Builder withExamPageId(final UUID examPageId) {
             this.examPageId = checkNotNull(examPageId);
             return this;
@@ -137,6 +142,24 @@ public class ExamItem {
         public Builder withGroupId(final String groupId){
             this.groupId = checkNotNull(groupId);
             return this;
+        }
+
+        public static Builder fromExamItem(final ExamItem examItem) {
+            return new Builder(examItem.getId())
+                .withId(examItem.getId())
+                .withExamPageId(examItem.getExamPageId())
+                .withItemKey(examItem.getItemKey())
+                .withAssessmentItemBankKey(examItem.getAssessmentItemBankKey())
+                .withAssessmentItemKey(examItem.getAssessmentItemKey())
+                .withItemType(examItem.getItemType())
+                .withPosition(examItem.getPosition())
+                .withRequired(examItem.isRequired())
+                .withFieldTest(examItem.isFieldTest())
+                .withResponse(examItem.getResponse().orNull())
+                .withItemFilePath(examItem.getItemFilePath())
+                .withStimulusFilePath(examItem.getStimulusFilePath().orNull())
+                .withCreatedAt(examItem.getCreatedAt())
+                .withGroupId(examItem.getGroupId());
         }
 
         public ExamItem build() {
