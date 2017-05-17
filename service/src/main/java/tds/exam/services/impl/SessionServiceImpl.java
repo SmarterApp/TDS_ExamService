@@ -1,7 +1,6 @@
 package tds.exam.services.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -10,19 +9,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
-import tds.common.cache.CacheType;
 import tds.exam.configuration.ExamServiceProperties;
 import tds.exam.services.SessionService;
 import tds.session.ExternalSessionConfiguration;
 import tds.session.PauseSessionResponse;
 import tds.session.Session;
 import tds.session.SessionAssessment;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import static tds.exam.configuration.SupportApplicationConfiguration.SESSION_APP_CONTEXT;
 
@@ -38,7 +35,6 @@ class SessionServiceImpl implements SessionService {
     }
 
     @Override
-    @Cacheable(CacheType.SHORT_TERM)
     public Optional<Session> findSessionById(final UUID sessionId) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
@@ -61,7 +57,6 @@ class SessionServiceImpl implements SessionService {
     }
 
     @Override
-    @Cacheable(CacheType.LONG_TERM)
     public Optional<ExternalSessionConfiguration> findExternalSessionConfigurationByClientName(final String clientName) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
@@ -106,7 +101,6 @@ class SessionServiceImpl implements SessionService {
     }
 
     @Override
-    @Cacheable(CacheType.LONG_TERM)
     public Optional<SessionAssessment> findSessionAssessment(UUID sessionId, String assessmentKey) {
         UriComponentsBuilder builder =
             UriComponentsBuilder.fromHttpUrl(String.format("%s/%s/%s/assessment/%s",
@@ -130,7 +124,6 @@ class SessionServiceImpl implements SessionService {
     }
 
     @Override
-    @Cacheable(CacheType.SHORT_TERM)
     public List<SessionAssessment> findSessionAssessments(UUID sessionId) {
         UriComponentsBuilder builder =
             UriComponentsBuilder.fromHttpUrl(String.format("%s/%s/%s/assessment",
@@ -148,7 +141,6 @@ class SessionServiceImpl implements SessionService {
     }
 
     @Override
-    @Cacheable(CacheType.SHORT_TERM)
     public List<Session> findSessionsByIds(final List<UUID> sessionIds) {
         if (sessionIds.isEmpty()) {
             return new ArrayList<>();
