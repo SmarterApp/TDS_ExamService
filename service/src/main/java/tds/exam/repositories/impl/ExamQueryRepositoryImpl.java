@@ -96,12 +96,13 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "FROM exam.exam e\n" +
                 "JOIN ( \n" +
                 "   SELECT \n" +
-                "       exam_id, \n" +
-                "       MAX(id) AS id \n" +
+                "       id, \n" +
+                "       exam_id \n" +
                 "   FROM \n" +
                 "       exam.exam_event \n" +
                 "   WHERE exam_id = :examId\n" +
-                "   GROUP BY exam_id \n" +
+                "   ORDER BY id DESC \n" +
+                "   LIMIT 1 \n" +
                 ") last_event \n" +
                 "  ON e.id = last_event.exam_id \n" +
                 "JOIN exam.exam_event ee \n" +

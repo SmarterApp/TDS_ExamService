@@ -1,13 +1,13 @@
 spring:
   ds_queries:
-    jdbcUrl: ${sbac.jdbc.host}/exam
-    username: ${sbac.jdbc.user}
-    password: ${sbac.jdbc.password}
+    jdbcUrl: jdbc:mysql://tds-exam-performance-tuning.cugsexobhx8t.us-west-2.rds.amazonaws.com:3306/exam # ${sbac.jdbc.host}/exam
+    username: root # ${sbac.jdbc.user}
+    password: password123 # ${sbac.jdbc.password}
     driver-class-name: 'com.mysql.jdbc.Driver'
   ds_commands:
-    jdbcUrl: ${sbac.jdbc.host}/exam
-    username: ${sbac.jdbc.user}
-    password: ${sbac.jdbc.password}
+    jdbcUrl: jdbc:mysql://tds-exam-performance-tuning.cugsexobhx8t.us-west-2.rds.amazonaws.com:3306/exam # ${sbac.jdbc.host}/exam
+    username: root # ${sbac.jdbc.user}
+    password: password123 # ${sbac.jdbc.password}
     driver-class-name: 'com.mysql.jdbc.Driver'
   cloud:
     bus:
