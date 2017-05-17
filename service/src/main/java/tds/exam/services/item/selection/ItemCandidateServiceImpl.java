@@ -4,6 +4,17 @@ import TDS.Shared.Exceptions.ReturnStatusException;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
 import tds.assessment.Assessment;
 import tds.assessment.Form;
 import tds.assessment.Segment;
@@ -18,6 +29,7 @@ import tds.exam.ExpandableExam;
 import tds.exam.ExpandableExamAttributes;
 import tds.exam.models.FieldTestItemGroup;
 import tds.exam.services.AssessmentService;
+import tds.exam.services.ExamHistoryService;
 import tds.exam.services.ExamSegmentService;
 import tds.exam.services.ExpandableExamService;
 import tds.exam.services.FieldTestService;
@@ -30,22 +42,13 @@ import tds.itemselection.loader.StudentHistory2013;
 import tds.itemselection.model.OffGradeResponse;
 import tds.itemselection.services.ItemCandidatesService;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
 @Service
 public class ItemCandidateServiceImpl implements ItemCandidatesService {
     private final ExpandableExamService expandableExamService;
     private final FieldTestService fieldTestService;
     private final ExamSegmentService examSegmentService;
     private final AssessmentService assessmentService;
+    private final ExamHistoryService examHistoryService;
 
     private final static String ADAPTIVE = "adaptive";
     private final static String FIELD_TEST = "fieldtest";
@@ -54,11 +57,13 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
     public ItemCandidateServiceImpl(final ExpandableExamService expandableExamService,
                                     final FieldTestService fieldTestService,
                                     final ExamSegmentService examSegmentService,
-                                    final AssessmentService assessmentService) {
+                                    final AssessmentService assessmentService,
+                                    final ExamHistoryService examHistoryService) {
         this.expandableExamService = expandableExamService;
         this.fieldTestService = fieldTestService;
         this.examSegmentService = examSegmentService;
         this.assessmentService = assessmentService;
+        this.examHistoryService = examHistoryService;
     }
 
     @Override
@@ -248,6 +253,13 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
         history.set_previousResponses(itemResponses);
 
         return history;
+    }
+
+    /**
+     * Legacy implementation conversion.  The legacy objects use implementation classes rather than interfaces
+     */
+    private ArrayList<HashSet<String>> getPreviousItemGroups(final UUID examId, final long studentId, final String assessmentId) {
+
     }
 
     @Override
