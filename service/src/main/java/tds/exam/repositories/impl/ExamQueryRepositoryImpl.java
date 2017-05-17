@@ -146,42 +146,36 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
         final SqlParameterSource parameters = new MapSqlParameterSource(queryParameters);
 
         String query =
-            "SELECT " +
+            "SELECT \n" +
                 EXAM_QUERY_COLUMN_LIST +
-                "FROM exam.exam e\n" +
-                "JOIN ( \n" +
-                "   SELECT \n" +
-                "       exam_id, \n" +
-                "       MAX(id) AS id \n" +
-                "   FROM \n" +
-                "       exam.exam_event \n" +
-                "   WHERE deleted_at IS NULL \n" +
-                "   GROUP BY exam_id \n" +
-                ") last_event \n" +
-                "  ON e.id = last_event.exam_id \n" +
-                "JOIN exam.exam_event ee \n" +
-                "  ON last_event.exam_id = ee.exam_id AND \n" +
-                "     last_event.id = ee.id \n" +
-                "JOIN exam.exam_status_codes esc \n" +
-                "  ON esc.status = ee.status \n" +
-                "LEFT JOIN exam.exam_accommodation lang \n" +
-                "  ON lang.exam_id = e.id \n" +
-                "  AND lang.created_at = \n" +
-                "  ( \n" +
+                "FROM \n" +
+                "   exam.exam e \n" +
+                "JOIN \n" +
+                "   exam.exam_event ee \n" +
+                "   ON ee.exam_id = e.id \n" +
+                "   AND ee.deleted_at IS NULL \n" +
+                "JOIN \n" +
+                "   exam.exam_status_codes esc \n" +
+                "   ON esc.status = ee.status \n" +
+                "LEFT JOIN \n" +
+                "   exam.exam_accommodation lang \n" +
+                "   ON lang.exam_id = e.id \n" +
+                "   AND lang.type = 'Language' \n" +
+                "   AND lang.created_at = ( \n" +
                 "       SELECT \n" +
                 "           MAX(eacc.created_at) \n" +
                 "       FROM \n" +
-                "          exam.exam_accommodation eacc \n" +
-                "          WHERE \n" +
-                "          eacc.exam_id = e.id \n" +
-                "          AND eacc.type = 'Language'\n" +
-                "  ) \n" +
+                "           exam.exam_accommodation eacc \n" +
+                "       WHERE \n" +
+                "           eacc.exam_id = e.id \n" +
+                "           AND eacc.type = 'Language') \n" +
                 "WHERE \n" +
                 "   e.student_id = :studentId \n" +
                 "   AND e.assessment_id = :assessmentId \n" +
                 "   AND e.client_name = :clientName \n" +
-                "   AND lang.type = 'Language'" +
+                "   AND lang.type = 'Language' \n" +
                 "ORDER BY \n" +
+                "   ee.id DESC, \n" +
                 "   e.created_at DESC \n" +
                 "LIMIT 1";
 
