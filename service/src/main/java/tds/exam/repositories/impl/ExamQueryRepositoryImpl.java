@@ -251,7 +251,9 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
         Optional<Instant> maybeLastStudentActivityTime;
         try {
             Timestamp lastPausedTime = jdbcTemplate.queryForObject(SQL, parameters, Timestamp.class);
-            maybeLastStudentActivityTime = Optional.of(new Instant(lastPausedTime.getTime()));
+            maybeLastStudentActivityTime = (lastPausedTime != null)
+                ? Optional.of(new Instant(lastPausedTime.getTime()))
+                : Optional.empty();
         } catch (EmptyResultDataAccessException e) {
             maybeLastStudentActivityTime = Optional.empty();
         }
