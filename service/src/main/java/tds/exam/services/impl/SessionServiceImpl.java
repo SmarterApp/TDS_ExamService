@@ -1,6 +1,7 @@
 package tds.exam.services.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import tds.common.cache.CacheType;
 import tds.exam.configuration.ExamServiceProperties;
 import tds.exam.services.SessionService;
 import tds.session.ExternalSessionConfiguration;
@@ -57,6 +59,7 @@ class SessionServiceImpl implements SessionService {
     }
 
     @Override
+    @Cacheable(CacheType.LONG_TERM)
     public Optional<ExternalSessionConfiguration> findExternalSessionConfigurationByClientName(final String clientName) {
         UriComponentsBuilder builder =
             UriComponentsBuilder
