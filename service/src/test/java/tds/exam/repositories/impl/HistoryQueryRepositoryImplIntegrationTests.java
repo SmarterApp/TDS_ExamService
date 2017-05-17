@@ -13,6 +13,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
 import java.util.Optional;
 
+import tds.exam.repositories.ExamCommandRepository;
+import tds.exam.repositories.ExamItemCommandRepository;
+import tds.exam.repositories.ExamPageCommandRepository;
+import tds.exam.repositories.ExamSegmentCommandRepository;
 import tds.exam.repositories.HistoryQueryRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,6 +31,18 @@ public class HistoryQueryRepositoryImplIntegrationTests {
     private HistoryQueryRepository historyQueryRepository;
 
     @Autowired
+    private ExamCommandRepository examCommandRepository;
+
+    @Autowired
+    private ExamSegmentCommandRepository examSegmentCommandRepository;
+
+    @Autowired
+    private ExamPageCommandRepository examPageCommandRepository;
+
+    @Autowired
+    private ExamItemCommandRepository examItemCommandRepository;
+
+    @Autowired
     @Qualifier("commandJdbcTemplate")
     private NamedParameterJdbcTemplate jdbcTemplate;
 
@@ -37,7 +53,6 @@ public class HistoryQueryRepositoryImplIntegrationTests {
     @Before
     public void initialize() {
         historyQueryRepository = new HistoryQueryRepositoryImpl(jdbcTemplate);
-
 
         final String SQL1 =
                 "INSERT INTO history (id, client_name, student_id, subject, initial_ability, attempts, segment_id, " +
@@ -83,4 +98,6 @@ public class HistoryQueryRepositoryImplIntegrationTests {
         Optional<Double> maxAbility = historyQueryRepository.findAbilityFromHistoryForSubjectAndStudent("CLIENT_TEST", "MATH", STUDENT_ID1);
         assertThat(maxAbility).isNotPresent();
     }
+
+
 }
