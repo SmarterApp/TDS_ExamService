@@ -93,14 +93,14 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
         String querySQL =
             "SELECT \n" +
                 EXAM_QUERY_COLUMN_LIST +
-                "FROM exam.exam e\n" +
+                "FROM exam.exam e \n" +
                 "JOIN ( \n" +
                 "   SELECT \n" +
                 "       id, \n" +
                 "       exam_id \n" +
                 "   FROM \n" +
                 "       exam.exam_event \n" +
-                "   WHERE exam_id = :examId\n" +
+                "   WHERE exam_id = :examId \n" +
                 "   ORDER BY id DESC \n" +
                 "   LIMIT 1 \n" +
                 ") last_event \n" +
@@ -112,16 +112,14 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "  ON esc.status = ee.status \n" +
                 "LEFT JOIN exam.exam_accommodation lang \n" +
                 "  ON lang.exam_id = e.id \n" +
-                "  AND lang.created_at = \n" +
-                "  ( \n" +
+                "  AND lang.id = ( \n" +
                 "       SELECT \n" +
-                "           MAX(eacc.created_at) \n" +
+                "           MAX(eacc.id) \n" +
                 "       FROM \n" +
                 "          exam.exam_accommodation eacc \n" +
                 "          WHERE \n" +
-                "          eacc.exam_id = e.id \n" +
-                "          AND eacc.type = 'Language'\n" +
-                "  ) \n" +
+                "              eacc.exam_id = e.id \n" +
+                "              AND eacc.type = 'Language') \n" +
                 "WHERE \n" +
                 "   lang.type = 'Language'";
 
@@ -161,9 +159,9 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "   exam.exam_accommodation lang \n" +
                 "   ON lang.exam_id = e.id \n" +
                 "   AND lang.type = 'Language' \n" +
-                "   AND lang.created_at = ( \n" +
+                "   AND lang.id = ( \n" +
                 "       SELECT \n" +
-                "           MAX(eacc.created_at) \n" +
+                "           MAX(eacc.id) \n" +
                 "       FROM \n" +
                 "           exam.exam_accommodation eacc \n" +
                 "       WHERE \n" +
@@ -203,8 +201,8 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "   exam_event ee \n" +
                 "   ON ee.exam_id = e.id \n" +
                 "WHERE \n" +
-                "   ee.status = 'paused' AND \n" +
-                "   e.id = :examId \n" +
+                "   ee.status = 'paused' " +
+                "   AND e.id = :examId \n" +
                 "UNION ALL \n" +
                 "SELECT \n" +
                 "   MAX(IR.created_at) AS lastStudentActivityTime \n" +
@@ -234,7 +232,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "WHERE \n" +
                 "   P.exam_id = :examId \n" +
                 "   AND PE.deleted_at IS NULL \n" +
-                "ORDER BY " +
+                "ORDER BY \n" +
                 "   lastStudentActivityTime DESC \n" +
                 "LIMIT 1";
 
@@ -275,26 +273,27 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "       MAX(id) AS id \n" +
                 "   FROM \n" +
                 "       exam.exam_event \n" +
-                "   GROUP BY exam_id \n" +
-                ") last_event \n" +
-                "  ON e.id = last_event.exam_id \n" +
+                "   WHERE \n" +
+                "       session_id = :sessionId" +
+                "   GROUP BY \n" +
+                "       exam_id \n" +
+                ")  last_event \n" +
+                "   ON e.id = last_event.exam_id \n" +
                 "JOIN exam.exam_event ee \n" +
-                "  ON last_event.exam_id = ee.exam_id AND \n" +
-                "     last_event.id = ee.id\n" +
+                "   ON last_event.exam_id = ee.exam_id \n" +
+                "   AND last_event.id = ee.id \n" +
                 "JOIN exam.exam_status_codes esc \n" +
-                "  ON esc.status = ee.status \n" +
+                "   ON esc.status = ee.status \n" +
                 "LEFT JOIN exam.exam_accommodation lang \n" +
-                "  ON lang.exam_id = e.id \n" +
-                "  AND lang.created_at = \n" +
-                "  ( \n" +
+                "   ON lang.exam_id = e.id \n" +
+                "   AND lang.id = ( \n" +
                 "       SELECT \n" +
-                "           MAX(eacc.created_at) \n" +
+                "           MAX(eacc.id) \n" +
                 "       FROM \n" +
                 "          exam.exam_accommodation eacc \n" +
-                "          WHERE \n" +
+                "       WHERE \n" +
                 "          eacc.exam_id = e.id \n" +
-                "          AND eacc.type = 'Language'\n" +
-                "  ) \n" +
+                "          AND eacc.type = 'Language') \n" +
                 "WHERE ee.session_id = :sessionId \n" +
                 "   AND ee.status " + (inverse ? "NOT " : "") + " IN (:statuses) \n " +
                 "   AND lang.type = 'Language'";
@@ -328,8 +327,8 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 ") last_event \n" +
                 "  ON exam.id = last_event.exam_id \n" +
                 "JOIN exam.exam_event ee \n" +
-                "  ON last_event.exam_id = ee.exam_id AND \n" +
-                "     last_event.id = ee.id \n" +
+                "  ON last_event.exam_id = ee.exam_id \n" +
+                "  AND last_event.id = ee.id \n" +
                 "JOIN exam.exam_status_codes esc \n" +
                 "  ON esc.status = ee.status \n" +
                 "INNER JOIN \n" +
@@ -377,10 +376,10 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "  ON esc.status = ee.status \n" +
                 "LEFT JOIN exam.exam_accommodation lang \n" +
                 "  ON lang.exam_id = e.id \n" +
-                "  AND lang.created_at = \n" +
+                "  AND lang.id = \n" +
                 "  ( \n" +
                 "       SELECT \n" +
-                "           MAX(eacc.created_at) \n" +
+                "           MAX(eacc.id) \n" +
                 "       FROM \n" +
                 "          exam.exam_accommodation eacc \n" +
                 "          WHERE \n" +
@@ -420,10 +419,10 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "  ON esc.status = ee.status \n" +
                 "LEFT JOIN exam.exam_accommodation lang \n" +
                 "  ON lang.exam_id = e.id \n" +
-                "  AND lang.created_at = \n" +
+                "  AND lang.id = \n" +
                 "  ( \n" +
                 "       SELECT \n" +
-                "           MAX(eacc.created_at) \n" +
+                "           MAX(eacc.id) \n" +
                 "       FROM \n" +
                 "          exam.exam_accommodation eacc \n" +
                 "          WHERE \n" +
