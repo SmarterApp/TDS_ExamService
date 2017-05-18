@@ -28,6 +28,7 @@ import tds.exam.ExamSegment;
 import tds.exam.ExpandableExam;
 import tds.exam.ExpandableExamAttributes;
 import tds.exam.models.FieldTestItemGroup;
+import tds.exam.models.ItemGroupHistory;
 import tds.exam.services.AssessmentService;
 import tds.exam.services.ExamHistoryService;
 import tds.exam.services.ExamSegmentService;
@@ -211,9 +212,7 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
         history.setStartAbility(assessment.getStartAbility());
         history.set_itemPool(itemGroups);
 
-        //TODO - we need to fetch past item group selections based on responses.  However, that is really a pain to do with our
-        //current data model since you can't easily get from an exam to a item.  You always have to go through page.
-        //Revisit this in the future.  Ignoring that part in the legacy code
+        history.set_previousTestItemGroups(getPreviousItemGroups(examId, exam.getExam().getStudentId(), exam.getExam().getAssessmentId()));
 
         HashSet<String> ftFieldGroups = new HashSet<>();
         ftFieldGroups.addAll(fieldTestItemGroups);
@@ -259,7 +258,17 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
      * Legacy implementation conversion.  The legacy objects use implementation classes rather than interfaces
      */
     private ArrayList<HashSet<String>> getPreviousItemGroups(final UUID examId, final long studentId, final String assessmentId) {
+        List<ItemGroupHistory> histories = examHistoryService.findPreviousItemGroups(studentId, examId, assessmentId);
 
+        ArrayList<HashSet<String>> itemGroups = new ArrayList<>();
+
+        for(ItemGroupHistory history : histories) {
+            HashSet<String> itemGroupSet = new HashSet<>();
+            itemGroupSet.addAll(history.getItemGroupIds());
+            itemGroups.add(itemGroupSet);
+        }
+
+        return itemGroups;
     }
 
     @Override
@@ -280,8 +289,8 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
     @Override
     public OffGradeResponse addOffGradeItems(UUID examId, String designation, String segmentKey) throws ReturnStatusException {
         //AA_AddOffgradeItems_SP
-        //TODO - figure out if this is really necessary
-        return new OffGradeResponse(OffGradeResponse.SUCCESS, "");
+        //TODO - We are going to verify with SBAC if this is actually used
+        return new OffGradeResponse(OffGradeResponse.FAILED, "offgrade accommodation not exists");
     }
 
     private List<ExamSegmentWrapper> mapSegmentToItems(ExpandableExam expandableExam) {

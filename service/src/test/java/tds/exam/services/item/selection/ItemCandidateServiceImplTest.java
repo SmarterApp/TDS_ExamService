@@ -29,6 +29,7 @@ import tds.exam.builder.ItemBuilder;
 import tds.exam.builder.SegmentBuilder;
 import tds.exam.models.FieldTestItemGroup;
 import tds.exam.services.AssessmentService;
+import tds.exam.services.ExamHistoryService;
 import tds.exam.services.ExamSegmentService;
 import tds.exam.services.ExpandableExamService;
 import tds.exam.services.FieldTestService;
@@ -63,9 +64,12 @@ public class ItemCandidateServiceImplTest {
     @Mock
     private ExamSegmentService mockExamSegmentService;
 
+    @Mock
+    private ExamHistoryService mockExamHistoryService;
+
     @Before
     public void setUp() {
-        itemCandidatesService = new ItemCandidateServiceImpl(mockExpandableExamService, mockFieldTestService, mockExamSegmentService, mockAssessmentService);
+        itemCandidatesService = new ItemCandidateServiceImpl(mockExpandableExamService, mockFieldTestService, mockExamSegmentService, mockAssessmentService, mockExamHistoryService);
     }
 
     @Test
@@ -444,5 +448,10 @@ public class ItemCandidateServiceImplTest {
         assertThat(itemGroup.getGroupID()).isEqualTo("I-187-6789");
         assertThat(itemGroup.getItemCount()).isEqualTo(1);
         assertThat(itemGroup.getItems().get(0).getItemID()).isEqualTo(item2.getId());
+    }
+
+    @Test
+    public void shouldFindStudentHistory() {
+
     }
 }
