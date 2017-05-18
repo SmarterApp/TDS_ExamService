@@ -26,3 +26,8 @@ CREATE UNIQUE INDEX uix_exam_event_id_exam_id_deleted_at ON exam.exam_event(id, 
 
 ALTER TABLE exam_event
 	ADD CONSTRAINT fk_exam_event_exam_id FOREIGN KEY(exam_id) REFERENCES exam(id);
+
+-- ----------------------------------------------------------------------------
+-- exam_item_response changes
+-- ----------------------------------------------------------------------------
+CREATE INDEX ix_exam_item_response_exam_item_id_created_at ON exam.exam_item_response(exam_item_id, created_at);

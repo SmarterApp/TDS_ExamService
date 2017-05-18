@@ -196,52 +196,47 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
 
         final String SQL =
             "SELECT \n" +
-                "   MAX(lastStudentActivityTime)\n" +
-                "FROM (\n" +
-                "   SELECT \n" +
-                "       MAX(ee.changed_at) AS lastStudentActivityTime\n" +
-                "   FROM \n" +
-                "       exam e \n" +
-                "   JOIN \n" +
-                "       exam_event ee\n" +
-                "   ON \n" +
-                "       ee.exam_id = e.id\n" +
-                "   WHERE\n" +
-                "       ee.status = 'paused' AND\n" +
-                "       e.id = :examId\n" +
-                "   UNION ALL\n" +
-                "   SELECT \n" +
-                "       MAX(IR.created_at) AS lastStudentActivityTime\n" +
-                "   FROM \n" +
-                "       exam_item_response IR\n" +
-                "   JOIN\n" +
-                "       exam_item I\n" +
-                "   ON \n" +
-                "       I.id = IR.exam_item_id\n" +
-                "   JOIN \n" +
-                "       exam_page P \n" +
-                "   ON\n" +
-                "       P.id = I.exam_page_id\n" +
-                "   JOIN\n" +
-                "       exam_page_event PE\n" +
-                "   ON\n" +
-                "       P.id = PE.exam_page_id\n" +
-                "   WHERE\n" +
-                "       P.exam_id = :examId AND\n" +
-                "       PE.deleted_at IS NULL \n" +
-                "   UNION ALL\n" +
-                "   SELECT \n" +
-                "       MAX(P.created_at) AS lastStudentActivityTime\n" +
-                "   FROM \n" +
-                "       exam_page P\n" +
-                "   JOIN \n" +
-                "       exam_page_event PE\n" +
-                "   ON\n" +
-                "       P.id = PE.exam_page_id\n" +
-                "   WHERE \n" +
-                "       P.exam_id = :examId AND\n" +
-                "       PE.deleted_at IS NULL \n" +
-                ") AS lastStudentActivityTime";
+                "   MAX(ee.changed_at) AS lastStudentActivityTime \n" +
+                "FROM \n" +
+                "   exam e \n" +
+                "JOIN \n" +
+                "   exam_event ee \n" +
+                "   ON e.exam_id = e.id \n" +
+                "WHERE \n" +
+                "   ee.status = 'paused' AND \n" +
+                "   e.id = :examId \n" +
+                "UNION ALL \n" +
+                "SELECT \n" +
+                "   MAX(IR.created_at) AS lastStudentActivityTime \n" +
+                "FROM \n" +
+                "   exam_item_response IR \n" +
+                "JOIN \n " +
+                "   exam_item I \n" +
+                "   ON I.id = IR.exam_item_id \n " +
+                "JOIN \n " +
+                "   exam_page P \n" +
+                "   ON P.id = I.exam_page_id \n" +
+                "JOIN \n" +
+                "   exam_page_event PE \n" +
+                "ON \n" +
+                "   P.id = PE.exam_page_id \n" +
+                "   AND PE.deleted_at IS NULL \n" +
+                "WHERE \n" +
+                "   P.exam_id = :examId \n" +
+                "UNION ALL \n" +
+                "SELECT \n" +
+                "   MAX(P.created_at) AS lastStudentActivityTime \n" +
+                "FROM \n" +
+                "   exam_page P \n" +
+                "JOIN \n" +
+                "   exam_page_event PE \n" +
+                "   ON P.id = PE.exam_page_id \n" +
+                "WHERE \n" +
+                "   P.exam_id = :examId \n" +
+                "   AND PE.deleted_at IS NULL \n" +
+                "ORDER BY " +
+                "   lastStudentActivityTime DESC \n" +
+                "LIMIT 1";
 
         Optional<Instant> maybeLastStudentActivityTime;
         try {
