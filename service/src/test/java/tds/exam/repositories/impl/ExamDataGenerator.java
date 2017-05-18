@@ -4,6 +4,7 @@ import io.github.benas.randombeans.EnhancedRandomBuilder;
 import io.github.benas.randombeans.api.EnhancedRandom;
 import org.joda.time.Instant;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,6 +60,7 @@ public class ExamDataGenerator {
     }
 
     @Test
+    @Ignore
     public void generateSeedData() {
         final int minThingsToGenerate = 1;
         final int maxNumberOfPages = 3;

@@ -201,7 +201,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "   exam e \n" +
                 "JOIN \n" +
                 "   exam_event ee \n" +
-                "   ON e.exam_id = e.id \n" +
+                "   ON ee.exam_id = e.id \n" +
                 "WHERE \n" +
                 "   ee.status = 'paused' AND \n" +
                 "   e.id = :examId \n" +
