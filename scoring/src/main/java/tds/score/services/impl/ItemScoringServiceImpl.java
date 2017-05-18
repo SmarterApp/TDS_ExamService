@@ -366,7 +366,9 @@ public class ItemScoringServiceImpl implements ItemScoringService {
                     machineRubric.setData(rubricService.findOne(machineRubric.getData()));
                 } catch (final IOException e) {
                     LOG.error("Failed to load scoring rubric for item: {}", itemID, e);
-                    throw new ReturnStatusException(e);
+                    final ScoreRationale scoreRationale = new ScoreRationale();
+                    scoreRationale.setMsg("Exception loading rubric for item " + itemID);
+                    return new ItemScore (-1, -1, ScoringStatus.ScoringError, null, scoreRationale, null);
                 }
             }
         }
@@ -381,7 +383,7 @@ public class ItemScoringServiceImpl implements ItemScoringService {
             try {
                 return itemScorer.ScoreItem(responseInfo, null);
             } catch (final Exception ex) {
-                LOG.error("Problem scoring item: {}", itemID, ex);
+                LOG.warn("Problem scoring item: {}", itemID, ex);
                 return new ItemScore(-1, -1, ScoringStatus.ScoringError, null, new ScoreRationale() {
                     {
                         setMsg("Exception scoring item " + itemID + ": " + ex);

@@ -287,6 +287,17 @@ public class ExamQueryRepositoryImplIntegrationTests {
         assertThat(maybeLastTimeStudentResponded.get()).isGreaterThanOrEqualTo(pageCreatedAt);
     }
 
+    @Test
+    public void shouldReturnEmptyForNullLastActivity() {
+        Exam exam = new ExamBuilder()
+          .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_STARTED), Instant.now())
+          .build();
+        examCommandRepository.insert(exam);
+
+        Optional<Instant> maybeLastTimeStudentResponded = examQueryRepository.findLastStudentActivity(exam.getId());
+        assertThat(maybeLastTimeStudentResponded).isNotPresent();
+    }
+
     private void insertTestDataForResponses(Instant pageCreatedAt, Instant lastResponseSubmittedAt, Instant earlierResponseSubmittedAt, Exam exam) {
         MapSqlParameterSource testParams = new MapSqlParameterSource("examId", exam.getId().toString())
             .addValue("pageCreatedAt", new Timestamp(pageCreatedAt.getMillis()))

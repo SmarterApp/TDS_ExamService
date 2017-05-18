@@ -12,12 +12,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Date;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-
 import tds.exam.Exam;
 import tds.exam.ExamItem;
 import tds.exam.ExamItemResponse;
@@ -34,6 +28,11 @@ import tds.score.services.ResponseService;
 import tds.student.sql.data.IItemResponseScorable;
 import tds.student.sql.data.IItemResponseUpdate;
 
+import java.util.Date;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+
 import static tds.exam.ExamStatusCode.STATUS_REVIEW;
 import static tds.exam.ExamStatusCode.STATUS_SEGMENT_ENTRY;
 import static tds.exam.ExamStatusCode.STATUS_SEGMENT_EXIT;
@@ -48,7 +47,7 @@ public class ResponseServiceImpl implements ResponseService {
     private final ExamItemQueryRepository examItemQueryRepository;
     private final ExamPageService examPageService;
 
-    private static final Set<String> VALID_EXAM_STATUS_CODES = Sets.newHashSet(STATUS_STARTED, STATUS_REVIEW, STATUS_SEGMENT_ENTRY, STATUS_SEGMENT_EXIT);
+    static final Set<String> VALID_EXAM_STATUS_CODES = Sets.newHashSet(STATUS_STARTED, STATUS_REVIEW, STATUS_SEGMENT_ENTRY, STATUS_SEGMENT_EXIT);
 
     @Autowired
     public ResponseServiceImpl(final ExamService examService,
@@ -75,25 +74,21 @@ public class ResponseServiceImpl implements ResponseService {
         //Replaces the implementation in StudentDLL.T_UpdateScoredResponse_common
         //Decision was made to not worry about verify access.  This should be done prior to this call.
 
-        Optional<Exam> maybeExam = examService.findExam(examInstance.getExamId());
-        if (!maybeExam.isPresent()) {
-            throw new ReturnStatusException(String.format("Could not find exam %s associated with response", examInstance.getExamId()));
-        }
-
-        Exam exam = maybeExam.get();
+        final Exam exam = examService.findExam(examInstance.getExamId())
+            .orElseThrow(() -> new ReturnStatusException(String.format("Could not find exam %s associated with response", examInstance.getExamId())));
 
         if (!VALID_EXAM_STATUS_CODES.contains(exam.getStatus().getCode())) {
-            String message = configService.getFormattedMessage(examInstance.getClientName(), "T_UpdateScoredResponse", "Your test opportunity has been interrupted. Please check with your Test Administrator to resume your test.");
+            final String message = configService.getFormattedMessage(examInstance.getClientName(), "T_UpdateScoredResponse", "Your test opportunity has been interrupted. Please check with your Test Administrator to resume your test.");
             throw new ReturnStatusException(message);
         }
 
-        Optional<ExamItem> maybeItem = examItemQueryRepository.findExamItemAndResponse(examInstance.getExamId(), responseUpdate.getPosition());
+        final Optional<ExamItem> maybeItem = examItemQueryRepository.findExamItemAndResponse(examInstance.getExamId(), responseUpdate.getPosition());
 
         Date dt = null;
         String dateCreated = responseUpdate.getDateCreated();
         try {
             if (responseUpdate.getDateCreated() != null) {
-                String[] tokens = dateCreated.split("\\.");
+                final String[] tokens = dateCreated.split("\\.");
                 if (tokens.length == 2 && tokens[1].length() > 3) {
                     dateCreated = String.format("%s.%s", tokens[0], tokens[1].substring(0, 3));
                 }
@@ -118,70 +113,67 @@ public class ResponseServiceImpl implements ResponseService {
 
         if (StringUtils.isNotEmpty(errorMessage)) {
             LOG.warn("Problem accessing exam item: {}", errorMessage);
-            String message = configService.getFormattedMessage(examInstance.getClientName(), null, "T_UpdateScoredResponse", null);
+            final String message = configService.getFormattedMessage(examInstance.getClientName(), null, "T_UpdateScoredResponse", null);
             throw new ReturnStatusException(message);
         }
 
-        ExamItem existingExamItem = maybeItem.get();
-        ExamItemResponse.Builder updatedResponseBuilder = new ExamItemResponse.Builder()
-            .withExamItemId(existingExamItem.getId())
-            .withResponse(responseUpdate.getValue());
+        final ExamItem existingExamItem = maybeItem.get();
+        final ExamItemResponse.Builder updatedResponseBuilder;
 
         if (existingExamItem.getResponse().isPresent()) {
             updatedResponseBuilder = ExamItemResponse.Builder
                 .fromExamItemResponse(existingExamItem.getResponse().get());
+        } else {
+            updatedResponseBuilder = new ExamItemResponse.Builder()
+                .withExamItemId(existingExamItem.getId())
+                .withResponse(responseUpdate.getValue());
+        }
+        updatedResponseBuilder
+            .withSelected(responseUpdate.getIsSelected())
+            .withValid(responseUpdate.getIsValid())
+            .withSequence(responseUpdate.getSequence());
+
+        final ExamItemResponseScore.Builder updatedScoreBuilder = new ExamItemResponseScore.Builder();
+
+        if (responseUpdate.getValue() == null) {
+            updatedResponseBuilder.withScore(updatedScoreBuilder.build());
+            examItemCommandRepository.insertResponses(updatedResponseBuilder.build());
+            return new ReturnStatus("updated");
         }
 
-        ExamItemResponseScore.Builder updatedScoreBuilder = new ExamItemResponseScore.Builder();
         final Instant now = Instant.now();
-        if (responseUpdate.getValue() != null || DbComparator.lessThan(score, 0)) {
+        if (DbComparator.lessThan(score, 0)) {
             // new response, score to be determined
             updatedScoreBuilder.withScore(-1); // not scored
             updatedScoreBuilder.withScoreMark(UUID.randomUUID()); // app will need this token to update the
             // record with the score for THIS response
             // once it is determined asynchronously
             updatedScoreBuilder.withScoreSentAt(now); // start the scoring clock running
-        } else if (responseUpdate.getValue() != null && DbComparator.greaterOrEqual(scoreLatency, 0)) {
-            {
-//                updatedScoreBuilder.withScoreMark(null); // any previous scoremark is now obsolete
-                updatedScoreBuilder.withScore(score); // use the provided score
-
-                updatedScoreBuilder.withScoreSentAt(now); // 'instantaneous' time lag - TODO - check if we should do this
-                updatedScoreBuilder.withScoredAt(now);
-            }
+        } else if (DbComparator.greaterOrEqual(scoreLatency, 0)) {
+            updatedScoreBuilder.withScoreMark(null); // any previous scoremark is now obsolete
+            updatedScoreBuilder.withScore(score); // use the provided score
+            updatedScoreBuilder.withScoreSentAt(now); // 'instantaneous' time lag - TODO - check if we should do this
+            updatedScoreBuilder.withScoredAt(now);
         }
 
-        if (responseUpdate.getValue() != null) {
-            updatedResponseBuilder.withResponse(
-                StringUtils.replace(responseUpdate.getValue(), "\\", "\\\\"));
-            updatedScoreBuilder.withScoreLatency(scoreLatency);
-            updatedScoreBuilder.withScoringStatus(scoreStatus == null ? null : ExamScoringStatus.fromType(scoreStatus));
-            updatedScoreBuilder.withScoringRationale(scoreRationale);
-            updatedScoreBuilder.withScoringDimensions(buildScoreInfoNode(score, "overall", scoreStatus));
-        }
+        updatedScoreBuilder.withScoreLatency(scoreLatency)
+            .withScoringStatus(scoreStatus == null ? null : ExamScoringStatus.fromType(scoreStatus))
+            .withScoringRationale(scoreRationale)
+            .withScoringDimensions(buildScoreInfoNode(score, "overall", scoreStatus));
+        updatedResponseBuilder
+            .withResponse(StringUtils.replace(responseUpdate.getValue(), "\\", "\\\\"))
+            .withScore(updatedScoreBuilder.build());
 
-        updatedResponseBuilder.withSelected(responseUpdate.getIsSelected());
-        updatedResponseBuilder.withValid(responseUpdate.getIsValid());
-        updatedResponseBuilder.withSequence(responseUpdate.getSequence());
+        examItemCommandRepository.insertResponses(updatedResponseBuilder.build());
 
-        ExamItemResponse response = updatedResponseBuilder.withScore(updatedScoreBuilder.build()).build();
-        examItemCommandRepository.insertResponses(response);
+        final ExamPage examPage = examPageService.find(existingExamItem.getExamPageId())
+            .orElseThrow(() -> new ReturnStatusException("Exam page is no longer present for the updated item"));
 
-        if (responseUpdate.getValue() != null) {
-            Optional<ExamPage> maybeExamPage = examPageService.find(existingExamItem.getExamPageId());
+        final ExamPage updatedExamPage = ExamPage.Builder.fromExamPage(examPage)
+            .withDuration(pageDuration)
+            .build();
 
-            //Something is misconfigured if this is ever true
-            if (!maybeExamPage.isPresent()) {
-                throw new ReturnStatusException("Exam page is no longer present for the updated item");
-            }
-
-            ExamPage examPage = ExamPage.Builder.fromExamPage(maybeExamPage.get())
-                .withDuration(pageDuration)
-                .build();
-
-            examPageService.update(examPage);
-        }
-
+        examPageService.update(updatedExamPage);
         return new ReturnStatus("updated");
     }
 
