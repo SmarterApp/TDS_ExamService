@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import tds.accommodation.Accommodation;
 import tds.exam.Exam;
@@ -239,7 +240,7 @@ public class ExamQueryRepositoryImplIntegrationTests {
             .addValue("examId", exam.getId().toString())
             .addValue("type", Accommodation.ACCOMMODATION_TYPE_LANGUAGE)
             .addValue("code", "ESN")
-            .addValue("createdAt", mapJodaInstantToTimestamp(Instant.now()));
+            .addValue("createdAt", mapJodaInstantToTimestamp(Instant.now().minus(20000)));
 
         jdbcTemplate.update(SQL, parameters);
 
