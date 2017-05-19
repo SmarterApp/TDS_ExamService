@@ -203,9 +203,7 @@ public class ExamPage {
     }
 
     /**
-     * The restart number of the exam when the exam page was created
-     *
-     * @return
+     * @return The restart number of the exam when the exam page was created
      */
     public int getExamRestartsAndResumptions() {
         return examRestartsAndResumptions;
