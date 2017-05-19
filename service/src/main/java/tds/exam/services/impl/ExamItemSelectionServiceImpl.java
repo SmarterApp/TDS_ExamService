@@ -94,6 +94,7 @@ public class ExamItemSelectionServiceImpl implements ExamItemSelectionService {
             .withItemGroupKey(itemGroup.getGroupID())
             .withGroupItemsRequired(itemGroup.getNumRequired())
             .withSegmentKey(itemGroup.getSegmentKey())
+            .withExamRestartsAndResumptions(exam.getRestartsAndResumptions())
             .build();
 
         int examItemPosition = lastPosition;
