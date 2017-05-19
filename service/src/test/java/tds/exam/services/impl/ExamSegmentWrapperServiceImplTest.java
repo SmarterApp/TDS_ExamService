@@ -60,21 +60,24 @@ public class ExamSegmentWrapperServiceImplTest {
             .withSegmentKey("segmentKey")
             .withPagePosition(1)
             .build(),
-            Collections.emptyList());
+            Collections.emptyList(),
+            true);
 
         ExamPageWrapper examPageWrapper2 = new ExamPageWrapper(new ExamPageBuilder()
             .withExamId(examId)
             .withSegmentKey("segmentKey")
             .withPagePosition(2)
             .build(),
-            Collections.emptyList());
+            Collections.emptyList(),
+            true);
 
         ExamPageWrapper examPageWrapper3 = new ExamPageWrapper(new ExamPageBuilder()
             .withExamId(examId)
             .withSegmentKey("segmentKey2")
             .withPagePosition(3)
             .build(),
-            Collections.emptyList());
+            Collections.emptyList(),
+            true);
 
 
         when(mockExamSegmentService.findExamSegments(examId)).thenReturn(Arrays.asList(examSegment, examSegment2));
@@ -117,7 +120,8 @@ public class ExamSegmentWrapperServiceImplTest {
             .withSegmentKey("segmentKey")
             .withPagePosition(1)
             .build(),
-            Collections.emptyList());
+            Collections.emptyList(),
+            true);
 
         when(mockExamSegmentService.findByExamIdAndSegmentPosition(examId, 1)).thenReturn(Optional.of(examSegment));
         when(mockExamPageWrapperService.findPagesForExamSegment(examId, examSegment.getSegmentKey())).thenReturn(Collections.singletonList(examPageWrapper));
@@ -172,7 +176,7 @@ public class ExamSegmentWrapperServiceImplTest {
     @Test
     public void shouldReturnExamSegmentWrapperByExamIdAndPageNumber() {
         UUID examId = UUID.randomUUID();
-        ExamPageWrapper examPageWrapper = new ExamPageWrapper(new ExamPageBuilder().withSegmentKey("segmentKey").build(), Collections.emptyList());
+        ExamPageWrapper examPageWrapper = new ExamPageWrapper(new ExamPageBuilder().withSegmentKey("segmentKey").build(), Collections.emptyList(), true);
         ExamSegment examSegment = new ExamSegmentBuilder().withSegmentKey("segmentKey").build();
 
         when(mockExamPageWrapperService.findPageWithItems(examId, 2)).thenReturn(Optional.of(examPageWrapper));
@@ -196,7 +200,7 @@ public class ExamSegmentWrapperServiceImplTest {
     @Test(expected = IllegalStateException.class)
     public void shouldThrowWhenExamSegmentCannotBeFoundForExamPage() {
         UUID examId = UUID.randomUUID();
-        ExamPageWrapper examPageWrapper = new ExamPageWrapper(new ExamPageBuilder().withSegmentKey("segmentKey").build(), Collections.emptyList());
+        ExamPageWrapper examPageWrapper = new ExamPageWrapper(new ExamPageBuilder().withSegmentKey("segmentKey").build(), Collections.emptyList(), true);
         ExamSegment examSegment = new ExamSegmentBuilder().withSegmentKey("bogusKey").build();
 
         when(mockExamPageWrapperService.findPageWithItems(examId, 2)).thenReturn(Optional.of(examPageWrapper));

@@ -21,6 +21,7 @@ public class ExamPage {
     private Instant deletedAt;
     private Instant startedAt;
     private long duration;
+    private int examRestartsAndResumptions;
 
     /**
      * Private constructor for frameworks
@@ -38,6 +39,8 @@ public class ExamPage {
         createdAt = builder.createdAt;
         deletedAt = builder.deletedAt;
         startedAt = builder.startedAt;
+        duration = builder.duration;
+        examRestartsAndResumptions = builder.examRestartsAndResumptions;
     }
 
     public static final class Builder {
@@ -51,6 +54,7 @@ public class ExamPage {
         private Instant deletedAt;
         private Instant startedAt;
         private long duration;
+        private int examRestartsAndResumptions;
 
         public Builder withPagePosition(int pagePosition) {
             this.pagePosition = pagePosition;
@@ -102,6 +106,11 @@ public class ExamPage {
             return this;
         }
 
+        public Builder withExamRestartsAndResumptions(int examRestartsAndResumptions) {
+            this.examRestartsAndResumptions = examRestartsAndResumptions;
+            return this;
+        }
+
         public ExamPage build() {
             return new ExamPage(this);
         }
@@ -117,7 +126,8 @@ public class ExamPage {
                 .withCreatedAt(examPage.getCreatedAt())
                 .withDeletedAt(examPage.getDeletedAt())
                 .withStartedAt(examPage.getStartedAt())
-                .withDuration(examPage.getDuration());
+                .withDuration(examPage.getDuration())
+                .withExamRestartsAndResumptions(examPage.getExamRestartsAndResumptions());
         }
     }
 
@@ -190,5 +200,12 @@ public class ExamPage {
      */
     public long getDuration() {
         return duration;
+    }
+
+    /**
+     * @return The restart number of the exam when the exam page was created
+     */
+    public int getExamRestartsAndResumptions() {
+        return examRestartsAndResumptions;
     }
 }

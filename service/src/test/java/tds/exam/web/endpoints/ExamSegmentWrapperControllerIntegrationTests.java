@@ -66,7 +66,7 @@ public class ExamSegmentWrapperControllerIntegrationTests {
             .withSegmentKey("segmentKey")
             .withPagePosition(1)
             .build(),
-            singletonList(examItem));
+            singletonList(examItem), true);
 
         when(mockExamSegmentWrapperService.findAllExamSegments(examId)).thenReturn(singletonList(new ExamSegmentWrapper(examSegment, singletonList(examPageWrapper))));
 
@@ -110,14 +110,14 @@ public class ExamSegmentWrapperControllerIntegrationTests {
             .withSegmentKey("segmentKey")
             .withPagePosition(1)
             .build(),
-            singletonList(examItem));
+            singletonList(examItem), true);
 
         ExamPageWrapper examPageWrapper2 = new ExamPageWrapper(new ExamPageBuilder()
             .withExamId(examId)
             .withSegmentKey("segmentKey")
             .withPagePosition(1)
             .build(),
-            singletonList(examItem));
+            singletonList(examItem), true);
 
         when(mockExamSegmentWrapperService.findExamSegment(examId, 1)).thenReturn(Optional.of(new ExamSegmentWrapper(examSegment, Arrays.asList(examPageWrapper, examPageWrapper2))));
 
@@ -156,7 +156,7 @@ public class ExamSegmentWrapperControllerIntegrationTests {
             .withSegmentKey("segmentKey")
             .withPagePosition(1)
             .build(),
-            singletonList(examItem));
+            singletonList(examItem), true);
 
         when(mockExamSegmentWrapperService.findExamSegmentWithPageAtPosition(examId, 1, 2)).thenReturn(Optional.of(new ExamSegmentWrapper(examSegment, singletonList(examPageWrapper))));
 
