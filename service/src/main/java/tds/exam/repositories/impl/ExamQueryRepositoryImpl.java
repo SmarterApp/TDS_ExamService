@@ -363,28 +363,30 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 EXAM_QUERY_COLUMN_LIST +
                 "FROM exam e \n" +
                 "JOIN ( \n" +
-                "  SELECT \n" +
-                "    exam_id, \n" +
-                "    MAX(id) AS id \n" +
-                "  FROM exam_event \n" +
-                "  GROUP BY exam_id \n" +
+                "   SELECT \n" +
+                "       exam_id, \n" +
+                "       MAX(id) AS id \n" +
+                "   FROM \n" +
+                "       exam_event \n" +
+                "   WHERE \n" +
+                "       session_id = :sessionId \n" +
+                "   GROUP BY exam_id \n" +
                 ") last_event ON \n" +
                 "  last_event.exam_id = e.id \n" +
                 "JOIN exam_event ee \n" +
-                "  ON last_event.id = ee.id \n" +
+                "   ON last_event.id = ee.id \n" +
                 "JOIN exam.exam_status_codes esc \n" +
-                "  ON esc.status = ee.status \n" +
+                "   ON esc.status = ee.status \n" +
                 "LEFT JOIN exam.exam_accommodation lang \n" +
-                "  ON lang.exam_id = e.id \n" +
-                "  AND lang.id = \n" +
-                "  ( \n" +
+                "   ON lang.exam_id = e.id \n" +
+                "   AND lang.id = ( \n" +
                 "       SELECT \n" +
                 "           MAX(eacc.id) \n" +
                 "       FROM \n" +
-                "          exam.exam_accommodation eacc \n" +
-                "          WHERE \n" +
-                "          eacc.exam_id = e.id \n" +
-                "          AND eacc.type = 'Language'\n" +
+                "           exam.exam_accommodation eacc \n" +
+                "       WHERE \n" +
+                "           eacc.exam_id = e.id \n" +
+                "           AND eacc.type = 'Language' \n" +
                 "  ) \n" +
                 "WHERE \n" +
                 "  ee.session_id = :sessionId \n" +
@@ -411,24 +413,22 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "       exam.exam_event \n" +
                 "   GROUP BY exam_id \n" +
                 ") last_event \n" +
-                "  ON e.id = last_event.exam_id \n" +
+                "   ON e.id = last_event.exam_id \n" +
                 "JOIN exam.exam_event ee \n" +
-                "  ON last_event.exam_id = ee.exam_id AND \n" +
-                "     last_event.id = ee.id\n" +
+                "   ON last_event.exam_id = ee.exam_id \n" +
+                "   AND last_event.id = ee.id\n" +
                 "JOIN exam.exam_status_codes esc \n" +
-                "  ON esc.status = ee.status \n" +
+                "   ON esc.status = ee.status \n" +
                 "LEFT JOIN exam.exam_accommodation lang \n" +
-                "  ON lang.exam_id = e.id \n" +
-                "  AND lang.id = \n" +
-                "  ( \n" +
+                "   ON lang.exam_id = e.id \n" +
+                "   AND lang.id = ( \n" +
                 "       SELECT \n" +
                 "           MAX(eacc.id) \n" +
                 "       FROM \n" +
                 "          exam.exam_accommodation eacc \n" +
-                "          WHERE \n" +
+                "       WHERE \n" +
                 "          eacc.exam_id = e.id \n" +
-                "          AND eacc.type = 'Language'\n" +
-                "  ) \n" +
+                "          AND eacc.type = 'Language') \n" +
                 "WHERE e.student_id = :studentId \n" +
                 "   AND lang.type = 'Language' \n" +
                 "   AND ee.deleted_at IS NULL";
