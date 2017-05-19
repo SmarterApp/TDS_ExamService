@@ -100,7 +100,7 @@ public class ExamPageWrapperQueryRepositoryImpl implements ExamPageWrapperQueryR
         "   WHERE \n" +
         "       exam_id = :examId \n" +
         "   GROUP BY \n" +
-        "       exam_item_id DESC) most_recent_response \n" +
+        "       exam_item_id) most_recent_response \n" +
         "   ON item.id = most_recent_response.exam_item_id \n" +
         "LEFT JOIN \n" +
         "   exam_item_response response \n" +
