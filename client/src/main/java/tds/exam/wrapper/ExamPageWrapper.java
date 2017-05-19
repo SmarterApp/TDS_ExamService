@@ -38,6 +38,9 @@ public class ExamPageWrapper {
         return examItems;
     }
 
+    /**
+     * @return {@code true} if this exam page should be visible in student upon a resume, false otherwise
+     */
     public boolean isVisible() {
         return visible;
     }
