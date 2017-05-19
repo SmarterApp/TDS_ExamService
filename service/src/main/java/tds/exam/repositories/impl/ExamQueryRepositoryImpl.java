@@ -9,6 +9,13 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
+import tds.common.data.mapping.ResultSetMapperUtility;
+import tds.common.data.mysql.UuidAdapter;
+import tds.exam.Exam;
+import tds.exam.ExamStatusCode;
+import tds.exam.ExamStatusStage;
+import tds.exam.models.Ability;
+import tds.exam.repositories.ExamQueryRepository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -20,14 +27,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-
-import tds.common.data.mapping.ResultSetMapperUtility;
-import tds.common.data.mysql.UuidAdapter;
-import tds.exam.Exam;
-import tds.exam.ExamStatusCode;
-import tds.exam.ExamStatusStage;
-import tds.exam.models.Ability;
-import tds.exam.repositories.ExamQueryRepository;
 
 import static tds.common.data.mapping.ResultSetMapperUtility.mapTimestampToJodaInstant;
 import static tds.exam.ExamStatusCode.STATUS_PENDING;
@@ -114,12 +113,14 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "  ON lang.exam_id = e.id \n" +
                 "  AND lang.id = ( \n" +
                 "       SELECT \n" +
-                "           MAX(eacc.id) \n" +
+                "           id \n" +
                 "       FROM \n" +
-                "          exam.exam_accommodation eacc \n" +
-                "          WHERE \n" +
-                "              eacc.exam_id = e.id \n" +
-                "              AND eacc.type = 'Language') \n" +
+                "           exam.exam_accommodation \n" +
+                "       WHERE \n" +
+                "           exam_id = e.id \n" +
+                "           AND type = 'Language' \n" +
+                "       ORDER BY created_at DESC \n" +
+                "       LIMIT 1) \n" +
                 "WHERE \n" +
                 "   lang.type = 'Language'";
 
@@ -161,12 +162,14 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "   AND lang.type = 'Language' \n" +
                 "   AND lang.id = ( \n" +
                 "       SELECT \n" +
-                "           MAX(eacc.id) \n" +
+                "           id \n" +
                 "       FROM \n" +
-                "           exam.exam_accommodation eacc \n" +
+                "           exam.exam_accommodation \n" +
                 "       WHERE \n" +
-                "           eacc.exam_id = e.id \n" +
-                "           AND eacc.type = 'Language') \n" +
+                "           exam_id = e.id \n" +
+                "           AND type = 'Language' \n" +
+                "       ORDER BY created_at DESC \n" +
+                "       LIMIT 1) \n" +
                 "WHERE \n" +
                 "   e.student_id = :studentId \n" +
                 "   AND e.assessment_id = :assessmentId \n" +
@@ -288,12 +291,14 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "   ON lang.exam_id = e.id \n" +
                 "   AND lang.id = ( \n" +
                 "       SELECT \n" +
-                "           MAX(eacc.id) \n" +
+                "           id \n" +
                 "       FROM \n" +
-                "          exam.exam_accommodation eacc \n" +
+                "           exam.exam_accommodation \n" +
                 "       WHERE \n" +
-                "          eacc.exam_id = e.id \n" +
-                "          AND eacc.type = 'Language') \n" +
+                "           exam_id = e.id \n" +
+                "           AND type = 'Language' \n" +
+                "       ORDER BY created_at DESC \n" +
+                "       LIMIT 1) \n" +
                 "WHERE ee.session_id = :sessionId \n" +
                 "   AND ee.status " + (inverse ? "NOT " : "") + " IN (:statuses) \n " +
                 "   AND lang.type = 'Language'";
@@ -363,29 +368,32 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 EXAM_QUERY_COLUMN_LIST +
                 "FROM exam e \n" +
                 "JOIN ( \n" +
-                "  SELECT \n" +
-                "    exam_id, \n" +
-                "    MAX(id) AS id \n" +
-                "  FROM exam_event \n" +
-                "  GROUP BY exam_id \n" +
+                "   SELECT \n" +
+                "       exam_id, \n" +
+                "       MAX(id) AS id \n" +
+                "   FROM \n" +
+                "       exam_event \n" +
+                "   WHERE \n" +
+                "       session_id = :sessionId \n" +
+                "   GROUP BY exam_id \n" +
                 ") last_event ON \n" +
                 "  last_event.exam_id = e.id \n" +
                 "JOIN exam_event ee \n" +
-                "  ON last_event.id = ee.id \n" +
+                "   ON last_event.id = ee.id \n" +
                 "JOIN exam.exam_status_codes esc \n" +
-                "  ON esc.status = ee.status \n" +
+                "   ON esc.status = ee.status \n" +
                 "LEFT JOIN exam.exam_accommodation lang \n" +
-                "  ON lang.exam_id = e.id \n" +
-                "  AND lang.id = \n" +
-                "  ( \n" +
+                "   ON lang.exam_id = e.id \n" +
+                "   AND lang.id = ( \n" +
                 "       SELECT \n" +
-                "           MAX(eacc.id) \n" +
+                "           id \n" +
                 "       FROM \n" +
-                "          exam.exam_accommodation eacc \n" +
-                "          WHERE \n" +
-                "          eacc.exam_id = e.id \n" +
-                "          AND eacc.type = 'Language'\n" +
-                "  ) \n" +
+                "           exam.exam_accommodation \n" +
+                "       WHERE \n" +
+                "           exam_id = e.id \n" +
+                "           AND type = 'Language' \n" +
+                "       ORDER BY created_at DESC \n" +
+                "       LIMIT 1) \n" +
                 "WHERE \n" +
                 "  ee.session_id = :sessionId \n" +
                 "  AND ee.status IN (:statusSet) \n" +
@@ -411,24 +419,24 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "       exam.exam_event \n" +
                 "   GROUP BY exam_id \n" +
                 ") last_event \n" +
-                "  ON e.id = last_event.exam_id \n" +
+                "   ON e.id = last_event.exam_id \n" +
                 "JOIN exam.exam_event ee \n" +
-                "  ON last_event.exam_id = ee.exam_id AND \n" +
-                "     last_event.id = ee.id\n" +
+                "   ON last_event.exam_id = ee.exam_id \n" +
+                "   AND last_event.id = ee.id\n" +
                 "JOIN exam.exam_status_codes esc \n" +
-                "  ON esc.status = ee.status \n" +
+                "   ON esc.status = ee.status \n" +
                 "LEFT JOIN exam.exam_accommodation lang \n" +
-                "  ON lang.exam_id = e.id \n" +
-                "  AND lang.id = \n" +
-                "  ( \n" +
+                "   ON lang.exam_id = e.id \n" +
+                "   AND lang.id = ( \n" +
                 "       SELECT \n" +
-                "           MAX(eacc.id) \n" +
+                "           id \n" +
                 "       FROM \n" +
-                "          exam.exam_accommodation eacc \n" +
-                "          WHERE \n" +
-                "          eacc.exam_id = e.id \n" +
-                "          AND eacc.type = 'Language'\n" +
-                "  ) \n" +
+                "           exam.exam_accommodation \n" +
+                "       WHERE \n" +
+                "           exam_id = e.id \n" +
+                "           AND type = 'Language' \n" +
+                "       ORDER BY created_at DESC \n" +
+                "       LIMIT 1) \n" +
                 "WHERE e.student_id = :studentId \n" +
                 "   AND lang.type = 'Language' \n" +
                 "   AND ee.deleted_at IS NULL";

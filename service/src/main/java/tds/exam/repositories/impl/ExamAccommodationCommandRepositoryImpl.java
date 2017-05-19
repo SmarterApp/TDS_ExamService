@@ -7,14 +7,13 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
+import tds.exam.ExamAccommodation;
+import tds.exam.repositories.ExamAccommodationCommandRepository;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import tds.exam.ExamAccommodation;
-import tds.exam.repositories.ExamAccommodationCommandRepository;
 
 import static tds.common.data.mapping.ResultSetMapperUtility.mapJodaInstantToTimestamp;
 
@@ -29,16 +28,16 @@ public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodation
 
     @Override
     public void insert(final List<ExamAccommodation> accommodations) {
-        String SQL =
+        final String SQL =
             "INSERT INTO " +
                 "   exam_accommodation(exam_id, id, segment_key, type, code, description, allow_change, value, segment_position, " +
                 "   created_at, visible, student_controlled, disabled_on_guest_session, default_accommodation, allow_combine, sort_order, depends_on, functional) \n" +
                 "VALUES(:examId, :id, :segmentKey, :type, :code, :description, :allowChange, :value, :segmentPosition, :createdAt," +
                 "   :visible, :studentControlled, :disabledOnGuestSession, :defaultAccommodation, :allowCombine, :sortOrder, :dependsOn, :functional)";
 
-        Timestamp createdAt = mapJodaInstantToTimestamp(Instant.now());
-        List<ExamAccommodation> createdAccommodations = new ArrayList<>();
-        SqlParameterSource[] parameters = accommodations.stream()
+        final Timestamp createdAt = mapJodaInstantToTimestamp(Instant.now());
+        final List<ExamAccommodation> createdAccommodations = new ArrayList<>();
+        final SqlParameterSource[] parameters = accommodations.stream()
             .map(examAccommodation -> {
                 createdAccommodations.add(ExamAccommodation.Builder
                     .fromExamAccommodation(examAccommodation)
@@ -76,8 +75,9 @@ public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodation
     }
 
     private void updateEvent(final Timestamp createdAt, final ExamAccommodation... examAccommodations) {
-        String SQL = "INSERT INTO exam_accommodation_event(" +
+        final String SQL = "INSERT INTO exam_accommodation_event(" +
             "exam_accommodation_id, " +
+            "exam_id, " +
             "denied_at, " +
             "deleted_at, " +
             "selectable," +
@@ -86,6 +86,7 @@ public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodation
             "created_at) \n" +
             "VALUES(" +
             ":examAccommodationId, " +
+            ":examId, " +
             ":deniedAt, " +
             ":deletedAt, " +
             ":selectable," +
@@ -93,11 +94,12 @@ public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodation
             ":totalTypeCount," +
             ":createdAt);";
 
-        SqlParameterSource[] parameterSources = new SqlParameterSource[examAccommodations.length];
+        final SqlParameterSource[] parameterSources = new SqlParameterSource[examAccommodations.length];
 
         for (int i = 0; i < parameterSources.length; i++) {
-            ExamAccommodation examAccommodation = examAccommodations[i];
-            SqlParameterSource parameters = new MapSqlParameterSource("examAccommodationId", examAccommodation.getId().toString())
+            final ExamAccommodation examAccommodation = examAccommodations[i];
+            final SqlParameterSource parameters = new MapSqlParameterSource("examAccommodationId", examAccommodation.getId().toString())
+                .addValue("examId", examAccommodation.getExamId().toString())
                 .addValue("deniedAt", mapJodaInstantToTimestamp(examAccommodation.getDeniedAt()))
                 .addValue("selectable", examAccommodation.isSelectable())
                 .addValue("totalTypeCount", examAccommodation.getTotalTypeCount())
@@ -113,9 +115,9 @@ public class ExamAccommodationCommandRepositoryImpl implements ExamAccommodation
 
     @Override
     public void delete(final List<ExamAccommodation> accommodations) {
-        Instant deletedAt = Instant.now();
+        final Instant deletedAt = Instant.now();
 
-        List<ExamAccommodation> accommodationsToDelete = accommodations.stream()
+        final List<ExamAccommodation> accommodationsToDelete = accommodations.stream()
             .map(accommodation -> ExamAccommodation.Builder
                 .fromExamAccommodation(accommodation)
                 .withDeletedAt(deletedAt)
