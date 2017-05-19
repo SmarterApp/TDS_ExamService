@@ -137,6 +137,7 @@ public class ExamDataGenerator {
 
                     final ExamItemResponse response = new ExamItemResponse.Builder()
                         .withExamItemId(items[i].getId())
+                        .withExamId(exam.getId())
                         .withResponse(String.format("response for item %s", items[i].getId()))
                         .withSequence(i + 1)
                         .withValid(true)

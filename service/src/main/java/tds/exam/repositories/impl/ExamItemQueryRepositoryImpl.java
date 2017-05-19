@@ -9,12 +9,6 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
-import tds.common.data.mapping.ResultSetMapperUtility;
-import tds.exam.ExamItem;
-import tds.exam.ExamItemResponse;
-import tds.exam.ExamItemResponseScore;
-import tds.exam.ExamScoringStatus;
-import tds.exam.repositories.ExamItemQueryRepository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -25,6 +19,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import tds.common.data.mapping.ResultSetMapperUtility;
+import tds.exam.ExamItem;
+import tds.exam.ExamItemResponse;
+import tds.exam.ExamItemResponseScore;
+import tds.exam.ExamScoringStatus;
+import tds.exam.repositories.ExamItemQueryRepository;
 
 @Repository
 public class ExamItemQueryRepositoryImpl implements ExamItemQueryRepository {
@@ -187,6 +188,7 @@ public class ExamItemQueryRepositoryImpl implements ExamItemQueryRepository {
             "  I.created_at, \n" +
             "  I.group_id, \n" +
             "  R.id as responseId,\n" +
+            "  R.exam_id AS examId, \n" +
             "  R.response,\n" +
             "  R.sequence,\n" +
             "  R.is_valid,\n" +
@@ -246,7 +248,7 @@ public class ExamItemQueryRepositoryImpl implements ExamItemQueryRepository {
                 .withGroupId(rs.getString("group_id"))
                 .withItemFilePath(rs.getString("item_file_path"));
 
-            if(rs.getObject("stimulus_file_path") != null) {
+            if (rs.getObject("stimulus_file_path") != null) {
                 itemBuilder.withStimulusFilePath(rs.getString("stimulus_file_path"));
             }
 
@@ -255,6 +257,7 @@ public class ExamItemQueryRepositoryImpl implements ExamItemQueryRepository {
                 ExamItemResponse.Builder responseBuilder = new ExamItemResponse.Builder()
                     .withId(rs.getLong("responseId"))
                     .withExamItemId(UUID.fromString(rs.getString("examItemId")))
+                    .withExamId(UUID.fromString(rs.getString("examId")))
                     .withResponse(rs.getString("response"))
                     .withSequence(rs.getInt("sequence"))
                     .withSelected(rs.getBoolean("is_selected"))

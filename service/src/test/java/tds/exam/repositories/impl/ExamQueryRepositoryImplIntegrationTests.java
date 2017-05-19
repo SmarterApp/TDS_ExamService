@@ -311,15 +311,15 @@ public class ExamQueryRepositoryImplIntegrationTests {
             "INSERT INTO exam_page (id, page_position, segment_key, item_group_key, exam_id, created_at) " +
                 "VALUES (805, 1, 'segment-key-1', 'GroupKey1', :examId, :pageCreatedAt)";
         final String insertPageEventSQL =
-            "INSERT INTO exam_page_event (exam_page_id, started_at, created_at) VALUES (805, UTC_TIMESTAMP(), UTC_TIMESTAMP())";
+            "INSERT INTO exam_page_event (exam_page_id, exam_id, started_at, created_at) VALUES (805, :examId, UTC_TIMESTAMP(), UTC_TIMESTAMP())";
         final String insertItemSQL =
             "INSERT INTO exam_item (id, item_key, assessment_item_bank_key, assessment_item_key, item_type, exam_page_id, position, item_file_path, created_at, group_id)" +
                 "VALUES (2112, '187-1234', 187, 1234, 'MS', 805, 1, '/path/to/item/187-1234.xml', UTC_TIMESTAMP(), 'group-123')";
         final String insertResponsesSQL =
-            "INSERT INTO exam_item_response (id, exam_item_id, response, sequence, created_at) " +
+            "INSERT INTO exam_item_response (id, exam_item_id, exam_id, response, sequence, created_at) " +
                 "VALUES " +
-                "(1337, 2112, 'Response 1', 1, :lastResponseSubmittedAt), " +
-                "(1338, 2112, 'Response 2', 1, :earlierResponseSubmittedAt)";
+                "(1337, 2112, :examId, 'Response 1', 1, :lastResponseSubmittedAt), " +
+                "(1338, 2112, :examId, 'Response 2', 1, :earlierResponseSubmittedAt)";
 
         jdbcTemplate.update(insertSegmentSQL, testParams);
         jdbcTemplate.update(insertPageSQL, testParams);

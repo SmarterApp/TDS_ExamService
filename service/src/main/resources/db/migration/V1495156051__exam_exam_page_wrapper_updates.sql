@@ -12,7 +12,7 @@ USE exam;
 ALTER TABLE exam.exam_page_event
 	ADD exam_id CHAR(36) NOT NULL AFTER exam_page_id;
 
--- Populate w/existing data
+-- Migrate existing data
 UPDATE
   exam.exam_page_event
 JOIN
@@ -25,7 +25,8 @@ ALTER TABLE exam.exam_page_event
 	ADD CONSTRAINT fk_exam_page_event_exam_id
     FOREIGN KEY (exam_id) REFERENCES exam(id);
 
-CREATE INDEX ix_exam_page_event_id_exam_id ON exam.exam_page_event(id, exam_id);
+CREATE UNIQUE INDEX ix_exam_page_event_id_exam_id ON exam.exam_page_event(id, exam_id);
+CREATE INDEX ix_exam_page_event_exam_id_exam_page_id ON exam.exam_page_event(exam_id, exam_page_id);
 
 -- ----------------------------------------------------------------------------
 -- Add exam_id to exam_item_response table
@@ -33,7 +34,7 @@ CREATE INDEX ix_exam_page_event_id_exam_id ON exam.exam_page_event(id, exam_id);
 ALTER TABLE exam.exam_item_response
 	ADD exam_id CHAR(36) NOT NULL AFTER exam_item_id;
 
--- Populate w/existing data
+-- Migrate existing data
 UPDATE
 	exam.exam_item_response AS response
 JOIN
@@ -53,3 +54,4 @@ ALTER TABLE exam.exam_item_response
 		FOREIGN KEY (exam_id) REFERENCES exam(id);
 
 CREATE INDEX ix_exam_item_response_exam_id ON exam.exam_item_response(exam_id);
+CREATE INDEX ix_exam_item_response_exam_id_exam_item_id ON exam.exam_item_response(exam_id, exam_item_id);

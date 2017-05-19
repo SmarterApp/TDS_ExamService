@@ -34,7 +34,6 @@ import tds.exam.repositories.ExamItemQueryRepository;
 import tds.exam.repositories.ExamPageCommandRepository;
 import tds.exam.repositories.ExamSegmentCommandRepository;
 
-import static io.github.benas.randombeans.api.EnhancedRandom.random;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -84,6 +83,7 @@ public class ExamItemQueryRepositoryImplIntegrationTests {
         ExamItemResponse examItemResponse = new ExamItemResponse.Builder()
             .withResponse("test")
             .withExamItemId(examItem.getId())
+            .withExamId(mockExam.getId())
             .withSelected(false)
             .withSequence(1)
             .withMarkedForReview(true)
@@ -128,6 +128,7 @@ public class ExamItemQueryRepositoryImplIntegrationTests {
         assertThat(response.getScore().isPresent()).isTrue();
         assertThat(response.isMarkedForReview()).isTrue();
         assertThat(response.getExamItemId()).isEqualTo(fetchedItem.getId());
+        assertThat(response.getExamId()).isEqualTo(examItemResponse.getExamId());
         assertThat(response.getCreatedAt()).isLessThanOrEqualTo(Instant.now());
 
         ExamItemResponseScore score = response.getScore().get();
@@ -195,6 +196,7 @@ public class ExamItemQueryRepositoryImplIntegrationTests {
         ExamItemResponse examItemResponse = new ExamItemResponse.Builder()
             .withResponse("test")
             .withExamItemId(examItem.getId())
+            .withExamId(mockExam.getId())
             .withSelected(false)
             .withSequence(1)
             .withMarkedForReview(true)
@@ -267,22 +269,27 @@ public class ExamItemQueryRepositoryImplIntegrationTests {
 
         ExamItemResponse item1Response1 = new ExamItemResponse.Builder()
             .withExamItemId(examItem1.getId())
+            .withExamId(mockExam.getId())
             .withResponse("response1")
             .build();
         ExamItemResponse item1Response2 = new ExamItemResponse.Builder()
             .withExamItemId(examItem1.getId())
+            .withExamId(mockExam.getId())
             .withResponse("response2")
             .build();
         ExamItemResponse item2Response1 = new ExamItemResponse.Builder()
             .withExamItemId(examItem2.getId())
+            .withExamId(mockExam.getId())
             .withResponse("response1")
             .build();
         ExamItemResponse item2Response2 = new ExamItemResponse.Builder()
             .withExamItemId(examItem2.getId())
+            .withExamId(mockExam.getId())
             .withResponse("response2")
             .build();
         ExamItemResponse item2Response3 = new ExamItemResponse.Builder()
             .withExamItemId(examItem2.getId())
+            .withExamId(mockExam.getId())
             .withResponse("response3")
             .build();
 

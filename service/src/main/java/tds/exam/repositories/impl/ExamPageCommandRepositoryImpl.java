@@ -75,10 +75,10 @@ public class ExamPageCommandRepositoryImpl implements ExamPageCommandRepository 
                 "   started_at, \n" +
                 "   created_at) \n" +
                 "SELECT \n" +
-                "   exam_page_id, \n" +
-                "   exam_id, \n" +
+                "   PE.exam_page_id, \n" +
+                "   PE.exam_id, \n" +
                 "   UTC_TIMESTAMP(), \n" +
-                "   started_at, \n " +
+                "   PE.started_at, \n " +
                 "   UTC_TIMESTAMP() \n" +
                 "FROM \n" +
                 "   exam_page_event PE\n" +
@@ -112,7 +112,7 @@ public class ExamPageCommandRepositoryImpl implements ExamPageCommandRepository 
 
         SqlParameterSource[] parameters = Stream.of(examPages).map(examPage ->
             new MapSqlParameterSource("examPageId", examPage.getId().toString())
-                .addValue("examId", examPage.getExamId())
+                .addValue("examId", examPage.getExamId().toString())
                 .addValue("startedAt", mapJodaInstantToTimestamp(examPage.getStartedAt()))
                 .addValue("deletedAt", mapJodaInstantToTimestamp(examPage.getDeletedAt()))
                 .addValue("createdAt", createdAt))

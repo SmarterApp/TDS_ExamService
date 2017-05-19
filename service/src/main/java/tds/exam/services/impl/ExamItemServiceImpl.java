@@ -120,6 +120,7 @@ public class ExamItemServiceImpl implements ExamItemService {
             // If the item has no response yet, mark the item and create an "empty" response
             examItemCommandRepository.insertResponses(new ExamItemResponse.Builder()
                 .withExamItemId(examItem.getId())
+                .withExamId(examId)
                 .withResponse("")
                 .withMarkedForReview(mark)
                 .withSequence(1)

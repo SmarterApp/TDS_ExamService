@@ -86,6 +86,7 @@ public class ExamItemCommandRepositoryImpl implements ExamItemCommandRepository 
             .map(response -> {
                 MapSqlParameterSource sqlParameterSource =
                     new MapSqlParameterSource("examItemId", response.getExamItemId().toString())
+                        .addValue("examId", response.getExamId().toString())
                         .addValue("response", response.getResponse())
                         .addValue("sequence", response.getSequence())
                         .addValue("isValid", response.isValid())
@@ -123,6 +124,7 @@ public class ExamItemCommandRepositoryImpl implements ExamItemCommandRepository 
         final String SQL =
             "INSERT INTO exam_item_response ( \n" +
                 "   exam_item_id, \n" +
+                "   exam_id, \n" +
                 "   response, \n" +
                 "   sequence, \n" +
                 "   is_valid, \n" +
@@ -139,6 +141,7 @@ public class ExamItemCommandRepositoryImpl implements ExamItemCommandRepository 
                 "   scored_at) \n" +
                 "VALUES ( \n" +
                 "   :examItemId, \n" +
+                "   :examId, \n" +
                 "   :response, \n" +
                 "   :sequence, \n" +
                 "   :isValid, \n" +
