@@ -70,11 +70,13 @@ public class ExamPageCommandRepositoryImpl implements ExamPageCommandRepository 
             "INSERT INTO \n" +
                 "exam_page_event (\n" +
                 "   exam_page_id, \n" +
+                "   exam_id, \n" +
                 "   deleted_at, \n" +
                 "   started_at, \n" +
                 "   created_at) \n" +
                 "SELECT \n" +
                 "   exam_page_id, \n" +
+                "   exam_id, \n" +
                 "   UTC_TIMESTAMP(), \n" +
                 "   started_at, \n " +
                 "   UTC_TIMESTAMP() \n" +
@@ -94,11 +96,23 @@ public class ExamPageCommandRepositoryImpl implements ExamPageCommandRepository 
     public void update(final ExamPage... examPages) {
         final Timestamp createdAt = mapJodaInstantToTimestamp(Instant.now());
         final String updatePageSQL =
-            "INSERT INTO exam_page_event (exam_page_id, deleted_at, started_at, created_at) \n" +
-                "VALUES (:examPageId, :deletedAt, :startedAt, :createdAt)";
+            "INSERT INTO \n" +
+                "exam_page_event (\n" +
+                "   exam_page_id, \n" +
+                "   exam_id, \n" +
+                "   deleted_at, \n" +
+                "   started_at, \n" +
+                "   created_at) \n" +
+                "VALUES ( \n" +
+                "   :examPageId, \n" +
+                "   :examId, \n" +
+                "   :deletedAt, \n" +
+                "   :startedAt, \n" +
+                "   :createdAt)";
 
         SqlParameterSource[] parameters = Stream.of(examPages).map(examPage ->
             new MapSqlParameterSource("examPageId", examPage.getId().toString())
+                .addValue("examId", examPage.getExamId())
                 .addValue("startedAt", mapJodaInstantToTimestamp(examPage.getStartedAt()))
                 .addValue("deletedAt", mapJodaInstantToTimestamp(examPage.getDeletedAt()))
                 .addValue("createdAt", createdAt))
