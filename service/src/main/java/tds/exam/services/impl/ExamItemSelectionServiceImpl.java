@@ -73,7 +73,7 @@ public class ExamItemSelectionServiceImpl implements ExamItemSelectionService {
         if (response.getResponseStatus() == SATISFIED) {
             return Collections.emptyList();
         } else if (response.getErrorMessage().isPresent()) {
-            throw new RuntimeException("Failed to create item group: " + response.getErrorMessage());
+            throw new RuntimeException("Failed to create item group: " + response.getErrorMessage().get());
         } else if (!response.getResponseData().isPresent()) {
             throw new IllegalStateException("No error nor item information was returned from selection.  Please check configuration");
         }
