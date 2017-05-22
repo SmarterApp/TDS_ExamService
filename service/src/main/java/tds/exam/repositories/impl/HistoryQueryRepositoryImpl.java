@@ -81,8 +81,8 @@ public class HistoryQueryRepositoryImpl implements HistoryQueryRepository {
             "  SELECT\n" +
             "    exam_id,\n" +
             "    MAX(id) AS id \n" +
-            "  FROM \n" +
-            "    exam.exam_event\n" +
+            "  FROM exam.exam_event\n" +
+            "  WHERE exam_id <> :examId \n" +
             "  GROUP BY exam_id \n" +
             ") last_event \n" +
             "ON e.id = last_event.exam_id \n" +
@@ -95,10 +95,9 @@ public class HistoryQueryRepositoryImpl implements HistoryQueryRepository {
             "  SELECT \n" +
             "    exam_page_id, \n" +
             "    MAX(id) AS id\n" +
-            "    FROM\n" +
-            "        exam_page_event \n" +
-            "        GROUP BY \n" +
-            "        exam_page_id \n" +
+            "  FROM exam_page_event \n" +
+            "  WHERE exam_id <> :examId \n" +
+            "  GROUP BY exam_page_id \n" +
             ") last_page_event \n" +
             "    ON page.id = last_page_event.exam_page_id \n" +
             "JOIN \n" +
