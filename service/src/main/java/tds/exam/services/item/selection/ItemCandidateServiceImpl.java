@@ -243,6 +243,11 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
                         }
                     }
 
+                    //Legacy doesn't handle null and expects non scored items to be -1 score
+                    if(response.getScore() == null) {
+                        response.setScore(-1);
+                    }
+
                     return response;
                 }).collect(Collectors.toList());
 
