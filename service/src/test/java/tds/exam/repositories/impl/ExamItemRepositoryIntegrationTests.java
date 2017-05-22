@@ -85,6 +85,7 @@ public class ExamItemRepositoryIntegrationTests {
 
         ExamItemResponse examItemResponse = new ExamItemResponseBuilder()
             .withExamItemId(examItem.getId())
+            .withExamId(exam.getId())
             .withSequence(2)
             .build();
 
@@ -111,6 +112,7 @@ public class ExamItemRepositoryIntegrationTests {
 
         ExamItemResponse examItemResponse2 = new ExamItemResponseBuilder()
             .withExamItemId(examItem.getId())
+            .withExamId(exam.getId())
             .withSequence(2)
             .build();
 
@@ -192,23 +194,28 @@ public class ExamItemRepositoryIntegrationTests {
         // Exam 1
         ExamItemResponse exam1Item1Response = new ExamItemResponseBuilder()
             .withExamItemId(exam1Item1.getId())
+            .withExamId(exam1.getId())
             .withSequence(2)
             .build();
         ExamItemResponse exam1Item2Response1 = new ExamItemResponseBuilder()
             .withExamItemId(exam1Item2.getId())
+            .withExamId(exam1.getId())
             .withSequence(1)
             .build();
         ExamItemResponse exam1Item2Response2 = new ExamItemResponseBuilder()
             .withExamItemId(exam1Item2.getId())
+            .withExamId(exam1.getId())
             .withSequence(3)
             .build();
         // Exam 2
         ExamItemResponse exam2Item1Response1 = new ExamItemResponseBuilder()
             .withExamItemId(exam2Item1.getId())
+            .withExamId(exam2.getId())
             .withSequence(1)
             .build();
         ExamItemResponse exam2Item1Response2 = new ExamItemResponseBuilder()
             .withExamItemId(exam2Item1.getId())
+            .withExamId(exam2.getId())
             .withSequence(2)
             .build();
 

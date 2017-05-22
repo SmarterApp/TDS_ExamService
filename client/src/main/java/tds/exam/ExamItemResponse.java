@@ -14,6 +14,7 @@ import static tds.common.util.Preconditions.checkNotNull;
 public class ExamItemResponse {
     private long id;
     private UUID examItemId;
+    private UUID examId;
     private String response;
     private int sequence;
     private boolean valid;
@@ -31,6 +32,7 @@ public class ExamItemResponse {
     private ExamItemResponse(Builder builder) {
         id = builder.id;
         examItemId = checkNotNull(builder.examItemId);
+        examId = checkNotNull(builder.examId);
         response = checkNotNull(builder.response);
         sequence = builder.sequence;
         valid = builder.valid;
@@ -43,6 +45,7 @@ public class ExamItemResponse {
     public static final class Builder {
         private long id;
         private UUID examItemId;
+        private UUID examId;
         private String response;
         private int sequence;
         private boolean valid;
@@ -51,10 +54,11 @@ public class ExamItemResponse {
         private Instant createdAt;
         private boolean markedForReview;
 
-        public static Builder fromExamItemResponse(ExamItemResponse examItemResponse) {
+        public static Builder fromExamItemResponse(final ExamItemResponse examItemResponse) {
             return new Builder()
                 .withId(examItemResponse.id)
                 .withExamItemId(examItemResponse.examItemId)
+                .withExamId(examItemResponse.examId)
                 .withResponse(examItemResponse.response)
                 .withSequence(examItemResponse.sequence)
                 .withValid(examItemResponse.valid)
@@ -65,22 +69,27 @@ public class ExamItemResponse {
         }
 
 
-        public Builder withId(long id) {
+        public Builder withId(final long id) {
             this.id = id;
             return this;
         }
 
-        public Builder withExamItemId(UUID examItemId) {
+        public Builder withExamItemId(final UUID examItemId) {
             this.examItemId = examItemId;
             return this;
         }
 
-        public Builder withResponse(String response) {
+        public Builder withExamId(final UUID examId) {
+            this.examId = examId;
+            return this;
+        }
+
+        public Builder withResponse(final String response) {
             this.response = checkNotNull(response, "Response cannot be null");
             return this;
         }
 
-        public Builder withSequence(int sequence) {
+        public Builder withSequence(final int sequence) {
             if (sequence < 1) {
                 throw new IllegalArgumentException("Sequence cannot be less than 1");
             }
@@ -89,27 +98,27 @@ public class ExamItemResponse {
             return this;
         }
 
-        public Builder withValid(boolean valid) {
+        public Builder withValid(final boolean valid) {
             this.valid = valid;
             return this;
         }
 
-        public Builder withSelected(boolean selected) {
+        public Builder withSelected(final boolean selected) {
             this.selected = selected;
             return this;
         }
 
-        public Builder withScore(ExamItemResponseScore score) {
+        public Builder withScore(final ExamItemResponseScore score) {
             this.score = score;
             return this;
         }
 
-        public Builder withCreatedAt(Instant createdAt) {
+        public Builder withCreatedAt(final Instant createdAt) {
             this.createdAt = createdAt;
             return this;
         }
 
-        public Builder withMarkedForReview(boolean markedForReview) {
+        public Builder withMarkedForReview(final boolean markedForReview) {
             this.markedForReview = markedForReview;
             return this;
         }
@@ -131,6 +140,13 @@ public class ExamItemResponse {
      */
     public UUID getExamItemId() {
         return examItemId;
+    }
+
+    /**
+     * @return The id of the {@link tds.exam.Exam} this {@link tds.exam.ExamItemResponse} corresponds to
+     */
+    public UUID getExamId() {
+        return examId;
     }
 
     /**

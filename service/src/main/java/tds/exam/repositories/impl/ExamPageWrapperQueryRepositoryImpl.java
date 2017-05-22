@@ -72,16 +72,17 @@ public class ExamPageWrapperQueryRepositoryImpl implements ExamPageWrapperQueryR
         "   exam_page page \n" +
         "JOIN ( \n" +
         "   SELECT \n" +
-        "       exam_page_id, \n" +
-        "       MAX(id) AS id \n" +
+        "       MAX(id) AS id, \n" +
+        "       exam_page_id \n" +
         "   FROM \n" +
         "       exam_page_event \n" +
+        "   WHERE \n" +
+        "       exam_id = :examId \n" +
         "   GROUP BY \n" +
-        "       exam_page_id \n" +
-        ") last_page_event \n" +
+        "       exam_page_id) last_page_event \n" +
         "   ON page.id = last_page_event.exam_page_id \n" +
         "JOIN \n" +
-        "   exam_page_event page_event \n" +
+        "   exam_page_event AS page_event \n" +
         "   ON page_event.id = last_page_event.id \n" +
         "JOIN \n" +
         "   exam_segment segment \n" +
@@ -90,19 +91,20 @@ public class ExamPageWrapperQueryRepositoryImpl implements ExamPageWrapperQueryR
         "JOIN \n" +
         "   exam_item item \n" +
         "   ON page.id = item.exam_page_id \n" +
-        "LEFT JOIN \n" +
-        "   (SELECT \n" +
-        "       exam_item_id, \n" +
-        "       MAX(id) AS id\n" +
+        "LEFT JOIN (" +
+        "   SELECT \n" +
+        "       MAX(id) AS id, \n" +
+        "       exam_item_id \n" +
         "   FROM \n" +
         "       exam_item_response \n" +
+        "   WHERE \n" +
+        "       exam_id = :examId \n" +
         "   GROUP BY \n" +
         "       exam_item_id) most_recent_response \n" +
         "   ON item.id = most_recent_response.exam_item_id \n" +
         "LEFT JOIN \n" +
         "   exam_item_response response \n" +
         "   ON most_recent_response.id = response.id \n";
-
 
     @Autowired
     public ExamPageWrapperQueryRepositoryImpl(@Qualifier("queryJdbcTemplate") final NamedParameterJdbcTemplate jdbcTemplate) {
@@ -118,9 +120,7 @@ public class ExamPageWrapperQueryRepositoryImpl implements ExamPageWrapperQueryR
             EXAM_PAGE_WRAPPER_WITH_ITEM_SELECT +
                 "WHERE \n" +
                 "   page.exam_id = :examId \n" +
-                "   AND page.page_position = :position \n" +
-                "ORDER BY \n" +
-                "   item.position";
+                "   AND page.page_position = :position";
 
         List<ExamPageWrapper> examPageWrappers = jdbcTemplate.query(SQL, parameters, examPageResultExtractor);
 
@@ -138,9 +138,7 @@ public class ExamPageWrapperQueryRepositoryImpl implements ExamPageWrapperQueryR
         final String SQL =
             EXAM_PAGE_WRAPPER_WITH_ITEM_SELECT +
                 "WHERE \n" +
-                "   page.exam_id = :examId \n" +
-                "ORDER BY \n" +
-                "   item.position";
+                "   page.exam_id = :examId";
 
         return jdbcTemplate.query(SQL, parameters, examPageResultExtractor);
     }
@@ -154,9 +152,7 @@ public class ExamPageWrapperQueryRepositoryImpl implements ExamPageWrapperQueryR
             EXAM_PAGE_WRAPPER_WITH_ITEM_SELECT +
                 "WHERE \n" +
                 "   page.exam_id = :examId \n" +
-                "   AND page.segment_key = :segmentKey \n" +
-                "ORDER BY \n" +
-                "   item.position";
+                "   AND page.segment_key = :segmentKey";
 
         return jdbcTemplate.query(SQL, parameters, examPageResultExtractor);
     }
@@ -189,6 +185,7 @@ public class ExamPageWrapperQueryRepositoryImpl implements ExamPageWrapperQueryR
                 if (resultExtractor.getString("response") != null) {
                     response = new ExamItemResponse.Builder()
                         .withExamItemId(UUID.fromString(resultExtractor.getString("item_id")))
+                        .withExamId(UUID.fromString(resultExtractor.getString("exam_id")))
                         .withResponse(resultExtractor.getString("response"))
                         .withSequence(resultExtractor.getInt("sequence"))
                         .withValid(resultExtractor.getBoolean("is_valid"))

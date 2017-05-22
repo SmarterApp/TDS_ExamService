@@ -112,6 +112,7 @@ public class ExamPageWrapperQueryRepositoryIntegrationTests {
         // ...and responds to the first item
         ExamItemResponse mockResponseForFirstItem = new ExamItemResponseBuilder()
             .withExamItemId(wrapper.getExamItems().get(0).getId())
+            .withExamId(mockExam.getId())
             .withResponse("first item response")
             .withSequence(1)
             .build();
@@ -178,6 +179,7 @@ public class ExamPageWrapperQueryRepositoryIntegrationTests {
         // Mark for review
         examItemCommandRepository.insertResponses(new ExamItemResponse.Builder()
             .withExamItemId(otherExamItem.getId())
+            .withExamId(mockExam.getId())
             .withMarkedForReview(true)
             .withResponse("")
             .withSequence(1)

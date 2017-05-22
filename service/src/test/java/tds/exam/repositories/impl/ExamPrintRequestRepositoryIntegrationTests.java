@@ -118,6 +118,7 @@ public class ExamPrintRequestRepositoryIntegrationTests {
         ExamItemResponse examItemResponse1 = new ExamItemResponseBuilder()
             .withCreatedAt(Instant.now().minus(20000))
             .withExamItemId(itemWithResponses.getId())
+            .withExamId(exam.getId())
             .withSequence(1)
             .build();
 
@@ -125,6 +126,7 @@ public class ExamPrintRequestRepositoryIntegrationTests {
 
         ExamItemResponse examItemResponse2 = new ExamItemResponseBuilder()
             .withExamItemId(itemWithResponses.getId())
+            .withExamId(exam.getId())
             .withSequence(1)
             .build();
 

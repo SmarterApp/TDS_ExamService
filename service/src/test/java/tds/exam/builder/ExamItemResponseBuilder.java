@@ -15,6 +15,7 @@ public class ExamItemResponseBuilder {
 
     private long id = DEFAULT_ID;
     private UUID examItemId = UUID.randomUUID();
+    private UUID examId = UUID.randomUUID();
     private String response = "response text";
     private int sequence = 1;
     private boolean selected;
@@ -26,6 +27,7 @@ public class ExamItemResponseBuilder {
         return new ExamItemResponse.Builder()
             .withId(id)
             .withExamItemId(examItemId)
+            .withExamId(examId)
             .withResponse(response)
             .withSequence(sequence)
             .withSelected(selected)
@@ -35,42 +37,47 @@ public class ExamItemResponseBuilder {
             .build();
     }
 
-    public ExamItemResponseBuilder withId(long id) {
+    public ExamItemResponseBuilder withId(final long id) {
         this.id = id;
         return this;
     }
 
-    public ExamItemResponseBuilder withExamItemId(UUID examItemId) {
+    public ExamItemResponseBuilder withExamItemId(final UUID examItemId) {
         this.examItemId = examItemId;
         return this;
     }
 
-    public ExamItemResponseBuilder withResponse(String response) {
+    public ExamItemResponseBuilder withExamId(final UUID examId) {
+        this.examId = examId;
+        return this;
+    }
+
+    public ExamItemResponseBuilder withResponse(final String response) {
         this.response = response;
         return this;
     }
 
-    public ExamItemResponseBuilder withSequence(int sequence) {
+    public ExamItemResponseBuilder withSequence(final int sequence) {
         this.sequence = sequence;
         return this;
     }
 
-    public ExamItemResponseBuilder withSelected(boolean selected) {
+    public ExamItemResponseBuilder withSelected(final boolean selected) {
         this.selected = selected;
         return this;
     }
 
-    public ExamItemResponseBuilder withValid(boolean valid) {
+    public ExamItemResponseBuilder withValid(final boolean valid) {
         this.valid = valid;
         return this;
     }
 
-    public ExamItemResponseBuilder withScore(ExamItemResponseScore score) {
+    public ExamItemResponseBuilder withScore(final ExamItemResponseScore score) {
         this.score = score;
         return this;
     }
 
-    public ExamItemResponseBuilder withCreatedAt(Instant createdAt) {
+    public ExamItemResponseBuilder withCreatedAt(final Instant createdAt) {
         this.createdAt = createdAt;
         return this;
     }

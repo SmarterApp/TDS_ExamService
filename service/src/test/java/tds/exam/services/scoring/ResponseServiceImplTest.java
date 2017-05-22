@@ -107,6 +107,7 @@ public class ResponseServiceImplTest {
             .withScore(new ExamItemResponseScore.Builder().build())
             .withCreatedAt(Instant.now())
             .withExamItemId(UUID.randomUUID())
+            .withExamId(UUID.randomUUID())
             .withResponse("Response")
             .withValid(true)
             .withSequence(1)
