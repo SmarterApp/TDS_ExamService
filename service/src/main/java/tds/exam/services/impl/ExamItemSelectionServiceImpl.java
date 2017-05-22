@@ -73,7 +73,7 @@ public class ExamItemSelectionServiceImpl implements ExamItemSelectionService {
         if (response.getResponseStatus() == SATISFIED) {
             return Collections.emptyList();
         } else if (response.getErrorMessage().isPresent()) {
-            throw new RuntimeException("Failed to create item group: " + response.getErrorMessage());
+            throw new RuntimeException("Failed to create item group: " + response.getErrorMessage().get());
         } else if (!response.getResponseData().isPresent()) {
             throw new IllegalStateException("No error nor item information was returned from selection.  Please check configuration");
         }
@@ -136,7 +136,7 @@ public class ExamItemSelectionServiceImpl implements ExamItemSelectionService {
 
         // For assessments with a single page, we should mark the exam segment as satisfied if it is not already
         if (examSegment.getExamItemCount() == examItems.size() && !examSegment.isSatisfied()) {
-            examSegmentService.update(new ExamSegment.Builder()
+            examSegmentService.update(ExamSegment.Builder
                 .fromSegment(examSegment)
                 .withSatisfied(true)
                 .build()

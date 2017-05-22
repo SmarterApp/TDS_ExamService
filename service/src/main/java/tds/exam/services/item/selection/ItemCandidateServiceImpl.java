@@ -4,6 +4,17 @@ import TDS.Shared.Exceptions.ReturnStatusException;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
 import tds.assessment.Assessment;
 import tds.assessment.Form;
 import tds.assessment.Segment;
@@ -17,7 +28,9 @@ import tds.exam.ExamSegment;
 import tds.exam.ExpandableExam;
 import tds.exam.ExpandableExamAttributes;
 import tds.exam.models.FieldTestItemGroup;
+import tds.exam.models.ItemGroupHistory;
 import tds.exam.services.AssessmentService;
+import tds.exam.services.ExamHistoryService;
 import tds.exam.services.ExamSegmentService;
 import tds.exam.services.ExpandableExamService;
 import tds.exam.services.FieldTestService;
@@ -30,22 +43,13 @@ import tds.itemselection.loader.StudentHistory2013;
 import tds.itemselection.model.OffGradeResponse;
 import tds.itemselection.services.ItemCandidatesService;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
 @Service
 public class ItemCandidateServiceImpl implements ItemCandidatesService {
     private final ExpandableExamService expandableExamService;
     private final FieldTestService fieldTestService;
     private final ExamSegmentService examSegmentService;
     private final AssessmentService assessmentService;
+    private final ExamHistoryService examHistoryService;
 
     private final static String ADAPTIVE = "adaptive";
     private final static String FIELD_TEST = "fieldtest";
@@ -54,11 +58,13 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
     public ItemCandidateServiceImpl(final ExpandableExamService expandableExamService,
                                     final FieldTestService fieldTestService,
                                     final ExamSegmentService examSegmentService,
-                                    final AssessmentService assessmentService) {
+                                    final AssessmentService assessmentService,
+                                    final ExamHistoryService examHistoryService) {
         this.expandableExamService = expandableExamService;
         this.fieldTestService = fieldTestService;
         this.examSegmentService = examSegmentService;
         this.assessmentService = assessmentService;
+        this.examHistoryService = examHistoryService;
     }
 
     @Override
@@ -206,9 +212,7 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
         history.setStartAbility(assessment.getStartAbility());
         history.set_itemPool(itemGroups);
 
-        //TODO - we need to fetch past item group selections based on responses.  However, that is really a pain to do with our
-        //current data model since you can't easily get from an exam to a item.  You always have to go through page.
-        //Revisit this in the future.  Ignoring that part in the legacy code
+        history.set_previousTestItemGroups(getPreviousItemGroups(examId, exam.getExam().getStudentId(), exam.getExam().getAssessmentId()));
 
         HashSet<String> ftFieldGroups = new HashSet<>();
         ftFieldGroups.addAll(fieldTestItemGroups);
@@ -239,6 +243,11 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
                         }
                     }
 
+                    //Legacy doesn't handle null and expects non scored items to be -1 score
+                    if(response.getScore() == null) {
+                        response.setScore(-1);
+                    }
+
                     return response;
                 }).collect(Collectors.toList());
 
@@ -248,6 +257,23 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
         history.set_previousResponses(itemResponses);
 
         return history;
+    }
+
+    /**
+     * Legacy implementation conversion.  The legacy objects use implementation classes rather than interfaces
+     */
+    private ArrayList<HashSet<String>> getPreviousItemGroups(final UUID examId, final long studentId, final String assessmentId) {
+        List<ItemGroupHistory> histories = examHistoryService.findPreviousItemGroups(studentId, examId, assessmentId);
+
+        ArrayList<HashSet<String>> itemGroups = new ArrayList<>();
+
+        for(ItemGroupHistory history : histories) {
+            HashSet<String> itemGroupSet = new HashSet<>();
+            itemGroupSet.addAll(history.getItemGroupIds());
+            itemGroups.add(itemGroupSet);
+        }
+
+        return itemGroups;
     }
 
     @Override
@@ -268,8 +294,8 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
     @Override
     public OffGradeResponse addOffGradeItems(UUID examId, String designation, String segmentKey) throws ReturnStatusException {
         //AA_AddOffgradeItems_SP
-        //TODO - figure out if this is really necessary
-        return new OffGradeResponse(OffGradeResponse.SUCCESS, "");
+        //TODO - We are going to verify with SBAC if this is actually used
+        return new OffGradeResponse(OffGradeResponse.FAILED, "offgrade accommodation not exists");
     }
 
     private List<ExamSegmentWrapper> mapSegmentToItems(ExpandableExam expandableExam) {

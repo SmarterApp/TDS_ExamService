@@ -7,6 +7,14 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 import tds.assessment.Assessment;
 import tds.assessment.Form;
 import tds.assessment.Item;
@@ -15,6 +23,7 @@ import tds.common.Algorithm;
 import tds.dll.api.IItemSelectionDLL;
 import tds.exam.Exam;
 import tds.exam.ExamItem;
+import tds.exam.ExamItemResponseScore;
 import tds.exam.ExamPage;
 import tds.exam.ExamSegment;
 import tds.exam.ExpandableExam;
@@ -22,26 +31,25 @@ import tds.exam.ExpandableExamAttributes;
 import tds.exam.builder.AssessmentBuilder;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.builder.ExamItemBuilder;
+import tds.exam.builder.ExamItemResponseBuilder;
 import tds.exam.builder.ExamPageBuilder;
 import tds.exam.builder.ExamSegmentBuilder;
 import tds.exam.builder.FieldTestItemGroupBuilder;
 import tds.exam.builder.ItemBuilder;
 import tds.exam.builder.SegmentBuilder;
 import tds.exam.models.FieldTestItemGroup;
+import tds.exam.models.ItemGroupHistory;
 import tds.exam.services.AssessmentService;
+import tds.exam.services.ExamHistoryService;
 import tds.exam.services.ExamSegmentService;
 import tds.exam.services.ExpandableExamService;
 import tds.exam.services.FieldTestService;
+import tds.itemselection.api.ItemSelectionException;
 import tds.itemselection.base.ItemCandidatesData;
 import tds.itemselection.base.ItemGroup;
+import tds.itemselection.impl.ItemResponse;
+import tds.itemselection.loader.StudentHistory2013;
 import tds.itemselection.services.ItemCandidatesService;
-
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.mockito.Mockito.verify;
@@ -63,9 +71,12 @@ public class ItemCandidateServiceImplTest {
     @Mock
     private ExamSegmentService mockExamSegmentService;
 
+    @Mock
+    private ExamHistoryService mockExamHistoryService;
+
     @Before
     public void setUp() {
-        itemCandidatesService = new ItemCandidateServiceImpl(mockExpandableExamService, mockFieldTestService, mockExamSegmentService, mockAssessmentService);
+        itemCandidatesService = new ItemCandidateServiceImpl(mockExpandableExamService, mockFieldTestService, mockExamSegmentService, mockAssessmentService, mockExamHistoryService);
     }
 
     @Test
@@ -444,5 +455,66 @@ public class ItemCandidateServiceImplTest {
         assertThat(itemGroup.getGroupID()).isEqualTo("I-187-6789");
         assertThat(itemGroup.getItemCount()).isEqualTo(1);
         assertThat(itemGroup.getItems().get(0).getItemID()).isEqualTo(item2.getId());
+    }
+
+    @Test
+    public void shouldFindStudentHistory() throws ItemSelectionException {
+        String segmentKey = "segmentKey";
+        Exam exam = new ExamBuilder().build();
+        ExamSegment examSegment = new ExamSegmentBuilder()
+            .withSegmentKey(segmentKey)
+            .withExamId(exam.getId())
+            .build();
+
+        ExamPage examPage = new ExamPageBuilder()
+            .withExamId(exam.getId())
+            .withSegmentKey(segmentKey)
+            .build();
+
+        ExamItem examItem = new ExamItemBuilder()
+            .withExamPageId(examPage.getId())
+            .withGroupId("groupId")
+            .build();
+
+        ExamItem examItemScored = new ExamItemBuilder()
+            .withExamPageId(examPage.getId())
+            .withId(UUID.randomUUID())
+            .withItemKey("score-item-key")
+            .withResponse(new ExamItemResponseBuilder()
+                .withScore(new ExamItemResponseScore.Builder()
+                    .withScore(1)
+                    .build())
+                .build())
+            .withGroupId("groupId")
+            .build();
+
+        ExpandableExam expandableExam = new ExpandableExam.Builder(exam)
+            .withExamPages(Collections.singletonList(examPage))
+            .withExamSegments(Collections.singletonList(examSegment))
+            .withExamItems(Arrays.asList(examItem, examItemScored))
+            .build();
+
+        Assessment assessment = new AssessmentBuilder().build();
+
+        when(mockExpandableExamService.findExam(exam.getId(), ExpandableExamAttributes.EXAM_SEGMENTS, ExpandableExamAttributes.EXAM_PAGE_AND_ITEMS)).thenReturn(Optional.of(expandableExam));
+        when(mockAssessmentService.findAssessment(exam.getClientName(), exam.getAssessmentKey())).thenReturn(Optional.of(assessment));
+        when(mockFieldTestService.findUsageInExam(exam.getId())).thenReturn(Collections.emptyList());
+
+        when(mockExamHistoryService.findPreviousItemGroups(exam.getStudentId(), exam.getId(), exam.getAssessmentId()))
+            .thenReturn(Collections.singletonList(new ItemGroupHistory(UUID.randomUUID(), Collections.singleton("G-123-11"))));
+
+        StudentHistory2013 history = itemCandidatesService.loadOppHistory(exam.getId(), segmentKey);
+
+        assertThat(history.get_itemPool()).containsOnly(examSegment.getItemPool().toArray(new String[examSegment.getItemPool().size()]));
+        assertThat(history.get_previousFieldTestItemGroups()).isEmpty();
+        assertThat(history.get_previousResponses()).hasSize(2);
+
+        ItemResponse response = history.get_previousResponses().get(0);
+        assertThat(response.itemID).isEqualTo(examItem.getItemKey());
+        assertThat(response.getScore()).isEqualTo(-1);
+
+        response = history.get_previousResponses().get(1);
+        assertThat(response.itemID).isEqualTo(examItemScored.getItemKey());
+        assertThat(response.getScore()).isEqualTo(1);
     }
 }
