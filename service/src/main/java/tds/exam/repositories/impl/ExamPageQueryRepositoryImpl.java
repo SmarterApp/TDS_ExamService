@@ -24,30 +24,33 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
     private static final ExamPageRowMapper examPageRowMapper = new ExamPageRowMapper();
 
-    private static final String EXAM_PAGE_STANDARD_SELECT = "SELECT \n" +
-        "   P.id, \n" +
-        "   P.page_position, \n" +
-        "   P.item_group_key, \n" +
-        "   P.exam_id, \n" +
-        "   P.created_at, \n" +
-        "   P.group_items_required, \n" +
-        "   P.segment_key, \n" +
-        "   PE.started_at \n" +
-        "FROM \n" +
-        "   exam_page P\n" +
+    private static final String EXAM_PAGE_STANDARD_SELECT =
+        "SELECT \n" +
+            "   P.id, \n" +
+            "   P.page_position, \n" +
+            "   P.item_group_key, \n" +
+            "   P.exam_id, \n" +
+            "   P.created_at, \n" +
+            "   P.group_items_required, \n" +
+            "   P.segment_key, \n" +
+            "   PE.started_at \n" +
+            "FROM \n" +
+            "   exam_page P\n";
+
+    private static final String JOIN_EXAM_PAGE_EVENT_GROUP_BY_EXAM_ID =
         "JOIN ( \n" +
-        "   SELECT \n" +
-        "       exam_page_id, \n" +
-        "       MAX(id) AS id \n" +
-        "   FROM \n" +
-        "       exam_page_event \n" +
-        "   WHERE \n" +
-        "       exam_id = :examId \n" +
-        "   GROUP BY exam_page_id \n" +
-        ") last_event \n" +
-        "   ON P.id = last_event.exam_page_id \n" +
-        "JOIN exam_page_event PE \n" +
-        "   ON last_event.id = PE.id \n";
+            "   SELECT \n" +
+            "       exam_page_id, \n" +
+            "       MAX(id) AS id \n" +
+            "   FROM \n" +
+            "       exam_page_event \n" +
+            "   WHERE \n" +
+            "       exam_id = :examId \n" +
+            "   GROUP BY exam_page_id \n" +
+            ") last_event \n" +
+            "   ON P.id = last_event.exam_page_id \n" +
+            "JOIN exam_page_event PE \n" +
+            "   ON last_event.id = PE.id \n";
 
     @Autowired
     public ExamPageQueryRepositoryImpl(@Qualifier("queryJdbcTemplate") final NamedParameterJdbcTemplate queryJdbcTemplate) {
@@ -58,13 +61,13 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
     public List<ExamPage> findAll(final UUID examId) {
         final MapSqlParameterSource parameters = new MapSqlParameterSource("examId", examId.toString());
 
-        final String SQL =
-            EXAM_PAGE_STANDARD_SELECT +
-                "WHERE \n" +
-                "   P.exam_id = :examId \n" +
-                "   AND PE.deleted_at IS NULL \n" +
-                "ORDER BY \n" +
-                "   P.page_position";
+        final String SQL = EXAM_PAGE_STANDARD_SELECT +
+            JOIN_EXAM_PAGE_EVENT_GROUP_BY_EXAM_ID +
+            "WHERE \n" +
+            "   P.exam_id = :examId \n" +
+            "   AND PE.deleted_at IS NULL \n" +
+            "ORDER BY \n" +
+            "   P.page_position";
 
         return jdbcTemplate.query(SQL, parameters, examPageRowMapper);
     }
@@ -75,6 +78,7 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
             .addValue("position", position);
 
         final String SQL = EXAM_PAGE_STANDARD_SELECT +
+            JOIN_EXAM_PAGE_EVENT_GROUP_BY_EXAM_ID +
             "WHERE \n" +
             "   P.exam_id = :examId \n" +
             "   AND P.page_position = :position \n" +
@@ -95,17 +99,7 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
         final SqlParameterSource parameters = new MapSqlParameterSource("id", pageId.toString());
 
         final String SQL =
-            "SELECT \n" +
-                "   P.id, \n" +
-                "   P.page_position, \n" +
-                "   P.item_group_key, \n" +
-                "   P.exam_id, \n" +
-                "   P.created_at, \n" +
-                "   P.group_items_required, \n" +
-                "   P.segment_key, \n" +
-                "   PE.started_at \n" +
-                "FROM \n" +
-                "   exam_page P\n" +
+            EXAM_PAGE_STANDARD_SELECT +
                 "JOIN ( \n" +
                 "   SELECT \n" +
                 "       exam_page_id, \n" +
