@@ -41,6 +41,8 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
         "       MAX(id) AS id \n" +
         "   FROM \n" +
         "       exam_page_event \n" +
+        "   WHERE \n" +
+        "       exam_id = :examId \n" +
         "   GROUP BY exam_page_id \n" +
         ") last_event \n" +
         "   ON P.id = last_event.exam_page_id \n" +
@@ -59,9 +61,9 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
         final String SQL =
             EXAM_PAGE_STANDARD_SELECT +
                 "WHERE \n" +
-                "   P.exam_id = :examId AND\n" +
-                "   PE.deleted_at IS NULL \n" +
-                "ORDER BY\n" +
+                "   P.exam_id = :examId \n" +
+                "   AND PE.deleted_at IS NULL \n" +
+                "ORDER BY \n" +
                 "   P.page_position";
 
         return jdbcTemplate.query(SQL, parameters, examPageRowMapper);
@@ -73,8 +75,8 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
             .addValue("position", position);
 
         final String SQL = EXAM_PAGE_STANDARD_SELECT +
-            " WHERE \n" +
-            "   P.exam_id = :examId " +
+            "WHERE \n" +
+            "   P.exam_id = :examId \n" +
             "   AND P.page_position = :position \n" +
             "   AND PE.deleted_at IS NULL";
 
@@ -92,10 +94,34 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
     public Optional<ExamPage> find(final UUID pageId) {
         final SqlParameterSource parameters = new MapSqlParameterSource("id", pageId.toString());
 
-        final String SQL = EXAM_PAGE_STANDARD_SELECT +
-            " WHERE \n" +
-            "   P.id = :id " +
-            "   AND PE.deleted_at IS NULL";
+        final String SQL =
+            "SELECT \n" +
+                "   P.id, \n" +
+                "   P.page_position, \n" +
+                "   P.item_group_key, \n" +
+                "   P.exam_id, \n" +
+                "   P.created_at, \n" +
+                "   P.group_items_required, \n" +
+                "   P.segment_key, \n" +
+                "   PE.started_at \n" +
+                "FROM \n" +
+                "   exam_page P\n" +
+                "JOIN ( \n" +
+                "   SELECT \n" +
+                "       exam_page_id, \n" +
+                "       MAX(id) AS id \n" +
+                "   FROM \n" +
+                "       exam_page_event \n" +
+                "   WHERE \n" +
+                "       exam_page_id = :id \n" +
+                "   GROUP BY exam_page_id \n" +
+                ") last_event \n" +
+                "   ON P.id = last_event.exam_page_id \n" +
+                "JOIN exam_page_event PE \n" +
+                "   ON last_event.id = PE.id \n" +
+                " WHERE \n" +
+                "   P.id = :id \n" +
+                "   AND PE.deleted_at IS NULL";
 
         Optional<ExamPage> maybeExamPage;
         try {
@@ -121,5 +147,4 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
                 .build();
         }
     }
-
 }
