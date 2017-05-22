@@ -20,14 +20,13 @@
         <ss-multijar.version>3.0.6</ss-multijar.version>
         <item-scoring.version>3.0.1</item-scoring.version>
         <item-renderer.version>3.0.9</item-renderer.version>
-        <tds-student-common.version>3.0.4</tds-student-common.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.opentestsystem.delivery</groupId>
             <artifactId>student-library</artifactId>
-            <version>${tds-student-common.version}</version>
+            <version>${tds-student-library.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.opentestsystem.delivery</groupId>

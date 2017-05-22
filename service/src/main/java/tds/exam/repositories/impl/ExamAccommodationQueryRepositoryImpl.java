@@ -7,6 +7,8 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
+import tds.exam.ExamAccommodation;
+import tds.exam.repositories.ExamAccommodationQueryRepository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -14,9 +16,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
-import tds.exam.ExamAccommodation;
-import tds.exam.repositories.ExamAccommodationQueryRepository;
 
 import static tds.common.data.mapping.ResultSetMapperUtility.mapTimestampToJodaInstant;
 
@@ -67,6 +66,8 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
                 "       MAX(id) AS id \n" +
                 "   FROM \n" +
                 "       exam_accommodation_event \n" +
+                "   WHERE \n" +
+                "       exam_id = :examId \n" +
                 "   GROUP BY exam_accommodation_id \n" +
                 ") last_event \n" +
                 "  ON ea.id = last_event.exam_accommodation_id \n" +
@@ -133,6 +134,8 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
                 "       MAX(id) AS id \n" +
                 "   FROM \n" +
                 "       exam_accommodation_event \n" +
+                "   WHERE \n" +
+                "       exam_id IN (:examIds) \n" +
                 "   GROUP BY exam_accommodation_id \n" +
                 ") last_event \n" +
                 "  ON ea.id = last_event.exam_accommodation_id \n" +
@@ -153,7 +156,7 @@ public class ExamAccommodationQueryRepositoryImpl implements ExamAccommodationQu
 
     private static class AccommodationRowMapper implements RowMapper<ExamAccommodation> {
         @Override
-        public ExamAccommodation mapRow(ResultSet rs, int rowNum) throws SQLException {
+        public ExamAccommodation mapRow(final ResultSet rs, final int rowNum) throws SQLException {
             return new ExamAccommodation.Builder(UUID.fromString(rs.getString("id")))
                 .withExamId(UUID.fromString(rs.getString("exam_id")))
                 .withSegmentKey(rs.getString("segment_key"))
