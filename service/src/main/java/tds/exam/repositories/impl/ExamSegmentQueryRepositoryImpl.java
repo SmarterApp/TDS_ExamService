@@ -63,6 +63,7 @@ public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepositor
                 "   s.form_cohort, \n" +
                 "   se.satisfied, \n" +
                 "   se.exited_at, \n" +
+                "   se.off_grade_items, \n" +
                 "   se.item_pool, \n" +
                 "   s.pool_count, \n" +
                 "   s.created_at \n" +
@@ -118,6 +119,7 @@ public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepositor
                 "   se.satisfied, \n" +
                 "   se.exited_at, \n" +
                 "   se.item_pool, \n" +
+                "   se.off_grade_items, \n" +
                 "   s.pool_count, \n" +
                 "   s.created_at \n" +
                 "FROM \n" +
@@ -202,6 +204,7 @@ public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepositor
                 .withExitedAt(ResultSetMapperUtility.mapTimestampToJodaInstant(rs, "exited_at"))
                 .withItemPool(createItemsFromString(rs.getString("item_pool")))
                 .withPoolCount(rs.getInt("pool_count"))
+                .withOffGradeItems(rs.getString("off_grade_items"))
                 .withCreatedAt(ResultSetMapperUtility.mapTimestampToJodaInstant(rs, "created_at"))
                 .build();
         }
