@@ -141,4 +141,48 @@ public class ResponseServiceImplTest {
         final ExamItemResponse persisted = responseCaptor.getValue();
         assertThat(persisted.getScore().get().getScore()).isEqualTo(1);
     }
+
+    @Test
+    public void itShouldSaveAnInitialPositiveScore() throws Exception {
+        final ExamInstance examInstance = ExamInstance.create(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), "clientName");
+
+        final ItemResponseUpdate itemResponseUpdate = random(ItemResponseUpdate.class);
+        itemResponseUpdate.setDateCreated(null);
+        itemResponseUpdate.setSequence(1);
+
+        final ExamStatusCode validStatus = new ExamStatusCode(VALID_EXAM_STATUS_CODES.iterator().next());
+        final Exam exam = new Exam.Builder()
+            .fromExam(random(Exam.class))
+            .withStatus(validStatus, Instant.now())
+            .build();
+        when(mockExamService.findExam(examInstance.getExamId())).thenReturn(Optional.of(exam));
+
+        final ExamItem examItem = new ExamItem.Builder(UUID.randomUUID())
+            .withGroupId("groupId")
+            .withCreatedAt(Instant.now())
+            .withStimulusFilePath("stimulus")
+            .withAssessmentItemBankKey(123)
+            .withAssessmentItemKey(456)
+            .withStimulusFilePath("stimulus")
+            .withItemFilePath("item")
+            .withExamPageId(UUID.randomUUID())
+            .withItemKey(itemResponseUpdate.getItemID())
+            .withItemType("itemType")
+            .withPosition(1)
+            .build();
+        when(mockExamItemQueryRepository.findExamItemAndResponse(examInstance.getExamId(), itemResponseUpdate.getPosition()))
+            .thenReturn(Optional.of(examItem));
+
+        final ExamPage examPage = random(ExamPage.class);
+        when(mockExamPageService.find(examItem.getExamPageId())).thenReturn(Optional.of(examPage));
+
+        responseService.updateScoredResponse(examInstance, itemResponseUpdate,
+            1, "Scored", "scoreRationale", 123L, 456L);
+
+        final ArgumentCaptor<ExamItemResponse> responseCaptor = ArgumentCaptor.forClass(ExamItemResponse.class);
+        verify(mockExamItemCommandRepository).insertResponses(responseCaptor.capture());
+
+        final ExamItemResponse persisted = responseCaptor.getValue();
+        assertThat(persisted.getScore().get().getScore()).isEqualTo(1);
+    }
 }
