@@ -30,6 +30,7 @@ import tds.exam.ExpandableExamAttributes;
 import tds.exam.models.FieldTestItemGroup;
 import tds.exam.models.ItemGroupHistory;
 import tds.exam.services.AssessmentService;
+import tds.exam.services.ExamAccommodationService;
 import tds.exam.services.ExamHistoryService;
 import tds.exam.services.ExamSegmentService;
 import tds.exam.services.ExpandableExamService;
@@ -50,6 +51,7 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
     private final ExamSegmentService examSegmentService;
     private final AssessmentService assessmentService;
     private final ExamHistoryService examHistoryService;
+    private final ExamAccommodationService examAccommodationService;
 
     private final static String ADAPTIVE = "adaptive";
     private final static String FIELD_TEST = "fieldtest";
@@ -59,12 +61,14 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
                                     final FieldTestService fieldTestService,
                                     final ExamSegmentService examSegmentService,
                                     final AssessmentService assessmentService,
-                                    final ExamHistoryService examHistoryService) {
+                                    final ExamHistoryService examHistoryService,
+                                    final ExamAccommodationService examAccommodationService) {
         this.expandableExamService = expandableExamService;
         this.fieldTestService = fieldTestService;
         this.examSegmentService = examSegmentService;
         this.assessmentService = assessmentService;
         this.examHistoryService = examHistoryService;
+        this.examAccommodationService = examAccommodationService;
     }
 
     @Override
@@ -293,8 +297,10 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
 
     @Override
     public OffGradeResponse addOffGradeItems(UUID examId, String designation, String segmentKey) throws ReturnStatusException {
-        //AA_AddOffgradeItems_SP
-        //TODO - We are going to verify with SBAC if this is actually used
+        //ItemSelectionDLL.AA_AddOffgradeItems_SP
+
+
+
         return new OffGradeResponse(OffGradeResponse.FAILED, "offgrade accommodation not exists");
     }
 

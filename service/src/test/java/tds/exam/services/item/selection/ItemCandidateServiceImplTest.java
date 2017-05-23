@@ -40,6 +40,7 @@ import tds.exam.builder.SegmentBuilder;
 import tds.exam.models.FieldTestItemGroup;
 import tds.exam.models.ItemGroupHistory;
 import tds.exam.services.AssessmentService;
+import tds.exam.services.ExamAccommodationService;
 import tds.exam.services.ExamHistoryService;
 import tds.exam.services.ExamSegmentService;
 import tds.exam.services.ExpandableExamService;
@@ -74,9 +75,17 @@ public class ItemCandidateServiceImplTest {
     @Mock
     private ExamHistoryService mockExamHistoryService;
 
+    @Mock
+    private ExamAccommodationService mockExamAccommodationService;
+
     @Before
     public void setUp() {
-        itemCandidatesService = new ItemCandidateServiceImpl(mockExpandableExamService, mockFieldTestService, mockExamSegmentService, mockAssessmentService, mockExamHistoryService);
+        itemCandidatesService = new ItemCandidateServiceImpl(mockExpandableExamService,
+            mockFieldTestService,
+            mockExamSegmentService,
+            mockAssessmentService,
+            mockExamHistoryService,
+            mockExamAccommodationService);
     }
 
     @Test
@@ -516,5 +525,10 @@ public class ItemCandidateServiceImplTest {
         response = history.get_previousResponses().get(1);
         assertThat(response.itemID).isEqualTo(examItemScored.getItemKey());
         assertThat(response.getScore()).isEqualTo(1);
+    }
+
+    @Test
+    public void shouldAddOffGrade() {
+
     }
 }
