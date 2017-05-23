@@ -113,7 +113,7 @@ public class ResponseServiceImpl implements ResponseService {
 
         if (StringUtils.isNotEmpty(errorMessage)) {
             LOG.warn("Problem accessing exam item: {}", errorMessage);
-            final String message = configService.getFormattedMessage(examInstance.getClientName(), null, "T_UpdateScoredResponse", null);
+            final String message = configService.getFormattedMessage(examInstance.getClientName(), null, "T_UpdateScoredResponse");
             throw new ReturnStatusException(message);
         }
 
@@ -126,6 +126,7 @@ public class ResponseServiceImpl implements ResponseService {
         } else {
             updatedResponseBuilder = new ExamItemResponse.Builder()
                 .withExamItemId(existingExamItem.getId())
+                .withExamId(exam.getId())
                 .withResponse(responseUpdate.getValue());
         }
         updatedResponseBuilder
