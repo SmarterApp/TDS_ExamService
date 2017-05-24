@@ -447,6 +447,10 @@ public class ExamSegmentRepositoryImplIntegrationTests {
         commandRepository.insert(Collections.singletonList(segment));
 
 
-        assertThat(queryRepository.findByExamIdAndSegmentKey(segment.getExamId(), segment.getSegmentKey()).get()).isEqualTo(segment);
+        ExamSegment persistedSegment = queryRepository.findByExamIdAndSegmentKey(segment.getExamId(), segment.getSegmentKey()).get();
+
+        assertThat(persistedSegment.getSegmentKey()).isEqualTo(segment.getSegmentKey());
+        assertThat(persistedSegment.getSegmentPosition()).isEqualTo(segment.getSegmentPosition());
+        assertThat(persistedSegment.getExamId()).isEqualTo(exam.getId());
     }
 }
