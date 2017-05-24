@@ -367,19 +367,9 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
             "SELECT \n" +
                 EXAM_QUERY_COLUMN_LIST +
                 "FROM exam e \n" +
-                "JOIN ( \n" +
-                "   SELECT \n" +
-                "       exam_id, \n" +
-                "       MAX(id) AS id \n" +
-                "   FROM \n" +
-                "       exam_event \n" +
-                "   WHERE \n" +
-                "       session_id = :sessionId \n" +
-                "   GROUP BY exam_id \n" +
-                ") last_event ON \n" +
-                "  last_event.exam_id = e.id \n" +
-                "JOIN exam_event ee \n" +
-                "   ON last_event.id = ee.id \n" +
+                "JOIN exam.exam_event ee \n" +
+                "   ON ee.exam_id = e.id \n" +
+                "   AND ee.id = (SELECT MAX(id) FROM exam_event WHERE exam_id = e.id) \n" +
                 "JOIN exam.exam_status_codes esc \n" +
                 "   ON esc.status = ee.status \n" +
                 "LEFT JOIN exam.exam_accommodation lang \n" +
