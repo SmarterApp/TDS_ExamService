@@ -2,7 +2,11 @@ package tds.exam.repositories.impl;
 
 import io.github.benas.randombeans.EnhancedRandomBuilder;
 import io.github.benas.randombeans.api.EnhancedRandom;
+import org.apache.commons.collections.map.HashedMap;
+import org.joda.time.DateTime;
 import org.joda.time.Instant;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -37,9 +41,9 @@ import tds.exam.repositories.ExamItemCommandRepository;
 import tds.exam.repositories.ExamPageCommandRepository;
 import tds.exam.repositories.ExamSegmentCommandRepository;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest
-@Ignore
+//@RunWith(SpringJUnit4ClassRunner.class)
+//@SpringBootTest
+//@Ignore
 public class ExamDataGenerator {
     @Autowired
     @Qualifier("commandJdbcTemplate")
@@ -58,6 +62,70 @@ public class ExamDataGenerator {
         examCommandRepository = new ExamCommandRepositoryImpl(commandJdbcTemplate);
         examItemCommandRepository = new ExamItemCommandRepositoryImpl(commandJdbcTemplate);
         examAccommodationCommandRepository = new ExamAccommodationCommandRepositoryImpl(commandJdbcTemplate);
+    }
+
+    @Test
+    public void createHistoryDataInsertScript() {
+        StringBuilder insertStatementStringBuilder = new StringBuilder();
+        final String INSERT_STATEMENT = "USE exam;\n" +
+            "INSERT INTO history (id, client_name, student_id, subject, initial_ability, attempts, segment_id, " +
+            "changed_at, segment_key, exam_id, tested_grade, login_ssid, item_group_string, initial_ability_delim)\n" +
+            "\tVALUES\n";
+
+        insertStatementStringBuilder.append(INSERT_STATEMENT);
+
+        final String clientName = "SBAC_PT";
+        final String subject = "ELA";
+        final String segmentKey = "segment-key";
+        final String testedGrade = "03";
+        final int minRandomAbility = 25;
+        final int maxRandomAbility = 100;
+        UUID examId = UUID.randomUUID();
+        Map<Integer, UUID> studentToExamIdMap = new HashMap<>();
+        final DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSS");  ///.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+        for (int numRecords = 1; numRecords <= 15000; numRecords++) {
+            final UUID recordId = UUID.randomUUID();
+            final int ability = (int)(Math.random() * ((maxRandomAbility - minRandomAbility) + 1)) + minRandomAbility;
+            int studentId = numRecords % 10;
+            String assessmentId = String.format("assessment-%s", numRecords % 10);
+            int attempts = numRecords % 4;
+            Instant changed_at = Instant.now();
+            String loginSsid = String.format("SSID%d", studentId);
+
+            if (!studentToExamIdMap.containsKey(studentId)) {
+                studentToExamIdMap.put(studentId, examId);
+            }
+
+            if (attempts % 4 == 0) {
+                examId = UUID.randomUUID();
+                studentToExamIdMap.replace(studentId, examId);
+            }
+
+            if (numRecords % 10 == 0) {
+                assessmentId = String.format("assessment-%s", numRecords % 10);
+                loginSsid = String.format("SSID%d", studentId);
+            }
+
+            final String values = String.format("\t('%s', '%s', %d, '%s', %d, %d, '%s', '%s', '%s', '%s', '%s', '%s', null, null),\n",
+                recordId,
+                clientName,
+                studentId,
+                subject,
+                ability,
+                attempts,
+                assessmentId,
+                changed_at.toString(dateTimeFormatter),
+                segmentKey,
+                examId,
+                testedGrade,
+                loginSsid);
+
+            insertStatementStringBuilder.append(values);
+        }
+
+        final String insertStatement = insertStatementStringBuilder.toString();
+        System.out.println(insertStatementStringBuilder.toString());
     }
 
     @Test
