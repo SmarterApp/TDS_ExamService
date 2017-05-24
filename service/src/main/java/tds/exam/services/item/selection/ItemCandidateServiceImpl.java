@@ -55,6 +55,10 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
 
     private final static String ADAPTIVE = "adaptive";
     private final static String FIELD_TEST = "fieldtest";
+    private final static String OFF_GRADE_ACCOMMODATION_TYPE = "TDSPoolFilter";
+    private final static String OFF_GRADE_ACCOMMODATION_IN_CODE = "TDSPoolFilter IN";
+    private final static String OFF_GRADE_ACCOMMODATION_OUT_CODE = "TDSPoolFilter OUT";
+
 
     @Autowired
     public ItemCandidateServiceImpl(final ExpandableExamService expandableExamService,
@@ -299,6 +303,7 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
     public OffGradeResponse addOffGradeItems(UUID examId, String designation, String segmentKey) throws ReturnStatusException {
         //ItemSelectionDLL.AA_AddOffgradeItems_SP
 
+//        examAccommodationService.findAccommodations(examId, );
 
 
         return new OffGradeResponse(OffGradeResponse.FAILED, "offgrade accommodation not exists");

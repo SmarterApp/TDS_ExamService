@@ -25,6 +25,7 @@ import tds.common.Algorithm;
 import tds.exam.Exam;
 import tds.exam.ExamSegment;
 import tds.exam.builder.ExamBuilder;
+import tds.exam.builder.ExamSegmentBuilder;
 import tds.exam.repositories.ExamCommandRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -435,5 +436,17 @@ public class ExamSegmentRepositoryImplIntegrationTests {
         commandRepository.update(nowSatisfiedSegment);
 
         assertThat(queryRepository.findCountOfUnsatisfiedSegments(exam.getId())).isEqualTo(0);
+    }
+
+    @Test
+    public void shouldFindExamSegmentByExamIdAndSegmentKey() {
+        ExamSegment segment = new ExamSegmentBuilder()
+            .withExamId(exam.getId())
+            .build();
+
+        commandRepository.insert(Collections.singletonList(segment));
+
+
+        assertThat(queryRepository.findByExamIdAndSegmentKey(segment.getExamId(), segment.getSegmentKey()).get()).isEqualTo(segment);
     }
 }

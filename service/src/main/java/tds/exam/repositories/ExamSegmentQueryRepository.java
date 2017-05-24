@@ -36,4 +36,11 @@ public interface ExamSegmentQueryRepository {
      */
     int findCountOfUnsatisfiedSegments(final UUID examId);
 
+    /**
+     * Finds an {@link tds.exam.ExamSegment} by exam id and segment key
+     * @param examId the exam id
+     * @param segmentKey the {@link tds.exam.ExamSegment} segment key
+     * @return
+     */
+    Optional<ExamSegment> findByExamIdAndSegmentKey(final UUID examId, final String segmentKey);
 }
