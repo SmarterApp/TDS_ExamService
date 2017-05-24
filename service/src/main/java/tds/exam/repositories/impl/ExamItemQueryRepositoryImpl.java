@@ -211,6 +211,7 @@ public class ExamItemQueryRepositoryImpl implements ExamItemQueryRepository {
             "            exam_page_id,\n" +
             "            MAX(id) AS id\n" +
             "      FROM exam_page_event\n" +
+            "      WHERE exam_id = :examId \n" +
             "      GROUP BY exam_page_id\n" +
             ") last_page_event ON EPE.id = last_page_event.id\n" +
             "LEFT JOIN (\n" +
@@ -218,6 +219,7 @@ public class ExamItemQueryRepositoryImpl implements ExamItemQueryRepository {
             "            exam_item_id,\n" +
             "            MAX(id) AS exam_item_response_id\n" +
             "      FROM exam_item_response\n" +
+            "      WHERE exam_id = :examId \n" +
             "      GROUP BY exam_item_id\n" +
             ") last_response ON I.id = last_response.exam_item_id\n" +
             "LEFT JOIN\n" +
