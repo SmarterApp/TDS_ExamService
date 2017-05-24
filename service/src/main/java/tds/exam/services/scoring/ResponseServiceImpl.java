@@ -79,7 +79,7 @@ public class ResponseServiceImpl implements ResponseService {
 
         if (!VALID_EXAM_STATUS_CODES.contains(exam.getStatus().getCode())) {
             final String message = configService.getFormattedMessage(examInstance.getClientName(), "T_UpdateScoredResponse", "Your test opportunity has been interrupted. Please check with your Test Administrator to resume your test.");
-            throw new ReturnStatusException(message);
+            //throw new ReturnStatusException(message);
         }
 
         final Optional<ExamItem> maybeItem = examItemQueryRepository.findExamItemAndResponse(examInstance.getExamId(), responseUpdate.getPosition());

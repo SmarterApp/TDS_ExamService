@@ -1,6 +1,8 @@
 package tds.exam.repositories.impl;
 
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.ResultSetExtractor;
@@ -9,6 +11,8 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StopWatch;
+
 import tds.common.data.mapping.ResultSetMapperUtility;
 import tds.exam.ExamItem;
 import tds.exam.ExamItemResponse;
@@ -30,6 +34,7 @@ import java.util.stream.Collectors;
 public class ExamItemQueryRepositoryImpl implements ExamItemQueryRepository {
     private static final ExamItemRowMapper examItemRowMapper = new ExamItemRowMapper();
     private final NamedParameterJdbcTemplate jdbcTemplate;
+    Logger logger = LoggerFactory.getLogger(ExamItemQueryRepository.class);
 
     @Autowired
     public ExamItemQueryRepositoryImpl(@Qualifier("queryJdbcTemplate") final NamedParameterJdbcTemplate queryJdbcTemplate) {
@@ -59,6 +64,8 @@ public class ExamItemQueryRepositoryImpl implements ExamItemQueryRepository {
                 "WHERE\n" +
                 "   P.exam_id = :examId AND\n" +
                 "   PE.deleted_at IS NULL;\n";
+
+        logger.trace("getCurrentExamItemPosition\n" + SQL);
 
         return jdbcTemplate.queryForObject(SQL, params, Integer.class);
     }
@@ -96,6 +103,8 @@ public class ExamItemQueryRepositoryImpl implements ExamItemQueryRepository {
                 "   GROUP BY P.exam_id, I.id \n" +
                 ") examIdCounts \n" +
                 "GROUP BY exam_id";
+
+        logger.trace("getResponseCounts\n" + SQL);
 
         return jdbcTemplate.query(SQL, params, (ResultSetExtractor<Map<UUID, Integer>>) rs -> {
             HashMap<UUID, Integer> examIdResponseCounts = new HashMap<>();
@@ -155,6 +164,9 @@ public class ExamItemQueryRepositoryImpl implements ExamItemQueryRepository {
                 "   GROUP BY I.id, IR.id \n" +
                 ") item_response_counts \n" +
                 "GROUP BY exam_item_id";
+
+
+        logger.trace("getResponseUpdateCounts\n" + SQL);
 
         return jdbcTemplate.query(SQL, params, (ResultSetExtractor<Map<UUID, Integer>>) rs -> {
             HashMap<UUID, Integer> examIdResponseCounts = new HashMap<>();
@@ -227,7 +239,15 @@ public class ExamItemQueryRepositoryImpl implements ExamItemQueryRepository {
             SQL += " AND I.position = :position ";
         }
 
-        return jdbcTemplate.query(SQL, parameters, examItemRowMapper);
+        logger.trace("findExamItemAndResponses\n" + SQL);
+
+        StopWatch timer = new StopWatch("ExamItemQueryRepositoryImpl:findExamItemAndResponse");
+        timer.start();
+        List<ExamItem> results = jdbcTemplate.query(SQL, parameters, examItemRowMapper);
+        timer.stop();
+        System.out.println(timer.shortSummary());
+
+        return results;
     }
 
     private static class ExamItemRowMapper implements RowMapper<ExamItem> {

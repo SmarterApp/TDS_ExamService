@@ -5,11 +5,20 @@ import AIR.Common.Web.WebValueCollectionCorrect;
 import TDS.Shared.Data.ReturnStatus;
 import TDS.Shared.Exceptions.ReturnStatusException;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
+
+import javax.xml.bind.JAXBException;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Random;
+import java.util.UUID;
 
 import tds.itemrenderer.data.AccLookup;
 import tds.itemrenderer.data.IITSDocument;
@@ -37,20 +46,8 @@ import tds.student.sql.data.ItemResponseUpdate;
 import tds.student.sql.data.ItemResponseUpdateStatus;
 import tds.student.sql.data.ItemScoringConfig;
 
-import javax.xml.bind.JAXBException;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 @Service
-public class ItemScoringServiceImpl implements ItemScoringService {
+public class ItemScoringServiceImpl2 implements ItemScoringService {
     private static final Logger LOG = LoggerFactory.getLogger(ItemScoringService.class);
 
     private final ScoreConfigService scoreConfigService;
@@ -60,12 +57,12 @@ public class ItemScoringServiceImpl implements ItemScoringService {
     private final ResponseService responseService;
     private final RubricService rubricService;
 
-    public ItemScoringServiceImpl(final ResponseService responseService,
-                                  final ScoreConfigService scoreConfigService,
-                                  final ContentService contentService,
-                                  final IItemScorerManager itemScorer,
-                                  final ItemScoreSettings itemScoreSettings,
-                                  final RubricService rubricService) {
+    public ItemScoringServiceImpl2(final ResponseService responseService,
+                                   final ScoreConfigService scoreConfigService,
+                                   final ContentService contentService,
+                                   final IItemScorerManager itemScorer,
+                                   final ItemScoreSettings itemScoreSettings,
+                                   final RubricService rubricService) {
         this.responseService = responseService;
         this.scoreConfigService = scoreConfigService;
         this.contentService = contentService;
@@ -184,7 +181,7 @@ public class ItemScoringServiceImpl implements ItemScoringService {
     /**
      * Update a response for an instance of a test opportunity.
      *
-     * @throws ReturnStatusException
+     * @throws TDS.Shared.Exceptions.ReturnStatusException
      */
     private ItemResponseUpdateStatus updateResponse(ExamInstance examInstance, IItemResponseUpdate responseUpdated, ItemScore score, Float itemDuration) throws ReturnStatusException {
         StopWatch dbTimer = new StopWatch();
@@ -208,87 +205,71 @@ public class ItemScoringServiceImpl implements ItemScoringService {
 
     @Override
     public List<ItemResponseUpdateStatus> updateResponses(ExamInstance examInstance, List<ItemResponseUpdate> responsesUpdated, Float pageDuration) throws ReturnStatusException {
-
-        Stream<ImmutablePair<ItemResponseUpdate, IITSDocument>> itsDocs = responsesUpdated.parallelStream().map(responseUpdate -> {
-            StopWatch timer = new StopWatch("ItemScoringServiceImpl:updateResponses:responseUpdate");
-            IITSDocument itsDoc;
-            timer.start("contentService.getContent");
-            try {
-                // get its doc
-                itsDoc = contentService.getContent(responseUpdate.getFilePath(), AccLookup.getNone());
-                // check if loaded document
-                if (itsDoc == null) {
-                    throw new ReturnStatusException(String.format("When updating item id '%s' could not load the file '%s'.", responseUpdate.getItemID(), responseUpdate.getFilePath()));
-                }
-            } catch (ReturnStatusException returnStatusException) {
-                throw new RuntimeException(returnStatusException);
-            }
-            timer.stop();
-            System.out.println(timer.shortSummary());
-            return new ImmutablePair<>(responseUpdate, itsDoc);
-        });
-
-
-        Stream<ImmutablePair<ItemResponseUpdate, ItemScore>> itemScores = itsDocs.map(pair -> {
-            StopWatch timer = new StopWatch("ItemScoringServiceImpl:updateResponses:responseUpdate");
-            ItemResponseUpdate responseUpdate = pair.left;
-            IITSDocument itsDoc = pair.right;
-
-            ItemScore score;
-            try {
-                // check for any score errors
-                timer.start("checkScoreability");
-                score = checkScoreability(responseUpdate, itsDoc);
-                timer.stop();
-                System.out.println(timer.shortSummary());
-                // if there was a score returned from score errors check then there was a problem
-                if (score == null) {
-                    if (isScoringAsynchronous(itsDoc)) {
-                        score = new ItemScore(-1, -1, ScoringStatus.WaitingForMachineScore, null, new ScoreRationale() {
-                            {
-                                setMsg("Waiting for machine score.");
-                            }
-                        }, new ArrayList<>(), null);
-                    } else {
-                        timer.start("scoreResponse");
-                        score = scoreResponse(examInstance.getExamId(), responseUpdate, itsDoc);
-                        timer.stop();
-                    }
-                }
-            } catch (ReturnStatusException returnStatusException) {
-                throw new RuntimeException(returnStatusException);
-            }
-            System.out.println(timer.shortSummary());
-            return new ImmutablePair<>(responseUpdate, score);
-        });
-
-        Stream<ItemResponseUpdateStatus> responseResultsStream = itemScores.map(pair -> {
-            StopWatch timer = new StopWatch("ItemScoringServiceImpl:updateResponses:itemScores");
-            ItemResponseUpdate responseUpdate = pair.left;
-            ItemScore score = pair.right;
+        List<ItemResponseUpdateStatus> responseResults = new ArrayList<ItemResponseUpdateStatus>();
+        StopWatch timer = new StopWatch("ItemScoringServiceImpl:updateResponses");
+        for (ItemResponseUpdate responseUpdate : responsesUpdated) {
             ItemResponseUpdateStatus updateStatus;
-            timer.start("updateResponse");
-            try {
-                updateStatus = updateResponse(examInstance, responseUpdate, score, pageDuration);
-            } catch (ReturnStatusException returnStatusException) {
-                throw new RuntimeException(returnStatusException);
-            }
+
+            timer.start("contentService.getContent");
+            // get its doc
+            IITSDocument itsDoc = contentService.getContent(responseUpdate.getFilePath(), AccLookup.getNone());
             timer.stop();
-            System.out.println(timer.shortSummary());
-            return updateStatus;
-        });
 
+            // check if loaded document
+            if (itsDoc == null) {
+                throw new ReturnStatusException(String.format("When updating item id '%s' could not load the file '%s'.", responseUpdate.getItemID(), responseUpdate.getFilePath()));
+            }
 
+            // check for any score errors
+            timer.start("checkScoreability");
+            ItemScore score = checkScoreability(responseUpdate, itsDoc);
+            timer.stop();
 
-        List<ItemResponseUpdateStatus> responseResults = responseResultsStream.collect(Collectors.toList());
+            // if there was a score returned from score errors check then there was a
+            // problem
+            if (score != null) {
+                // save response with error
+                updateStatus = updateResponse(examInstance, responseUpdate, score, pageDuration);
+            } else {
+                // for asynchronous we need to save the score first indicating it
+                // is machine scorable and then submit to the scoring web site
+                if (isScoringAsynchronous(itsDoc)) {
+                    score = new ItemScore(-1, -1, ScoringStatus.WaitingForMachineScore, null, new ScoreRationale() {
+                        {
+                            setMsg("Waiting for machine score.");
+                        }
+                    }, new ArrayList<ItemScoreInfo>(), null);
+                    updateStatus = updateResponse(examInstance, responseUpdate, score, pageDuration);
 
+                    // TODO: if score returned here ends up being
+                    // ScoringStatus.ScoringError should we save this?
+                    scoreResponse(examInstance.getExamId(), responseUpdate, itsDoc);
+                }
+                // for synchronous we need to score first and then save
+                else {
+
+                    timer.start("scoreResponse");
+                    score = scoreResponse(examInstance.getExamId(), responseUpdate, itsDoc);
+                    timer.stop();
+
+                    timer.start("updateResponse");
+
+                    updateStatus = updateResponse(examInstance, responseUpdate, score, pageDuration);
+                    timer.stop();
+                }
+            }
+
+            responseResults.add(updateStatus);
+        }
+
+        System.out.println(timer.prettyPrint());
         return responseResults;
     }
 
     /**
      * Score a response for an instance of a test opportunity.
      *
-     * @throws ReturnStatusException
+     * @throws TDS.Shared.Exceptions.ReturnStatusException
      */
     private ItemScore scoreResponse(UUID oppKey, IItemResponseScorable responseScorable, IITSDocument itsDoc) throws ReturnStatusException {
         StopWatch stopwatch = new StopWatch();
@@ -310,7 +291,7 @@ public class ItemScoringServiceImpl implements ItemScoringService {
     /**
      * Get the server url for proxy server.
      *
-     * @throws ReturnStatusException
+     * @throws TDS.Shared.Exceptions.ReturnStatusException
      */
     private URL getServerUri(String clientName, String format, String testID) throws ReturnStatusException {
         String serverUrl = null;

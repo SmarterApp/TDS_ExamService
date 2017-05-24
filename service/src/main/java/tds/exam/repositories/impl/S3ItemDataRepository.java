@@ -7,6 +7,7 @@ import com.amazonaws.services.s3.model.S3Object;
 import org.apache.commons.io.IOUtils;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StopWatch;
 
 import java.io.IOException;
 
@@ -32,17 +33,23 @@ public class S3ItemDataRepository implements ItemDataRepository {
 
     @Override
     public String findOne(final String itemDataPath) throws IOException {
+
         final String itemLocation = s3Properties.getItemPrefix() + buildPath(itemDataPath);
+        StopWatch timer = new StopWatch(itemLocation);
+        timer.start("S3ItemDataRepository");
 
         try {
+
             final S3Object item = s3Client.getObject(new GetObjectRequest(
                 s3Properties.getBucketName(), itemLocation));
 
             if (item == null) {
                 throw new IOException("Could not find file for " + itemLocation);
             }
-
-            return IOUtils.toString(item.getObjectContent(), UTF_8);
+            String result = IOUtils.toString(item.getObjectContent(), UTF_8);
+            timer.stop();
+            System.out.println(timer.shortSummary());
+            return result;
         } catch (final AmazonS3Exception ex) {
             throw new IOException("Unable to read S3 item: " + itemLocation, ex);
         }
