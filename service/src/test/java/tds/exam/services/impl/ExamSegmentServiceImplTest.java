@@ -697,4 +697,15 @@ public class ExamSegmentServiceImplTest {
         assertThat(examSegmentService.checkIfSegmentsCompleted(examId)).isFalse();
         verify(mockExamSegmentQueryRepository).findCountOfUnsatisfiedSegments(examId);
     }
+
+    @Test
+    public void shouldFindExamSegmentByExamIdAndSegmentKey() {
+        final UUID examId = UUID.randomUUID();
+        final String segmentKey = "segmentKey";
+        final ExamSegment examSegment = new ExamSegmentBuilder().build();
+
+        when(mockExamSegmentQueryRepository.findByExamIdAndSegmentKey(examId, segmentKey)).thenReturn(Optional.of(examSegment));
+        assertThat(examSegmentService.findByExamIdAndSegmentKey(examId, segmentKey).get()).isEqualTo(examSegment);
+        verify(mockExamSegmentQueryRepository).findByExamIdAndSegmentKey(examId, segmentKey);
+    }
 }

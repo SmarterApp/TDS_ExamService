@@ -38,9 +38,10 @@ public interface ExamSegmentQueryRepository {
 
     /**
      * Finds an {@link tds.exam.ExamSegment} by exam id and segment key
-     * @param examId the exam id
+     *
+     * @param examId     the exam id
      * @param segmentKey the {@link tds.exam.ExamSegment} segment key
-     * @return
+     * @return an {@link tds.exam.ExamSegment} otherwise empty
      */
     Optional<ExamSegment> findByExamIdAndSegmentKey(final UUID examId, final String segmentKey);
 }
