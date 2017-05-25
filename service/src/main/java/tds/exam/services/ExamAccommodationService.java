@@ -77,7 +77,7 @@ public interface ExamAccommodationService {
      * Denies all {@link tds.exam.ExamAccommodation}s for an exam
      *
      * @param examId   The id of the exam for which to deny accommodations
-     * @param deniedAt
+     * @param deniedAt the time the exam accommodation was denied
      */
     void denyAccommodations(final UUID examId, final Instant deniedAt);
 
