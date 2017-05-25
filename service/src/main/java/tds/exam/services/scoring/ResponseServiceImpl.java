@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import tds.exam.Exam;
 import tds.exam.ExamItem;
 import tds.exam.ExamItemResponse;
@@ -70,12 +71,12 @@ public class ResponseServiceImpl implements ResponseService {
                                              final String scoreStatus,
                                              final String scoreRationale,
                                              final long scoreLatency,
-                                             final long pageDuration) throws ReturnStatusException {
+                                             final long pageDuration)  {
         //Replaces the implementation in StudentDLL.T_UpdateScoredResponse_common
         //Decision was made to not worry about verify access.  This should be done prior to this call.
 
         final Exam exam = examService.findExam(examInstance.getExamId())
-            .orElseThrow(() -> new ReturnStatusException(String.format("Could not find exam %s associated with response", examInstance.getExamId())));
+            .orElseThrow(() -> new RuntimeException(String.format("Could not find exam %s associated with response", examInstance.getExamId())));
 
         if (!VALID_EXAM_STATUS_CODES.contains(exam.getStatus().getCode())) {
             final String message = configService.getFormattedMessage(examInstance.getClientName(), "T_UpdateScoredResponse", "Your test opportunity has been interrupted. Please check with your Test Administrator to resume your test.");
@@ -114,7 +115,7 @@ public class ResponseServiceImpl implements ResponseService {
         if (StringUtils.isNotEmpty(errorMessage)) {
             LOG.warn("Problem accessing exam item: {}", errorMessage);
             final String message = configService.getFormattedMessage(examInstance.getClientName(), null, "T_UpdateScoredResponse", null);
-            throw new ReturnStatusException(message);
+            throw new RuntimeException(message);
         }
 
         final ExamItem existingExamItem = maybeItem.get();
@@ -167,7 +168,7 @@ public class ResponseServiceImpl implements ResponseService {
         examItemCommandRepository.insertResponses(updatedResponseBuilder.build());
 
         final ExamPage examPage = examPageService.find(existingExamItem.getExamPageId())
-            .orElseThrow(() -> new ReturnStatusException("Exam page is no longer present for the updated item"));
+            .orElseThrow(() -> new RuntimeException("Exam page is no longer present for the updated item"));
 
         final ExamPage updatedExamPage = ExamPage.Builder.fromExamPage(examPage)
             .withDuration(pageDuration)

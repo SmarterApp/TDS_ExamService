@@ -4,6 +4,7 @@ import TDS.Shared.Exceptions.ReturnStatusException;
 
 import java.util.List;
 
+
 import tds.student.sql.data.ItemScoringConfig;
 
 /**
@@ -17,5 +18,5 @@ public interface ScoreConfigService {
      * @return list of {@link tds.student.sql.data.ItemScoringConfig}
      * @throws ReturnStatusException if there is an error finding the configurations
      */
-    List<ItemScoringConfig> findItemScoreConfigs(final String clientName) throws ReturnStatusException;
+    List<ItemScoringConfig> findItemScoreConfigs(final String clientName);
 }

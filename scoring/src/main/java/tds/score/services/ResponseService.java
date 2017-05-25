@@ -27,7 +27,7 @@ public interface ResponseService {
      * @throws ReturnStatusException if there is any type of error or validation condition failure
      */
     ReturnStatus updateScoredResponse(final ExamInstance examInstance, final IItemResponseUpdate responseUpdate, final int score,
-                                      final String scoreStatus, final String scoreRationale, final long scoreLatency, final long pageDuration) throws ReturnStatusException;
+                                      final String scoreStatus, final String scoreRationale, final long scoreLatency, final long pageDuration);
 
     /**
      * Updates a specific item with an updated score.

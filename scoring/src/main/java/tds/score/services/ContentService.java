@@ -17,7 +17,7 @@ public interface ContentService {
      * @return {@link tds.itemrenderer.data.IITSDocument}
      * @throws ReturnStatusException if the document cannot be found or parsed
      */
-    IITSDocument getContent(final String path, final AccLookup accommodations) throws ReturnStatusException;
+    IITSDocument getContent(final String path, final AccLookup accommodations);
 
     /**
      * Gets the item content
@@ -52,7 +52,7 @@ public interface ContentService {
      * @return {@link tds.itemrenderer.data.ITSMachineRubric} for the document and language
      * @throws ReturnStatusException if the rubric cannot be found or parsed
      */
-    ITSMachineRubric parseMachineRubric(final IITSDocument itsDocument, final String language, final RubricContentSource rubricContentSource) throws ReturnStatusException;
+    ITSMachineRubric parseMachineRubric(final IITSDocument itsDocument, final String language, final RubricContentSource rubricContentSource);
 
     /**
      * Loads page group documents
@@ -61,5 +61,5 @@ public interface ContentService {
      * @param accLookup the accommodations as a {@link tds.itemrenderer.data.AccLookup}
      * @throws ReturnStatusException
      */
-    void loadPageGroupDocuments(final PageGroup pageGroup, final AccLookup accLookup) throws ReturnStatusException;
+    void loadPageGroupDocuments(final PageGroup pageGroup, final AccLookup accLookup);
 }

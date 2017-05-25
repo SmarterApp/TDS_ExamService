@@ -26,7 +26,7 @@ public interface ItemScoringService {
      * @return
      * @throws ReturnStatusException
      */
-    List<ItemResponseUpdateStatus> updateResponses(ExamInstance examInstance, List<ItemResponseUpdate> responsesUpdated, Float pageDuration) throws ReturnStatusException;
+    List<ItemResponseUpdateStatus> updateResponses(ExamInstance examInstance, List<ItemResponseUpdate> responsesUpdated, Float pageDuration);
 
-    ItemScore scoreItem (UUID oppKey, IItemResponseScorable responseScorable, IITSDocument itsDoc) throws ReturnStatusException;
+    ItemScore scoreItem (UUID oppKey, IItemResponseScorable responseScorable, IITSDocument itsDoc);
 }

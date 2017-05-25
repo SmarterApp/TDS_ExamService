@@ -31,21 +31,18 @@ public class ScoreConfigServiceImpl implements ScoreConfigService {
 
     @Override
     @Cacheable(CacheType.LONG_TERM)
-    public List<ItemScoringConfig> findItemScoreConfigs(final String clientName) throws ReturnStatusException {
+    public List<ItemScoringConfig> findItemScoreConfigs(final String clientName) {
         UriComponents uriComponents =
             UriComponentsBuilder
                 .fromHttpUrl(examServiceProperties.getConfigUrl())
                 .path("config/{clientName}/scoring")
                 .buildAndExpand(clientName);
 
-        try {
+
             ResponseEntity<List<ItemScoringConfig>> responseEntity = restTemplate.exchange(uriComponents.toUri(),
                 HttpMethod.GET, null, new ParameterizedTypeReference<List<ItemScoringConfig>>() {
                 });
 
             return responseEntity.getBody();
-        } catch (RestClientException rce) {
-            throw new ReturnStatusException(rce);
-        }
     }
 }

@@ -38,22 +38,17 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public IITSDocument getContent(final String xmlFilePath, final AccLookup accommodations) throws ReturnStatusException {
+    public IITSDocument getContent(final String xmlFilePath, final AccLookup accommodations){
         return getContent(xmlFilePath, new AccLookupWrapper(accommodations));
     }
 
     @Override
-    public IITSDocument getItemContent(final String clientName, final long bankKey, final long itemKey, final AccLookup accommodations) throws ReturnStatusException {
-        try {
-            Optional<Item> maybeItem = itemService.findItemByKey(clientName, bankKey, itemKey);
-            if (!maybeItem.isPresent())
-                return null;
+    public IITSDocument getItemContent(final String clientName, final long bankKey, final long itemKey, final AccLookup accommodations){
+        Optional<Item> maybeItem = itemService.findItemByKey(clientName, bankKey, itemKey);
+        if (!maybeItem.isPresent())
+            return null;
 
-            return getContent(maybeItem.get().getItemPath(), accommodations);
-        } catch (ReturnStatusException e) {
-            _logger.error(e.getMessage());
-            throw e;
-        }
+        return getContent(maybeItem.get().getItemPath(), accommodations);
     }
 
     @Override
@@ -66,20 +61,15 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public void loadPageGroupDocuments(final PageGroup pageGroup, final AccLookup accLookup) throws ReturnStatusException {
-        try {
-            pageGroup.setDocument(getContent(pageGroup.getFilePath(), accLookup));
-            for (ItemResponse itemResponse : pageGroup) {
-                itemResponse.setDocument(getContent(itemResponse.getFilePath(), accLookup));
-            }
-        } catch (ReturnStatusException e) {
-            _logger.error(e.getMessage());
-            throw e;
+    public void loadPageGroupDocuments(final PageGroup pageGroup, final AccLookup accLookup) {
+        pageGroup.setDocument(getContent(pageGroup.getFilePath(), accLookup));
+        for (ItemResponse itemResponse : pageGroup) {
+            itemResponse.setDocument(getContent(itemResponse.getFilePath(), accLookup));
         }
     }
 
     @Override
-    public ITSMachineRubric parseMachineRubric(final IITSDocument itsDocument, final String language, final RubricContentSource rubricContentSource) throws ReturnStatusException {
+    public ITSMachineRubric parseMachineRubric(final IITSDocument itsDocument, final String language, final RubricContentSource rubricContentSource) {
         ITSMachineRubric machineRubric = null;
         // if the source is item bank then parse the answer key attribute
         // NOTE: we use to get this from the response table
@@ -103,16 +93,17 @@ public class ContentServiceImpl implements ContentService {
         return machineRubric;
     }
 
-    private IITSDocument getContent(String xmlFilePath, AccLookupWrapper accommodations) throws ReturnStatusException {
+    private IITSDocument getContent(String xmlFilePath, AccLookupWrapper accommodations)  {
         if (StringUtils.isEmpty(xmlFilePath)) {
             return null;
         }
 
+        final URI uri;
         try {
-            URI uri = new URI(xmlFilePath);
-            return itemDocumentService.loadItemDocument(uri, accommodations.getValue(), true);
+            uri = new URI(xmlFilePath);
         } catch (URISyntaxException e) {
-            throw new ReturnStatusException(e);
+            throw new RuntimeException(e);
         }
+        return itemDocumentService.loadItemDocument(uri, accommodations.getValue(), true);
     }
 }
