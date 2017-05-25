@@ -19,6 +19,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +32,7 @@ import tds.exam.ExamItem;
 import tds.exam.ExamItemResponse;
 import tds.exam.ExamPage;
 import tds.exam.ExamSegment;
+import tds.exam.ExamStatusCode;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.builder.ExamItemBuilder;
 import tds.exam.builder.ExamPageBuilder;
@@ -41,8 +43,8 @@ import tds.exam.repositories.ExamItemCommandRepository;
 import tds.exam.repositories.ExamPageCommandRepository;
 import tds.exam.repositories.ExamSegmentCommandRepository;
 
-//@RunWith(SpringJUnit4ClassRunner.class)
-//@SpringBootTest
+@RunWith(SpringJUnit4ClassRunner.class)
+@SpringBootTest
 //@Ignore
 public class ExamDataGenerator {
     @Autowired
@@ -62,6 +64,132 @@ public class ExamDataGenerator {
         examCommandRepository = new ExamCommandRepositoryImpl(commandJdbcTemplate);
         examItemCommandRepository = new ExamItemCommandRepositoryImpl(commandJdbcTemplate);
         examAccommodationCommandRepository = new ExamAccommodationCommandRepositoryImpl(commandJdbcTemplate);
+    }
+
+    @Test
+    public void createStudentWithExamHistory() {
+        final long studentId = 9999L;
+        final String assessmentId = "history-test";
+
+        final Exam firstExam = new ExamBuilder()
+            .withStudentId(studentId)
+            .withAssessmentId(assessmentId)
+            .withCreatedAt(Instant.now().minus(50000))
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_PENDING), Instant.now().minus(50000))
+            .build();
+
+        final ExamSegment firstExamSegment = new ExamSegmentBuilder()
+            .withExamId(firstExam.getId())
+            .withSegmentId("first-exam-segment-id")
+            .withSegmentKey("first-exam-segment-key")
+            .withSegmentPosition(1)
+            .build();
+
+        final ExamPage firstExamPageForFirstExam = new ExamPageBuilder()
+            .withId(UUID.randomUUID())
+            .withExamId(firstExam.getId())
+            .withSegmentKey(firstExamSegment.getSegmentKey())
+            .withPagePosition(1)
+            .build();
+        final ExamPage secondExamPageForFirstExam = new ExamPageBuilder()
+            .withId(UUID.randomUUID())
+            .withExamId(firstExam.getId())
+            .withSegmentKey(firstExamSegment.getSegmentKey())
+            .withPagePosition(2)
+            .build();
+
+        final ExamItem firstExamItemForFirstPage = new ExamItemBuilder()
+            .withId(UUID.randomUUID())
+            .withExamPageId(firstExamPageForFirstExam.getId())
+            .withPosition(1)
+            .withGroupId("first-exam-group-id")
+            .build();
+        final ExamItem secondExamItemForFirstPage = new ExamItemBuilder()
+            .withId(UUID.randomUUID())
+            .withExamPageId(firstExamPageForFirstExam.getId())
+            .withPosition(2)
+            .withGroupId("first-exam-group-id")
+            .build();
+        final ExamItem thirdExamItemForSecondPage = new ExamItemBuilder()
+            .withId(UUID.randomUUID())
+            .withExamPageId(secondExamPageForFirstExam.getId())
+            .withPosition(3)
+            .withGroupId("first-exam-group-id")
+            .build();
+
+        final Exam startedFirstExam = new Exam.Builder().fromExam(firstExam)
+            .withCreatedAt(Instant.now().minus(40000))
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_STARTED), Instant.now().minus(40000))
+            .build();
+
+        examCommandRepository.insert(firstExam);
+        examSegmentCommandRepository.insert(Collections.singletonList(firstExamSegment));
+        examPageCommandRepository.insert(firstExamPageForFirstExam, secondExamPageForFirstExam);
+        examItemCommandRepository.insert(firstExamItemForFirstPage, secondExamItemForFirstPage, thirdExamItemForSecondPage);
+        examCommandRepository.update(startedFirstExam);
+
+        final Exam secondExam = new ExamBuilder()
+            .withId(UUID.randomUUID())
+            .withStudentId(studentId)
+            .withAssessmentId(assessmentId)
+            .withCreatedAt(Instant.now().minus(30000))
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_PENDING), Instant.now().minus(30000))
+            .build();
+
+        final ExamSegment secondExamSegment = new ExamSegmentBuilder()
+            .withExamId(secondExam.getId())
+            .withSegmentId("second-exam-segment-id")
+            .withSegmentKey("second-exam-segment-key")
+            .withSegmentPosition(1)
+            .build();
+
+        final ExamPage firstExamPageForSecondExam = new ExamPageBuilder()
+            .withId(UUID.randomUUID())
+            .withExamId(secondExam.getId())
+            .withSegmentKey(secondExamSegment.getSegmentKey())
+            .withPagePosition(1)
+            .build();
+        final ExamPage secondExamPageForSecondExam = new ExamPageBuilder()
+            .withId(UUID.randomUUID())
+            .withExamId(secondExam.getId())
+            .withExamId(secondExam.getId())
+            .withSegmentKey(secondExamSegment.getSegmentKey())
+            .withPagePosition(2)
+            .build();
+
+        final ExamItem fourthExamItemForFirstPage = new ExamItemBuilder()
+            .withId(UUID.randomUUID())
+            .withExamPageId(firstExamPageForSecondExam.getId())
+            .withPosition(1)
+            .withGroupId("second-exam-group-id")
+            .build();
+        final ExamItem fifthExamItemForFirstPage = new ExamItemBuilder()
+            .withId(UUID.randomUUID())
+            .withExamPageId(firstExamPageForSecondExam.getId())
+            .withPosition(2)
+            .withGroupId("second-exam-group-id")
+            .build();
+        final ExamItem sixtExamItemForSecondPage = new ExamItemBuilder()
+            .withId(UUID.randomUUID())
+            .withExamPageId(secondExamPageForSecondExam.getId())
+            .withPosition(3)
+            .withGroupId("second-exam-group-id")
+            .build();
+
+        final Exam startedSecondExam = new Exam.Builder().fromExam(secondExam)
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_STARTED), Instant.now().minus(20000))
+            .build();
+
+        final Exam pausedSecondExam = new Exam.Builder().fromExam(startedSecondExam)
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_PAUSED), Instant.now().minus(15000))
+            .build();
+
+        examCommandRepository.insert(secondExam);
+        examSegmentCommandRepository.insert(Collections.singletonList(secondExamSegment));
+        examPageCommandRepository.insert(firstExamPageForSecondExam, secondExamPageForSecondExam);
+        examItemCommandRepository.insert(fourthExamItemForFirstPage, fifthExamItemForFirstPage, sixtExamItemForSecondPage);
+        examCommandRepository.update(startedSecondExam);
+        examCommandRepository.update(pausedSecondExam);
     }
 
     @Test
