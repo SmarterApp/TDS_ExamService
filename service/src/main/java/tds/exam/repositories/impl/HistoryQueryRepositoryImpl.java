@@ -110,6 +110,9 @@ public class HistoryQueryRepositoryImpl implements HistoryQueryRepository {
             "  AND page_event.deleted_at IS NULL\n" +
             "  AND student_id = :studentId \n" +
             "  AND assessment_id = :assessmentId \n" +
+            "GROUP BY \n" +
+            "   e.id, \n" +
+            "   item.group_id \n" +
             "ORDER BY \n" +
             "  ee.started_at;";
 

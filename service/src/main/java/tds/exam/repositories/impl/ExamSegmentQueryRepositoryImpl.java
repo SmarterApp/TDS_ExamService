@@ -86,9 +86,7 @@ public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepositor
                 "   exam_segment_event se \n" +
                 "ON \n" +
                 "   last_event.exam_id = se.exam_id AND \n" +
-                "   last_event.id = se.id \n" +
-                "ORDER BY \n" +
-                "   segment_position \n";
+                "   last_event.id = se.id";
 
         return jdbcTemplate.query(SQL, parameters, examSegmentRowMapper);
     }
