@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +23,7 @@ import tds.assessment.Assessment;
 import tds.exam.ApproveAccommodationsRequest;
 import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
+import tds.exam.models.ExamAccommodationFilter;
 import tds.exam.repositories.ExamAccommodationCommandRepository;
 import tds.exam.repositories.ExamAccommodationQueryRepository;
 import tds.exam.services.AssessmentService;
@@ -195,8 +197,9 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
         final List<ExamAccommodation> pendingAccommodations = examAccommodationQueryRepository.findAccommodations(examId);
         final ExamAccommodation[] deniedAccommodations = pendingAccommodations.stream()
             .map(accommodation ->
-                new ExamAccommodation.Builder(accommodation.getId())
+                ExamAccommodation.Builder
                     .fromExamAccommodation(accommodation)
+                    .withId(accommodation.getId())
                     .withDeniedAt(deniedAt)
                     .build())
             .collect(Collectors.toList()).toArray(new ExamAccommodation[pendingAccommodations.size()]);
@@ -364,7 +367,12 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
         //Add all the exam accommodations that were not updated or inserted.
         examAccommodations.addAll(existingExamAccommodations);
 
-        return examAccommodations.stream().collect(Collectors.toList());
+        return new ArrayList<>(examAccommodations);
+    }
+
+    @Override
+    public List<ExamAccommodation> findAccommodations(final UUID examId, final Collection<ExamAccommodationFilter> examAccommodationFilters) {
+        return examAccommodationQueryRepository.findAccommodations(examId, examAccommodationFilters);
     }
 
     /**

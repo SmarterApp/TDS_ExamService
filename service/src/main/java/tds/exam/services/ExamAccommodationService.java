@@ -2,6 +2,7 @@ package tds.exam.services;
 
 import org.joda.time.Instant;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -9,6 +10,7 @@ import tds.assessment.Assessment;
 import tds.exam.ApproveAccommodationsRequest;
 import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
+import tds.exam.models.ExamAccommodationFilter;
 import tds.session.Session;
 
 /**
@@ -78,4 +80,13 @@ public interface ExamAccommodationService {
      * @param deniedAt
      */
     void denyAccommodations(final UUID examId, final Instant deniedAt);
+
+    /**
+     * Finds non deleted {@link tds.exam.ExamAccommodation}
+     *
+     * @param examId                   the exam id
+     * @param examAccommodationFilters a way to filter exam accommodations
+     * @return list of matching of {@link tds.exam.ExamAccommodation}
+     */
+    List<ExamAccommodation> findAccommodations(final UUID examId, final Collection<ExamAccommodationFilter> examAccommodationFilters);
 }
