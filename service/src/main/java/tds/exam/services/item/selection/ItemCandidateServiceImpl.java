@@ -4,8 +4,11 @@ import TDS.Shared.Exceptions.ReturnStatusException;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -13,13 +16,18 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import tds.assessment.Assessment;
 import tds.assessment.Form;
+import tds.assessment.Item;
 import tds.assessment.Segment;
 import tds.common.Algorithm;
+import tds.common.web.exceptions.NotFoundException;
 import tds.dll.api.IItemSelectionDLL;
+import tds.exam.Exam;
+import tds.exam.ExamAccommodation;
 import tds.exam.ExamItem;
 import tds.exam.ExamItemResponse;
 import tds.exam.ExamItemResponseScore;
@@ -27,14 +35,19 @@ import tds.exam.ExamPage;
 import tds.exam.ExamSegment;
 import tds.exam.ExpandableExam;
 import tds.exam.ExpandableExamAttributes;
+import tds.exam.models.ExamAccommodationFilter;
 import tds.exam.models.FieldTestItemGroup;
 import tds.exam.models.ItemGroupHistory;
+import tds.exam.models.SegmentPoolInfo;
 import tds.exam.services.AssessmentService;
 import tds.exam.services.ExamAccommodationService;
 import tds.exam.services.ExamHistoryService;
 import tds.exam.services.ExamSegmentService;
+import tds.exam.services.ExamService;
 import tds.exam.services.ExpandableExamService;
 import tds.exam.services.FieldTestService;
+import tds.exam.services.ItemPoolService;
+import tds.exam.services.SegmentPoolService;
 import tds.itemselection.api.ItemSelectionException;
 import tds.itemselection.base.ItemCandidatesData;
 import tds.itemselection.base.ItemGroup;
@@ -52,13 +65,12 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
     private final AssessmentService assessmentService;
     private final ExamHistoryService examHistoryService;
     private final ExamAccommodationService examAccommodationService;
+    private final ItemPoolService itemPoolService;
+    private final ExamService examService;
 
     private final static String ADAPTIVE = "adaptive";
     private final static String FIELD_TEST = "fieldtest";
     private final static String OFF_GRADE_ACCOMMODATION_TYPE = "TDSPoolFilter";
-    private final static String OFF_GRADE_ACCOMMODATION_IN_CODE = "TDSPoolFilter IN";
-    private final static String OFF_GRADE_ACCOMMODATION_OUT_CODE = "TDSPoolFilter OUT";
-
 
     @Autowired
     public ItemCandidateServiceImpl(final ExpandableExamService expandableExamService,
@@ -66,13 +78,17 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
                                     final ExamSegmentService examSegmentService,
                                     final AssessmentService assessmentService,
                                     final ExamHistoryService examHistoryService,
-                                    final ExamAccommodationService examAccommodationService) {
+                                    final ExamAccommodationService examAccommodationService,
+                                    final ItemPoolService itemPoolService,
+                                    final ExamService examService) {
         this.expandableExamService = expandableExamService;
         this.fieldTestService = fieldTestService;
         this.examSegmentService = examSegmentService;
         this.assessmentService = assessmentService;
         this.examHistoryService = examHistoryService;
         this.examAccommodationService = examAccommodationService;
+        this.itemPoolService = itemPoolService;
+        this.examService = examService;
     }
 
     @Override
@@ -300,13 +316,82 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
     }
 
     @Override
+    @Transactional
     public OffGradeResponse addOffGradeItems(UUID examId, String designation, String segmentKey) throws ReturnStatusException {
         //ItemSelectionDLL.AA_AddOffgradeItems_SP
 
-//        examAccommodationService.findAccommodations(examId, );
+        final Optional<OffGradeResponse> response = updateOffGradeAccommodations(examId, designation);
+        if(response.isPresent()) {
+            //If present it means that either off grade has already been done or that it isn't present.
+            return response.get();
+        }
 
+        //The or else throw part should never happen and means the system is in a bad state.
+        final Exam exam = examService.findExam(examId).orElseThrow(() -> new IllegalStateException("Partial exam data in DB.  Failed to find an exam for id " + examId));
+        final List<ExamSegment> examSegments = examSegmentService.findExamSegments(examId);
+        final Assessment assessment = assessmentService.findAssessment(exam.getClientName(), exam.getAssessmentKey())
+            .orElseThrow(() -> new NotFoundException("Could not find assessment for id " +exam.getAssessmentKey()));
 
-        return new OffGradeResponse(OffGradeResponse.FAILED, "offgrade accommodation not exists");
+        final String languageCode = exam.getLanguageCode();
+
+        Map<String, Segment> segmentKeyToSegment = assessment.getSegments().stream()
+            .collect(Collectors.toMap(Segment::getKey, Function.identity()));
+
+        ExamSegment[] segmentsToUpdate = examSegments.stream()
+            .filter(examSegment -> !examSegment.isSatisfied() && examSegment.getAlgorithm().equals(Algorithm.ADAPTIVE_2))
+            .map(examSegment -> {
+                Segment segment = segmentKeyToSegment.get(examSegment.getSegmentKey());
+                Set<Item> itemPool = itemPoolService.getItemPool(examId, assessment.getItemConstraints(), segment.getItems(languageCode));
+                Set<String> itemPoolIds = itemPool.stream()
+                    .map(Item::getId)
+                    .collect(Collectors.toSet());
+
+                itemPoolIds.addAll(examSegment.getItemPool());
+
+                return ExamSegment.Builder.fromSegment(examSegment).withItemPool(itemPoolIds).build();
+            }).toArray(ExamSegment[]::new);
+
+        examSegmentService.update(segmentsToUpdate);
+
+        return new OffGradeResponse(OffGradeResponse.SUCCESS, "");
+    }
+
+    private Optional<OffGradeResponse> updateOffGradeAccommodations(final UUID examId, final String designation) {
+        String inAccommodationCode = designation + " IN";
+        String outAccommodationCode = designation+ " OUT";
+
+        Collection<ExamAccommodationFilter> filters = Arrays.asList(
+          new ExamAccommodationFilter(inAccommodationCode, OFF_GRADE_ACCOMMODATION_TYPE),
+          new ExamAccommodationFilter(outAccommodationCode, OFF_GRADE_ACCOMMODATION_TYPE)
+        );
+
+        List<ExamAccommodation> examAccommodations = examAccommodationService.findAccommodations(examId, filters);
+
+        if(examAccommodations.isEmpty()) {
+            return Optional.of(new OffGradeResponse(OffGradeResponse.FAILED, "offgrade accommodation not exists"));
+        }
+
+        Map<String, List<ExamAccommodation>> examAccommodationsByCode = examAccommodations.stream()
+            .collect(Collectors.groupingBy(ExamAccommodation::getCode));
+
+        if (examAccommodationsByCode.containsKey(inAccommodationCode)) {
+            return Optional.of(new OffGradeResponse(OffGradeResponse.SUCCESS, "already set"));
+        }
+
+        //ItemSelectionDLL lin 3722
+        if(examAccommodationsByCode.containsKey(outAccommodationCode)) {
+            List<ExamAccommodation> accommodationsToUpdate = examAccommodationsByCode.get(outAccommodationCode).stream()
+                .map(examAccommodation -> ExamAccommodation.Builder
+                    .fromExamAccommodation(examAccommodation)
+                    .withCode(inAccommodationCode)
+                    .withValue(inAccommodationCode)
+                    .build())
+                .collect(Collectors.toList());
+
+            examAccommodationService.update(accommodationsToUpdate);
+        }
+
+        return Optional.empty();
     }
 
     private List<ExamSegmentWrapper> mapSegmentToItems(ExpandableExam expandableExam) {
