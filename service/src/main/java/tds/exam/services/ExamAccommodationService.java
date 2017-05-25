@@ -89,4 +89,9 @@ public interface ExamAccommodationService {
      * @return list of matching of {@link tds.exam.ExamAccommodation}
      */
     List<ExamAccommodation> findAccommodations(final UUID examId, final Collection<ExamAccommodationFilter> examAccommodationFilters);
+
+    /**
+     * @param accommodations updates the {@link tds.exam.ExamAccommodation}
+     */
+    void update(final Collection<ExamAccommodation> accommodations);
 }

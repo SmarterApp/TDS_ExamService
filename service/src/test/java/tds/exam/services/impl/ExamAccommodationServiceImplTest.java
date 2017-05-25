@@ -226,7 +226,7 @@ public class ExamAccommodationServiceImplTest {
     }
 
     @Test
-    public void shouldUpdateExamAccommodations() {
+    public void shouldInitializeAccommodationsOnPreviousExam() {
         Assessment assessment = new AssessmentBuilder()
             .build();
 
@@ -620,7 +620,7 @@ public class ExamAccommodationServiceImplTest {
     }
 
     @Test
-    public void shouldFindExamAccommmodationsWithFilters() {
+    public void shouldFindExamAccommodationsWithFilters() {
         ExamAccommodation accommodation = new ExamAccommodationBuilder().build();
         UUID examId = UUID.randomUUID();
         List<ExamAccommodationFilter> filters = Collections.singletonList(new ExamAccommodationFilter("test", "test"));
@@ -629,5 +629,15 @@ public class ExamAccommodationServiceImplTest {
         assertThat(examAccommodationService.findAccommodations(examId, filters)).containsExactly(accommodation);
 
         verify(mockExamAccommodationQueryRepository).findAccommodations(examId, filters);
+    }
+
+    @Test
+    public void shouldUpdateExamAccommodations() {
+        ExamAccommodation accommodation = new ExamAccommodationBuilder().build();
+        examAccommodationService.update(Collections.singleton(accommodation));
+
+        verify(mockExamAccommodationCommandRepository).update(examAccommodationUpdateCaptor.capture());
+
+        assertThat(examAccommodationUpdateCaptor.getValue()).isEqualTo(accommodation);
     }
 }

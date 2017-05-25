@@ -375,6 +375,12 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
         return examAccommodationQueryRepository.findAccommodations(examId, examAccommodationFilters);
     }
 
+    @Override
+    @Transactional
+    public void update(final Collection<ExamAccommodation> accommodations) {
+        examAccommodationCommandRepository.update(accommodations.toArray(new ExamAccommodation[accommodations.size()]));
+    }
+
     /**
      * Used to see if two ExamAccommodations's are logically the same.  The {@link tds.exam.ExamAccommodation} equals() method cannot be used
      * since one the accommodations is fetched from the database and the other is provided by the UI so not all fields will match.
