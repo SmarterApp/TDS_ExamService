@@ -14,6 +14,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -24,6 +25,7 @@ import tds.common.Algorithm;
 import tds.exam.Exam;
 import tds.exam.ExamSegment;
 import tds.exam.builder.ExamBuilder;
+import tds.exam.builder.ExamSegmentBuilder;
 import tds.exam.repositories.ExamCommandRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -100,6 +102,7 @@ public class ExamSegmentRepositoryImplIntegrationTests {
             .withRestorePermeableCondition(condition)
             .withFormKey(formKey)
             .withFormId(formId)
+            .withOffGradeItems("offGrade")
             .build();
 
         ExamSegment segment2 = new ExamSegment.Builder()
@@ -119,29 +122,33 @@ public class ExamSegmentRepositoryImplIntegrationTests {
             .withFormKey(formKey)
             .withFormId(formId)
             .withRestorePermeableCondition(condition)
+            .withOffGradeItems("offGradeTwo")
             .build();
 
         commandRepository.insert(Arrays.asList(segment1, segment2));
 
         Optional<ExamSegment> maybeRetrievedSegment = queryRepository.findByExamIdAndSegmentPosition(examId, segmentPos2);
         assertThat(maybeRetrievedSegment).isPresent();
-        assertThat(maybeRetrievedSegment.get().getSegmentId()).isEqualTo(segmentId2);
-        assertThat(maybeRetrievedSegment.get().getSegmentKey()).isEqualTo(segmentKey2);
-        assertThat(maybeRetrievedSegment.get().getSegmentPosition()).isEqualTo(segmentPos2);
-        assertThat(maybeRetrievedSegment.get().getAlgorithm()).isEqualTo(algorithm);
-        assertThat(maybeRetrievedSegment.get().getCreatedAt()).isNotNull();
-        assertThat(maybeRetrievedSegment.get().getExitedAt()).isEqualTo(exitedAt);
-        assertThat(maybeRetrievedSegment.get().getExamId()).isEqualTo(examId);
-        assertThat(maybeRetrievedSegment.get().getExamItemCount()).isEqualTo(examItemCount);
-        assertThat(maybeRetrievedSegment.get().getItemPool()).contains(item);
-        assertThat(maybeRetrievedSegment.get().getFieldTestItemCount()).isEqualTo(ftItemCount);
-        assertThat(maybeRetrievedSegment.get().getFormId()).isEqualTo(formId);
-        assertThat(maybeRetrievedSegment.get().getFormKey()).isEqualTo(formKey);
-        assertThat(maybeRetrievedSegment.get().getFormCohort()).isEqualTo(cohort);
-        assertThat(maybeRetrievedSegment.get().getRestorePermeableCondition()).isEqualTo(condition);
-        assertThat(maybeRetrievedSegment.get().getPoolCount()).isEqualTo(poolCount);
-        assertThat(maybeRetrievedSegment.get().isPermeable()).isEqualTo(permeable);
-        assertThat(maybeRetrievedSegment.get().isSatisfied()).isEqualTo(satisfied);
+
+        ExamSegment retrievedSegment = maybeRetrievedSegment.get();
+        assertThat(retrievedSegment.getSegmentId()).isEqualTo(segmentId2);
+        assertThat(retrievedSegment.getSegmentKey()).isEqualTo(segmentKey2);
+        assertThat(retrievedSegment.getSegmentPosition()).isEqualTo(segmentPos2);
+        assertThat(retrievedSegment.getAlgorithm()).isEqualTo(algorithm);
+        assertThat(retrievedSegment.getCreatedAt()).isNotNull();
+        assertThat(retrievedSegment.getExitedAt()).isEqualTo(exitedAt);
+        assertThat(retrievedSegment.getExamId()).isEqualTo(examId);
+        assertThat(retrievedSegment.getExamItemCount()).isEqualTo(examItemCount);
+        assertThat(retrievedSegment.getItemPool()).contains(item);
+        assertThat(retrievedSegment.getFieldTestItemCount()).isEqualTo(ftItemCount);
+        assertThat(retrievedSegment.getFormId()).isEqualTo(formId);
+        assertThat(retrievedSegment.getFormKey()).isEqualTo(formKey);
+        assertThat(retrievedSegment.getFormCohort()).isEqualTo(cohort);
+        assertThat(retrievedSegment.getRestorePermeableCondition()).isEqualTo(condition);
+        assertThat(retrievedSegment.getPoolCount()).isEqualTo(poolCount);
+        assertThat(retrievedSegment.isPermeable()).isEqualTo(permeable);
+        assertThat(retrievedSegment.isSatisfied()).isEqualTo(satisfied);
+        assertThat(retrievedSegment.getOffGradeItems()).isEqualTo("offGradeTwo");
     }
 
     @Test
@@ -181,7 +188,7 @@ public class ExamSegmentRepositoryImplIntegrationTests {
             .withFormId(formId)
             .build();
 
-        commandRepository.insert(Arrays.asList(segment1));
+        commandRepository.insert(Collections.singletonList(segment1));
         itemPool.add("item2");
         final boolean newSatisfied = true;
         final boolean newPermeable = true;
@@ -429,5 +436,21 @@ public class ExamSegmentRepositoryImplIntegrationTests {
         commandRepository.update(nowSatisfiedSegment);
 
         assertThat(queryRepository.findCountOfUnsatisfiedSegments(exam.getId())).isEqualTo(0);
+    }
+
+    @Test
+    public void shouldFindExamSegmentByExamIdAndSegmentKey() {
+        ExamSegment segment = new ExamSegmentBuilder()
+            .withExamId(exam.getId())
+            .build();
+
+        commandRepository.insert(Collections.singletonList(segment));
+
+
+        ExamSegment persistedSegment = queryRepository.findByExamIdAndSegmentKey(segment.getExamId(), segment.getSegmentKey()).get();
+
+        assertThat(persistedSegment.getSegmentKey()).isEqualTo(segment.getSegmentKey());
+        assertThat(persistedSegment.getSegmentPosition()).isEqualTo(segment.getSegmentPosition());
+        assertThat(persistedSegment.getExamId()).isEqualTo(exam.getId());
     }
 }

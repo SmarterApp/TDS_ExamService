@@ -201,4 +201,9 @@ public class ExamSegmentServiceImpl implements ExamSegmentService {
     public boolean checkIfSegmentsCompleted(final UUID examId) {
         return examSegmentQueryRepository.findCountOfUnsatisfiedSegments(examId) == 0;
     }
+
+    @Override
+    public Optional<ExamSegment> findByExamIdAndSegmentKey(final UUID examId, final String segmentKey) {
+        return examSegmentQueryRepository.findByExamIdAndSegmentKey(examId, segmentKey);
+    }
 }

@@ -5,11 +5,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -22,6 +24,7 @@ import tds.assessment.Segment;
 import tds.common.Algorithm;
 import tds.dll.api.IItemSelectionDLL;
 import tds.exam.Exam;
+import tds.exam.ExamAccommodation;
 import tds.exam.ExamItem;
 import tds.exam.ExamItemResponseScore;
 import tds.exam.ExamPage;
@@ -29,6 +32,7 @@ import tds.exam.ExamSegment;
 import tds.exam.ExpandableExam;
 import tds.exam.ExpandableExamAttributes;
 import tds.exam.builder.AssessmentBuilder;
+import tds.exam.builder.ExamAccommodationBuilder;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.builder.ExamItemBuilder;
 import tds.exam.builder.ExamItemResponseBuilder;
@@ -37,21 +41,27 @@ import tds.exam.builder.ExamSegmentBuilder;
 import tds.exam.builder.FieldTestItemGroupBuilder;
 import tds.exam.builder.ItemBuilder;
 import tds.exam.builder.SegmentBuilder;
+import tds.exam.models.ExamAccommodationFilter;
 import tds.exam.models.FieldTestItemGroup;
 import tds.exam.models.ItemGroupHistory;
 import tds.exam.services.AssessmentService;
+import tds.exam.services.ExamAccommodationService;
 import tds.exam.services.ExamHistoryService;
 import tds.exam.services.ExamSegmentService;
+import tds.exam.services.ExamService;
 import tds.exam.services.ExpandableExamService;
 import tds.exam.services.FieldTestService;
+import tds.exam.services.ItemPoolService;
 import tds.itemselection.api.ItemSelectionException;
 import tds.itemselection.base.ItemCandidatesData;
 import tds.itemselection.base.ItemGroup;
 import tds.itemselection.impl.ItemResponse;
 import tds.itemselection.loader.StudentHistory2013;
+import tds.itemselection.model.OffGradeResponse;
 import tds.itemselection.services.ItemCandidatesService;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
+import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -74,9 +84,28 @@ public class ItemCandidateServiceImplTest {
     @Mock
     private ExamHistoryService mockExamHistoryService;
 
+    @Mock
+    private ExamAccommodationService mockExamAccommodationService;
+
+    @Mock
+    private ItemPoolService mockItemPoolService;
+
+    @Mock
+    private ExamService mockExamService;
+
+    @Captor
+    private ArgumentCaptor<Collection<ExamAccommodationFilter>> examAccommodationFiltersCapture;
+
     @Before
     public void setUp() {
-        itemCandidatesService = new ItemCandidateServiceImpl(mockExpandableExamService, mockFieldTestService, mockExamSegmentService, mockAssessmentService, mockExamHistoryService);
+        itemCandidatesService = new ItemCandidateServiceImpl(mockExpandableExamService,
+            mockFieldTestService,
+            mockExamSegmentService,
+            mockAssessmentService,
+            mockExamHistoryService,
+            mockExamAccommodationService,
+            mockItemPoolService,
+            mockExamService);
     }
 
     @Test
@@ -516,5 +545,68 @@ public class ItemCandidateServiceImplTest {
         response = history.get_previousResponses().get(1);
         assertThat(response.itemID).isEqualTo(examItemScored.getItemKey());
         assertThat(response.getScore()).isEqualTo(1);
+    }
+
+    @Test
+    public void shouldIgnoreOffGradeWithoutAccommodationPresent() throws ReturnStatusException {
+        UUID examId = UUID.randomUUID();
+
+        OffGradeResponse response = itemCandidatesService.addOffGradeItems(examId, "Grade 3", "segmentKey");
+
+        assertThat(response.getStatus()).isEqualTo(OffGradeResponse.FAILED);
+        assertThat(response.getReason()).isEqualTo("offgrade accommodation not exists");
+    }
+
+    @Test
+    public void shouldIgnoreOffGradeIfAlreadyAdded() throws ReturnStatusException {
+        UUID examId = UUID.randomUUID();
+
+        ExamAccommodation examAccommodation = new ExamAccommodationBuilder().withCode("Grade 3 IN").build();
+
+        when(mockExamAccommodationService.findAccommodations(isA(UUID.class), examAccommodationFiltersCapture.capture())).thenReturn(Collections.singletonList(examAccommodation));
+
+        OffGradeResponse response = itemCandidatesService.addOffGradeItems(examId, "Grade 3", "segmentKey");
+
+        assertThat(response.getStatus()).isEqualTo(OffGradeResponse.SUCCESS);
+        assertThat(response.getReason()).isEqualTo("already set");
+    }
+
+    @Test
+    public void shouldAddOffGradeItems() throws ReturnStatusException {
+        UUID examId = UUID.randomUUID();
+
+        Exam exam = new ExamBuilder()
+            .withId(examId)
+            .build();
+        ExamAccommodation examAccommodation = new ExamAccommodationBuilder().withCode("Grade 3 OUT").build();
+        Segment segment = new SegmentBuilder().withKey("SegKey").withSelectionAlgorithm(Algorithm.ADAPTIVE_2).build();
+        Assessment assessment = new AssessmentBuilder()
+            .withSelectionAlgorithm(Algorithm.ADAPTIVE_2)
+            .withSegments(Collections.singletonList(segment))
+            .build();
+
+        ExamSegment examSegment = new ExamSegmentBuilder()
+            .withIsSatisfied(false)
+            .withSegmentKey("SegKey")
+            .withAlgorithm(Algorithm.ADAPTIVE_2)
+            .withItemPool(Collections.singleton("187-0000"))
+            .build();
+
+        Item item = new ItemBuilder("187-1234").build();
+
+        when(mockExamAccommodationService.findAccommodations(isA(UUID.class), examAccommodationFiltersCapture.capture())).thenReturn(Collections.singletonList(examAccommodation));
+        when(mockExamService.findExam(examId)).thenReturn(Optional.of(exam));
+        when(mockAssessmentService.findAssessment(exam.getClientName(), exam.getAssessmentKey())).thenReturn(Optional.of(assessment));
+        when(mockExamSegmentService.findExamSegments(examId)).thenReturn(Collections.singletonList(examSegment));
+        when(mockItemPoolService.getItemPool(examId, assessment.getItemConstraints(), segment.getItems(exam.getLanguageCode()))).thenReturn(Collections.singleton(item));
+
+        OffGradeResponse response = itemCandidatesService.addOffGradeItems(examId, "Grade 3", "segmentKey");
+
+        ArgumentCaptor<ExamSegment> examSegmentArgumentCaptor = ArgumentCaptor.forClass(ExamSegment.class);
+        verify(mockExamSegmentService).update(examSegmentArgumentCaptor.capture());
+
+        assertThat(response.getStatus()).isEqualTo(OffGradeResponse.SUCCESS);
+        assertThat(response.getReason()).isEqualTo("");
+        assertThat(examSegmentArgumentCaptor.getValue().getItemPool()).containsExactlyInAnyOrder("187-1234", "187-0000");
     }
 }
