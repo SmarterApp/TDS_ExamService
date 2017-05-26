@@ -90,31 +90,33 @@ public class ExamDataGenerator {
             .withExamId(firstExam.getId())
             .withSegmentKey(firstExamSegment.getSegmentKey())
             .withPagePosition(1)
+            .withItemGroupKey("item-group-key-1")
             .build();
         final ExamPage secondExamPageForFirstExam = new ExamPageBuilder()
             .withId(UUID.randomUUID())
             .withExamId(firstExam.getId())
             .withSegmentKey(firstExamSegment.getSegmentKey())
             .withPagePosition(2)
+            .withItemGroupKey("item-group-key-2")
             .build();
 
         final ExamItem firstExamItemForFirstPage = new ExamItemBuilder()
             .withId(UUID.randomUUID())
             .withExamPageId(firstExamPageForFirstExam.getId())
             .withPosition(1)
-            .withGroupId("first-exam-group-id")
+            .withGroupId("item-group-id-1")
             .build();
         final ExamItem secondExamItemForFirstPage = new ExamItemBuilder()
             .withId(UUID.randomUUID())
             .withExamPageId(firstExamPageForFirstExam.getId())
             .withPosition(2)
-            .withGroupId("first-exam-group-id")
+            .withGroupId("item-group-id-1")
             .build();
         final ExamItem thirdExamItemForSecondPage = new ExamItemBuilder()
             .withId(UUID.randomUUID())
             .withExamPageId(secondExamPageForFirstExam.getId())
             .withPosition(3)
-            .withGroupId("first-exam-group-id")
+            .withGroupId("item-group-id-2")
             .build();
 
         final Exam startedFirstExam = new Exam.Builder().fromExam(firstExam)
@@ -148,32 +150,33 @@ public class ExamDataGenerator {
             .withExamId(secondExam.getId())
             .withSegmentKey(secondExamSegment.getSegmentKey())
             .withPagePosition(1)
+            .withItemGroupKey("item-group-key-3")
             .build();
         final ExamPage secondExamPageForSecondExam = new ExamPageBuilder()
             .withId(UUID.randomUUID())
             .withExamId(secondExam.getId())
-            .withExamId(secondExam.getId())
             .withSegmentKey(secondExamSegment.getSegmentKey())
             .withPagePosition(2)
+            .withItemGroupKey("item-group-key-4")
             .build();
 
         final ExamItem fourthExamItemForFirstPage = new ExamItemBuilder()
             .withId(UUID.randomUUID())
             .withExamPageId(firstExamPageForSecondExam.getId())
             .withPosition(1)
-            .withGroupId("second-exam-group-id")
+            .withGroupId("item-group-id-3")
             .build();
         final ExamItem fifthExamItemForFirstPage = new ExamItemBuilder()
             .withId(UUID.randomUUID())
             .withExamPageId(firstExamPageForSecondExam.getId())
             .withPosition(2)
-            .withGroupId("second-exam-group-id")
+            .withGroupId("item-group-id-3")
             .build();
         final ExamItem sixtExamItemForSecondPage = new ExamItemBuilder()
             .withId(UUID.randomUUID())
             .withExamPageId(secondExamPageForSecondExam.getId())
             .withPosition(3)
-            .withGroupId("second-exam-group-id")
+            .withGroupId("item-group-id-4")
             .build();
 
         final Exam startedSecondExam = new Exam.Builder().fromExam(secondExam)
