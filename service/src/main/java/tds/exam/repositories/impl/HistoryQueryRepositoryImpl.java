@@ -75,46 +75,29 @@ public class HistoryQueryRepositoryImpl implements HistoryQueryRepository {
             .addValue("studentId", studentId)
             .addValue("assessmentId", assessmentId);
 
-        final String SQL = "SELECT e.id as examId, item.group_id as groupId FROM exam_item\n" +
-            "JOIN exam e\n" +
-            "JOIN ( \n" +
-            "  SELECT\n" +
-            "    exam_id,\n" +
-            "    MAX(id) AS id \n" +
-            "  FROM exam.exam_event\n" +
-            "  WHERE exam_id <> :examId \n" +
-            "  GROUP BY exam_id \n" +
-            ") last_event \n" +
-            "ON e.id = last_event.exam_id \n" +
-            "JOIN exam.exam_event ee \n" +
-            "  ON last_event.exam_id = ee.exam_id \n" +
-            "  AND last_event.id = ee.id\n" +
-            "JOIN exam_segment segment ON e.id = segment.exam_id\n" +
-            "JOIN exam_page page on segment.segment_key = page.segment_key\n" +
-            "JOIN ( \n" +
-            "  SELECT \n" +
-            "    exam_page_id, \n" +
-            "    MAX(id) AS id\n" +
-            "  FROM exam_page_event \n" +
-            "  WHERE exam_id <> :examId \n" +
-            "  GROUP BY exam_page_id \n" +
-            ") last_page_event \n" +
-            "    ON page.id = last_page_event.exam_page_id \n" +
-            "JOIN \n" +
-            "  exam_page_event page_event \n" +
-            "  ON page_event.id = last_page_event.id \n" +
-            "JOIN exam_item item\n" +
-            "  ON item.exam_page_id = page.id\n" +
-            "WHERE\n" +
-            "  e.id <> :examId \n" +
-            "  AND page_event.deleted_at IS NULL\n" +
-            "  AND student_id = :studentId \n" +
-            "  AND assessment_id = :assessmentId \n" +
-            "GROUP BY \n" +
-            "   e.id, \n" +
-            "   item.group_id \n" +
-            "ORDER BY \n" +
-            "  ee.started_at;";
+        final String SQL =
+            "SELECT \n" +
+                "   exam.id AS examId, \n" +
+                "   item.group_id AS groupId \n" +
+                "FROM \n" +
+                "   exam AS exam \n" +
+                "JOIN \n" +
+                "   exam_page AS page \n" +
+                "   ON page.exam_id = exam.id \n" +
+                "JOIN \n" +
+                "   exam_page_event AS page_event \n" +
+                "   ON page.id = page_event.exam_page_id \n" +
+                "JOIN \n" +
+                "exam_item AS item \n" +
+                "    ON item.exam_page_id = page.id \n" +
+                "WHERE \n" +
+                "   exam.id <> :examId\n" +
+                "   AND exam.student_id = :studentId \n" +
+                "   AND exam.assessment_id = :assessmentId \n" +
+                "   AND page_event.deleted_at IS NULL \n" +
+                "GROUP BY \n" +
+                "   exam.id, \n" +
+                "   item.group_id";
 
         return jdbcTemplate.query(SQL, parameters, itemGroupHistoryResultExtractor);
     }
