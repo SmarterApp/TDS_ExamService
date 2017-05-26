@@ -45,7 +45,7 @@ import tds.exam.repositories.ExamSegmentCommandRepository;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest
-//@Ignore
+@Ignore
 public class ExamDataGenerator {
     @Autowired
     @Qualifier("commandJdbcTemplate")
