@@ -40,7 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest
-@Transactional
+//@Transactional
 public class ExamPrintRequestRepositoryIntegrationTests {
     @Autowired
     @Qualifier("commandJdbcTemplate")

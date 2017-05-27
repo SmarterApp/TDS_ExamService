@@ -62,23 +62,14 @@ public class ExamPrintRequestQueryRepositoryImpl implements ExamPrintRequestQuer
                 "   COUNT(PR.id) AS requestCount \n" +
                 "FROM  \n" +
                 "   exam.exam_print_request PR \n" +
-                "JOIN ( \n" +
-                "   SELECT \n" +
-                "       exam_print_request_id, \n" +
-                "       MAX(id) AS id \n" +
-                "   FROM \n" +
-                "       exam.exam_print_request_event \n" +
-                "   GROUP BY exam_print_request_id \n" +
-                ") last_event \n" +
-                "   ON PR.id = last_event.exam_print_request_id \n" +
                 "JOIN exam.exam_print_request_event PRE \n" +
-                "   ON last_event.exam_print_request_id = PRE.exam_print_request_id \n" +
-                "   AND last_event.id = PRE.id \n" +
+                "   ON PRE.exam_print_request_id = PRE.exam_print_request_id \n" +
+                "   AND PRE.id = (SELECT MAX(id) FROM exam_print_request_event WHERE exam_print_request_id = PR.id) \n" +
                 "WHERE \n" +
-                "   exam_id IN (:examIds) \n" +
-                "   AND status = 'SUBMITTED' \n" +
-                "   AND session_id = :sessionId \n" +
-                "GROUP BY exam_id";
+                "   PR.exam_id IN (:examIds) \n" +
+                "   AND PR.session_id = :sessionId \n" +
+                "   AND PRE.status = 'SUBMITTED' \n" +
+                "GROUP BY exam_id;";
 
         return jdbcTemplate.query(SQL, params, (ResultSetExtractor<Map<UUID, Integer>>) rs -> {
             HashMap<UUID, Integer> examIdResponseCounts = new HashMap<>();
@@ -96,27 +87,19 @@ public class ExamPrintRequestQueryRepositoryImpl implements ExamPrintRequestQuer
 
         final String SQL =
             "SELECT \n" +
-                "NULL as itemResponse, \n" +
+                "   NULL as itemResponse, \n" +
                 EXAM_PRINT_REQUEST_COLUMNS +
                 "FROM  \n" +
                 "   exam.exam_print_request PR \n" +
-                "JOIN ( \n" +
-                "   SELECT \n" +
-                "       exam_print_request_id, \n" +
-                "       MAX(id) AS id \n" +
-                "   FROM \n" +
-                "       exam.exam_print_request_event \n" +
-                "   GROUP BY exam_print_request_id \n" +
-                ") last_event \n" +
-                "   ON PR.id = last_event.exam_print_request_id \n" +
                 "JOIN exam.exam_print_request_event PRE \n" +
-                "   ON last_event.exam_print_request_id = PRE.exam_print_request_id \n" +
-                "   AND last_event.id = PRE.id \n" +
+                "   ON PRE.exam_print_request_id = PRE.exam_print_request_id \n" +
+                "   AND PRE.id = (SELECT MAX(id) FROM exam_print_request_event WHERE exam_print_request_id = PR.id) \n" +
                 "WHERE \n" +
                 "   exam_id = :examId \n" +
                 "   AND status = 'SUBMITTED' \n" +
                 "   AND session_id = :sessionId \n" +
-                "ORDER BY PR.created_at";
+                "ORDER BY \n" +
+                "   PR.id";
 
         return jdbcTemplate.query(SQL, params, examPrintRequestRowMapper);
     }
@@ -126,30 +109,21 @@ public class ExamPrintRequestQueryRepositoryImpl implements ExamPrintRequestQuer
         final SqlParameterSource params = new MapSqlParameterSource("id", id.toString());
         final String SQL =
             "SELECT \n" +
-                "IR.response AS itemResponse, \n" +
+                "   IR.response AS itemResponse, \n" +
                 EXAM_PRINT_REQUEST_COLUMNS +
                 "FROM  \n" +
                 "   exam.exam_print_request PR \n" +
-                "JOIN ( \n" +
-                "   SELECT \n" +
-                "       exam_print_request_id, \n" +
-                "       MAX(id) AS id \n" +
-                "   FROM \n" +
-                "       exam.exam_print_request_event \n" +
-                "   GROUP BY exam_print_request_id \n" +
-                ") last_event \n" +
-                "   ON PR.id = last_event.exam_print_request_id \n" +
                 "JOIN exam_print_request_event PRE \n" +
-                "   ON last_event.exam_print_request_id = PRE.exam_print_request_id \n" +
-                "   AND last_event.id = PRE.id \n" +
-                "LEFT JOIN exam_page P\n" +
-                "   ON P.exam_id = PR.exam_id\n" +
-                "LEFT JOIN exam_page_event PE\n" +
-                "   ON PE.exam_page_id = P.id\n" +
-                "LEFT JOIN exam_item I\n" +
-                "   ON I.exam_page_id = P.id\n" +
-                "   AND PR.item_position = I.position\n" +
-                "LEFT JOIN exam.exam_item_response IR\n" +
+                "   ON PRE.exam_print_request_id = PR.id \n" +
+                "   AND PRE.id = (SELECT MAX(id) FROM exam_print_request_event WHERE exam_print_request_id = PR.id) \n" +
+                "LEFT JOIN exam_page P \n" +
+                "   ON P.exam_id = PR.exam_id \n" +
+                "LEFT JOIN exam_page_event PE \n" +
+                "   ON PE.exam_page_id = P.id \n" +
+                "LEFT JOIN exam_item I \n" +
+                "   ON I.exam_page_id = P.id \n" +
+                "   AND PR.item_position = I.position \n" +
+                "LEFT JOIN exam.exam_item_response IR \n" +
                 "   ON IR.exam_item_id = I.id \n" +
                 "WHERE \n" +
                 "   PR.id = :id \n" +
@@ -171,29 +145,24 @@ public class ExamPrintRequestQueryRepositoryImpl implements ExamPrintRequestQuer
     @Override
     public List<ExamPrintRequest> findApprovedRequests(final UUID sessionId) {
         final SqlParameterSource params = new MapSqlParameterSource("sessionId", sessionId.toString());
-
+// TODO:  always full table scan against PRE; need to add session_id to PRE table?
         final String SQL =
             "SELECT \n" +
-                "NULL as itemResponse, \n" +
+                "   NULL as itemResponse, \n" +
                 EXAM_PRINT_REQUEST_COLUMNS +
                 "FROM  \n" +
                 "   exam.exam_print_request PR \n" +
-                "JOIN ( \n" +
-                "   SELECT \n" +
-                "       exam_print_request_id, \n" +
-                "       MAX(id) AS id \n" +
-                "   FROM \n" +
-                "       exam.exam_print_request_event \n" +
-                "   GROUP BY exam_print_request_id \n" +
-                ") last_event \n" +
-                "   ON PR.id = last_event.exam_print_request_id \n" +
                 "JOIN exam.exam_print_request_event PRE \n" +
-                "   ON last_event.exam_print_request_id = PRE.exam_print_request_id \n" +
-                "   AND last_event.id = PRE.id \n" +
+                "   ON PRE.exam_print_request_id = PR.id \n" +
+                "   AND PRE.id = (SELECT MAX(id) \n" +
+                "                 FROM exam_print_request_event \n" +
+                "                 WHERE exam_print_request_id = PR.id \n" +
+                "                 AND status = 'APPROVED') \n" +
                 "WHERE \n" +
-                "   status = 'APPROVED' \n" +
-                "   AND session_id = :sessionId \n" +
-                "ORDER BY PR.exam_id, PR.created_at";
+                "   PR.session_id = :sessionId \n" +
+                "ORDER BY \n" +
+                "   PR.exam_id, \n" +
+                "   PR.id";
 
         return jdbcTemplate.query(SQL, params, examPrintRequestRowMapper);
     }
@@ -209,24 +178,17 @@ public class ExamPrintRequestQueryRepositoryImpl implements ExamPrintRequestQuer
                 "   COUNT(PR.id) \n" +
                 "FROM  \n" +
                 "   exam.exam_print_request PR \n" +
-                "JOIN ( \n" +
-                "   SELECT \n" +
-                "       exam_print_request_id, \n" +
-                "       MAX(id) AS id \n" +
-                "   FROM \n" +
-                "       exam.exam_print_request_event \n" +
-                "   GROUP BY exam_print_request_id \n" +
-                ") last_event \n" +
-                "   ON PR.id = last_event.exam_print_request_id \n" +
                 "JOIN exam.exam_print_request_event PRE \n" +
-                "   ON last_event.exam_print_request_id = PRE.exam_print_request_id \n" +
-                "   AND last_event.id = PRE.id \n" +
+                "   ON PRE.exam_print_request_id = PR.id \n" +
+                "   AND PRE.id = (SELECT MAX(id) FROM exam_print_request_event WHERE exam_print_request_id = PR.id) \n" +
                 "WHERE \n" +
                 "   PRE.status = 'SUBMITTED' \n" +
-                "   AND PR.exam_id = :examId \n" +
+                "   AND PR.exam_id = :examId\n" +
                 "   AND PR.item_position = :itemPosition \n" +
                 "   AND PR.page_position = :pagePosition \n" +
-                "ORDER BY PR.exam_id, PR.created_at";
+                "ORDER BY \n" +
+                "   PR.exam_id, \n" +
+                "   PR.created_at";
 
         return jdbcTemplate.queryForObject(SQL, params, Integer.class);
     }
