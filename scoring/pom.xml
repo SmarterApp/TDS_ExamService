@@ -23,13 +23,6 @@
     </properties>
 
     <dependencies>
-        <!-- TDS -->
-        <dependency>
-            <groupId>org.opentestsystem.delivery</groupId>
-            <artifactId>tds-common</artifactId>
-            <version>${tds-common.version}</version>
-        </dependency>
-
         <!-- Legacy TDS -->
         <dependency>
             <groupId>org.opentestsystem.delivery</groupId>
