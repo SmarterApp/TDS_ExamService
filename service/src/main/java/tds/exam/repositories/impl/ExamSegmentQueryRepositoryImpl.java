@@ -63,6 +63,7 @@ public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepositor
                 "   s.form_cohort, \n" +
                 "   se.satisfied, \n" +
                 "   se.exited_at, \n" +
+                "   se.off_grade_items, \n" +
                 "   se.item_pool, \n" +
                 "   s.pool_count, \n" +
                 "   s.created_at \n" +
@@ -90,9 +91,6 @@ public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepositor
         return jdbcTemplate.query(SQL, parameters, examSegmentRowMapper);
     }
 
-    /**
-     * @inheritDoc
-     */
     @Override
     public Optional<ExamSegment> findByExamIdAndSegmentPosition(UUID examId, int segmentPosition) {
         final Map<String, Object> parameters = new HashMap<>();
@@ -116,6 +114,7 @@ public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepositor
                 "   se.satisfied, \n" +
                 "   se.exited_at, \n" +
                 "   se.item_pool, \n" +
+                "   se.off_grade_items, \n" +
                 "   s.pool_count, \n" +
                 "   s.created_at \n" +
                 "FROM \n" +
@@ -175,6 +174,56 @@ public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepositor
         return jdbcTemplate.queryForObject(SQL, params, Integer.class);
     }
 
+    @Override
+    public Optional<ExamSegment> findByExamIdAndSegmentKey(final UUID examId, final String segmentKey) {
+        final Map<String, Object> parameters = new HashMap<>();
+        parameters.put("examId", examId.toString());
+        parameters.put("segmentKey", segmentKey);
+
+        final String SQL =
+            "SELECT \n" +
+                "   s.exam_id AS exam_id, \n" +
+                "   s.segment_key, \n" +
+                "   s.segment_id, \n" +
+                "   s.segment_position, \n" +
+                "   s.form_key, \n" +
+                "   s.form_id, \n" +
+                "   s.algorithm, \n" +
+                "   s.exam_item_count, \n" +
+                "   s.field_test_item_count, \n" +
+                "   se.permeable, \n" +
+                "   se.restore_permeable_condition, \n" +
+                "   s.form_cohort, \n" +
+                "   se.satisfied, \n" +
+                "   se.exited_at, \n" +
+                "   se.item_pool, \n" +
+                "   se.off_grade_items, \n" +
+                "   s.pool_count, \n" +
+                "   s.created_at \n" +
+                "FROM \n" +
+                "   exam_segment s \n" +
+                "JOIN exam_segment_event se \n" +
+                "   ON s.exam_id = se.exam_id AND \n" +
+                "       s.segment_position = se.segment_position \n" +
+                "WHERE \n" +
+                "   s.exam_id = :examId AND \n " +
+                "   s.segment_key = :segmentKey \n" +
+                "ORDER BY \n" +
+                "   se.id \n" +
+                "DESC \n" +
+                "LIMIT 1";
+
+        Optional<ExamSegment> maybeExamSegment;
+
+        try {
+            maybeExamSegment = Optional.of(jdbcTemplate.queryForObject(SQL, parameters, examSegmentRowMapper));
+        } catch (EmptyResultDataAccessException e) {
+            maybeExamSegment = Optional.empty();
+        }
+
+        return maybeExamSegment;
+    }
+
     private static Set<String> createItemsFromString(String itemListStr) {
         // Check if the value is an empty string - otherwise, return a set of
         return itemListStr.equals("") ? new HashSet<>() : new HashSet<>(Arrays.asList(itemListStr.split(",")));
@@ -200,6 +249,7 @@ public class ExamSegmentQueryRepositoryImpl implements ExamSegmentQueryRepositor
                 .withExitedAt(ResultSetMapperUtility.mapTimestampToJodaInstant(rs, "exited_at"))
                 .withItemPool(createItemsFromString(rs.getString("item_pool")))
                 .withPoolCount(rs.getInt("pool_count"))
+                .withOffGradeItems(rs.getString("off_grade_items"))
                 .withCreatedAt(ResultSetMapperUtility.mapTimestampToJodaInstant(rs, "created_at"))
                 .build();
         }

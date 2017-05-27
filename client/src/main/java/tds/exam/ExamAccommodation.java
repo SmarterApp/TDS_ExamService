@@ -72,6 +72,11 @@ public class ExamAccommodation {
             this.id = id;
         }
 
+        public Builder withId(final UUID id) {
+            this.id = id;
+            return this;
+        }
+
         public Builder withExamId(UUID examId) {
             this.examId = checkNotNull(examId, "exam id cannot be null");
             return this;

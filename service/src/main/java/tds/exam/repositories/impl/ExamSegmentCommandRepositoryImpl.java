@@ -110,6 +110,7 @@ public class ExamSegmentCommandRepositoryImpl implements ExamSegmentCommandRepos
                 .addValue("restorePermeableCondition", segment.getRestorePermeableCondition())
                 .addValue("exitedAt", ResultSetMapperUtility.mapJodaInstantToTimestamp(segment.getExitedAt()))
                 .addValue("itemPool", String.join(",", segment.getItemPool()))
+                .addValue("offGradeItems", segment.getOffGradeItems())
                 .addValue("createdAt", createdAt);
             parameterSources.add(parameters);
         });
@@ -123,6 +124,7 @@ public class ExamSegmentCommandRepositoryImpl implements ExamSegmentCommandRepos
                 "   restore_permeable_condition, \n" +
                 "   exited_at, \n" +
                 "   item_pool, \n" +
+                "   off_grade_items, \n" +
                 "   created_at \n" +
                 ") \n" +
                 "VALUES ( \n" +
@@ -133,6 +135,7 @@ public class ExamSegmentCommandRepositoryImpl implements ExamSegmentCommandRepos
                 "   :restorePermeableCondition, \n" +
                 "   :exitedAt, \n" +
                 "   :itemPool, \n" +
+                "   :offGradeItems, \n" +
                 "   :createdAt \n" +
                 ")";
 
