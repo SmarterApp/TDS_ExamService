@@ -145,7 +145,6 @@ public class ExamPrintRequestQueryRepositoryImpl implements ExamPrintRequestQuer
     @Override
     public List<ExamPrintRequest> findApprovedRequests(final UUID sessionId) {
         final SqlParameterSource params = new MapSqlParameterSource("sessionId", sessionId.toString());
-// TODO:  always full table scan against PRE; need to add session_id to PRE table?
         final String SQL =
             "SELECT \n" +
                 "   NULL as itemResponse, \n" +
