@@ -66,6 +66,7 @@ import tds.exam.services.SessionService;
 import tds.exam.services.StudentService;
 import tds.exam.services.TimeLimitConfigurationService;
 import tds.exam.utils.ExamStatusChangeValidator;
+import tds.exam.wrapper.ExamPageWrapper;
 import tds.exam.wrapper.ExamSegmentWrapper;
 import tds.session.ExternalSessionConfiguration;
 import tds.session.Session;
@@ -622,31 +623,31 @@ class ExamServiceImpl implements ExamService {
          */
         List<ExamPage> examPages = isGracePeriodResume
             ? examSegmentWrappers.stream()
-                .flatMap(segmentWrapper -> segmentWrapper.getExamPages().stream())
-                // Update pages from the prior restart number
-                .filter(pageWrapper -> pageWrapper.getExamPage().getExamRestartsAndResumptions() == exam.getRestartsAndResumptions())
-                .map(pageWrapper ->
-                    ExamPage.Builder
-                        .fromExamPage(pageWrapper.getExamPage())
-                        .withExamRestartsAndResumptions(updateExamRestartsAndResumptions)
-                        .build()
-                )
-                .collect(Collectors.toList())
+            .flatMap(segmentWrapper -> segmentWrapper.getExamPages().stream())
+            // Update pages from the prior restart number
+            .filter(pageWrapper -> pageWrapper.getExamPage().getExamRestartsAndResumptions() == exam.getRestartsAndResumptions())
+            .map(pageWrapper ->
+                ExamPage.Builder
+                    .fromExamPage(pageWrapper.getExamPage())
+                    .withExamRestartsAndResumptions(updateExamRestartsAndResumptions)
+                    .build()
+            )
+            .collect(Collectors.toList())
             : examSegmentWrappers.stream()
-                .flatMap(segmentWrapper -> segmentWrapper.getExamPages().stream())
-                .filter(pageWrapper ->
-                    // Find any pages that have items that have not yet been answered.
-                    pageWrapper.getExamItems().stream()
-                        .anyMatch(item -> !item.getResponse().isPresent()
-                            || (item.getResponse().isPresent() && !item.getResponse().get().isValid()))
-                )
-                .map(pageWrapper ->
-                    ExamPage.Builder
-                        .fromExamPage(pageWrapper.getExamPage())
-                        .withExamRestartsAndResumptions(updateExamRestartsAndResumptions)
-                        .build()
-                )
-                .collect(Collectors.toList());
+            .flatMap(segmentWrapper -> segmentWrapper.getExamPages().stream())
+            .filter(pageWrapper ->
+                // Find any pages that have items that have not yet been answered.
+                pageWrapper.getExamItems().stream()
+                    .anyMatch(item -> !item.getResponse().isPresent()
+                        || (item.getResponse().isPresent() && !item.getResponse().get().isValid()))
+            )
+            .map(pageWrapper ->
+                ExamPage.Builder
+                    .fromExamPage(pageWrapper.getExamPage())
+                    .withExamRestartsAndResumptions(updateExamRestartsAndResumptions)
+                    .build()
+            )
+            .collect(Collectors.toList());
 
         examPageService.update(examPages.toArray(new ExamPage[examPages.size()]));
     }
@@ -668,88 +669,91 @@ class ExamServiceImpl implements ExamService {
     //always keep track of the lowest unanswered item so it can be returned if the above isn't present
     //lastly return the last item if everything has been answered
     private int findExamStartPosition(final List<ExamSegmentWrapper> examSegmentWrappers,
-                                      final int examRestartsAndResumptions) {
+                                       final int examRestartsAndResumptions) {
         Optional<ExamItem> maybeResumeExamItem;
 
         // Find the first segment position where dateExited is not null or that has a satisfied permeable condition
         /* StudentDLL.ResumeItemPosition_FN [5156] */
-        Optional<ExamSegmentWrapper> maybeResumeExamSegment = examSegmentWrappers.stream()
-            .filter(examSegment ->
-                examSegment.getExamSegment().getExitedAt() == null
-                    || (examSegment.getExamSegment().isPermeable()
-                    && examSegment.getExamSegment().getRestorePermeableCondition() != null))
-            .min(Comparator.comparingInt(o -> o.getExamSegment().getSegmentPosition()));
-
-        // If there was a segment found with the above query
-        if (maybeResumeExamSegment.isPresent()) {
-            ExamSegmentWrapper currentSegment = maybeResumeExamSegment.get();
-
-            // flat map all exam pages, items for this segment/restart number
-            List<ExamItem> examItemsInSegment = currentSegment.getExamPages().stream()
-                .filter(examPageWrapper -> examPageWrapper.getExamPage().getExamRestartsAndResumptions() == examRestartsAndResumptions)
-                .flatMap(pageWrapper -> pageWrapper.getExamItems().stream())
-                .collect(Collectors.toList());
-
-            /* StudentDLL.ResumeItemPosition_FN [5164] */
-            // Find the first item in this segment that is not valid (either because it has no response or because the response is not valid
-            maybeResumeExamItem = examItemsInSegment.stream()
-                .filter(examItem ->
-                    !examItem.getResponse().isPresent()
-                        || (examItem.getResponse().isPresent()
-                        && !examItem.getResponse().get().getResponse().equals("")
-                        && !examItem.getResponse().get().isValid())
-                )
-                .min(Comparator.comparingInt(ExamItem::getPosition));
-
-            if (maybeResumeExamItem.isPresent()) {
-                return maybeResumeExamItem.get().getPosition();
-            }
-
-            /* StudentDLL.ResumeItemPosition_FN [5174] */
-            // If all items had a response, find the highest item position regardless of whether it has a response or not
-            maybeResumeExamItem = examItemsInSegment.stream()
-                .max(Comparator.comparingInt(ExamItem::getPosition));
-
-            if (maybeResumeExamItem.isPresent()) {
-                return maybeResumeExamItem.get().getPosition();
-            }
+        /*
+         * TODO - This block (lines 761-764) is a bit odd to me.  It tries to find an exam segment that hasn't been
+         * exited or is permeable check, and will return an item.  However, I'm not sure why we then ignore the segment
+         * exited setting in the code after this block.
+         */
+        maybeResumeExamItem = getExamItemFromResumableSegment(examSegmentWrappers, examRestartsAndResumptions);
+        if (maybeResumeExamItem.isPresent()) {
+            return maybeResumeExamItem.get().getPosition();
         }
 
         // flat map all exam pages, items for this assessment/restart number
-        List<ExamItem> examItemsInAssessment = examSegmentWrappers.stream()
+        List<ExamItem> examItemsWithoutResponse = examSegmentWrappers.stream()
             .flatMap(wrapper -> wrapper.getExamPages().stream()
                 .filter(pageWrapper -> pageWrapper.getExamPage().getExamRestartsAndResumptions() == examRestartsAndResumptions)
-                .flatMap(examPage -> examPage.getExamItems().stream()))
+                .flatMap(examPage -> examPage.getExamItems().stream()
+                    .filter(ExamServiceImpl::isItemResponseValid)
+                ))
             .collect(Collectors.toList());
 
         /* StudentDLL.ResumeItemPosition_FN [5183] */
         // Find the first item in the assessment that is not valid (either because it has no response or because the response is not valid
-        maybeResumeExamItem = examItemsInAssessment.stream()
-            .filter(ExamServiceImpl::isItemValid)
-            .min(Comparator.comparingInt(ExamItem::getPosition));
-
-        if (maybeResumeExamItem.isPresent()) {
-            return maybeResumeExamItem.get().getPosition();
+        if(!examItemsWithoutResponse.isEmpty()) {
+            return examItemsWithoutResponse.get(0).getPosition();
         }
 
         /* StudentDLL.ResumeItemPosition_FN [5193] */
         // If all items had a response, find the highest item position regardless of whether it has a response or not
-        maybeResumeExamItem = examItemsInAssessment.stream()
-            .max(Comparator.comparingInt(ExamItem::getPosition));
-
-        if (maybeResumeExamItem.isPresent()) {
-            return maybeResumeExamItem.get().getPosition();
-        }
-
-        /* StudentDLL.ResumeItemPosition_FN [5202] */
-        // If all else fails, just get the max item position + 1 of all generated items and start there
-        return examSegmentWrappers.stream()
-            .flatMap(wrapper -> wrapper.getExamPages().stream()
-                .flatMap(examPage -> examPage.getExamItems().stream()))
-            .max(Comparator.comparingInt(ExamItem::getPosition)).get().getPosition() + 1;
+        ExamSegmentWrapper lastSegment = examSegmentWrappers.get(examSegmentWrappers.size() - 1);
+        ExamPageWrapper lastPage = lastSegment.getExamPages().get(lastSegment.getExamPages().size() - 1);
+        return lastPage.getExamItems().get(lastPage.getExamItems().size() - 1).getPosition();
     }
 
-    private static boolean isItemValid(final ExamItem examItem) {
+    private Optional<ExamItem> getExamItemFromResumableSegment(final List<ExamSegmentWrapper> examSegmentWrappers, final int examRestartsAndResumptions) {
+        Optional<ExamSegmentWrapper> maybeResumeExamSegment = examSegmentWrappers.stream()
+            .filter(this::isExamSegmentResumable)
+            .min(Comparator.comparingInt(o -> o.getExamSegment().getSegmentPosition()));
+
+        if (!maybeResumeExamSegment.isPresent()) {
+            return Optional.empty();
+        }
+
+        // If there was a segment found with the above query
+        ExamSegmentWrapper currentSegment = maybeResumeExamSegment.get();
+
+        // flat map all exam pages, items for this segment/restart number
+        List<ExamItem> examItemsInSegment = currentSegment.getExamPages().stream()
+            .filter(examPageWrapper -> examPageWrapper.getExamPage().getExamRestartsAndResumptions() == examRestartsAndResumptions)
+            .flatMap(pageWrapper -> pageWrapper.getExamItems().stream())
+            .collect(Collectors.toList());
+
+        if (examItemsInSegment.isEmpty()) {
+            return Optional.empty();
+        }
+
+        /* StudentDLL.ResumeItemPosition_FN [5164] */
+        // Find the first item in this segment that is not valid (either because it has no response or because the response is not valid
+        Optional<ExamItem> maybeExamItem = examItemsInSegment.stream()
+            .filter(examItem ->
+                !examItem.getResponse().isPresent()
+                    || (examItem.getResponse().isPresent()
+                    && !examItem.getResponse().get().getResponse().equals("")
+                    && !examItem.getResponse().get().isValid())
+            ).findFirst();
+
+        if (maybeExamItem.isPresent()) {
+            return maybeExamItem;
+        }
+
+        /* StudentDLL.ResumeItemPosition_FN [5174] */
+        // If all items had a response, find the highest item position regardless of whether it has a response or not
+        return Optional.of(examItemsInSegment.get(examItemsInSegment.size() - 1));
+    }
+
+    private boolean isExamSegmentResumable(final ExamSegmentWrapper examSegment) {
+        return examSegment.getExamSegment().getExitedAt() == null
+            || (examSegment.getExamSegment().isPermeable()
+            && examSegment.getExamSegment().getRestorePermeableCondition() != null);
+    }
+
+    private static boolean isItemResponseValid(final ExamItem examItem) {
         return !examItem.getResponse().isPresent()
             || (examItem.getResponse().isPresent()
             && !examItem.getResponse().get().getResponse().equals("")
