@@ -79,8 +79,8 @@ public class ExamPageCommandRepositoryImpl implements ExamPageCommandRepository 
                 "SELECT \n" +
                 "   PE.exam_page_id, \n" +
                 "   PE.exam_id, \n" +
-                "   exam_restarts_and_resumptions, \n" +
-                "   page_duration, \n" +
+                "   PE.exam_restarts_and_resumptions, \n" +
+                "   PE.page_duration, \n" +
                 "   UTC_TIMESTAMP(), \n" +
                 "   PE.started_at, \n " +
                 "   UTC_TIMESTAMP() \n" +
@@ -106,6 +106,7 @@ public class ExamPageCommandRepositoryImpl implements ExamPageCommandRepository 
                 "   exam_id, \n" +
                 "   exam_restarts_and_resumptions, \n" +
                 "   page_duration, \n" +
+                "   visible, \n" +
                 "   deleted_at, \n" +
                 "   started_at, \n" +
                 "   created_at) \n" +
@@ -114,6 +115,7 @@ public class ExamPageCommandRepositoryImpl implements ExamPageCommandRepository 
                 "   :examId, \n" +
                 "   :examRestartsAndResumptions, \n" +
                 "   :pageDuration, \n" +
+                "   :visible, \n" +
                 "   :deletedAt, \n" +
                 "   :startedAt, \n" +
                 "   :createdAt)";
@@ -122,9 +124,11 @@ public class ExamPageCommandRepositoryImpl implements ExamPageCommandRepository 
             new MapSqlParameterSource("examPageId", examPage.getId().toString())
                 .addValue("examRestartsAndResumptions", examPage.getExamRestartsAndResumptions())
                 .addValue("pageDuration", examPage.getDuration())
+                .addValue("visible", examPage.isVisible())
                 .addValue("examId", examPage.getExamId().toString())
                 .addValue("startedAt", mapJodaInstantToTimestamp(examPage.getStartedAt()))
                 .addValue("deletedAt", mapJodaInstantToTimestamp(examPage.getDeletedAt()))
+                .addValue("visible", examPage.isVisible())
                 .addValue("createdAt", createdAt))
             .toArray(SqlParameterSource[]::new);
 

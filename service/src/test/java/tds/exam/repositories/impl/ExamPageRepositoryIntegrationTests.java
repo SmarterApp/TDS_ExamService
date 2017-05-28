@@ -38,7 +38,6 @@ public class ExamPageRepositoryIntegrationTests {
     @Autowired
     @Qualifier("commandJdbcTemplate")
     private NamedParameterJdbcTemplate commandJdbcTemplate;
-    private ExamItemCommandRepository examItemCommandRepository;
     private ExamPageCommandRepository examPageCommandRepository;
     private ExamPageQueryRepository examPageQueryRepository;
     private ExamCommandRepository examCommandRepository;
@@ -70,7 +69,6 @@ public class ExamPageRepositoryIntegrationTests {
 
     @Before
     public void setUp() {
-        examItemCommandRepository = new ExamItemCommandRepositoryImpl(commandJdbcTemplate);
         examPageCommandRepository = new ExamPageCommandRepositoryImpl(commandJdbcTemplate);
         examPageQueryRepository = new ExamPageQueryRepositoryImpl(commandJdbcTemplate);
         ExamSegmentCommandRepository examSegmentCommandRepository = new ExamSegmentCommandRepositoryImpl(commandJdbcTemplate);
