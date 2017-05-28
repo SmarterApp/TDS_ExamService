@@ -42,7 +42,6 @@ import tds.exam.ExamConfiguration;
 import tds.exam.ExamInfo;
 import tds.exam.ExamItem;
 import tds.exam.ExamPage;
-import tds.exam.ExamSegment;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
 import tds.exam.ExamineeContext;
@@ -66,7 +65,6 @@ import tds.exam.services.SessionService;
 import tds.exam.services.StudentService;
 import tds.exam.services.TimeLimitConfigurationService;
 import tds.exam.utils.ExamStatusChangeValidator;
-import tds.exam.wrapper.ExamPageWrapper;
 import tds.exam.wrapper.ExamSegmentWrapper;
 import tds.session.ExternalSessionConfiguration;
 import tds.session.Session;
@@ -613,6 +611,8 @@ class ExamServiceImpl implements ExamService {
     }
 
     /* This method emulates functionality of {@code StudentDLL._UnfinishedResponsePages_SP} @ line 5146 */
+
+    //If all items are answered and not in a grace period resume mark the pages as not visible
     private void updateUnfinishedPages(final Exam exam, final List<ExamSegmentWrapper> examSegmentWrappers,
                                        final int updateExamRestartsAndResumptions, final boolean isGracePeriodResume) {
         /*
@@ -653,26 +653,40 @@ class ExamServiceImpl implements ExamService {
     /*
         This method emulated StudentDLL.ResumeItemPosition_FN [5151]
      */
+    //Logic around finding the start position
+    //ExamSegments Are Sorted by segment position
+    //Exam Page are sorted by exam page position
+    //ExamItems are sorted by item position
+
+    //Iterate over segments
+    //Iterate over pages
+    //Iterate over items
+    //if one of the items satisfies the position check then return that position
+    // -- segment is permeable then return the first unanswered item
+    // -- if all answered return the last item in the segment
+    //always keep track of the lowest unanswered item so it can be returned if the above isn't present
+    //lastly return the last item if everything has been answered
     private int findExamStartPosition(final List<ExamSegmentWrapper> examSegmentWrappers,
                                       final int examRestartsAndResumptions) {
         Optional<ExamItem> maybeResumeExamItem;
 
         // Find the first segment position where dateExited is not null or that has a satisfied permeable condition
         /* StudentDLL.ResumeItemPosition_FN [5156] */
-        Optional<ExamSegment> maybeResumeExamSegment = examSegmentWrappers.stream()
-            .map(wrapper -> wrapper.getExamSegment())
-            .filter(examSegment -> examSegment.getExitedAt() == null || (examSegment.isPermeable() && examSegment.getRestorePermeableCondition() != null))
-            .min(Comparator.comparingInt(ExamSegment::getSegmentPosition));
+        Optional<ExamSegmentWrapper> maybeResumeExamSegment = examSegmentWrappers.stream()
+            .filter(examSegment ->
+                examSegment.getExamSegment().getExitedAt() == null
+                    || (examSegment.getExamSegment().isPermeable()
+                    && examSegment.getExamSegment().getRestorePermeableCondition() != null))
+            .min(Comparator.comparingInt(o -> o.getExamSegment().getSegmentPosition()));
 
         // If there was a segment found with the above query
         if (maybeResumeExamSegment.isPresent()) {
-            int resumeExamSegmentPosition = maybeResumeExamSegment.get().getSegmentPosition();
+            ExamSegmentWrapper currentSegment = maybeResumeExamSegment.get();
+
             // flat map all exam pages, items for this segment/restart number
-            List<ExamItem> examItemsInSegment = examSegmentWrappers.stream()
-                .filter(wrapper -> wrapper.getExamSegment().getSegmentPosition() == resumeExamSegmentPosition)
-                .flatMap(wrapper -> wrapper.getExamPages().stream()
-                    .filter(pageWrapper -> pageWrapper.getExamPage().getExamRestartsAndResumptions() == examRestartsAndResumptions)
-                    .flatMap(pageWrapper -> pageWrapper.getExamItems().stream()))
+            List<ExamItem> examItemsInSegment = currentSegment.getExamPages().stream()
+                .filter(examPageWrapper -> examPageWrapper.getExamPage().getExamRestartsAndResumptions() == examRestartsAndResumptions)
+                .flatMap(pageWrapper -> pageWrapper.getExamItems().stream())
                 .collect(Collectors.toList());
 
             /* StudentDLL.ResumeItemPosition_FN [5164] */
@@ -681,7 +695,7 @@ class ExamServiceImpl implements ExamService {
                 .filter(examItem ->
                     !examItem.getResponse().isPresent()
                         || (examItem.getResponse().isPresent()
-                        && !examItem.getResponse().get().equals("")
+                        && !examItem.getResponse().get().getResponse().equals("")
                         && !examItem.getResponse().get().isValid())
                 )
                 .min(Comparator.comparingInt(ExamItem::getPosition));
@@ -710,12 +724,7 @@ class ExamServiceImpl implements ExamService {
         /* StudentDLL.ResumeItemPosition_FN [5183] */
         // Find the first item in the assessment that is not valid (either because it has no response or because the response is not valid
         maybeResumeExamItem = examItemsInAssessment.stream()
-            .filter(examItem ->
-                !examItem.getResponse().isPresent()
-                    || (examItem.getResponse().isPresent()
-                    && !examItem.getResponse().get().equals("")
-                    && !examItem.getResponse().get().isValid())
-            )
+            .filter(ExamServiceImpl::isItemValid)
             .min(Comparator.comparingInt(ExamItem::getPosition));
 
         if (maybeResumeExamItem.isPresent()) {
@@ -737,6 +746,13 @@ class ExamServiceImpl implements ExamService {
             .flatMap(wrapper -> wrapper.getExamPages().stream()
                 .flatMap(examPage -> examPage.getExamItems().stream()))
             .max(Comparator.comparingInt(ExamItem::getPosition)).get().getPosition() + 1;
+    }
+
+    private static boolean isItemValid(final ExamItem examItem) {
+        return !examItem.getResponse().isPresent()
+            || (examItem.getResponse().isPresent()
+            && !examItem.getResponse().get().getResponse().equals("")
+            && !examItem.getResponse().get().isValid());
     }
 
     private Exam initializeExam(final Exam exam, final Assessment assessment, final String browserUserAgent) {
