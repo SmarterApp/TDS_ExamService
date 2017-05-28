@@ -77,11 +77,10 @@ public class ExamPageCommandRepositoryImpl implements ExamPageCommandRepository 
                 "   started_at, \n" +
                 "   created_at) \n" +
                 "SELECT \n" +
-                "   exam_page_id, \n" +
-                "   exam_restarts_and_resumptions, \n" +
-                "   page_duration, \n" +
                 "   PE.exam_page_id, \n" +
                 "   PE.exam_id, \n" +
+                "   exam_restarts_and_resumptions, \n" +
+                "   page_duration, \n" +
                 "   UTC_TIMESTAMP(), \n" +
                 "   PE.started_at, \n " +
                 "   UTC_TIMESTAMP() \n" +
@@ -113,6 +112,8 @@ public class ExamPageCommandRepositoryImpl implements ExamPageCommandRepository 
                 "VALUES ( \n" +
                 "   :examPageId, \n" +
                 "   :examId, \n" +
+                "   :examRestartsAndResumptions, \n" +
+                "   :pageDuration, \n" +
                 "   :deletedAt, \n" +
                 "   :startedAt, \n" +
                 "   :createdAt)";
