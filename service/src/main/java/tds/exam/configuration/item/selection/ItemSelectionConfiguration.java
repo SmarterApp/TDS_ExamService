@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
-import tds.itemselection.selectors.ItemSelector;
+import tds.itemselection.selectors.MsbItemSelector;
 import tds.itemselection.selectors.impl.AdaptiveSelector2013;
 import tds.itemselection.services.ItemCandidatesService;
 import tds.itemselection.services.SegmentService;
@@ -15,7 +15,7 @@ import tds.itemselection.services.SegmentService;
 public class ItemSelectionConfiguration {
     @Bean
     @Qualifier("adaptiveSelector")
-    public ItemSelector getAdaptiveItemSelector(final SegmentService segmentService, final ItemCandidatesService itemCandidatesService){
+    public MsbItemSelector getAdaptiveItemSelector(final SegmentService segmentService, final ItemCandidatesService itemCandidatesService){
         return new AdaptiveSelector2013(
             segmentService, itemCandidatesService
         );

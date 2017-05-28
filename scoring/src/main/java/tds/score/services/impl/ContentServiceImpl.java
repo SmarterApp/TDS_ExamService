@@ -110,7 +110,8 @@ public class ContentServiceImpl implements ContentService {
 
         try {
             URI uri = new URI(xmlFilePath);
-            return itemDocumentService.loadItemDocument(uri, accommodations.getValue(), true);
+            IITSDocument document = itemDocumentService.loadItemDocument(uri, accommodations.getValue(), true);
+            return document;
         } catch (URISyntaxException e) {
             throw new ReturnStatusException(e);
         }

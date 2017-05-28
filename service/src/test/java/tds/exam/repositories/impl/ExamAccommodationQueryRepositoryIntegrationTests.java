@@ -10,19 +10,21 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
-import tds.exam.Exam;
-import tds.exam.ExamAccommodation;
-import tds.exam.builder.ExamAccommodationBuilder;
-import tds.exam.builder.ExamBuilder;
-import tds.exam.repositories.ExamAccommodationCommandRepository;
-import tds.exam.repositories.ExamAccommodationQueryRepository;
-import tds.exam.repositories.ExamCommandRepository;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+
+import tds.exam.Exam;
+import tds.exam.ExamAccommodation;
+import tds.exam.builder.ExamAccommodationBuilder;
+import tds.exam.builder.ExamBuilder;
+import tds.exam.models.ExamAccommodationFilter;
+import tds.exam.repositories.ExamAccommodationCommandRepository;
+import tds.exam.repositories.ExamAccommodationQueryRepository;
+import tds.exam.repositories.ExamCommandRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static tds.exam.builder.ExamAccommodationBuilder.SampleData.DEFAULT_ACCOMMODATION_CODE;
@@ -88,6 +90,32 @@ public class ExamAccommodationQueryRepositoryIntegrationTests {
             .build());
 
         examAccommodationCommandRepository.insert(mockExamAccommodations);
+    }
+
+    @Test
+    public void shouldFindAccommodationsByExamIdAndAccommodationIdentifiers() {
+        List<ExamAccommodationFilter> identifiers = Arrays.asList(
+          new ExamAccommodationFilter("TDS_ClosedCap0", "closed captioning"),
+          new ExamAccommodationFilter("TDS_Highlight1", "highlight")
+        );
+
+        List<ExamAccommodation> accommodations = examAccommodationQueryRepository.findAccommodations(exam.getId(), identifiers);
+
+        ExamAccommodation closedCapAccommodation = null;
+        ExamAccommodation highlightAccommodation = null;
+
+        assertThat(accommodations).hasSize(2);
+
+        for(ExamAccommodation accommodation : accommodations) {
+            if(accommodation.getCode().equals("TDS_ClosedCap0")) {
+                closedCapAccommodation = accommodation;
+            } else if (accommodation.getCode().equals("TDS_Highlight1")) {
+                highlightAccommodation = accommodation;
+            }
+        }
+
+        assertThat(closedCapAccommodation).isNotNull();
+        assertThat(highlightAccommodation).isNotNull();
     }
 
     @Test

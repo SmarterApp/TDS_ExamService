@@ -1,5 +1,6 @@
 package tds.exam.repositories.impl;
 
+import com.google.common.collect.ImmutableList;
 import org.joda.time.Instant;
 import org.joda.time.Minutes;
 import org.junit.Before;
@@ -13,6 +14,17 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
+import tds.accommodation.Accommodation;
+import tds.exam.Exam;
+import tds.exam.ExamAccommodation;
+import tds.exam.ExamStatusCode;
+import tds.exam.ExamStatusStage;
+import tds.exam.builder.ExamAccommodationBuilder;
+import tds.exam.builder.ExamBuilder;
+import tds.exam.models.Ability;
+import tds.exam.repositories.ExamAccommodationCommandRepository;
+import tds.exam.repositories.ExamCommandRepository;
+import tds.exam.repositories.ExamQueryRepository;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -23,21 +35,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-
-import tds.accommodation.Accommodation;
-import tds.exam.Exam;
-import tds.exam.ExamStatusCode;
-import tds.exam.ExamStatusStage;
-import tds.exam.builder.ExamAccommodationBuilder;
-import tds.exam.builder.ExamBuilder;
-import tds.exam.models.Ability;
-import tds.exam.repositories.ExamAccommodationCommandRepository;
-import tds.exam.repositories.ExamCommandRepository;
-import tds.exam.repositories.ExamQueryRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static tds.common.data.mapping.ResultSetMapperUtility.mapJodaInstantToTimestamp;
+import static org.joda.time.Duration.standardDays;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest
@@ -218,35 +218,34 @@ public class ExamQueryRepositoryImplIntegrationTests {
 
     @Test
     public void shouldFindExamWithLatestLanguage() throws InterruptedException {
-        Exam exam = new ExamBuilder().build();
+        final Exam exam = new ExamBuilder().build();
         examCommandRepository.insert(exam);
 
-        String SQL = "insert into exam_accommodation(id, exam_id, type, code, description, value, segment_position, default_accommodation, allow_combine, sort_order, created_at)\n" +
-            "values (:id, :examId, :type, :code, 'description', 'value', 1, 0, 0, 1, :createdAt);";
+        final ExamAccommodation enuAcc = new ExamAccommodationBuilder()
+            .withId(UUID.randomUUID())
+            .withExamId(exam.getId())
+            .withType(Accommodation.ACCOMMODATION_TYPE_LANGUAGE)
+            .withCode("ENU")
+            .withCreatedAt(Instant.now().minus(standardDays(1)))
+            .build();
+        examAccommodationCommandRepository.insert(ImmutableList.of(enuAcc));
 
-        SqlParameterSource parameters = new MapSqlParameterSource("id", UUID.randomUUID().toString())
-            .addValue("examId", exam.getId().toString())
-            .addValue("type", Accommodation.ACCOMMODATION_TYPE_LANGUAGE)
-            .addValue("code", "ENU")
-            .addValue("createdAt", mapJodaInstantToTimestamp(Instant.now().minus(50000)));
-
-        jdbcTemplate.update(SQL, parameters);
-
-        Optional<Exam> maybeExam = examQueryRepository.getExamById(exam.getId());
+        final Optional<Exam> maybeExam = examQueryRepository.getExamById(exam.getId());
         assertThat(maybeExam).isPresent();
-        assertThat(maybeExam.get().getLanguageCode()).isEqualTo("ENU");
+        assertThat(maybeExam.orElse(null).getLanguageCode()).isEqualTo("ENU");
 
-        parameters = new MapSqlParameterSource("id", UUID.randomUUID().toString())
-            .addValue("examId", exam.getId().toString())
-            .addValue("type", Accommodation.ACCOMMODATION_TYPE_LANGUAGE)
-            .addValue("code", "ESN")
-            .addValue("createdAt", mapJodaInstantToTimestamp(Instant.now().minus(20000)));
+        final ExamAccommodation esnAcc = new ExamAccommodationBuilder()
+            .withId(UUID.randomUUID())
+            .withExamId(exam.getId())
+            .withType(Accommodation.ACCOMMODATION_TYPE_LANGUAGE)
+            .withCode("ESN")
+            .withCreatedAt(Instant.now())
+            .build();
+        examAccommodationCommandRepository.insert(ImmutableList.of(esnAcc));
 
-        jdbcTemplate.update(SQL, parameters);
-
-        Optional<Exam> maybeUpdatedExam = examQueryRepository.getExamById(exam.getId());
+        final Optional<Exam> maybeUpdatedExam = examQueryRepository.getExamById(exam.getId());
         assertThat(maybeUpdatedExam).isPresent();
-        assertThat(maybeUpdatedExam.get().getLanguageCode()).isEqualTo("ESN");
+        assertThat(maybeUpdatedExam.orElse(null).getLanguageCode()).isEqualTo("ESN");
     }
 
     @Test
@@ -312,15 +311,15 @@ public class ExamQueryRepositoryImplIntegrationTests {
             "INSERT INTO exam_page (id, page_position, segment_key, item_group_key, exam_id, created_at) " +
                 "VALUES (805, 1, 'segment-key-1', 'GroupKey1', :examId, :pageCreatedAt)";
         final String insertPageEventSQL =
-            "INSERT INTO exam_page_event (exam_page_id, started_at, created_at) VALUES (805, UTC_TIMESTAMP(), UTC_TIMESTAMP())";
+            "INSERT INTO exam_page_event (exam_page_id, exam_id, started_at, created_at) VALUES (805, :examId, UTC_TIMESTAMP(), UTC_TIMESTAMP())";
         final String insertItemSQL =
             "INSERT INTO exam_item (id, item_key, assessment_item_bank_key, assessment_item_key, item_type, exam_page_id, position, item_file_path, created_at, group_id)" +
                 "VALUES (2112, '187-1234', 187, 1234, 'MS', 805, 1, '/path/to/item/187-1234.xml', UTC_TIMESTAMP(), 'group-123')";
         final String insertResponsesSQL =
-            "INSERT INTO exam_item_response (id, exam_item_id, response, sequence, created_at) " +
+            "INSERT INTO exam_item_response (id, exam_item_id, exam_id, response, sequence, created_at) " +
                 "VALUES " +
-                "(1337, 2112, 'Response 1', 1, :lastResponseSubmittedAt), " +
-                "(1338, 2112, 'Response 2', 1, :earlierResponseSubmittedAt)";
+                "(1337, 2112, :examId, 'Response 1', 1, :lastResponseSubmittedAt), " +
+                "(1338, 2112, :examId, 'Response 2', 1, :earlierResponseSubmittedAt)";
 
         jdbcTemplate.update(insertSegmentSQL, testParams);
         jdbcTemplate.update(insertPageSQL, testParams);

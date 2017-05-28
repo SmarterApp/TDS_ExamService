@@ -48,6 +48,7 @@ import tds.exam.ExamineeContext;
 import tds.exam.OpenExamRequest;
 import tds.exam.SegmentApprovalRequest;
 import tds.exam.error.ValidationErrorCode;
+import tds.exam.models.ItemGroupHistory;
 import tds.exam.repositories.ExamCommandRepository;
 import tds.exam.repositories.ExamQueryRepository;
 import tds.exam.repositories.ExamStatusQueryRepository;
@@ -1129,4 +1130,8 @@ class ExamServiceImpl implements ExamService {
 
     }
 
+    @Override
+    public List<ItemGroupHistory> findPreviousItemGroups(final long studentId, final UUID currentExamId, final String assessmentId) {
+        return null;
+    }
 }

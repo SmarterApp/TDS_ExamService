@@ -104,6 +104,7 @@ public class ExamItemCommandRepositoryImplIntegrationTests {
 
         ExamItemResponse response = new ExamItemResponseBuilder()
             .withExamItemId(savedExamItem.getId())
+            .withExamId(mockExam.getId())
             .build();
 
         examItemCommandRepository.insertResponses(response);
@@ -127,10 +128,14 @@ public class ExamItemCommandRepositoryImplIntegrationTests {
                 "VALUES (:examId, 'segment-key-1', 'segment-id-1', 1, UTC_TIMESTAMP() )";
         final String insertPageSQL =
             "INSERT INTO exam_page (id, page_position, segment_key, item_group_key, exam_id, created_at) " +
-                "VALUES (805, 1, 'segment-key-1', 'GroupKey1', :examId, UTC_TIMESTAMP()), (806, 2, 'segment-key-1', 'GroupKey2', :examId, UTC_TIMESTAMP())";
+                "VALUES " +
+                "(805, 1, 'segment-key-1', 'GroupKey1', :examId, UTC_TIMESTAMP()), " +
+                "(806, 2, 'segment-key-1', 'GroupKey2', :examId, UTC_TIMESTAMP())";
         final String insertPageEventSQL = // Create two pages, second page is deleted
-            "INSERT INTO exam_page_event (exam_page_id, started_at, deleted_at, created_at) " +
-                "VALUES (805, now(), NULL, UTC_TIMESTAMP()), (806, UTC_TIMESTAMP(), UTC_TIMESTAMP(), UTC_TIMESTAMP())";
+            "INSERT INTO exam_page_event (exam_page_id, exam_id, started_at, deleted_at, created_at) " +
+                "VALUES " +
+                "(805, :examId, now(), NULL, UTC_TIMESTAMP()), " +
+                "(806, :examId, UTC_TIMESTAMP(), UTC_TIMESTAMP(), UTC_TIMESTAMP())";
         final String insertItemSQL = // Two items on first page, 1 item on deleted (second) page
             "INSERT INTO exam_item (id, item_key, assessment_item_bank_key, assessment_item_key, item_type, exam_page_id, position, item_file_Path, created_at, group_id)" +
                 "VALUES " +
@@ -145,6 +150,7 @@ public class ExamItemCommandRepositoryImplIntegrationTests {
 
         ExamItemResponse examItem1Response = new ExamItemResponseBuilder()
             .withExamItemId(item1Id)
+            .withExamId(exam.getId())
             .withResponse("response1")
             .withSequence(1)
             .withScore(new ExamItemResponseScoreBuilder()
@@ -158,12 +164,14 @@ public class ExamItemCommandRepositoryImplIntegrationTests {
 
         ExamItemResponse examItem2Response = new ExamItemResponseBuilder()
             .withExamItemId(item2Id)
+            .withExamId(exam.getId())
             .withResponse("response2")
             .withSequence(2)
             .build();
 
         ExamItemResponse examDeletedItemResponse = new ExamItemResponseBuilder()
             .withExamItemId(item3Id)
+            .withExamId(exam.getId())
             .withResponse("response3")
             .withSequence(3)
             .build();

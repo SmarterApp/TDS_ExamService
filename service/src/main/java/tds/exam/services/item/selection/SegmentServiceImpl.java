@@ -129,7 +129,7 @@ public class SegmentServiceImpl implements SegmentService {
         updateBlueprintElement(reportingCategory, spec);
         reportingCategory.startInfo = spec.getStartInfo();
         reportingCategory.info = spec.getStartInfo();
-        reportingCategory.startAbility = spec.getStartAbility();
+        reportingCategory.startAbility = spec.getStartAbility() == null ? 0 : spec.getStartAbility();
         reportingCategory.standardError = AAMath.SEfromInfo(reportingCategory.startInfo);
 
         reportingCategory.abilityWeight = spec.getAbilityWeight() != null && spec.getAbilityWeight() != 0
@@ -228,6 +228,8 @@ public class SegmentServiceImpl implements SegmentService {
         for (Item item : items) {
             TestItem testItem = convertItem(item);
             testItem.setSegmentPosition(segmentPosition);
+
+            itemPool.addItem(testItem);
 
             if (itemPool.getItemGroup(testItem.getGroupID()) == null) {
                 String groupId = testItem.getGroupID();

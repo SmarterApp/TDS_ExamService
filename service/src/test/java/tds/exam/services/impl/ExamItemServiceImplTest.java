@@ -206,6 +206,7 @@ public class ExamItemServiceImplTest {
         ExamItem examItem = new ExamItemBuilder().withId(examItemId)
             .withResponse(new ExamItemResponse.Builder()
                 .withExamItemId(examItemId)
+                .withExamId(examId)
                 .withSequence(3)
                 .withResponse("the response")
                 .withMarkedForReview(false)
