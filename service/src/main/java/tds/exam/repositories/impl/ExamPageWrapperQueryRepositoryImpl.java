@@ -42,22 +42,7 @@ public class ExamPageWrapperQueryRepositoryImpl implements ExamPageWrapperQueryR
         "   page.created_at, \n" +
         "   page.segment_key, \n" +
         "   page_event.started_at, \n" +
-        "   ( \n" +
-        "       CASE WHEN page_event.exam_restarts_and_resumptions = \n" +
-        "       ( \n" +
-        "           SELECT \n" +
-        "               restarts_and_resumptions\n" +
-        "           FROM \n" +
-        "               exam_event\n" +
-        "           WHERE \n" +
-        "               exam_id = :examId AND deleted_at IS NULL \n" +
-        "           ORDER BY \n" +
-        "               created_at\n" +
-        "           DESC LIMIT 1\n" +
-        "       ) THEN TRUE \n" +
-        "       ELSE FALSE \n" +
-        "       END \n" +
-        "   ) AS is_visible, " +
+        "   page_event.visible, \n" +
         "   item.id AS item_id, \n" +
         "   item.item_key, \n" +
         "   item.assessment_item_bank_key, \n" +
@@ -177,11 +162,11 @@ public class ExamPageWrapperQueryRepositoryImpl implements ExamPageWrapperQueryR
         @Override
         public List<ExamPageWrapper> extractData(ResultSet resultExtractor) throws SQLException, DataAccessException {
             Map<UUID, List<ExamItem>> itemsForPage = new HashMap<>();
-            Map<UUID, ExamPageVisiblityWrapper> examPageWrappers = new HashMap<>();
+            Map<UUID, ExamPage> examPages = new HashMap<>();
 
             while (resultExtractor.next()) {
                 UUID pageId = UUID.fromString(resultExtractor.getString("page_id"));
-                if (!examPageWrappers.containsKey(pageId)) {
+                if (!examPages.containsKey(pageId)) {
                     ExamPage page = new ExamPage.Builder()
                         .withId(UUID.fromString(resultExtractor.getString("page_id")))
                         .withPagePosition(resultExtractor.getInt("page_position"))
@@ -189,11 +174,12 @@ public class ExamPageWrapperQueryRepositoryImpl implements ExamPageWrapperQueryR
                         .withItemGroupKey(resultExtractor.getString("item_group_key"))
                         .withGroupItemsRequired(resultExtractor.getInt("group_items_required"))
                         .withExamId(UUID.fromString(resultExtractor.getString("exam_id")))
+                        .withVisible(resultExtractor.getBoolean("visible"))
                         .withCreatedAt(ResultSetMapperUtility.mapTimestampToJodaInstant(resultExtractor, "created_at"))
                         .withStartedAt(ResultSetMapperUtility.mapTimestampToJodaInstant(resultExtractor, "started_at"))
                         .build();
 
-                    examPageWrappers.put(pageId, new ExamPageVisiblityWrapper(page, resultExtractor.getBoolean("is_visible")));
+                    examPages.put(pageId, page);
                 }
 
                 // An item might not have a response
@@ -243,38 +229,19 @@ public class ExamPageWrapperQueryRepositoryImpl implements ExamPageWrapperQueryR
                     .build());
             }
 
-            return examPageWrappers
+            return examPages
                 .values()
                 .stream()
-                .map(visiblityWrapper -> {
-                    ExamPage examPage = visiblityWrapper.getExamPage();
+                .map(examPage -> {
                     List<ExamItem> items = itemsForPage.get(examPage.getId())
                         .stream()
                         .sorted(Comparator.comparingInt(ExamItem::getPosition))
                         .collect(Collectors.toList());
 
-                    return new ExamPageWrapper(examPage, items, visiblityWrapper.isVisible());
+                    return new ExamPageWrapper(examPage, items);
                 })
                 .sorted(Comparator.comparingInt(o -> o.getExamPage().getPagePosition()))
                 .collect(Collectors.toList());
-        }
-
-        private class ExamPageVisiblityWrapper {
-            private ExamPage examPage;
-            private boolean visible;
-
-            public ExamPageVisiblityWrapper(final ExamPage examPage, boolean visible) {
-                this.examPage = examPage;
-                this.visible = visible;
-            }
-
-            public ExamPage getExamPage() {
-                return examPage;
-            }
-
-            public boolean isVisible() {
-                return visible;
-            }
         }
     }
 }

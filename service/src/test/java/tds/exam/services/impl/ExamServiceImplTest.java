@@ -1104,17 +1104,17 @@ public class ExamServiceImplTest {
         ExamPageWrapper examPageWrapper1 = new ExamPageWrapper(
             ExamPage.Builder
                 .fromExamPage(random(ExamPage.class))
+                .withVisible(true)
                 .withExamRestartsAndResumptions(5)
                 .build(),
-            Arrays.asList(examItem1, examItem2),
-            true);
+            Arrays.asList(examItem1, examItem2));
         ExamPageWrapper examPageWrapper2 = new ExamPageWrapper(
             ExamPage.Builder
                 .fromExamPage(random(ExamPage.class))
                 .withExamRestartsAndResumptions(5)
+                .withVisible(true)
                 .build(),
-            Collections.singletonList(examItem3),
-            true);
+            Collections.singletonList(examItem3));
 
         ExamSegmentWrapper examSegmentWrapper = new ExamSegmentWrapper(random(ExamSegment.class), Arrays.asList(examPageWrapper1, examPageWrapper2));
         when(mockSessionService.findExternalSessionConfigurationByClientName(exam.getClientName())).thenReturn(Optional.of(extSessionConfig));
@@ -1228,16 +1228,16 @@ public class ExamServiceImplTest {
             ExamPage.Builder
                 .fromExamPage(random(ExamPage.class))
                 .withExamRestartsAndResumptions(5)
+                .withVisible(true)
                 .build(),
-            Arrays.asList(examItem1, examItem2),
-            true);
+            Arrays.asList(examItem1, examItem2));
         ExamPageWrapper examPageWrapper2 = new ExamPageWrapper(
             ExamPage.Builder
                 .fromExamPage(random(ExamPage.class))
                 .withExamRestartsAndResumptions(5)
+                .withVisible(true)
                 .build(),
-            Collections.singletonList(examItem3),
-            true);
+            Collections.singletonList(examItem3));
 
         ExamSegmentWrapper examSegmentWrapper = new ExamSegmentWrapper(random(ExamSegment.class), Arrays.asList(examPageWrapper1, examPageWrapper2));
         when(mockSessionService.findExternalSessionConfigurationByClientName(exam.getClientName())).thenReturn(Optional.of(extSessionConfig));
@@ -1609,6 +1609,7 @@ public class ExamServiceImplTest {
     @Test
     public void shouldFindEligibleExamsForStudent() {
         final long studentId = 1184;
+
         final String grade = "3";
 
         Session currentSession = random(Session.class);

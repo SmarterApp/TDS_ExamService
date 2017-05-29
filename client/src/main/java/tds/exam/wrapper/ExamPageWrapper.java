@@ -12,12 +12,10 @@ import tds.exam.ExamPage;
 public class ExamPageWrapper {
     private ExamPage examPage;
     private List<ExamItem> examItems = new ArrayList<>();
-    private boolean visible;
 
-    public ExamPageWrapper(final ExamPage examPage, final List<ExamItem> examItems, final boolean visible) {
+    public ExamPageWrapper(final ExamPage examPage, final List<ExamItem> examItems) {
         this.examPage = examPage;
         this.examItems = examItems;
-        this.visible = visible;
     }
 
     //For frameworks
@@ -36,12 +34,5 @@ public class ExamPageWrapper {
      */
     public List<ExamItem> getExamItems() {
         return examItems;
-    }
-
-    /**
-     * @return {@code true} if this exam page should be visible in student upon a resume, false otherwise
-     */
-    public boolean isVisible() {
-        return visible;
     }
 }
