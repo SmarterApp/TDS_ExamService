@@ -82,11 +82,14 @@ public class ExamineeNoteQueryRepositoryImpl implements ExamineeNoteQueryReposit
                 "       item_position \n" +
                 "   FROM \n" +
                 "       examinee_note \n" +
+                "   WHERE \n" +
+                "       exam_id = :examId \n" +
                 "   GROUP BY \n" +
                 "       exam_id, \n" +
                 "       item_position \n" +
                 ") last_note \n" +
                 "   ON last_note.id = note.id \n" +
+                "   AND last_note.item_position = note.item_position \n" +
                 "WHERE \n" +
                 "   note.exam_id = :examId \n" +
                 "ORDER BY \n" +
