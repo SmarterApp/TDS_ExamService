@@ -626,12 +626,8 @@ class ExamServiceImpl implements ExamService {
         /* StudentDLL.ResumeItemPosition_FN [5164] */
         // Find the first item in this segment that is not valid (either because it has no response or because the response is not valid
         Optional<ExamItem> maybeExamItem = examItemsInSegment.stream()
-            .filter(examItem ->
-                !examItem.getResponse().isPresent()
-                    || (examItem.getResponse().isPresent()
-                    && !examItem.getResponse().get().getResponse().equals("")
-                    && !examItem.getResponse().get().isValid())
-            ).findFirst();
+            .filter(ExamServiceImpl::isItemResponseValid)
+            .findFirst();
 
         if (maybeExamItem.isPresent()) {
             return maybeExamItem;
@@ -651,7 +647,7 @@ class ExamServiceImpl implements ExamService {
     private static boolean isItemResponseValid(final ExamItem examItem) {
         return !examItem.getResponse().isPresent()
             || (examItem.getResponse().isPresent()
-            && !examItem.getResponse().get().getResponse().equals("")
+            && examItem.getResponse().get().getResponse().equals("")
             && !examItem.getResponse().get().isValid());
     }
 
