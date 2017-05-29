@@ -82,8 +82,7 @@ public class FieldTestItemGroupQueryRepositoryImpl implements FieldTestItemGroup
         // session.ft_opportunityitem regardless of whether they are marked as deleted.
         final SqlParameterSource parameters = new MapSqlParameterSource("examId", examId.toString());
         final String SQL =
-            "USE exam;\n" +
-                "SELECT \n" +
+            "SELECT \n" +
                 "   ftitem_group.id, \n" +
                 "   ftitem_group.exam_id, \n" +
                 "   ftitem_group.language_code, \n" +
