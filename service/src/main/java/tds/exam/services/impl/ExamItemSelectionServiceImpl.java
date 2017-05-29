@@ -166,7 +166,7 @@ public class ExamItemSelectionServiceImpl implements ExamItemSelectionService {
                 oppItem.setGroupItemsRequired(page.getGroupItemsRequired());
 
                 // manually set data (taken from the legacy adaptive service impl. ResponseRepository.insertItems lin 159
-                oppItem.setIsVisible(true);
+                oppItem.setIsVisible(page.isVisible());
                 oppItem.setIsSelected(false);
                 oppItem.setIsValid(false);
                 oppItem.setMarkForReview(false);
