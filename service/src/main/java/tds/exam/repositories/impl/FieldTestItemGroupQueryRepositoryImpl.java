@@ -50,25 +50,18 @@ public class FieldTestItemGroupQueryRepositoryImpl implements FieldTestItemGroup
                 "   FE.administered_at \n" +
                 "FROM \n" +
                 "   field_test_item_group F \n" +
-                "JOIN ( \n" +
-                "   SELECT \n" +
-                "       field_test_item_group_id, \n" +
-                "       MAX(id) AS id \n" +
-                "   FROM \n" +
-                "       field_test_item_group_event \n" +
-                "   GROUP BY field_test_item_group_id \n" +
-                ") last_event \n" +
-                "   ON F.id = last_event.field_test_item_group_id \n" +
                 "JOIN \n" +
                 "   field_test_item_group_event FE \n" +
-                "ON \n" +
-                "   last_event.id = FE.id \n" +
+                "   ON FE.field_test_item_group_id = F.id \n" +
+                "   AND FE.id = (SELECT MAX(id) \n" +
+                "                FROM field_test_item_group_event \n" +
+                "                WHERE field_test_item_group_id = F.id \n" +
+                "                AND deleted_at IS NULL) \n" +
                 "WHERE \n" +
-                "   F.exam_id = :examId AND \n" +
-                "   F.segment_key = :segmentKey AND \n" +
-                "   FE.deleted_at IS NULL \n" +
+                "   F.exam_id = :examId " +
+                "   AND F.segment_key = :segmentKey \n" +
                 "ORDER BY \n" +
-                "   F.position \n";
+                "   F.position";
 
         return jdbcTemplate.query(SQL, parameters, fieldTestItemGroupMapper);
     }

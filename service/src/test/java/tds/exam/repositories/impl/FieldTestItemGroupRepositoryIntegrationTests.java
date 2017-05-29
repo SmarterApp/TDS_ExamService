@@ -9,6 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
+import sun.misc.UUDecoder;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -37,7 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest
-@Transactional
+//@Transactional
 public class FieldTestItemGroupRepositoryIntegrationTests {
     @Autowired
     @Qualifier("commandJdbcTemplate")
@@ -132,11 +133,14 @@ public class FieldTestItemGroupRepositoryIntegrationTests {
     @Test
     public void shouldFindFieldTestItemsThatWereAdministeredInAnExam() {
         UUID mockSessionId = UUID.randomUUID();
-        Exam mockExam = new ExamBuilder().build();
+        Exam mockExam = new ExamBuilder()
+            .withId(UUID.randomUUID())
+            .build();
         ExamSegment mockExamSegment = new ExamSegmentBuilder()
             .withExamId(mockExam.getId())
             .build();
         ExamPage mockFirstPage = new ExamPageBuilder()
+            .withId(UUID.randomUUID())
             .withExamId(mockExam.getId())
             .withSegmentKey(mockExamSegment.getSegmentKey())
             .withPagePosition(1)
@@ -149,6 +153,7 @@ public class FieldTestItemGroupRepositoryIntegrationTests {
             .withPagePosition(2)
             .build();
         ExamItem mockFirstPageFirstItem = new ExamItemBuilder()
+            .withId(UUID.randomUUID())
             .withExamPageId(mockFirstPage.getId())
             .withPosition(1)
             .withFieldTest(true)
