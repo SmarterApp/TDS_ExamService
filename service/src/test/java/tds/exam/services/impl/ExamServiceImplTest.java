@@ -1078,7 +1078,7 @@ public class ExamServiceImplTest {
         ExamItem examItem1 = ExamItem.Builder
             .fromExamItem(new ExamItemBuilder().build())
             .withPosition(1)
-            .withResponse(new ExamItemResponse.Builder()
+            .withResponse(ExamItemResponse.Builder
                 .fromExamItemResponse(new ExamItemResponseBuilder().build())
                 .withValid(true)
                 .build())
@@ -1086,7 +1086,7 @@ public class ExamServiceImplTest {
         ExamItem examItem2 = ExamItem.Builder
             .fromExamItem(new ExamItemBuilder().build())
             .withPosition(2)
-            .withResponse(new ExamItemResponse.Builder()
+            .withResponse(ExamItemResponse.Builder
                 .fromExamItemResponse(new ExamItemResponseBuilder().build())
                 .withValid(true)
                 .build())
@@ -1095,21 +1095,21 @@ public class ExamServiceImplTest {
         ExamItem examItem3 = ExamItem.Builder
             .fromExamItem(new ExamItemBuilder().build())
             .withPosition(3)
-            .withResponse(new ExamItemResponse.Builder()
+            .withResponse(ExamItemResponse.Builder
                 .fromExamItemResponse(new ExamItemResponseBuilder().build())
                 .withValid(false)
                 .build())
             .build();
 
         ExamPageWrapper examPageWrapper1 = new ExamPageWrapper(
-            new ExamPage.Builder()
+            ExamPage.Builder
                 .fromExamPage(random(ExamPage.class))
                 .withExamRestartsAndResumptions(5)
                 .build(),
             Arrays.asList(examItem1, examItem2),
             true);
         ExamPageWrapper examPageWrapper2 = new ExamPageWrapper(
-            new ExamPage.Builder()
+            ExamPage.Builder
                 .fromExamPage(random(ExamPage.class))
                 .withExamRestartsAndResumptions(5)
                 .build(),
@@ -1201,7 +1201,7 @@ public class ExamServiceImplTest {
         ExamItem examItem1 = ExamItem.Builder
             .fromExamItem(new ExamItemBuilder().build())
             .withPosition(1)
-            .withResponse(new ExamItemResponse.Builder()
+            .withResponse(ExamItemResponse.Builder
                 .fromExamItemResponse(new ExamItemResponseBuilder().build())
                 .withValid(true)
                 .build())
@@ -1209,7 +1209,7 @@ public class ExamServiceImplTest {
         ExamItem examItem2 = ExamItem.Builder
             .fromExamItem(new ExamItemBuilder().build())
             .withPosition(2)
-            .withResponse(new ExamItemResponse.Builder()
+            .withResponse(ExamItemResponse.Builder
                 .fromExamItemResponse(new ExamItemResponseBuilder().build())
                 .withValid(true)
                 .build())
@@ -1218,21 +1218,21 @@ public class ExamServiceImplTest {
         ExamItem examItem3 = ExamItem.Builder
             .fromExamItem(new ExamItemBuilder().build())
             .withPosition(3)
-            .withResponse(new ExamItemResponse.Builder()
+            .withResponse(ExamItemResponse.Builder
                 .fromExamItemResponse(new ExamItemResponseBuilder().build())
                 .withValid(false)
                 .build())
             .build();
 
         ExamPageWrapper examPageWrapper1 = new ExamPageWrapper(
-            new ExamPage.Builder()
+            ExamPage.Builder
                 .fromExamPage(random(ExamPage.class))
                 .withExamRestartsAndResumptions(5)
                 .build(),
             Arrays.asList(examItem1, examItem2),
             true);
         ExamPageWrapper examPageWrapper2 = new ExamPageWrapper(
-            new ExamPage.Builder()
+            ExamPage.Builder
                 .fromExamPage(random(ExamPage.class))
                 .withExamRestartsAndResumptions(5)
                 .build(),
@@ -1572,7 +1572,7 @@ public class ExamServiceImplTest {
         assertThat(response.getError().isPresent()).isFalse();
 
         List<ExamAssessmentMetadata> elligibleExams = response.getData().get();
-        ;
+
         ExamAssessmentMetadata retExamInfo1 = elligibleExams.get(0);
         ExamAssessmentMetadata retExamInfo2 = elligibleExams.get(1);
 
@@ -1609,7 +1609,6 @@ public class ExamServiceImplTest {
     @Test
     public void shouldFindEligibleExamsForStudent() {
         final long studentId = 1184;
-        final UUID sessionId = UUID.randomUUID();
         final String grade = "3";
 
         Session currentSession = random(Session.class);
