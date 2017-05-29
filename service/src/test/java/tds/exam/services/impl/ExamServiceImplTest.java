@@ -1056,6 +1056,7 @@ public class ExamServiceImplTest {
         final Instant approvedStatusDate = now.minus(5000);
         final Instant lastStudentActivityTime = now.minus(25 * 60 * 1000); // minus 25 minutes
         final int testLength = 10;
+        ArgumentCaptor<ExamPage> examPageArgumentCaptor = ArgumentCaptor.forClass(ExamPage.class);
 
         Exam exam = new ExamBuilder()
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.OPEN), approvedStatusDate)
@@ -1091,7 +1092,7 @@ public class ExamServiceImplTest {
                 .withValid(true)
                 .build())
             .build();
-        new ExamItem.Builder(UUID.randomUUID());
+
         ExamItem examItem3 = ExamItem.Builder
             .fromExamItem(new ExamItemBuilder().build())
             .withPosition(3)
@@ -1138,10 +1139,11 @@ public class ExamServiceImplTest {
         verify(mockTimeLimitConfigurationService).findTimeLimitConfiguration(exam.getClientName(), assessment.getAssessmentId());
         verify(mockExamCommandRepository).update(examArgumentCaptor.capture());
         verify(mockExamQueryRepository).findLastStudentActivity(exam.getId());
-        ArgumentCaptor<ExamPage> varArgs = ArgumentCaptor.forClass(ExamPage.class);
-        verify(mockExamPageService).update(varArgs.capture());
-        List<ExamPage> examPages = varArgs.getAllValues();
+        verify(mockExamPageService).update(examPageArgumentCaptor.capture());
+
+        List<ExamPage> examPages = examPageArgumentCaptor.getAllValues();
         assertThat(examPages).hasSize(1);
+        assertThat(examPages.get(0).getId()).isEqualTo(examPageWrapper1.getExamPage().getId());
 
         assertThat(examConfigurationResponse.getData().isPresent()).isTrue();
         ExamConfiguration examConfiguration = examConfigurationResponse.getData().get();
@@ -1154,7 +1156,6 @@ public class ExamServiceImplTest {
         assertThat(examConfiguration.getStartPosition()).isEqualTo(3);
         assertThat(examConfiguration.getTestLength()).isEqualTo(testLength);
 
-        // Sleep a bit to prevent intermittent test failures due to timing
         Exam updatedExam = examArgumentCaptor.getValue();
         assertThat(updatedExam).isNotNull();
         assertThat(updatedExam.getAttempts()).isEqualTo(0);
@@ -1206,6 +1207,7 @@ public class ExamServiceImplTest {
                 .withValid(true)
                 .build())
             .build();
+
         ExamItem examItem2 = ExamItem.Builder
             .fromExamItem(new ExamItemBuilder().build())
             .withPosition(2)
@@ -1214,7 +1216,7 @@ public class ExamServiceImplTest {
                 .withValid(true)
                 .build())
             .build();
-        new ExamItem.Builder(UUID.randomUUID());
+
         ExamItem examItem3 = ExamItem.Builder
             .fromExamItem(new ExamItemBuilder().build())
             .withPosition(3)
@@ -1231,6 +1233,7 @@ public class ExamServiceImplTest {
                 .withVisible(true)
                 .build(),
             Arrays.asList(examItem1, examItem2));
+
         ExamPageWrapper examPageWrapper2 = new ExamPageWrapper(
             ExamPage.Builder
                 .fromExamPage(random(ExamPage.class))
@@ -1262,12 +1265,7 @@ public class ExamServiceImplTest {
         verify(mockExamCommandRepository).update(examArgumentCaptor.capture());
         verify(mockExamQueryRepository).findLastStudentActivity(exam.getId());
         verify(mockExamSegmentWrapperService).findAllExamSegments(exam.getId());
-
-        ArgumentCaptor<ExamPage> varArgs = ArgumentCaptor.forClass(ExamPage.class);
-        verify(mockExamPageService).update(varArgs.capture());
-
-        List<ExamPage> examPages = varArgs.getAllValues();
-        assertThat(examPages).hasSize(2);
+        verifyZeroInteractions(mockExamPageService);
 
         assertThat(examConfigurationResponse.getData().isPresent()).isTrue();
         ExamConfiguration examConfiguration = examConfigurationResponse.getData().get();
