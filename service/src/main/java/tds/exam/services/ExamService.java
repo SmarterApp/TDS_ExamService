@@ -13,7 +13,6 @@ import tds.exam.ExamConfiguration;
 import tds.exam.ExamStatusCode;
 import tds.exam.OpenExamRequest;
 import tds.exam.SegmentApprovalRequest;
-import tds.exam.models.ItemGroupHistory;
 
 /**
  * Main entry point for interacting with {@link Exam}
@@ -110,14 +109,4 @@ public interface ExamService {
      * @return The list of {@link tds.exam.Exam}s the student has taken
      */
     List<Exam> findAllExamsForStudent(final long studentId);
-
-    /**
-     * Finds the previous item groups administered in previous exams for the student and assessment id
-     *
-     * @param studentId     the student id
-     * @param currentExamId the current exam id
-     * @param assessmentId  the assessment id for the exam
-     * @return a list of {@link tds.exam.models.ItemGroupHistory} for previous exams taken by the student for the assessment id
-     */
-    List<ItemGroupHistory> findPreviousItemGroups(final long studentId, final UUID currentExamId, final String assessmentId);
 }
