@@ -82,7 +82,8 @@ public class FieldTestItemGroupQueryRepositoryImpl implements FieldTestItemGroup
         // session.ft_opportunityitem regardless of whether they are marked as deleted.
         final SqlParameterSource parameters = new MapSqlParameterSource("examId", examId.toString());
         final String SQL =
-            "SELECT \n" +
+            "USE exam;\n" +
+                "SELECT \n" +
                 "   ftitem_group.id, \n" +
                 "   ftitem_group.exam_id, \n" +
                 "   ftitem_group.language_code, \n" +
@@ -104,20 +105,14 @@ public class FieldTestItemGroupQueryRepositoryImpl implements FieldTestItemGroup
                 "   ON page.exam_id = ftitem_group.exam_id \n" +
                 "   AND segment.segment_key = ftitem_group.segment_key \n" +
                 "   AND page.item_group_key = ftitem_group.group_key \n" +
-                "JOIN ( \n" +
-                "   SELECT \n" +
-                "       field_test_item_group_id, \n" +
-                "       MAX(id) AS id \n" +
-                "   FROM \n" +
-                "       field_test_item_group_event \n" +
-                "   GROUP BY \n" +
-                "       field_test_item_group_id) AS last_event \n" +
-                "   ON ftitem_group.id = last_event.field_test_item_group_id \n" +
                 "JOIN \n" +
                 "   field_test_item_group_event ftitem_event \n" +
-                "   ON last_event.id = ftitem_event.id \n" +
+                "   ON ftitem_event.field_test_item_group_id = ftitem_group.id \n" +
+                "   AND ftitem_event.id = (SELECT MAX(id) \n" +
+                "                          FROM field_test_item_group_event \n" +
+                "                          WHERE field_test_item_group_id = ftitem_group.id) \n" +
                 "WHERE \n" +
-                "   page.exam_id = :examId \n" +
+                "   page.exam_id =  :examId \n" +
                 "   AND item.is_fieldtest = 1 \n" +
                 "GROUP BY \n" +
                 "   ftitem_group.id, \n" +
