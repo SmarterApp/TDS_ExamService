@@ -66,7 +66,6 @@ import tds.exam.services.AssessmentService;
 import tds.exam.services.ConfigService;
 import tds.exam.services.ExamAccommodationService;
 import tds.exam.services.ExamApprovalService;
-import tds.exam.services.ExamItemService;
 import tds.exam.services.ExamPageService;
 import tds.exam.services.ExamSegmentService;
 import tds.exam.services.ExamSegmentWrapperService;
@@ -146,9 +145,6 @@ public class ExamServiceImplTest {
     private ExamPageService mockExamPageService;
 
     @Mock
-    private ExamItemService mockExamItemService;
-
-    @Mock
     private ExamApprovalService mockExamApprovalService;
 
     @Mock
@@ -184,7 +180,6 @@ public class ExamServiceImplTest {
             mockConfigService,
             mockExamCommandRepository,
             mockExamPageService,
-            mockExamItemService,
             mockExamStatusQueryRepository,
             mockExamAccommodationService,
             mockExamApprovalService,

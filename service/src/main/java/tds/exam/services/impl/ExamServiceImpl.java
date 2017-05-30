@@ -55,7 +55,6 @@ import tds.exam.services.AssessmentService;
 import tds.exam.services.ConfigService;
 import tds.exam.services.ExamAccommodationService;
 import tds.exam.services.ExamApprovalService;
-import tds.exam.services.ExamItemService;
 import tds.exam.services.ExamPageService;
 import tds.exam.services.ExamSegmentService;
 import tds.exam.services.ExamSegmentWrapperService;
@@ -95,7 +94,6 @@ class ExamServiceImpl implements ExamService {
     private final ExamQueryRepository examQueryRepository;
     private final ExamCommandRepository examCommandRepository;
     private final ExamPageService examPageService;
-    private final ExamItemService examItemService;
     private final SessionService sessionService;
     private final StudentService studentService;
     private final ExamSegmentService examSegmentService;
@@ -124,7 +122,6 @@ class ExamServiceImpl implements ExamService {
                            ConfigService configService,
                            ExamCommandRepository examCommandRepository,
                            ExamPageService examPageService,
-                           ExamItemService examItemService,
                            ExamStatusQueryRepository examStatusQueryRepository,
                            ExamAccommodationService examAccommodationService,
                            ExamApprovalService examApprovalService,
@@ -141,7 +138,6 @@ class ExamServiceImpl implements ExamService {
         this.configService = configService;
         this.examCommandRepository = examCommandRepository;
         this.examPageService = examPageService;
-        this.examItemService = examItemService;
         this.examStatusQueryRepository = examStatusQueryRepository;
         this.examAccommodationService = examAccommodationService;
         this.examApprovalService = examApprovalService;
