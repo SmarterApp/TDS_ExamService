@@ -556,18 +556,18 @@ class ExamServiceImpl implements ExamService {
         }
 
         // flat map all exam pages, items for this assessment/restart number
-        List<ExamItem> examItemsWithoutResponse = examSegmentWrappers.stream()
+        Optional<ExamItem> maybeExamItemWithoutResponse = examSegmentWrappers.stream()
             .flatMap(wrapper -> wrapper.getExamPages().stream()
                 .filter(pageWrapper -> pageWrapper.getExamPage().isVisible())
                 .flatMap(examPage -> examPage.getExamItems().stream()
                     .filter(ExamServiceImpl::isItemResponseValid)
                 ))
-            .collect(Collectors.toList());
+            .findFirst();
 
         /* StudentDLL.ResumeItemPosition_FN [5183] */
         // Find the first item in the assessment that is not valid (either because it has no response or because the response is not valid
-        if(!examItemsWithoutResponse.isEmpty()) {
-            return examItemsWithoutResponse.get(0).getPosition();
+        if(maybeExamItemWithoutResponse.isPresent()) {
+            return maybeExamItemWithoutResponse.get().getPosition();
         }
 
         /* StudentDLL.ResumeItemPosition_FN [5193] */
