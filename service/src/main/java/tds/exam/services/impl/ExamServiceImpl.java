@@ -554,7 +554,7 @@ class ExamServiceImpl implements ExamService {
             .flatMap(wrapper -> wrapper.getExamPages().stream()
                 .filter(pageWrapper -> pageWrapper.getExamPage().isVisible())
                 .flatMap(examPage -> examPage.getExamItems().stream()
-                    .filter(ExamServiceImpl::isItemResponseValid)
+                    .filter(ExamServiceImpl::isItemUnanswered)
                 ))
             .findFirst();
 
@@ -596,7 +596,7 @@ class ExamServiceImpl implements ExamService {
         /* StudentDLL.ResumeItemPosition_FN [5164] */
         // Find the first item in this segment that is not valid (either because it has no response or because the response is not valid
         Optional<ExamItem> maybeExamItem = examItemsInSegment.stream()
-            .filter(ExamServiceImpl::isItemResponseValid)
+            .filter(ExamServiceImpl::isItemUnanswered)
             .findFirst();
 
         if (maybeExamItem.isPresent()) {
@@ -614,10 +614,9 @@ class ExamServiceImpl implements ExamService {
             && examSegment.getExamSegment().getRestorePermeableCondition() != null);
     }
 
-    private static boolean isItemResponseValid(final ExamItem examItem) {
+    private static boolean isItemUnanswered(final ExamItem examItem) {
         return !examItem.getResponse().isPresent()
-            || (examItem.getResponse().isPresent()
-            && examItem.getResponse().get().getResponse().equals("")
+            || (examItem.getResponse().get().getResponse().equals("")
             && !examItem.getResponse().get().isValid());
     }
 
