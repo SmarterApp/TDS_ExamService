@@ -40,13 +40,14 @@ import tds.exam.ExamApproval;
 import tds.exam.ExamAssessmentMetadata;
 import tds.exam.ExamConfiguration;
 import tds.exam.ExamInfo;
+import tds.exam.ExamItem;
+import tds.exam.ExamPage;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
 import tds.exam.ExamineeContext;
 import tds.exam.OpenExamRequest;
 import tds.exam.SegmentApprovalRequest;
 import tds.exam.error.ValidationErrorCode;
-import tds.exam.models.ItemGroupHistory;
 import tds.exam.repositories.ExamCommandRepository;
 import tds.exam.repositories.ExamQueryRepository;
 import tds.exam.repositories.ExamStatusQueryRepository;
@@ -54,15 +55,17 @@ import tds.exam.services.AssessmentService;
 import tds.exam.services.ConfigService;
 import tds.exam.services.ExamAccommodationService;
 import tds.exam.services.ExamApprovalService;
-import tds.exam.services.ExamItemService;
 import tds.exam.services.ExamPageService;
 import tds.exam.services.ExamSegmentService;
+import tds.exam.services.ExamSegmentWrapperService;
 import tds.exam.services.ExamService;
 import tds.exam.services.ExamineeService;
 import tds.exam.services.SessionService;
 import tds.exam.services.StudentService;
 import tds.exam.services.TimeLimitConfigurationService;
 import tds.exam.utils.ExamStatusChangeValidator;
+import tds.exam.wrapper.ExamPageWrapper;
+import tds.exam.wrapper.ExamSegmentWrapper;
 import tds.session.ExternalSessionConfiguration;
 import tds.session.Session;
 import tds.session.SessionAssessment;
@@ -91,10 +94,10 @@ class ExamServiceImpl implements ExamService {
     private final ExamQueryRepository examQueryRepository;
     private final ExamCommandRepository examCommandRepository;
     private final ExamPageService examPageService;
-    private final ExamItemService examItemService;
     private final SessionService sessionService;
     private final StudentService studentService;
     private final ExamSegmentService examSegmentService;
+    private final ExamSegmentWrapperService examSegmentWrapperService;
     private final AssessmentService assessmentService;
     private final TimeLimitConfigurationService timeLimitConfigurationService;
     private final ConfigService configService;
@@ -103,7 +106,16 @@ class ExamServiceImpl implements ExamService {
     private final ExamApprovalService examApprovalService;
     private final ExamineeService examineeService;
 
-    private final Set<String> statusesThatCanTransitionToPaused;
+    // From CommondDLL._IsValidStatusTransition_FN(): a collection of all the statuses that can transition to
+    // "paused".  That is, each of these status values has a nested switch statement that contains the "paused"
+    // status.
+    private static final Set<String> statusesThatCanTransitionToPaused = new HashSet<>(Arrays.asList(ExamStatusCode.STATUS_PAUSED,
+        ExamStatusCode.STATUS_PENDING,
+        ExamStatusCode.STATUS_SUSPENDED,
+        ExamStatusCode.STATUS_STARTED,
+        ExamStatusCode.STATUS_APPROVED,
+        ExamStatusCode.STATUS_REVIEW,
+        ExamStatusCode.STATUS_INITIALIZING));
 
     private final Collection<ChangeListener<Exam>> examStatusChangeListeners;
     private final Collection<ExamStatusChangeValidator> statusChangeValidators;
@@ -113,12 +125,12 @@ class ExamServiceImpl implements ExamService {
                            SessionService sessionService,
                            StudentService studentService,
                            ExamSegmentService examSegmentService,
+                           ExamSegmentWrapperService examSegmentWrapperService,
                            AssessmentService assessmentService,
                            TimeLimitConfigurationService timeLimitConfigurationService,
                            ConfigService configService,
                            ExamCommandRepository examCommandRepository,
                            ExamPageService examPageService,
-                           ExamItemService examItemService,
                            ExamStatusQueryRepository examStatusQueryRepository,
                            ExamAccommodationService examAccommodationService,
                            ExamApprovalService examApprovalService,
@@ -129,29 +141,18 @@ class ExamServiceImpl implements ExamService {
         this.sessionService = sessionService;
         this.studentService = studentService;
         this.examSegmentService = examSegmentService;
+        this.examSegmentWrapperService = examSegmentWrapperService;
         this.assessmentService = assessmentService;
         this.timeLimitConfigurationService = timeLimitConfigurationService;
         this.configService = configService;
         this.examCommandRepository = examCommandRepository;
         this.examPageService = examPageService;
-        this.examItemService = examItemService;
         this.examStatusQueryRepository = examStatusQueryRepository;
         this.examAccommodationService = examAccommodationService;
         this.examApprovalService = examApprovalService;
         this.examineeService = examineeService;
         this.examStatusChangeListeners = examStatusChangeListeners;
         this.statusChangeValidators = statusChangeValidators;
-
-        // From CommondDLL._IsValidStatusTransition_FN(): a collection of all the statuses that can transition to
-        // "paused".  That is, each of these status values has a nested switch statement that contains the "paused"
-        // status.
-        statusesThatCanTransitionToPaused = new HashSet<>(Arrays.asList(ExamStatusCode.STATUS_PAUSED,
-            ExamStatusCode.STATUS_PENDING,
-            ExamStatusCode.STATUS_SUSPENDED,
-            ExamStatusCode.STATUS_STARTED,
-            ExamStatusCode.STATUS_APPROVED,
-            ExamStatusCode.STATUS_REVIEW,
-            ExamStatusCode.STATUS_INITIALIZING));
     }
 
     @Override
@@ -407,105 +408,6 @@ class ExamServiceImpl implements ExamService {
         return examAssessmentMetadatas;
     }
 
-    private List<ExamAssessmentMetadata> findEligibleExamAssessmentsForStudent(final long studentId, final Session session, final String grade) {
-        final String clientName = session.getClientName();
-        List<ExamAssessmentMetadata> examAssessmentMetadatas = new ArrayList<>();
-        Set<String> sessionAssessmentIds = sessionService.findSessionAssessments(session.getId()).stream()
-            .map(SessionAssessment::getAssessmentId)
-            .collect(Collectors.toSet());
-        /* StudentDLL - 10439 and 10535 - get both student package attributes at once */
-        List<RtsStudentPackageAttribute> attributes = studentService.findStudentPackageAttributes(studentId, clientName, ELIGIBLE_ASSESSMENTS, BLOCKED_SUBJECT);
-        /* StudentDLL.java - 10451 - for _GetCurrentTests, we need assessment metadata for each eligible assessment */
-        List<AssessmentInfo> eligibleAssessments = assessmentService.findAssessmentInfosForAssessments(clientName,
-            getEligibleAssessmentKeysFromAttributes(attributes));
-
-        /* StudentDLL [10520] - _GetOpportunityInfo - Get the exam and session data for all exams taken by this student */
-        List<Exam> studentExams = examQueryRepository.findAllExamsForStudent(studentId);
-        List<UUID> examSessionIds = studentExams.stream().map(Exam::getSessionId).collect(Collectors.toList());
-        // SessionId -> Session for quick lookup - these are the sessions associated with each exam
-        Map<UUID, Session> examSessions = sessionService.findSessionsByIds(examSessionIds)
-            .stream().collect(Collectors.toMap(Session::getId, Function.identity()));
-        // A map from assessmentKey -> all exams taken for that exam by this student
-        Map<String, List<Exam>> assessmentExams = studentExams.stream().collect(Collectors.groupingBy(Exam::getAssessmentKey));
-
-        for (AssessmentInfo assessment : eligibleAssessments) {
-            int currentAttempt = 0;
-            String deniedReason = null;
-            String status = null;
-            Optional<Exam> maybeMostRecentExam = getMostRecentExamForAssessment(assessment.getKey(), assessmentExams);
-            boolean isNewOpportunity = false;
-
-            if (!sessionAssessmentIds.contains(assessment.getId())) {
-                deniedReason = configService.getFormattedMessage(clientName, "_CanOpenTestOpportunity",
-                    "Test not available for this session.");
-                status = ExamStatusCode.STATUS_DENIED;
-            } else if (!ExamStatusCode.STATUS_DENIED.equals(status)) {
-                /* [10549-10561] - check if the subject is blocked according to RTS attributes */
-                if (isSubjectBlocked(attributes, assessment.getSubject())) {
-                    deniedReason = configService.getFormattedMessage(clientName, "_CanOpenTestOpportunity",
-                        "This test is administratively blocked. Please check with your test administrator.");
-                    status = ExamStatusCode.STATUS_DENIED;
-                } else if (maybeMostRecentExam.isPresent()) {
-                    Exam recentExam = maybeMostRecentExam.get();
-                    Optional<ValidationError> maybeError = canOpenPreviousExam(recentExam, examSessions.get(recentExam.getSessionId()));
-
-                    if (maybeError.isPresent()) {
-                        deniedReason = maybeError.get().getMessage();
-                    } else { // If this branch is hit, we can open the existing exam
-                        OpenExamRequest request = new OpenExamRequest.Builder()
-                            .withStudentId(studentId)
-                            .withAssessmentKey(assessment.getKey())
-                            .withSessionId(session.getId())
-                            .withBrowserId(recentExam.getBrowserId())
-                            .build();
-
-                        maybeError = canCreateNewExam(clientName, request, recentExam, assessment.getMaxAttempts());
-                        isNewOpportunity = !maybeError.isPresent();
-                        currentAttempt = isNewOpportunity
-                            ? recentExam.getAttempts() + 1
-                            : recentExam.getAttempts();
-                    }
-                } else { // If theres no previous exam, only need to validate the opportunity count
-                        /* StudentDLL Lines [10649-10660] */
-                    if (assessment.getMaxAttempts() <= 0) {
-                        deniedReason = configService.getFormattedMessage(clientName, "_CanOpenTestOpportunity",
-                            "No opportunities are available for this test");
-                    } else {
-                        isNewOpportunity = true;
-                        currentAttempt = 1;
-                    }
-                }
-            }
-
-            /* Lines 10615-10622 */
-            if (status == null) {
-                if (currentAttempt == 0) {
-                    status = ExamStatusCode.STATUS_DENIED;
-                } else if (!isNewOpportunity) {
-                    status = ExamStatusCode.STATUS_SUSPENDED;
-                } else {
-                    status = ExamStatusCode.STATUS_PENDING;
-                }
-            }
-
-            examAssessmentMetadatas.add(
-                new ExamAssessmentMetadata.Builder()
-                    .withAssessmentKey(assessment.getKey())
-                    .withAssessmentId(assessment.getId())
-                    .withAssessmentLabel(assessment.getLabel())
-                    .withMaxAttempts(assessment.getMaxAttempts())
-                    .withSubject(assessment.getSubject())
-                    .withGrade(grade)
-                    .withAttempt(currentAttempt)
-                    .withStatus(status)
-                    .withDeniedReason(deniedReason)
-                    .build()
-            );
-        }
-
-        return examAssessmentMetadatas;
-    }
-
     @Transactional
     @Override
     public Response<ExamConfiguration> startExam(final UUID examId, final String browserUserAgent) {
@@ -568,20 +470,16 @@ class ExamServiceImpl implements ExamService {
             Optional<org.joda.time.Instant> maybeLastActivity = examQueryRepository.findLastStudentActivity(examId);
 
             /* [178] In the legacy app, if lastActivity = null, then DbComparator.lessThan(null, <not-null>) = false */
-            boolean isResumable = maybeLastActivity.isPresent()
+            boolean isGracePeriodResume = maybeLastActivity.isPresent()
                 && Minutes.minutesBetween(maybeLastActivity.get(), now).getMinutes() < timeLimitConfiguration.getExamRestartWindowMinutes();
 
+            List<ExamSegmentWrapper> examSegmentWrappers = examSegmentWrapperService.findAllExamSegments(examId);
             /* [186 - 191] Move the resume/grace period restart increment and the exam update down in the flow of this code */
             /* Skip TestOpportunityAudit code [193] */
-            int startPosition = 1;     // Default startPosition to "1" for a restarted exam
-
-            /* TestOpportunityServiceImpl [204] / StudentDlLL [5424]
-             * Session type is always 0 (online) in TDS, so skip first conditional on [204]
-             * No need to update restart count on line [203] because restart count can be derived from event table, so skip [202-203] */
-
-            if (isResumable) { // Resume exam
-                /* TestOpportunityServiceImpl [215] - Only need to get latest position when resuming, else its 1 */
-                startPosition = examItemService.getExamPosition(exam.getId());
+            int startPosition = findExamStartPosition(examSegmentWrappers);
+            /* TestOpportunityServiceImpl [204] / StudentDLL [5424]
+             * Session type is always 0 (online) in TDS, so skip first conditional on [204]*/
+            if (isGracePeriodResume) { // Resume exam
                 /* This increment is done in TestOpportunityServiceImpl [179] */
                 resumptions++;
             } else if (assessment.shouldDeleteUnansweredItems()) { // Restart exam
@@ -599,12 +497,126 @@ class ExamServiceImpl implements ExamService {
                 .build();
 
             updateExam(exam, restartedExam);
+
+            updateFinishedPages(examSegmentWrappers, isGracePeriodResume);
             /* Skip restart increment on [209] because we are already incrementing earlier in this method */
             /* [212] No need to call updateUnfinishedResponsePages since we no longer need to keep count of "opportunityrestart" */
             examConfig = getExamConfiguration(exam, assessment, timeLimitConfiguration, startPosition);
         }
 
         return new Response<>(examConfig);
+    }
+
+    /* This method emulates functionality of {@code StudentDLL._UnfinishedResponsePages_SP} @ line 5146 */
+
+    //If all items are answered and not in a grace period resume mark the pages as not visible
+    private void updateFinishedPages(final List<ExamSegmentWrapper> examSegmentWrappers, final boolean isGracePeriodResume) {
+        if(isGracePeriodResume) {
+            return;
+        }
+
+        List<ExamPage> examPages = examSegmentWrappers.stream()
+            .flatMap(segmentWrapper -> segmentWrapper.getExamPages().stream())
+            .filter(pageWrapper ->
+                // Find any pages that have items that have not yet been answered.
+                pageWrapper.getExamItems().stream()
+                    .noneMatch(ExamServiceImpl::isItemUnanswered)
+            )
+            .map(pageWrapper ->
+                ExamPage.Builder
+                    .fromExamPage(pageWrapper.getExamPage())
+                    .withVisible(false)
+                    .build()
+            )
+            .collect(Collectors.toList());
+
+        if(!examPages.isEmpty()) {
+            examPageService.update(examPages.toArray(new ExamPage[examPages.size()]));
+        }
+    }
+
+    /*
+        This method emulated StudentDLL.ResumeItemPosition_FN [5151]
+     */
+    private int findExamStartPosition(final List<ExamSegmentWrapper> examSegmentWrappers) {
+        Optional<ExamItem> maybeResumeExamItem;
+
+        // Find the first segment position where dateExited is not null or that has a satisfied permeable condition
+        /* StudentDLL.ResumeItemPosition_FN [5156] */
+        maybeResumeExamItem = findExamItemFromResumableSegment(examSegmentWrappers);
+        if (maybeResumeExamItem.isPresent()) {
+            return maybeResumeExamItem.get().getPosition();
+        }
+
+        // flat map all exam pages, items for this assessment/restart number
+        Optional<ExamItem> maybeExamItemWithoutResponse = examSegmentWrappers.stream()
+            .flatMap(wrapper -> wrapper.getExamPages().stream()
+                .filter(pageWrapper -> pageWrapper.getExamPage().isVisible())
+                .flatMap(examPage -> examPage.getExamItems().stream()
+                    .filter(ExamServiceImpl::isItemUnanswered)
+                ))
+            .findFirst();
+
+        /* StudentDLL.ResumeItemPosition_FN [5183] */
+        // Find the first item in the assessment that is not valid (either because it has no response or because the response is not valid
+        if(maybeExamItemWithoutResponse.isPresent()) {
+            return maybeExamItemWithoutResponse.get().getPosition();
+        }
+
+        /* StudentDLL.ResumeItemPosition_FN [5193] */
+        // If all items had a response, find the highest item position regardless of whether it has a response or not
+        ExamSegmentWrapper lastSegment = examSegmentWrappers.get(examSegmentWrappers.size() - 1);
+        ExamPageWrapper lastPage = lastSegment.getExamPages().get(lastSegment.getExamPages().size() - 1);
+        return lastPage.getExamItems().get(lastPage.getExamItems().size() - 1).getPosition();
+    }
+
+    private Optional<ExamItem> findExamItemFromResumableSegment(final List<ExamSegmentWrapper> examSegmentWrappers) {
+        Optional<ExamSegmentWrapper> maybeResumeExamSegment = examSegmentWrappers.stream()
+            .filter(this::isExamSegmentResumable)
+            .findFirst();
+
+        if (!maybeResumeExamSegment.isPresent()) {
+            return Optional.empty();
+        }
+
+        // If there was a segment found with the above query
+        ExamSegmentWrapper currentSegment = maybeResumeExamSegment.get();
+
+        // flat map all exam pages, items for this segment/restart number
+        List<ExamItem> examItemsInSegment = currentSegment.getExamPages().stream()
+            .filter(examPageWrapper -> examPageWrapper.getExamPage().isVisible())
+            .flatMap(pageWrapper -> pageWrapper.getExamItems().stream())
+            .collect(Collectors.toList());
+
+        if (examItemsInSegment.isEmpty()) {
+            return Optional.empty();
+        }
+
+        /* StudentDLL.ResumeItemPosition_FN [5164] */
+        // Find the first item in this segment that is not valid (either because it has no response or because the response is not valid
+        Optional<ExamItem> maybeExamItem = examItemsInSegment.stream()
+            .filter(ExamServiceImpl::isItemUnanswered)
+            .findFirst();
+
+        if (maybeExamItem.isPresent()) {
+            return maybeExamItem;
+        }
+
+        /* StudentDLL.ResumeItemPosition_FN [5174] */
+        // If all items had a response, find the highest item position regardless of whether it has a response or not
+        return Optional.of(examItemsInSegment.get(examItemsInSegment.size() - 1));
+    }
+
+    private boolean isExamSegmentResumable(final ExamSegmentWrapper examSegment) {
+        return examSegment.getExamSegment().getExitedAt() == null
+            || (examSegment.getExamSegment().isPermeable()
+            && examSegment.getExamSegment().getRestorePermeableCondition() != null);
+    }
+
+    private static boolean isItemUnanswered(final ExamItem examItem) {
+        return !examItem.getResponse().isPresent()
+            || (examItem.getResponse().get().getResponse().equals("")
+            && !examItem.getResponse().get().isValid());
     }
 
     private Exam initializeExam(final Exam exam, final Assessment assessment, final String browserUserAgent) {
@@ -945,6 +957,105 @@ class ExamServiceImpl implements ExamService {
         examStatusChangeListeners.forEach(listener -> listener.accept(exam, updatedExam));
     }
 
+    private List<ExamAssessmentMetadata> findEligibleExamAssessmentsForStudent(final long studentId, final Session session, final String grade) {
+        final String clientName = session.getClientName();
+        List<ExamAssessmentMetadata> examAssessmentMetadatas = new ArrayList<>();
+        Set<String> sessionAssessmentIds = sessionService.findSessionAssessments(session.getId()).stream()
+            .map(SessionAssessment::getAssessmentId)
+            .collect(Collectors.toSet());
+        /* StudentDLL - 10439 and 10535 - get both student package attributes at once */
+        List<RtsStudentPackageAttribute> attributes = studentService.findStudentPackageAttributes(studentId, clientName, ELIGIBLE_ASSESSMENTS, BLOCKED_SUBJECT);
+        /* StudentDLL.java - 10451 - for _GetCurrentTests, we need assessment metadata for each eligible assessment */
+        List<AssessmentInfo> eligibleAssessments = assessmentService.findAssessmentInfosForAssessments(clientName,
+            getEligibleAssessmentKeysFromAttributes(attributes));
+
+        /* StudentDLL [10520] - _GetOpportunityInfo - Get the exam and session data for all exams taken by this student */
+        List<Exam> studentExams = examQueryRepository.findAllExamsForStudent(studentId);
+        List<UUID> examSessionIds = studentExams.stream().map(Exam::getSessionId).collect(Collectors.toList());
+        // SessionId -> Session for quick lookup - these are the sessions associated with each exam
+        Map<UUID, Session> examSessions = sessionService.findSessionsByIds(examSessionIds)
+            .stream().collect(Collectors.toMap(Session::getId, Function.identity()));
+        // A map from assessmentKey -> all exams taken for that exam by this student
+        Map<String, List<Exam>> assessmentExams = studentExams.stream().collect(Collectors.groupingBy(Exam::getAssessmentKey));
+
+        for (AssessmentInfo assessment : eligibleAssessments) {
+            int currentAttempt = 0;
+            String deniedReason = null;
+            String status = null;
+            Optional<Exam> maybeMostRecentExam = getMostRecentExamForAssessment(assessment.getKey(), assessmentExams);
+            boolean isNewOpportunity = false;
+
+            if (!sessionAssessmentIds.contains(assessment.getId())) {
+                deniedReason = configService.getFormattedMessage(clientName, "_CanOpenTestOpportunity",
+                    "Test not available for this session.");
+                status = ExamStatusCode.STATUS_DENIED;
+            } else if (!ExamStatusCode.STATUS_DENIED.equals(status)) {
+                /* [10549-10561] - check if the subject is blocked according to RTS attributes */
+                if (isSubjectBlocked(attributes, assessment.getSubject())) {
+                    deniedReason = configService.getFormattedMessage(clientName, "_CanOpenTestOpportunity",
+                        "This test is administratively blocked. Please check with your test administrator.");
+                    status = ExamStatusCode.STATUS_DENIED;
+                } else if (maybeMostRecentExam.isPresent()) {
+                    Exam recentExam = maybeMostRecentExam.get();
+                    Optional<ValidationError> maybeError = canOpenPreviousExam(recentExam, examSessions.get(recentExam.getSessionId()));
+
+                    if (maybeError.isPresent()) {
+                        deniedReason = maybeError.get().getMessage();
+                    } else { // If this branch is hit, we can open the existing exam
+                        OpenExamRequest request = new OpenExamRequest.Builder()
+                            .withStudentId(studentId)
+                            .withAssessmentKey(assessment.getKey())
+                            .withSessionId(session.getId())
+                            .withBrowserId(recentExam.getBrowserId())
+                            .build();
+
+                        maybeError = canCreateNewExam(clientName, request, recentExam, assessment.getMaxAttempts());
+                        isNewOpportunity = !maybeError.isPresent();
+                        currentAttempt = isNewOpportunity
+                            ? recentExam.getAttempts() + 1
+                            : recentExam.getAttempts();
+                    }
+                } else { // If theres no previous exam, only need to validate the opportunity count
+                        /* StudentDLL Lines [10649-10660] */
+                    if (assessment.getMaxAttempts() <= 0) {
+                        deniedReason = configService.getFormattedMessage(clientName, "_CanOpenTestOpportunity",
+                            "No opportunities are available for this test");
+                    } else {
+                        isNewOpportunity = true;
+                        currentAttempt = 1;
+                    }
+                }
+            }
+
+            /* Lines 10615-10622 */
+            if (status == null) {
+                if (currentAttempt == 0) {
+                    status = ExamStatusCode.STATUS_DENIED;
+                } else if (!isNewOpportunity) {
+                    status = ExamStatusCode.STATUS_SUSPENDED;
+                } else {
+                    status = ExamStatusCode.STATUS_PENDING;
+                }
+            }
+
+            examAssessmentMetadatas.add(
+                new ExamAssessmentMetadata.Builder()
+                    .withAssessmentKey(assessment.getKey())
+                    .withAssessmentId(assessment.getId())
+                    .withAssessmentLabel(assessment.getLabel())
+                    .withMaxAttempts(assessment.getMaxAttempts())
+                    .withSubject(assessment.getSubject())
+                    .withGrade(grade)
+                    .withAttempt(currentAttempt)
+                    .withStatus(status)
+                    .withDeniedReason(deniedReason)
+                    .build()
+            );
+        }
+
+        return examAssessmentMetadatas;
+    }
+
     private Optional<Exam> getMostRecentExamForAssessment(final String assessmentKey, final Map<String, List<Exam>> assessmentExams) {
         if (!assessmentExams.containsKey(assessmentKey)) {
             return Optional.empty();
@@ -978,11 +1089,5 @@ class ExamServiceImpl implements ExamService {
             .findFirst();
 
         return maybeBlockedSubject.orElse(false);
-
-    }
-
-    @Override
-    public List<ItemGroupHistory> findPreviousItemGroups(final long studentId, final UUID currentExamId, final String assessmentId) {
-        return null;
     }
 }

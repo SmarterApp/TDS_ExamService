@@ -45,13 +45,15 @@ public class ExamPageWrapperQueryRepositoryIntegrationTests {
     private ExamPageCommandRepository examPageCommandRepository;
     private ExamPageWrapperQueryRepository examPageQueryRepository;
 
-    private final Exam mockExam = new ExamBuilder().build();
+    private final Exam mockExam = new ExamBuilder().withRestartsAndResumptions(0).build();
     private final ExamSegment mockExamSegment = new ExamSegmentBuilder()
         .withExamId(mockExam.getId())
         .build();
     private final ExamPage mockExamPage = new ExamPageBuilder()
+        .withId(UUID.randomUUID())
         .withExamId(mockExam.getId())
         .withSegmentKey(mockExamSegment.getSegmentKey())
+        .withVisible(true)
         .build();
     private final ExamItem mockFirstExamItem = new ExamItemBuilder()
         .withItemKey("187-1234")
@@ -228,10 +230,12 @@ public class ExamPageWrapperQueryRepositoryIntegrationTests {
         assertThat(examPageWrappers.get(0).getExamItems()).hasSize(2);
         assertThat(examPageWrappers.get(0).getExamItems().get(0).getId()).isEqualTo(mockFirstExamItem.getId());
         assertThat(examPageWrappers.get(0).getExamItems().get(1).getId()).isEqualTo(mockSecondExamItem.getId());
+        assertThat(examPageWrappers.get(0).getExamPage().isVisible()).isTrue();
 
         assertThat(examPageWrappers.get(1).getExamPage().getId()).isEqualTo(otherExamPage.getId());
         assertThat(examPageWrappers.get(1).getExamItems()).hasSize(1);
         assertThat(examPageWrappers.get(1).getExamItems().get(0).getId()).isEqualTo(otherExamItem.getId());
+        assertThat(examPageWrappers.get(1).getExamPage().isVisible()).isFalse();
     }
 
     @Test

@@ -21,6 +21,7 @@ public class ExamPage {
     private Instant deletedAt;
     private Instant startedAt;
     private long duration;
+    private boolean visible;
 
     /**
      * Private constructor for frameworks
@@ -38,6 +39,8 @@ public class ExamPage {
         createdAt = builder.createdAt;
         deletedAt = builder.deletedAt;
         startedAt = builder.startedAt;
+        duration = builder.duration;
+        visible = builder.visible;
     }
 
     public static final class Builder {
@@ -51,6 +54,7 @@ public class ExamPage {
         private Instant deletedAt;
         private Instant startedAt;
         private long duration;
+        private boolean visible;
 
         public Builder withPagePosition(int pagePosition) {
             this.pagePosition = pagePosition;
@@ -102,6 +106,11 @@ public class ExamPage {
             return this;
         }
 
+        public Builder withVisible(boolean visible) {
+            this.visible = visible;
+            return this;
+        }
+
         public ExamPage build() {
             return new ExamPage(this);
         }
@@ -117,7 +126,8 @@ public class ExamPage {
                 .withCreatedAt(examPage.getCreatedAt())
                 .withDeletedAt(examPage.getDeletedAt())
                 .withStartedAt(examPage.getStartedAt())
-                .withDuration(examPage.getDuration());
+                .withDuration(examPage.getDuration())
+                .withVisible(examPage.isVisible());
         }
     }
 
@@ -190,5 +200,12 @@ public class ExamPage {
      */
     public long getDuration() {
         return duration;
+    }
+
+    /**
+     * @return {@code true} if the pages is visible for the student
+     */
+    public boolean isVisible() {
+        return visible;
     }
 }

@@ -94,6 +94,7 @@ public class ExamItemSelectionServiceImpl implements ExamItemSelectionService {
             .withItemGroupKey(itemGroup.getGroupID())
             .withGroupItemsRequired(itemGroup.getNumRequired())
             .withSegmentKey(itemGroup.getSegmentKey())
+            .withVisible(true)
             .build();
 
         int examItemPosition = lastPosition;
@@ -164,7 +165,7 @@ public class ExamItemSelectionServiceImpl implements ExamItemSelectionService {
                 oppItem.setGroupItemsRequired(page.getGroupItemsRequired());
 
                 // manually set data (taken from the legacy adaptive service impl. ResponseRepository.insertItems lin 159
-                oppItem.setIsVisible(true);
+                oppItem.setIsVisible(page.isVisible());
                 oppItem.setIsSelected(false);
                 oppItem.setIsValid(false);
                 oppItem.setMarkForReview(false);

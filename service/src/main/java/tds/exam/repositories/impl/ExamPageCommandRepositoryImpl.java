@@ -71,12 +71,14 @@ public class ExamPageCommandRepositoryImpl implements ExamPageCommandRepository 
                 "exam_page_event (\n" +
                 "   exam_page_id, \n" +
                 "   exam_id, \n" +
+                "   page_duration, \n" +
                 "   deleted_at, \n" +
                 "   started_at, \n" +
                 "   created_at) \n" +
                 "SELECT \n" +
                 "   PE.exam_page_id, \n" +
                 "   PE.exam_id, \n" +
+                "   PE.page_duration, \n" +
                 "   UTC_TIMESTAMP(), \n" +
                 "   PE.started_at, \n " +
                 "   UTC_TIMESTAMP() \n" +
@@ -100,21 +102,28 @@ public class ExamPageCommandRepositoryImpl implements ExamPageCommandRepository 
                 "exam_page_event (\n" +
                 "   exam_page_id, \n" +
                 "   exam_id, \n" +
+                "   page_duration, \n" +
+                "   visible, \n" +
                 "   deleted_at, \n" +
                 "   started_at, \n" +
                 "   created_at) \n" +
                 "VALUES ( \n" +
                 "   :examPageId, \n" +
                 "   :examId, \n" +
+                "   :pageDuration, \n" +
+                "   :visible, \n" +
                 "   :deletedAt, \n" +
                 "   :startedAt, \n" +
                 "   :createdAt)";
 
         SqlParameterSource[] parameters = Stream.of(examPages).map(examPage ->
             new MapSqlParameterSource("examPageId", examPage.getId().toString())
+                .addValue("pageDuration", examPage.getDuration())
+                .addValue("visible", examPage.isVisible())
                 .addValue("examId", examPage.getExamId().toString())
                 .addValue("startedAt", mapJodaInstantToTimestamp(examPage.getStartedAt()))
                 .addValue("deletedAt", mapJodaInstantToTimestamp(examPage.getDeletedAt()))
+                .addValue("visible", examPage.isVisible())
                 .addValue("createdAt", createdAt))
             .toArray(SqlParameterSource[]::new);
 

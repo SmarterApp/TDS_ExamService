@@ -40,6 +40,10 @@ import tds.exam.ExamApproval;
 import tds.exam.ExamAssessmentMetadata;
 import tds.exam.ExamConfiguration;
 import tds.exam.ExamInfo;
+import tds.exam.ExamItem;
+import tds.exam.ExamItemResponse;
+import tds.exam.ExamPage;
+import tds.exam.ExamSegment;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
 import tds.exam.ExamineeContext;
@@ -48,6 +52,8 @@ import tds.exam.SegmentApprovalRequest;
 import tds.exam.builder.AssessmentBuilder;
 import tds.exam.builder.ExamAccommodationBuilder;
 import tds.exam.builder.ExamBuilder;
+import tds.exam.builder.ExamItemBuilder;
+import tds.exam.builder.ExamItemResponseBuilder;
 import tds.exam.builder.ExternalSessionConfigurationBuilder;
 import tds.exam.builder.OpenExamRequestBuilder;
 import tds.exam.builder.SessionBuilder;
@@ -60,15 +66,17 @@ import tds.exam.services.AssessmentService;
 import tds.exam.services.ConfigService;
 import tds.exam.services.ExamAccommodationService;
 import tds.exam.services.ExamApprovalService;
-import tds.exam.services.ExamItemService;
 import tds.exam.services.ExamPageService;
 import tds.exam.services.ExamSegmentService;
+import tds.exam.services.ExamSegmentWrapperService;
 import tds.exam.services.ExamService;
 import tds.exam.services.ExamineeService;
 import tds.exam.services.SessionService;
 import tds.exam.services.StudentService;
 import tds.exam.services.TimeLimitConfigurationService;
 import tds.exam.utils.ExamStatusChangeValidator;
+import tds.exam.wrapper.ExamPageWrapper;
+import tds.exam.wrapper.ExamSegmentWrapper;
 import tds.session.ExternalSessionConfiguration;
 import tds.session.Session;
 import tds.session.SessionAssessment;
@@ -137,9 +145,6 @@ public class ExamServiceImplTest {
     private ExamPageService mockExamPageService;
 
     @Mock
-    private ExamItemService mockExamItemService;
-
-    @Mock
     private ExamApprovalService mockExamApprovalService;
 
     @Mock
@@ -154,6 +159,9 @@ public class ExamServiceImplTest {
     @Mock
     private ExamStatusChangeValidator mockReviewExamStatusChangeValidator;
 
+    @Mock
+    private ExamSegmentWrapperService mockExamSegmentWrapperService;
+
     @Captor
     private ArgumentCaptor<Exam> examArgumentCaptor;
 
@@ -166,12 +174,12 @@ public class ExamServiceImplTest {
             mockSessionService,
             mockStudentService,
             mockExamSegmentService,
+            mockExamSegmentWrapperService,
             mockAssessmentService,
             mockTimeLimitConfigurationService,
             mockConfigService,
             mockExamCommandRepository,
             mockExamPageService,
-            mockExamItemService,
             mockExamStatusQueryRepository,
             mockExamAccommodationService,
             mockExamApprovalService,
@@ -1036,13 +1044,14 @@ public class ExamServiceImplTest {
     }
 
     @Test
-    public void shouldRestartExistingExamOutsideGracePeriodPausedExam() throws InterruptedException {
+    public void shouldResumeExistingExamOutsideGracePeriodPausedExam() throws InterruptedException {
         final String browserUserAgent = "007";
         Session session = new SessionBuilder().build();
         final Instant now = org.joda.time.Instant.now().minus(5000);
         final Instant approvedStatusDate = now.minus(5000);
         final Instant lastStudentActivityTime = now.minus(25 * 60 * 1000); // minus 25 minutes
         final int testLength = 10;
+        ArgumentCaptor<ExamPage> examPageArgumentCaptor = ArgumentCaptor.forClass(ExamPage.class);
 
         Exam exam = new ExamBuilder()
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.OPEN), approvedStatusDate)
@@ -1053,6 +1062,7 @@ public class ExamServiceImplTest {
             .withStartedAt(Instant.now().minus(60000))
             .build();
         Assessment assessment = new AssessmentBuilder().build();
+
         TimeLimitConfiguration timeLimitConfiguration = new TimeLimitConfiguration.Builder()
             .withTaCheckinTimeMinutes(3)
             .withAssessmentId(assessment.getAssessmentId())
@@ -1061,8 +1071,54 @@ public class ExamServiceImplTest {
             .withInterfaceTimeoutMinutes(4)
             .withRequestInterfaceTimeoutMinutes(5)
             .build();
+
         ExternalSessionConfiguration extSessionConfig = new ExternalSessionConfiguration(exam.getClientName(), SIMULATION_ENVIRONMENT, 0, 0, 0, 0);
 
+        ExamItem examItem1 = ExamItem.Builder
+            .fromExamItem(new ExamItemBuilder().build())
+            .withPosition(1)
+            .withResponse(ExamItemResponse.Builder
+                .fromExamItemResponse(new ExamItemResponseBuilder().build())
+                .withValid(true)
+                .build())
+            .build();
+
+        ExamItem examItem2 = ExamItem.Builder
+            .fromExamItem(new ExamItemBuilder().build())
+            .withPosition(2)
+            .withResponse(ExamItemResponse.Builder
+                .fromExamItemResponse(new ExamItemResponseBuilder().build())
+                .withValid(true)
+                .build())
+            .build();
+
+        ExamItem examItem3 = ExamItem.Builder
+            .fromExamItem(new ExamItemBuilder().build())
+            .withPosition(3)
+            .withResponse(ExamItemResponse.Builder
+                .fromExamItemResponse(new ExamItemResponseBuilder().build())
+                .withResponse("")
+                .withValid(false)
+                .build())
+            .build();
+
+        ExamPageWrapper examPageWrapper1 = new ExamPageWrapper(
+            ExamPage.Builder
+                .fromExamPage(random(ExamPage.class))
+                .withPagePosition(1)
+                .withVisible(true)
+                .build(),
+            Arrays.asList(examItem1, examItem2));
+
+        ExamPageWrapper examPageWrapper2 = new ExamPageWrapper(
+            ExamPage.Builder
+                .fromExamPage(random(ExamPage.class))
+                .withPagePosition(2)
+                .withVisible(true)
+                .build(),
+            Collections.singletonList(examItem3));
+
+        ExamSegmentWrapper examSegmentWrapper = new ExamSegmentWrapper(random(ExamSegment.class), Arrays.asList(examPageWrapper1, examPageWrapper2));
         when(mockSessionService.findExternalSessionConfigurationByClientName(exam.getClientName())).thenReturn(Optional.of(extSessionConfig));
         when(mockExamQueryRepository.getExamById(exam.getId())).thenReturn(Optional.of(exam));
         when(mockExamQueryRepository.findLastStudentActivity(exam.getId())).thenReturn(Optional.of(lastStudentActivityTime));
@@ -1074,6 +1130,7 @@ public class ExamServiceImplTest {
         when(mockExamSegmentService.initializeExamSegments(exam, assessment)).thenReturn(testLength);
         when(mockExamApprovalService.verifyAccess(isA(ExamInfo.class), isA(Exam.class)))
             .thenReturn(Optional.empty());
+        when(mockExamSegmentWrapperService.findAllExamSegments(exam.getId())).thenReturn(Collections.singletonList(examSegmentWrapper));
 
         Response<ExamConfiguration> examConfigurationResponse = examService.startExam(exam.getId(), browserUserAgent);
 
@@ -1083,6 +1140,11 @@ public class ExamServiceImplTest {
         verify(mockTimeLimitConfigurationService).findTimeLimitConfiguration(exam.getClientName(), assessment.getAssessmentId());
         verify(mockExamCommandRepository).update(examArgumentCaptor.capture());
         verify(mockExamQueryRepository).findLastStudentActivity(exam.getId());
+        verify(mockExamPageService).update(examPageArgumentCaptor.capture());
+
+        List<ExamPage> examPages = examPageArgumentCaptor.getAllValues();
+        assertThat(examPages).hasSize(1);
+        assertThat(examPages.get(0).getId()).isEqualTo(examPageWrapper1.getExamPage().getId());
 
         assertThat(examConfigurationResponse.getData().isPresent()).isTrue();
         ExamConfiguration examConfiguration = examConfigurationResponse.getData().get();
@@ -1092,10 +1154,9 @@ public class ExamServiceImplTest {
         assertThat(examConfiguration.getExamRestartWindowMinutes()).isEqualTo(timeLimitConfiguration.getExamRestartWindowMinutes());
         assertThat(examConfiguration.getInterfaceTimeoutMinutes()).isEqualTo(timeLimitConfiguration.getInterfaceTimeoutMinutes());
         assertThat(examConfiguration.getPrefetch()).isEqualTo(assessment.getPrefetch());
-        assertThat(examConfiguration.getStartPosition()).isEqualTo(1);
+        assertThat(examConfiguration.getStartPosition()).isEqualTo(3);
         assertThat(examConfiguration.getTestLength()).isEqualTo(testLength);
 
-        // Sleep a bit to prevent intermittent test failures due to timing
         Exam updatedExam = examArgumentCaptor.getValue();
         assertThat(updatedExam).isNotNull();
         assertThat(updatedExam.getAttempts()).isEqualTo(0);
@@ -1118,7 +1179,6 @@ public class ExamServiceImplTest {
         final Instant now = org.joda.time.Instant.now();
         final Instant approvedStatusDate = now.minus(5000);
         final Instant lastStudentActivityTime = now.minus(15 * 60 * 1000); // minus 15 minutes, within grace period
-        final int resumePosition = 5;
         final int testLength = 10;
 
         Exam exam = new ExamBuilder()
@@ -1140,6 +1200,48 @@ public class ExamServiceImplTest {
             .build();
         ExternalSessionConfiguration extSessionConfig = new ExternalSessionConfiguration(exam.getClientName(), SIMULATION_ENVIRONMENT, 0, 0, 0, 0);
 
+        ExamItem examItem1 = ExamItem.Builder
+            .fromExamItem(new ExamItemBuilder().build())
+            .withPosition(1)
+            .withResponse(ExamItemResponse.Builder
+                .fromExamItemResponse(new ExamItemResponseBuilder().build())
+                .withValid(true)
+                .build())
+            .build();
+
+        ExamItem examItem2 = ExamItem.Builder
+            .fromExamItem(new ExamItemBuilder().build())
+            .withPosition(2)
+            .withResponse(ExamItemResponse.Builder
+                .fromExamItemResponse(new ExamItemResponseBuilder().build())
+                .withValid(true)
+                .build())
+            .build();
+
+        ExamItem examItem3 = ExamItem.Builder
+            .fromExamItem(new ExamItemBuilder().build())
+            .withPosition(3)
+            .withResponse(ExamItemResponse.Builder
+                .fromExamItemResponse(new ExamItemResponseBuilder().build())
+                .withValid(false)
+                .build())
+            .build();
+
+        ExamPageWrapper examPageWrapper1 = new ExamPageWrapper(
+            ExamPage.Builder
+                .fromExamPage(random(ExamPage.class))
+                .withVisible(true)
+                .build(),
+            Arrays.asList(examItem1, examItem2));
+
+        ExamPageWrapper examPageWrapper2 = new ExamPageWrapper(
+            ExamPage.Builder
+                .fromExamPage(random(ExamPage.class))
+                .withVisible(true)
+                .build(),
+            Collections.singletonList(examItem3));
+
+        ExamSegmentWrapper examSegmentWrapper = new ExamSegmentWrapper(random(ExamSegment.class), Arrays.asList(examPageWrapper1, examPageWrapper2));
         when(mockSessionService.findExternalSessionConfigurationByClientName(exam.getClientName())).thenReturn(Optional.of(extSessionConfig));
         when(mockExamQueryRepository.getExamById(exam.getId())).thenReturn(Optional.of(exam));
         when(mockExamQueryRepository.findLastStudentActivity(exam.getId())).thenReturn(Optional.of(lastStudentActivityTime));
@@ -1149,10 +1251,9 @@ public class ExamServiceImplTest {
         when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(exam.getClientName(), assessment.getAssessmentId()))
             .thenReturn(Optional.of(timeLimitConfiguration));
         when(mockExamSegmentService.initializeExamSegments(exam, assessment)).thenReturn(testLength);
-        when(mockExamItemService.getExamPosition(exam.getId())).thenReturn(resumePosition);
-        when(mockExamItemService.getExamPosition(exam.getId())).thenReturn(5);
         when(mockExamApprovalService.verifyAccess(isA(ExamInfo.class), isA(Exam.class)))
             .thenReturn(Optional.empty());
+        when(mockExamSegmentWrapperService.findAllExamSegments(exam.getId())).thenReturn(Collections.singletonList(examSegmentWrapper));
 
         Response<ExamConfiguration> examConfigurationResponse = examService.startExam(exam.getId(), browserUserAgent);
 
@@ -1161,9 +1262,9 @@ public class ExamServiceImplTest {
         verify(mockAssessmentService).findAssessment(exam.getClientName(), exam.getAssessmentKey());
         verify(mockTimeLimitConfigurationService).findTimeLimitConfiguration(exam.getClientName(), assessment.getAssessmentId());
         verify(mockExamCommandRepository).update(examArgumentCaptor.capture());
-        verify(mockExamItemService).getExamPosition(exam.getId());
         verify(mockExamQueryRepository).findLastStudentActivity(exam.getId());
-        verify(mockExamItemService).getExamPosition(exam.getId());
+        verify(mockExamSegmentWrapperService).findAllExamSegments(exam.getId());
+        verifyZeroInteractions(mockExamPageService);
 
         assertThat(examConfigurationResponse.getData().isPresent()).isTrue();
         ExamConfiguration examConfiguration = examConfigurationResponse.getData().get();
@@ -1173,10 +1274,9 @@ public class ExamServiceImplTest {
         assertThat(examConfiguration.getExamRestartWindowMinutes()).isEqualTo(timeLimitConfiguration.getExamRestartWindowMinutes());
         assertThat(examConfiguration.getInterfaceTimeoutMinutes()).isEqualTo(timeLimitConfiguration.getInterfaceTimeoutMinutes());
         assertThat(examConfiguration.getPrefetch()).isEqualTo(assessment.getPrefetch());
-        assertThat(examConfiguration.getStartPosition()).isEqualTo(5);
+        assertThat(examConfiguration.getStartPosition()).isEqualTo(3);
         assertThat(examConfiguration.getTestLength()).isEqualTo(testLength);
 
-        // Sleep a bit to prevent intermittent test failures due to timing
         Exam updatedExam = examArgumentCaptor.getValue();
         assertThat(updatedExam).isNotNull();
         assertThat(updatedExam.getAttempts()).isEqualTo(0);
@@ -1469,7 +1569,7 @@ public class ExamServiceImplTest {
         assertThat(response.getError().isPresent()).isFalse();
 
         List<ExamAssessmentMetadata> elligibleExams = response.getData().get();
-        ;
+
         ExamAssessmentMetadata retExamInfo1 = elligibleExams.get(0);
         ExamAssessmentMetadata retExamInfo2 = elligibleExams.get(1);
 
@@ -1506,7 +1606,7 @@ public class ExamServiceImplTest {
     @Test
     public void shouldFindEligibleExamsForStudent() {
         final long studentId = 1184;
-        final UUID sessionId = UUID.randomUUID();
+
         final String grade = "3";
 
         Session currentSession = random(Session.class);

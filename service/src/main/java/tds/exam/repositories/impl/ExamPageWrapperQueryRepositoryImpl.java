@@ -42,6 +42,7 @@ public class ExamPageWrapperQueryRepositoryImpl implements ExamPageWrapperQueryR
         "   page.created_at, \n" +
         "   page.segment_key, \n" +
         "   page_event.started_at, \n" +
+        "   page_event.visible, \n" +
         "   item.id AS item_id, \n" +
         "   item.item_key, \n" +
         "   item.assessment_item_bank_key, \n" +
@@ -173,6 +174,7 @@ public class ExamPageWrapperQueryRepositoryImpl implements ExamPageWrapperQueryR
                         .withItemGroupKey(resultExtractor.getString("item_group_key"))
                         .withGroupItemsRequired(resultExtractor.getInt("group_items_required"))
                         .withExamId(UUID.fromString(resultExtractor.getString("exam_id")))
+                        .withVisible(resultExtractor.getBoolean("visible"))
                         .withCreatedAt(ResultSetMapperUtility.mapTimestampToJodaInstant(resultExtractor, "created_at"))
                         .withStartedAt(ResultSetMapperUtility.mapTimestampToJodaInstant(resultExtractor, "started_at"))
                         .build();

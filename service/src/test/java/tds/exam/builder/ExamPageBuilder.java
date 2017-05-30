@@ -10,7 +10,7 @@ import tds.exam.ExamPage;
  * Build a {@link tds.exam.ExamPage} with test data
  */
 public class ExamPageBuilder {
-    public static final UUID DEFAULT_ID = UUID.fromString("b868561f-8264-42b1-80ce-e812f2bad7f7");
+    static final UUID DEFAULT_ID = UUID.fromString("b868561f-8264-42b1-80ce-e812f2bad7f7");
 
     private UUID id = DEFAULT_ID;
     private int pagePosition = 1;
@@ -22,6 +22,7 @@ public class ExamPageBuilder {
     private Instant deletedAt;
     private Instant startedAt;
     private long duration = 100;
+    private boolean visible;
 
     public ExamPage build() {
         return new ExamPage.Builder()
@@ -35,6 +36,7 @@ public class ExamPageBuilder {
             .withDeletedAt(deletedAt)
             .withStartedAt(startedAt)
             .withDuration(duration)
+            .withVisible(visible)
             .build();
     }
 
@@ -85,6 +87,11 @@ public class ExamPageBuilder {
 
     public ExamPageBuilder withDuration(long duration) {
         this.duration = duration;
+        return this;
+    }
+
+    public ExamPageBuilder withVisible(final boolean visible) {
+        this.visible = visible;
         return this;
     }
 }
