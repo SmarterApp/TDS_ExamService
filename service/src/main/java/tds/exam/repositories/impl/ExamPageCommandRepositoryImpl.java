@@ -71,7 +71,6 @@ public class ExamPageCommandRepositoryImpl implements ExamPageCommandRepository 
                 "exam_page_event (\n" +
                 "   exam_page_id, \n" +
                 "   exam_id, \n" +
-                "   exam_restarts_and_resumptions, \n" +
                 "   page_duration, \n" +
                 "   deleted_at, \n" +
                 "   started_at, \n" +
@@ -79,7 +78,6 @@ public class ExamPageCommandRepositoryImpl implements ExamPageCommandRepository 
                 "SELECT \n" +
                 "   PE.exam_page_id, \n" +
                 "   PE.exam_id, \n" +
-                "   PE.exam_restarts_and_resumptions, \n" +
                 "   PE.page_duration, \n" +
                 "   UTC_TIMESTAMP(), \n" +
                 "   PE.started_at, \n " +
@@ -104,7 +102,6 @@ public class ExamPageCommandRepositoryImpl implements ExamPageCommandRepository 
                 "exam_page_event (\n" +
                 "   exam_page_id, \n" +
                 "   exam_id, \n" +
-                "   exam_restarts_and_resumptions, \n" +
                 "   page_duration, \n" +
                 "   visible, \n" +
                 "   deleted_at, \n" +
@@ -113,7 +110,6 @@ public class ExamPageCommandRepositoryImpl implements ExamPageCommandRepository 
                 "VALUES ( \n" +
                 "   :examPageId, \n" +
                 "   :examId, \n" +
-                "   :examRestartsAndResumptions, \n" +
                 "   :pageDuration, \n" +
                 "   :visible, \n" +
                 "   :deletedAt, \n" +
@@ -122,7 +118,6 @@ public class ExamPageCommandRepositoryImpl implements ExamPageCommandRepository 
 
         SqlParameterSource[] parameters = Stream.of(examPages).map(examPage ->
             new MapSqlParameterSource("examPageId", examPage.getId().toString())
-                .addValue("examRestartsAndResumptions", examPage.getExamRestartsAndResumptions())
                 .addValue("pageDuration", examPage.getDuration())
                 .addValue("visible", examPage.isVisible())
                 .addValue("examId", examPage.getExamId().toString())

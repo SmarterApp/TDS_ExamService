@@ -21,7 +21,6 @@ public class ExamPage {
     private Instant deletedAt;
     private Instant startedAt;
     private long duration;
-    private int examRestartsAndResumptions;
     private boolean visible;
 
     /**
@@ -41,7 +40,6 @@ public class ExamPage {
         deletedAt = builder.deletedAt;
         startedAt = builder.startedAt;
         duration = builder.duration;
-        examRestartsAndResumptions = builder.examRestartsAndResumptions;
         visible = builder.visible;
     }
 
@@ -56,7 +54,6 @@ public class ExamPage {
         private Instant deletedAt;
         private Instant startedAt;
         private long duration;
-        private int examRestartsAndResumptions;
         private boolean visible;
 
         public Builder withPagePosition(int pagePosition) {
@@ -109,11 +106,6 @@ public class ExamPage {
             return this;
         }
 
-        public Builder withExamRestartsAndResumptions(int examRestartsAndResumptions) {
-            this.examRestartsAndResumptions = examRestartsAndResumptions;
-            return this;
-        }
-
         public Builder withVisible(boolean visible) {
             this.visible = visible;
             return this;
@@ -135,8 +127,7 @@ public class ExamPage {
                 .withDeletedAt(examPage.getDeletedAt())
                 .withStartedAt(examPage.getStartedAt())
                 .withDuration(examPage.getDuration())
-                .withVisible(examPage.isVisible())
-                .withExamRestartsAndResumptions(examPage.getExamRestartsAndResumptions());
+                .withVisible(examPage.isVisible());
         }
     }
 
@@ -209,13 +200,6 @@ public class ExamPage {
      */
     public long getDuration() {
         return duration;
-    }
-
-    /**
-     * @return The restart number of the exam when the exam page was created
-     */
-    public int getExamRestartsAndResumptions() {
-        return examRestartsAndResumptions;
     }
 
     /**

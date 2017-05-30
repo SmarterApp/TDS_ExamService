@@ -22,7 +22,6 @@ public class ExamPageBuilder {
     private Instant deletedAt;
     private Instant startedAt;
     private long duration = 100;
-    private int examRestartAndResumption;
     private boolean visible;
 
     public ExamPage build() {
@@ -37,7 +36,6 @@ public class ExamPageBuilder {
             .withDeletedAt(deletedAt)
             .withStartedAt(startedAt)
             .withDuration(duration)
-            .withExamRestartsAndResumptions(examRestartAndResumption)
             .withVisible(visible)
             .build();
     }
@@ -89,11 +87,6 @@ public class ExamPageBuilder {
 
     public ExamPageBuilder withDuration(long duration) {
         this.duration = duration;
-        return this;
-    }
-
-    public ExamPageBuilder withExamRestartsAndResumptions(int examRestartAndResumption) {
-        this.examRestartAndResumption = examRestartAndResumption;
         return this;
     }
 

@@ -35,8 +35,7 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
             "   P.segment_key, \n" +
             "   PE.started_at, \n" +
             "   PE.page_duration, \n" +
-            "   PE.visible, \n" +
-            "   PE.exam_restarts_and_resumptions \n" +
+            "   PE.visible \n" +
             "FROM \n" +
             "   exam_page P\n";
 
@@ -142,7 +141,6 @@ public class ExamPageQueryRepositoryImpl implements ExamPageQueryRepository {
                 .withDuration(rs.getLong("page_duration"))
                 .withCreatedAt(ResultSetMapperUtility.mapTimestampToJodaInstant(rs, "created_at"))
                 .withStartedAt(ResultSetMapperUtility.mapTimestampToJodaInstant(rs, "started_at"))
-                .withExamRestartsAndResumptions(rs.getInt("exam_restarts_and_resumptions"))
                 .withVisible(rs.getBoolean("visible"))
                 .build();
         }

@@ -1106,13 +1106,11 @@ public class ExamServiceImplTest {
             ExamPage.Builder
                 .fromExamPage(random(ExamPage.class))
                 .withVisible(true)
-                .withExamRestartsAndResumptions(5)
                 .build(),
             Arrays.asList(examItem1, examItem2));
         ExamPageWrapper examPageWrapper2 = new ExamPageWrapper(
             ExamPage.Builder
                 .fromExamPage(random(ExamPage.class))
-                .withExamRestartsAndResumptions(5)
                 .withVisible(true)
                 .build(),
             Collections.singletonList(examItem3));
@@ -1229,7 +1227,6 @@ public class ExamServiceImplTest {
         ExamPageWrapper examPageWrapper1 = new ExamPageWrapper(
             ExamPage.Builder
                 .fromExamPage(random(ExamPage.class))
-                .withExamRestartsAndResumptions(5)
                 .withVisible(true)
                 .build(),
             Arrays.asList(examItem1, examItem2));
@@ -1237,7 +1234,6 @@ public class ExamServiceImplTest {
         ExamPageWrapper examPageWrapper2 = new ExamPageWrapper(
             ExamPage.Builder
                 .fromExamPage(random(ExamPage.class))
-                .withExamRestartsAndResumptions(5)
                 .withVisible(true)
                 .build(),
             Collections.singletonList(examItem3));

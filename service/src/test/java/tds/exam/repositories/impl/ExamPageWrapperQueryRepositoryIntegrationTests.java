@@ -52,7 +52,6 @@ public class ExamPageWrapperQueryRepositoryIntegrationTests {
     private final ExamPage mockExamPage = new ExamPageBuilder()
         .withId(UUID.randomUUID())
         .withExamId(mockExam.getId())
-        .withExamRestartsAndResumptions(0)
         .withSegmentKey(mockExamSegment.getSegmentKey())
         .withVisible(true)
         .build();
@@ -213,7 +212,6 @@ public class ExamPageWrapperQueryRepositoryIntegrationTests {
             .withId(UUID.randomUUID())
             .withExamId(mockExamPage.getExamId())
             .withPagePosition(mockExamPage.getPagePosition() + 1)
-            .withExamRestartsAndResumptions(2)
             .build();
 
         ExamItem otherExamItem = new ExamItemBuilder()

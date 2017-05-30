@@ -546,34 +546,10 @@ class ExamServiceImpl implements ExamService {
         This method emulated StudentDLL.ResumeItemPosition_FN [5151]
      */
     private int findExamStartPosition(final List<ExamSegmentWrapper> examSegmentWrappers) {
-        /*
-        Logic around finding the start position
-
-        ExamSegments Are Sorted by segment position
-        Exam Page are sorted by exam page position
-        ExamItems are sorted by item position
-
-        Iterate over segments
-        Iterate over pages
-        Iterate over items
-        if one of the items satisfies the position check then return that position
-         -- segment is permeable then return the first unanswered item
-         -- if all answered return the last item in the segment
-        always keep track of the lowest unanswered item so it can be returned if the above isn't present
-        lastly return the last item if everything has been answered
-
-         */
-
         Optional<ExamItem> maybeResumeExamItem;
 
         // Find the first segment position where dateExited is not null or that has a satisfied permeable condition
         /* StudentDLL.ResumeItemPosition_FN [5156] */
-
-        /*
-         * TODO - This block (lines 761-764) is a bit odd to me.  It tries to find an exam segment that hasn't been
-         * exited or is permeable check, and will return an item.  However, I'm not sure why we then ignore the segment
-         * exited setting in the code after this block.
-         */
         maybeResumeExamItem = getExamItemFromResumableSegment(examSegmentWrappers);
         if (maybeResumeExamItem.isPresent()) {
             return maybeResumeExamItem.get().getPosition();
