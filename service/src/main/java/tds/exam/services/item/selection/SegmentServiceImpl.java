@@ -4,7 +4,6 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -21,7 +20,6 @@ import tds.assessment.ItemMeasurement;
 import tds.assessment.ItemProperty;
 import tds.assessment.Segment;
 import tds.assessment.SegmentItemInformation;
-import tds.dll.common.performance.caching.CacheType;
 import tds.exam.services.AssessmentService;
 import tds.itemselection.api.ItemSelectionException;
 import tds.itemselection.base.TestItem;
@@ -54,7 +52,6 @@ public class SegmentServiceImpl implements SegmentService {
     }
 
     @Override
-    @Cacheable(CacheType.LongTerm)
     public TestSegment getSegment(UUID sessionKey, String segmentKey) throws Exception {
         //The session key is only present for caching purposes in the legacy SegmentCollection2 class
         //It is unused for a data access purpose.  We are using Spring caching instead.
