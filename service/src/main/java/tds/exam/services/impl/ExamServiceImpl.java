@@ -106,7 +106,16 @@ class ExamServiceImpl implements ExamService {
     private final ExamApprovalService examApprovalService;
     private final ExamineeService examineeService;
 
-    private final Set<String> statusesThatCanTransitionToPaused;
+    // From CommondDLL._IsValidStatusTransition_FN(): a collection of all the statuses that can transition to
+    // "paused".  That is, each of these status values has a nested switch statement that contains the "paused"
+    // status.
+    private static final Set<String> statusesThatCanTransitionToPaused = new HashSet<>(Arrays.asList(ExamStatusCode.STATUS_PAUSED,
+        ExamStatusCode.STATUS_PENDING,
+        ExamStatusCode.STATUS_SUSPENDED,
+        ExamStatusCode.STATUS_STARTED,
+        ExamStatusCode.STATUS_APPROVED,
+        ExamStatusCode.STATUS_REVIEW,
+        ExamStatusCode.STATUS_INITIALIZING));
 
     private final Collection<ChangeListener<Exam>> examStatusChangeListeners;
     private final Collection<ExamStatusChangeValidator> statusChangeValidators;
@@ -144,17 +153,6 @@ class ExamServiceImpl implements ExamService {
         this.examineeService = examineeService;
         this.examStatusChangeListeners = examStatusChangeListeners;
         this.statusChangeValidators = statusChangeValidators;
-
-        // From CommondDLL._IsValidStatusTransition_FN(): a collection of all the statuses that can transition to
-        // "paused".  That is, each of these status values has a nested switch statement that contains the "paused"
-        // status.
-        statusesThatCanTransitionToPaused = new HashSet<>(Arrays.asList(ExamStatusCode.STATUS_PAUSED,
-            ExamStatusCode.STATUS_PENDING,
-            ExamStatusCode.STATUS_SUSPENDED,
-            ExamStatusCode.STATUS_STARTED,
-            ExamStatusCode.STATUS_APPROVED,
-            ExamStatusCode.STATUS_REVIEW,
-            ExamStatusCode.STATUS_INITIALIZING));
     }
 
     @Override
