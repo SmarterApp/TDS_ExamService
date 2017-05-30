@@ -550,7 +550,7 @@ class ExamServiceImpl implements ExamService {
 
         // Find the first segment position where dateExited is not null or that has a satisfied permeable condition
         /* StudentDLL.ResumeItemPosition_FN [5156] */
-        maybeResumeExamItem = getExamItemFromResumableSegment(examSegmentWrappers);
+        maybeResumeExamItem = findExamItemFromResumableSegment(examSegmentWrappers);
         if (maybeResumeExamItem.isPresent()) {
             return maybeResumeExamItem.get().getPosition();
         }
@@ -577,10 +577,10 @@ class ExamServiceImpl implements ExamService {
         return lastPage.getExamItems().get(lastPage.getExamItems().size() - 1).getPosition();
     }
 
-    private Optional<ExamItem> getExamItemFromResumableSegment(final List<ExamSegmentWrapper> examSegmentWrappers) {
+    private Optional<ExamItem> findExamItemFromResumableSegment(final List<ExamSegmentWrapper> examSegmentWrappers) {
         Optional<ExamSegmentWrapper> maybeResumeExamSegment = examSegmentWrappers.stream()
             .filter(this::isExamSegmentResumable)
-            .min(Comparator.comparingInt(o -> o.getExamSegment().getSegmentPosition()));
+            .findFirst();
 
         if (!maybeResumeExamSegment.isPresent()) {
             return Optional.empty();
