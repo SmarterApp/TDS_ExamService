@@ -1062,6 +1062,7 @@ public class ExamServiceImplTest {
             .withStartedAt(Instant.now().minus(60000))
             .build();
         Assessment assessment = new AssessmentBuilder().build();
+
         TimeLimitConfiguration timeLimitConfiguration = new TimeLimitConfiguration.Builder()
             .withTaCheckinTimeMinutes(3)
             .withAssessmentId(assessment.getAssessmentId())
@@ -1070,7 +1071,9 @@ public class ExamServiceImplTest {
             .withInterfaceTimeoutMinutes(4)
             .withRequestInterfaceTimeoutMinutes(5)
             .build();
+
         ExternalSessionConfiguration extSessionConfig = new ExternalSessionConfiguration(exam.getClientName(), SIMULATION_ENVIRONMENT, 0, 0, 0, 0);
+
         ExamItem examItem1 = ExamItem.Builder
             .fromExamItem(new ExamItemBuilder().build())
             .withPosition(1)
@@ -1079,6 +1082,7 @@ public class ExamServiceImplTest {
                 .withValid(true)
                 .build())
             .build();
+
         ExamItem examItem2 = ExamItem.Builder
             .fromExamItem(new ExamItemBuilder().build())
             .withPosition(2)
@@ -1093,6 +1097,7 @@ public class ExamServiceImplTest {
             .withPosition(3)
             .withResponse(ExamItemResponse.Builder
                 .fromExamItemResponse(new ExamItemResponseBuilder().build())
+                .withResponse("")
                 .withValid(false)
                 .build())
             .build();
@@ -1100,12 +1105,15 @@ public class ExamServiceImplTest {
         ExamPageWrapper examPageWrapper1 = new ExamPageWrapper(
             ExamPage.Builder
                 .fromExamPage(random(ExamPage.class))
+                .withPagePosition(1)
                 .withVisible(true)
                 .build(),
             Arrays.asList(examItem1, examItem2));
+
         ExamPageWrapper examPageWrapper2 = new ExamPageWrapper(
             ExamPage.Builder
                 .fromExamPage(random(ExamPage.class))
+                .withPagePosition(2)
                 .withVisible(true)
                 .build(),
             Collections.singletonList(examItem3));

@@ -520,8 +520,7 @@ class ExamServiceImpl implements ExamService {
             .filter(pageWrapper ->
                 // Find any pages that have items that have not yet been answered.
                 pageWrapper.getExamItems().stream()
-                    .noneMatch(item -> !item.getResponse().isPresent()
-                        || (item.getResponse().isPresent() && !item.getResponse().get().isValid()))
+                    .noneMatch(ExamServiceImpl::isItemUnanswered)
             )
             .map(pageWrapper ->
                 ExamPage.Builder
