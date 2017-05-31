@@ -67,6 +67,7 @@ public class SegmentServiceImpl implements SegmentService {
         testSegment.refreshMinutes = segment.getRefreshMinutes();
         testSegment.parentTest = segment.getAssessmentKey();
         testSegment.position = segment.getPosition();
+        testSegment.segmentKey = segment.getKey();
 
         Blueprint blueprint = testSegment.getBp();
         ItemPool itemPool = testSegment.getPool();
