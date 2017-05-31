@@ -38,7 +38,6 @@ import tds.exam.ExpandableExamAttributes;
 import tds.exam.models.ExamAccommodationFilter;
 import tds.exam.models.FieldTestItemGroup;
 import tds.exam.models.ItemGroupHistory;
-import tds.exam.models.SegmentPoolInfo;
 import tds.exam.services.AssessmentService;
 import tds.exam.services.ExamAccommodationService;
 import tds.exam.services.ExamHistoryService;
@@ -47,7 +46,6 @@ import tds.exam.services.ExamService;
 import tds.exam.services.ExpandableExamService;
 import tds.exam.services.FieldTestService;
 import tds.exam.services.ItemPoolService;
-import tds.exam.services.SegmentPoolService;
 import tds.itemselection.api.ItemSelectionException;
 import tds.itemselection.base.ItemCandidatesData;
 import tds.itemselection.base.ItemGroup;
@@ -264,6 +262,9 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
                             response.setScore(score.getScore());
                             response.setScoreDimensions(score.getScoringDimensions());
                             response.loadDimensionScores(score.getScoringDimensions());
+                        } else {
+                            //Legacy scores are -1 not null
+                            response.setScore(-1);
                         }
                     }
 
@@ -508,8 +509,7 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
             groupBlock.getBlock(),
             exam.getExam().getSessionId(),
             false,
-            //TODO - Find out where isActive is coming from in legacy code
-            null);
+            !examSegment.isSatisfied());
     }
 
     private void updateSatisfiedSegments(final List<ExamSegment> satisfiedSegments) {
