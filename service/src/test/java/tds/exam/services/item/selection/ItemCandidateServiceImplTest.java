@@ -231,6 +231,7 @@ public class ItemCandidateServiceImplTest {
         ItemCandidatesData data = itemCandidatesService.getItemCandidates(exam.getId());
 
         assertThat(data.getSegmentKey()).isEqualTo(segment.getKey());
+        assertThat(data.isActive()).isTrue();
     }
 
     @Test
