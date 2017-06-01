@@ -1011,6 +1011,10 @@ class ExamServiceImpl implements ExamService {
 
                         maybeError = canCreateNewExam(clientName, request, recentExam, assessment.getMaxAttempts());
                         isNewOpportunity = !maybeError.isPresent();
+                        if (maybeError.isPresent()) {
+                            status = ExamStatusCode.STATUS_DENIED;
+                            deniedReason = maybeError.get().getMessage();
+                        }
                         currentAttempt = isNewOpportunity
                             ? recentExam.getAttempts() + 1
                             : recentExam.getAttempts();
