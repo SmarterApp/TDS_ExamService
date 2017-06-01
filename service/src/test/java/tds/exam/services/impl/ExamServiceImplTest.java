@@ -1669,6 +1669,7 @@ public class ExamServiceImplTest {
         // Assessment that is enabled and student has already started
         AssessmentInfo assessmentInfo3 = AssessmentInfo.Builder
             .fromAssessmentInfo(random(AssessmentInfo.class))
+            .withId("id")
             .withMaxAttempts(20)
             .build();
         // Assessment that has been previously taken by student and completed
@@ -1682,13 +1683,20 @@ public class ExamServiceImplTest {
             .withMaxAttempts(20)
             .withSubject("JUNKED!")
             .build();
+        // Assessment that is started and not resumable
+        AssessmentInfo assessmentInfo6 = AssessmentInfo.Builder
+            .fromAssessmentInfo(random(AssessmentInfo.class))
+            .withMaxAttempts(20)
+            .withSubject("started")
+            .build();
 
         // Only first assessment will be enabled by proctor - assessment 2 should be unavailable.
         List<SessionAssessment> sessionAssessments = Arrays.asList(
             new SessionAssessment(currentSession.getId(), assessmentInfo1.getId(), assessmentInfo1.getKey()),
             new SessionAssessment(currentSession.getId(), assessmentInfo3.getId(), assessmentInfo3.getKey()),
             new SessionAssessment(currentSession.getId(), assessmentInfo4.getId(), assessmentInfo4.getKey()),
-            new SessionAssessment(currentSession.getId(), assessmentInfo5.getId(), assessmentInfo5.getKey())
+            new SessionAssessment(currentSession.getId(), assessmentInfo5.getId(), assessmentInfo5.getKey()),
+            new SessionAssessment(currentSession.getId(), assessmentInfo6.getId(), assessmentInfo6.getKey())
         );
 
         Session session1 = new Session.Builder()
@@ -1711,8 +1719,21 @@ public class ExamServiceImplTest {
             .withAssessmentKey(assessmentInfo4.getKey())
             .withAssessmentId(assessmentInfo4.getId())
             .withAttempts(1)
-            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_COMPLETED), new Instant().minus(999999999))
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_COMPLETED), Instant.now().minus(999999999))
             .withCompletedAt(new Instant().minus(999999999))
+            .build();
+
+        Session previousSession = new SessionBuilder()
+            .withId(UUID.randomUUID())
+            .build();
+
+        Exam activeExam = new Exam.Builder()
+            .fromExam(random(Exam.class))
+            .withSessionId(previousSession.getId())
+            .withAssessmentKey(assessmentInfo6.getKey())
+            .withAssessmentId(assessmentInfo6.getId())
+            .withAttempts(1)
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_STARTED), Instant.now().minus(100))
             .build();
 
         when(mockSessionService.findSessionById(currentSession.getId())).thenReturn(Optional.of(currentSession));
@@ -1723,11 +1744,12 @@ public class ExamServiceImplTest {
             )
         );
         when(mockAssessmentService.findAssessmentInfosForAssessments(eq(currentSession.getClientName()), Matchers.<String>anyVararg()))
-            .thenReturn(Arrays.asList(assessmentInfo1, assessmentInfo2, assessmentInfo3, assessmentInfo4, assessmentInfo5));
+            .thenReturn(Arrays.asList(assessmentInfo1, assessmentInfo2, assessmentInfo3, assessmentInfo4, assessmentInfo5, assessmentInfo6));
         when(mockSessionService.findSessionAssessments(currentSession.getId())).thenReturn(sessionAssessments);
-        when(mockExamQueryRepository.findAllExamsForStudent(studentId)).thenReturn(Arrays.asList(resumableExam, completedExam));
+        when(mockExamQueryRepository.findAllExamsForStudent(studentId)).thenReturn(Arrays.asList(resumableExam, completedExam, activeExam));
         when(mockSessionService.findSessionsByIds(any())).thenReturn(Collections.singletonList(session1));
         when(mockSessionService.findSessionById(session1.getId())).thenReturn(Optional.of(session1));
+        when(mockSessionService.findSessionById(previousSession.getId())).thenReturn(Optional.of(previousSession));
         when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(any(), any()))
             .thenReturn(Optional.of(new TimeLimitConfiguration.Builder().withExamDelayDays(1).build()));
 
@@ -1735,9 +1757,10 @@ public class ExamServiceImplTest {
 
         assertThat(response.getError().isPresent()).isFalse();
         List<ExamAssessmentMetadata> elligibleExams = response.getData().get();
-        assertThat(elligibleExams).hasSize(5);
+        assertThat(elligibleExams).hasSize(6);
 
-        verify(mockSessionService, times(2)).findSessionById(any());
+        verify(mockSessionService).findSessionById(session1.getId());
+        verify(mockSessionService).findSessionById(previousSession.getId());
         verify(mockStudentService).findStudentPackageAttributes(studentId, currentSession.getClientName(), ELIGIBLE_ASSESSMENTS, BLOCKED_SUBJECT);
         verify(mockAssessmentService).findAssessmentInfosForAssessments(eq(currentSession.getClientName()), Matchers.<String>anyVararg());
         verify(mockSessionService).findSessionAssessments(currentSession.getId());
@@ -1749,6 +1772,7 @@ public class ExamServiceImplTest {
         ExamAssessmentMetadata examAssessmentMetadata3 = null;
         ExamAssessmentMetadata examAssessmentMetadata4 = null;
         ExamAssessmentMetadata examAssessmentMetadata5 = null;
+        ExamAssessmentMetadata examAssessmentMetadata6 = null;
 
         for (ExamAssessmentMetadata info : elligibleExams) {
             if (info.getAssessmentKey().equals(assessmentInfo1.getKey())) {
@@ -1761,6 +1785,8 @@ public class ExamServiceImplTest {
                 examAssessmentMetadata4 = info;
             } else if (info.getAssessmentKey().equals(assessmentInfo5.getKey())) {
                 examAssessmentMetadata5 = info;
+            } else if (info.getAssessmentKey().equals(assessmentInfo6.getKey())) {
+                examAssessmentMetadata6 = info;
             }
         }
 
@@ -1790,12 +1816,12 @@ public class ExamServiceImplTest {
         assertThat(examAssessmentMetadata3.getAssessmentId()).isEqualTo(assessmentInfo3.getId());
         assertThat(examAssessmentMetadata3.getAssessmentKey()).isEqualTo(assessmentInfo3.getKey());
         assertThat(examAssessmentMetadata3.getAssessmentLabel()).isEqualTo(assessmentInfo3.getLabel());
-        assertThat(examAssessmentMetadata3.getDeniedReason()).isEqualTo("Previous exam is not closed");
+        assertThat(examAssessmentMetadata3.getDeniedReason()).isNull();
         assertThat(examAssessmentMetadata3.getSubject()).isEqualTo(assessmentInfo3.getSubject());
         assertThat(examAssessmentMetadata3.getMaxAttempts()).isEqualTo(assessmentInfo3.getMaxAttempts());
         assertThat(examAssessmentMetadata3.getAttempt()).isEqualTo(1);
         assertThat(examAssessmentMetadata3.getGrade()).isEqualTo("3");
-        assertThat(examAssessmentMetadata3.getStatus()).isEqualTo(ExamStatusCode.STATUS_DENIED);
+        assertThat(examAssessmentMetadata3.getStatus()).isEqualTo(ExamStatusCode.STATUS_SUSPENDED);
 
         // Exam assessment with previously completed attempt - new attempt elligible
         assertThat(examAssessmentMetadata4.getAssessmentId()).isEqualTo(assessmentInfo4.getId());
@@ -1818,6 +1844,10 @@ public class ExamServiceImplTest {
         assertThat(examAssessmentMetadata5.getAttempt()).isEqualTo(0);
         assertThat(examAssessmentMetadata5.getGrade()).isEqualTo("3");
         assertThat(examAssessmentMetadata5.getStatus()).isEqualTo(ExamStatusCode.STATUS_DENIED);
+
+        assertThat(examAssessmentMetadata6).isNotNull();
+        assertThat(examAssessmentMetadata6.getStatus()).isEqualTo(ExamStatusCode.STATUS_DENIED);
+        assertThat(examAssessmentMetadata6.getDeniedReason()).isEqualTo("Formatted message");
     }
 
     @Test
