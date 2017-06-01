@@ -76,7 +76,7 @@ public class SegmentServiceImpl implements SegmentService {
         populateBlueprintConstraints(blueprint, segmentItemInformation.getContentLevelSpecifications());
         populateItemGroups(itemPool, segmentItemInformation.getItemGroups());
         populateSegmentItems(itemPool, segmentItemInformation.getSegmentItems(), blueprint.segmentPosition);
-        populateParentItems(itemPool, segmentItemInformation.getParentItems());
+        populateSiblingItems(itemPool, segmentItemInformation.getSiblingItems());
         populateItemDimensions(itemPool, segmentItemInformation.getItemMeasurements());
         populateBlueprintOffGradeItemProps(blueprint, segmentItemInformation.getControlParameters());
         populateBlueprintOffGradeItemsDesignator(blueprint, segmentItemInformation.getPoolFilterProperties());
@@ -246,7 +246,7 @@ public class SegmentServiceImpl implements SegmentService {
         }
     }
 
-    private static void populateParentItems(ItemPool itemPool, List<Item> items) {
+    private static void populateSiblingItems(ItemPool itemPool, List<Item> items) {
         for (Item item : items) {
             itemPool.addSiblingItem(convertItem(item));
         }
