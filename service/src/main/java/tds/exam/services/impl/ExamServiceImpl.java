@@ -211,30 +211,22 @@ class ExamServiceImpl implements ExamService {
         Optional<Exam> maybePreviousExam = examQueryRepository.getLastAvailableExam(openExamRequest.getStudentId(), assessment.getAssessmentId(), currentSession.getClientName());
 
         if (maybePreviousExam.isPresent()) {
-            Optional<ValidationError> canOpenPreviousExamError = canOpenPreviousExam(maybePreviousExam.get(), currentSession);
+            PreviousExamStatus previousExamStatus = canOpenPreviousExam(maybePreviousExam.get(), currentSession);
             Exam previousExam = maybePreviousExam.get();
-            if (canOpenPreviousExamError.isPresent()) {
-                return new Response<>(canOpenPreviousExamError.get());
-            } else {
-                Optional<ValidationError> maybeOpenNewExamValidationError = canCreateNewExam(currentSession.getClientName(),
-                    openExamRequest, maybePreviousExam.get(), assessment.getMaxOpportunities());
-
-                // If we are able to open a previous, exam, but not a new one, we should resume our current exam
-                if (maybeOpenNewExamValidationError.isPresent()) {
-                    return openPreviousExam(currentSession.getClientName(), openExamRequest, maybePreviousExam.get(), assessment);
-                }
-                // Otherwise, open a fresh exam
-                return createExam(currentSession.getClientName(), openExamRequest, currentSession, assessment, externalSessionConfiguration, previousExam, student);
+            if (previousExamStatus.getValidationError().isPresent()) {
+                return new Response<>(previousExamStatus.getValidationError().get());
+            } else if(previousExamStatus.isResumable()) {
+                return openPreviousExam(currentSession.getClientName(), openExamRequest, previousExam, assessment);
             }
-        } else {
-            Exam previousExam = maybePreviousExam.orElse(null);
-            Optional<ValidationError> maybeOpenNewExamValidationError = canCreateNewExam(currentSession.getClientName(),
-                openExamRequest, previousExam, assessment.getMaxOpportunities());
-            if (maybeOpenNewExamValidationError.isPresent()) {
-                return new Response<>(maybeOpenNewExamValidationError.get());
-            }
-            return createExam(currentSession.getClientName(), openExamRequest, currentSession, assessment, externalSessionConfiguration, previousExam, student);
         }
+
+        Exam previousExam = maybePreviousExam.orElse(null);
+        Optional<ValidationError> maybeOpenNewExamValidationError = canCreateNewExam(currentSession.getClientName(),
+            openExamRequest, previousExam, assessment.getMaxOpportunities());
+        if (maybeOpenNewExamValidationError.isPresent()) {
+            return new Response<>(maybeOpenNewExamValidationError.get());
+        }
+        return createExam(currentSession.getClientName(), openExamRequest, currentSession, assessment, externalSessionConfiguration, previousExam, student);
     }
 
     @Transactional
@@ -820,24 +812,23 @@ class ExamServiceImpl implements ExamService {
         return new Response<>(currentExam);
     }
 
-    private Optional<ValidationError> canOpenPreviousExam(final Exam previousExam,
-                                                          final Session currentSession) {
+    private PreviousExamStatus canOpenPreviousExam(final Exam previousExam, final Session currentSession) {
         //Port of Student.DLL lines 5526-5530
         if (ExamStatusStage.CLOSED.equals(previousExam.getStatus().getStage())) {
-            return Optional.empty();
+            return new PreviousExamStatus(false);
         }
 
         //Port of Student.DLL lines 5531-5551
         Optional<Session> maybePreviousSession = sessionService.findSessionById(previousExam.getSessionId());
         if (!maybePreviousSession.isPresent()) {
-            return Optional.of(new ValidationError(ValidationErrorCode.PREVIOUS_SESSION_NOT_FOUND, "Exam's previous session could not be found"));
+            throw new IllegalStateException(String.format("Could not find previous session %s for exam %s", previousExam.getSessionId(), previousExam.getId()));
         }
 
         Session previousSession = maybePreviousSession.get();
 
         //Port of Student.DLL lines 5555-5560
         if (ExamStatusStage.INACTIVE.equals(previousExam.getStatus().getStage())) {
-            return Optional.empty();
+            return new PreviousExamStatus(true);
         }
 
         /*
@@ -853,11 +844,11 @@ class ExamServiceImpl implements ExamService {
             LegacyComparer.isEqual(previousSession.getId(), currentSession.getId()) ||
             LegacyComparer.isEqual("closed", previousSession.getStatus()) ||
             LegacyComparer.greaterThan(Instant.now(), convertJodaInstant(previousSession.getDateEnd()))) {
-            return Optional.empty();
+            return new PreviousExamStatus(true);
         }
 
         //Port of Student.DLL line 5593
-        return Optional.of(new ValidationError(
+        return new PreviousExamStatus(new ValidationError(
             ValidationErrorCode.CURRENT_EXAM_OPEN,
             configService.getFormattedMessage(currentSession.getClientName(), "_CanOpenTestOpportunity", "Current opportunity is active")
         ));
@@ -997,10 +988,12 @@ class ExamServiceImpl implements ExamService {
                     status = ExamStatusCode.STATUS_DENIED;
                 } else if (maybeMostRecentExam.isPresent()) {
                     Exam recentExam = maybeMostRecentExam.get();
-                    Optional<ValidationError> maybeError = canOpenPreviousExam(recentExam, examSessions.get(recentExam.getSessionId()));
+                    PreviousExamStatus previousExamStatus = canOpenPreviousExam(recentExam, session);
 
-                    if (maybeError.isPresent()) {
-                        deniedReason = maybeError.get().getMessage();
+                    if (previousExamStatus.getValidationError().isPresent()) {
+                        deniedReason = previousExamStatus.getValidationError().get().getMessage();
+                    } else if (previousExamStatus.isResumable()) {
+                        currentAttempt = recentExam.getAttempts();
                     } else { // If this branch is hit, we can open the existing exam
                         OpenExamRequest request = new OpenExamRequest.Builder()
                             .withStudentId(studentId)
@@ -1009,7 +1002,7 @@ class ExamServiceImpl implements ExamService {
                             .withBrowserId(recentExam.getBrowserId())
                             .build();
 
-                        maybeError = canCreateNewExam(clientName, request, recentExam, assessment.getMaxAttempts());
+                        Optional<ValidationError> maybeError = canCreateNewExam(clientName, request, recentExam, assessment.getMaxAttempts());
                         isNewOpportunity = !maybeError.isPresent();
                         if (maybeError.isPresent()) {
                             status = ExamStatusCode.STATUS_DENIED;
@@ -1093,5 +1086,28 @@ class ExamServiceImpl implements ExamService {
             .findFirst();
 
         return maybeBlockedSubject.orElse(false);
+    }
+
+    private static class PreviousExamStatus {
+        private final boolean resumable;
+        private final ValidationError validationError;
+
+        PreviousExamStatus(final boolean resumable) {
+            this.resumable = resumable;
+            validationError = null;
+        }
+
+        PreviousExamStatus(final ValidationError validationError) {
+            this.validationError = validationError;
+            resumable = false;
+        }
+
+        boolean isResumable() {
+            return resumable;
+        }
+
+        Optional<ValidationError> getValidationError() {
+            return Optional.ofNullable(validationError);
+        }
     }
 }
