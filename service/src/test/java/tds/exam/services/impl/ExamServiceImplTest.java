@@ -1790,12 +1790,12 @@ public class ExamServiceImplTest {
         assertThat(examAssessmentMetadata3.getAssessmentId()).isEqualTo(assessmentInfo3.getId());
         assertThat(examAssessmentMetadata3.getAssessmentKey()).isEqualTo(assessmentInfo3.getKey());
         assertThat(examAssessmentMetadata3.getAssessmentLabel()).isEqualTo(assessmentInfo3.getLabel());
-        assertThat(examAssessmentMetadata3.getDeniedReason()).isNull();
+        assertThat(examAssessmentMetadata3.getDeniedReason()).isEqualTo("Previous exam is not closed");
         assertThat(examAssessmentMetadata3.getSubject()).isEqualTo(assessmentInfo3.getSubject());
         assertThat(examAssessmentMetadata3.getMaxAttempts()).isEqualTo(assessmentInfo3.getMaxAttempts());
         assertThat(examAssessmentMetadata3.getAttempt()).isEqualTo(1);
         assertThat(examAssessmentMetadata3.getGrade()).isEqualTo("3");
-        assertThat(examAssessmentMetadata3.getStatus()).isEqualTo(ExamStatusCode.STATUS_SUSPENDED);
+        assertThat(examAssessmentMetadata3.getStatus()).isEqualTo(ExamStatusCode.STATUS_DENIED);
 
         // Exam assessment with previously completed attempt - new attempt elligible
         assertThat(examAssessmentMetadata4.getAssessmentId()).isEqualTo(assessmentInfo4.getId());
