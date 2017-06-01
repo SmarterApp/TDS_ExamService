@@ -97,6 +97,7 @@ import static org.mockito.Mockito.when;
 import static tds.config.ClientSystemFlag.ALLOW_ANONYMOUS_STUDENT_FLAG_TYPE;
 import static tds.config.ClientSystemFlag.RESTORE_ACCOMMODATIONS_TYPE;
 import static tds.exam.ExamStatusCode.STATUS_APPROVED;
+import static tds.exam.ExamStatusCode.STATUS_DENIED;
 import static tds.exam.ExamStatusCode.STATUS_PENDING;
 import static tds.exam.ExamStatusCode.STATUS_SUSPENDED;
 import static tds.exam.ExamStatusStage.IN_USE;
@@ -1601,6 +1602,50 @@ public class ExamServiceImplTest {
         verify(mockSessionService).findSessionById(sessionId);
 
         assertThat(response.getError().isPresent()).isTrue();
+    }
+
+    @Test
+    public void shouldReturnDeniedStatusIfExceededMaxAttempts() {
+        final long studentId = 1184;
+        final String grade = "3";
+        final Session currentSession = random(Session.class);
+        final UUID sessionId = currentSession.getId();
+
+        // Assessment that has two max attempts
+        final AssessmentInfo assessmentInfo = AssessmentInfo.Builder
+            .fromAssessmentInfo(random(AssessmentInfo.class))
+            .withMaxAttempts(2)
+            .build();
+
+        // Student has completed the assessment twice
+        final Exam completedExam = new Exam.Builder()
+            .fromExam(random(Exam.class))
+            .withSessionId(sessionId)
+            .withAssessmentKey(assessmentInfo.getKey())
+            .withAssessmentId(assessmentInfo.getId())
+            .withAttempts(2)
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_COMPLETED), new Instant().minus(999999999))
+            .withCompletedAt(new Instant().minus(999999999))
+            .build();
+
+        when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(any(), any()))
+            .thenReturn(Optional.of(new TimeLimitConfiguration.Builder().withExamDelayDays(1).build()));
+
+        final List<SessionAssessment> sessionAssessments = Collections.singletonList(new SessionAssessment(sessionId, assessmentInfo.getId(), assessmentInfo.getKey()));
+        when(mockSessionService.findSessionAssessments(sessionId)).thenReturn(sessionAssessments);
+        when(mockSessionService.findSessionById(sessionId)).thenReturn(Optional.of(currentSession));
+
+        when(mockAssessmentService.findAssessmentInfosForAssessments(eq(currentSession.getClientName()), Matchers.<String>anyVararg()))
+            .thenReturn(Collections.singletonList(assessmentInfo));
+
+        when(mockExamQueryRepository.findAllExamsForStudent(studentId)).thenReturn(Collections.singletonList(completedExam));
+
+        final Response<List<ExamAssessmentMetadata>> response = examService.findExamAssessmentMetadata(studentId, sessionId, grade);
+
+        final List<ExamAssessmentMetadata> assessmentMetadata = response.getData().or(Collections.EMPTY_LIST);
+
+        assertThat(assessmentMetadata.size()).isEqualTo(1);
+        assertThat(assessmentMetadata.get(0).getStatus()).isEqualTo(STATUS_DENIED);
     }
 
     @Test
