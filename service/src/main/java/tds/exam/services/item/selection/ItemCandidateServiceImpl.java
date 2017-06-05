@@ -25,7 +25,6 @@ import tds.assessment.Item;
 import tds.assessment.Segment;
 import tds.common.Algorithm;
 import tds.common.web.exceptions.NotFoundException;
-import tds.dll.api.IItemSelectionDLL;
 import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
 import tds.exam.ExamItem;
@@ -52,6 +51,7 @@ import tds.itemselection.base.ItemGroup;
 import tds.itemselection.base.TestItem;
 import tds.itemselection.impl.ItemResponse;
 import tds.itemselection.loader.StudentHistory2013;
+import tds.itemselection.model.AlgorithmType;
 import tds.itemselection.model.OffGradeResponse;
 import tds.itemselection.services.ItemCandidatesService;
 
@@ -150,7 +150,7 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
         }
 
         if (nonSatisfiedSegments.isEmpty()) {
-            return Collections.singletonList(new ItemCandidatesData(examId, IItemSelectionDLL.SATISFIED));
+            return Collections.singletonList(new ItemCandidatesData(examId, AlgorithmType.SATISFIED.getType()));
         }
 
         return nonSatisfiedSegments.stream()
