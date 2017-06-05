@@ -43,7 +43,7 @@ public class ItemPoolServiceImplTest {
 
         List<ItemProperty> itemProperties1 = new ArrayList<>();
         itemProperties1.add(new ItemProperty("Language", "ENU", "English", itemId1));
-        itemProperties1.add(new ItemProperty("Language", "ENU-Braille", "Braille English", itemId1));
+        itemProperties1.add(new ItemProperty("language", "ENU-Braille", "Braille English", itemId1));
         itemProperties1.add(new ItemProperty("--ITEMTYPE--", "ER", "Extended Response", itemId1));
 
         List<ItemProperty> itemProperties2 = new ArrayList<>();
@@ -75,7 +75,7 @@ public class ItemPoolServiceImplTest {
         List<ItemConstraint> itemConstraints = new ArrayList<>();
         itemConstraints.add(new ItemConstraint.Builder()
                 .withAssessmentId(assessmentId)
-                .withToolType("Language")
+                .withToolType("language")
                 .withToolValue("ENU")
                 .withPropertyName("Language")
                 .withPropertyValue("ENU")
@@ -139,13 +139,13 @@ public class ItemPoolServiceImplTest {
         final String itemId3 = "item-3";
 
         List<ItemProperty> itemProperties1 = new ArrayList<>();
-        itemProperties1.add(new ItemProperty("Language", "ENU", "English", itemId1));
-        itemProperties1.add(new ItemProperty("Language", "ENU-Braille", "Braille English", itemId1));
+        itemProperties1.add(new ItemProperty("LAnguage", "ENU", "English", itemId1));
+        itemProperties1.add(new ItemProperty("language", "ENU-Braille", "Braille English", itemId1));
         itemProperties1.add(new ItemProperty("--ITEMTYPE--", "ER", "Extended Response", itemId1));
 
         List<ItemProperty> itemProperties2 = new ArrayList<>();
-        itemProperties2.add(new ItemProperty("Language", "ENU", "English", itemId2));
-        itemProperties2.add(new ItemProperty("Language", "ENU-Braille", "Braille English", itemId2));
+        itemProperties2.add(new ItemProperty("LAnguage", "ENU", "English", itemId2));
+        itemProperties2.add(new ItemProperty("language", "ENU-Braille", "Braille English", itemId2));
         itemProperties2.add(new ItemProperty("--ITEMTYPE--", "MI", "Matching Item", itemId2));
 
         List<ItemProperty> itemProperties3 = new ArrayList<>();
@@ -171,7 +171,7 @@ public class ItemPoolServiceImplTest {
         List<ItemConstraint> itemConstraints = new ArrayList<>();
         itemConstraints.add(new ItemConstraint.Builder()
                 .withAssessmentId(assessmentId)
-                .withToolType("Language")
+                .withToolType("language")
                 .withToolValue("ENU")
                 .withPropertyName("Language")
                 .withPropertyValue("ENU")
@@ -187,7 +187,7 @@ public class ItemPoolServiceImplTest {
                 .build());
         itemConstraints.add(new ItemConstraint.Builder()
                 .withAssessmentId(assessmentId)
-                .withToolType("Language")
+                .withToolType("LanGuage")
                 .withToolValue("ESN")
                 .withPropertyName("Language")
                 .withPropertyValue("ESN")
@@ -197,7 +197,7 @@ public class ItemPoolServiceImplTest {
         List<ExamAccommodation> examAccommodations = new ArrayList<>();
         examAccommodations.add(new ExamAccommodation.Builder(UUID.randomUUID())
                 .withExamId(examId)
-                .withType("Language")
+                .withType("LanguaGe")
                 .withCode("ENU")
                 .withDescription("English")
                 .withSegmentKey(segmentKey)
