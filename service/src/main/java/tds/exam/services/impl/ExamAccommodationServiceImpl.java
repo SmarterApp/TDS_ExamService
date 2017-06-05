@@ -339,7 +339,7 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                 .filter(acc ->
                     acc.getExamId().equals(examAccommodation.getExamId())
                         && acc.getSegmentPosition() == examAccommodation.getSegmentPosition()
-                        && acc.getType().equals(examAccommodation.getType())
+                        && acc.getType().equalsIgnoreCase(examAccommodation.getType())
                 ).findFirst();
 
             if (existingAccommodation.isPresent()) {
@@ -394,6 +394,6 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
             && StringUtils.equals(ea1.getSegmentKey(), ea2.getSegmentKey())
             && StringUtils.equals(ea1.getCode(), ea2.getCode())
             && StringUtils.equals(ea1.getValue(), ea2.getValue())
-            && StringUtils.equals(ea1.getType(), ea2.getType());
+            && StringUtils.equalsIgnoreCase(ea1.getType(), ea2.getType());
     }
 }
