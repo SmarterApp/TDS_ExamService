@@ -22,7 +22,6 @@ import tds.assessment.Form;
 import tds.assessment.Item;
 import tds.assessment.Segment;
 import tds.common.Algorithm;
-import tds.dll.api.IItemSelectionDLL;
 import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
 import tds.exam.ExamItem;
@@ -57,6 +56,7 @@ import tds.itemselection.base.ItemCandidatesData;
 import tds.itemselection.base.ItemGroup;
 import tds.itemselection.impl.ItemResponse;
 import tds.itemselection.loader.StudentHistory2013;
+import tds.itemselection.model.AlgorithmType;
 import tds.itemselection.model.OffGradeResponse;
 import tds.itemselection.services.ItemCandidatesService;
 
@@ -278,7 +278,7 @@ public class ItemCandidateServiceImplTest {
         ItemCandidatesData data = itemCandidatesService.getItemCandidates(exam.getId());
 
         assertThat(data).isNotNull();
-        assertThat(data.getAlgorithm()).isEqualTo(IItemSelectionDLL.SATISFIED);
+        assertThat(data.getAlgorithm()).isEqualTo(AlgorithmType.SATISFIED.getType());
     }
 
     @Test
