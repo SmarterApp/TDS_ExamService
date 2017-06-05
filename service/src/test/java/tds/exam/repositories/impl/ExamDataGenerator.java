@@ -45,7 +45,6 @@ import tds.exam.repositories.ExamSegmentCommandRepository;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest
-@Ignore
 public class ExamDataGenerator {
     @Autowired
     @Qualifier("commandJdbcTemplate")
@@ -67,6 +66,7 @@ public class ExamDataGenerator {
     }
 
     @Test
+    @Ignore
     public void createStudentWithExamHistory() {
         final long studentId = 9999L;
         final String assessmentId = "history-test";
@@ -196,6 +196,7 @@ public class ExamDataGenerator {
     }
 
     @Test
+    @Ignore
     public void createHistoryDataInsertScript() {
         StringBuilder insertStatementStringBuilder = new StringBuilder();
         final String INSERT_STATEMENT = "USE exam;\n" +
