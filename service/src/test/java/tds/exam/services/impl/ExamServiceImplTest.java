@@ -87,6 +87,7 @@ import static io.github.benas.randombeans.api.EnhancedRandom.random;
 import static io.github.benas.randombeans.api.EnhancedRandom.randomListOf;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyVararg;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.never;
@@ -1605,6 +1606,33 @@ public class ExamServiceImplTest {
     }
 
     @Test
+    public void shouldReturnEmptyForNoEligibleAssessmentsFound() {
+        final long studentId = 1184;
+        final String grade = "3";
+        final Session currentSession = random(Session.class);
+        final UUID sessionId = currentSession.getId();
+
+        // Student has completed the assessment twice
+        final Exam completedExam = new Exam.Builder()
+            .fromExam(random(Exam.class))
+            .withSessionId(sessionId)
+            .withAttempts(2)
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_COMPLETED), new Instant().minus(999999999))
+            .withCompletedAt(new Instant().minus(999999999))
+            .build();
+
+        when(mockStudentService.findStudentPackageAttributes(eq(studentId), eq(currentSession.getClientName()), Matchers.<String>anyVararg()))
+            .thenReturn(Collections.emptyList());
+
+        when(mockExamQueryRepository.findAllExamsForStudent(studentId)).thenReturn(Collections.singletonList(completedExam));
+        when(mockSessionService.findSessionById(sessionId)).thenReturn(Optional.of(currentSession));
+        final Response<List<ExamAssessmentMetadata>> response = examService.findExamAssessmentMetadata(studentId, sessionId, grade);
+
+        final List<ExamAssessmentMetadata> assessmentMetadata = response.getData().get();
+        assertThat(assessmentMetadata).isEmpty();
+    }
+
+    @Test
     public void shouldReturnDeniedStatusIfExceededMaxAttempts() {
         final long studentId = 1184;
         final String grade = "3";
@@ -1627,6 +1655,10 @@ public class ExamServiceImplTest {
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_COMPLETED), new Instant().minus(999999999))
             .withCompletedAt(new Instant().minus(999999999))
             .build();
+
+        when(mockStudentService.findStudentPackageAttributes(eq(studentId), eq(currentSession.getClientName()), Matchers.<String>anyVararg()))
+            .thenReturn(Arrays.asList(new RtsStudentPackageAttribute(RtsStudentPackageAttribute.ELIGIBLE_ASSESSMENTS,
+                "some key")));
 
         when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(any(), any()))
             .thenReturn(Optional.of(new TimeLimitConfiguration.Builder().withExamDelayDays(1).build()));
@@ -1765,7 +1797,6 @@ public class ExamServiceImplTest {
         verify(mockAssessmentService).findAssessmentInfosForAssessments(eq(currentSession.getClientName()), Matchers.<String>anyVararg());
         verify(mockSessionService).findSessionAssessments(currentSession.getId());
         verify(mockExamQueryRepository).findAllExamsForStudent(studentId);
-        verify(mockSessionService).findSessionsByIds(any());
 
         ExamAssessmentMetadata examAssessmentMetadata1 = null;
         ExamAssessmentMetadata examAssessmentMetadata2 = null;
