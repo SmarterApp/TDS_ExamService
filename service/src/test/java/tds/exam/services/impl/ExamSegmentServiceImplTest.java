@@ -197,7 +197,7 @@ public class ExamSegmentServiceImplTest {
             .thenReturn(2);
         when(mockFormSelector.selectForm(segment2, language)).thenReturn(Optional.of(enuForm));
         int totalItems = examSegmentService.initializeExamSegments(exam, assessment);
-        assertThat(totalItems).isEqualTo(8);
+        assertThat(totalItems).isEqualTo(5);
         // ExamSeg 1
         verify(mockSegmentPoolService).computeSegmentPool(exam.getId(), segment1, assessment.getItemConstraints(),
             language);
@@ -284,7 +284,7 @@ public class ExamSegmentServiceImplTest {
             .thenReturn(false);
 
         int totalItems = examSegmentService.initializeExamSegments(exam, assessment);
-        assertThat(totalItems).isEqualTo(segmentPoolInfo1.getPoolCount());
+        assertThat(totalItems).isEqualTo(3);
         // ExamSeg 1
         verify(mockSegmentPoolService).computeSegmentPool(exam.getId(), segment1, assessment.getItemConstraints(),
             language);
@@ -382,7 +382,7 @@ public class ExamSegmentServiceImplTest {
         when(mockFieldTestService.isFieldTestEligible(exam, assessment, segment.getKey()))
             .thenReturn(false);
         int totalItems = examSegmentService.initializeExamSegments(exam, assessment);
-        assertThat(totalItems).isEqualTo(segmentPoolInfo.getPoolCount());
+        assertThat(totalItems).isEqualTo(3);
         verify(mockSegmentPoolService).computeSegmentPool(exam.getId(), segment, assessment.getItemConstraints(),
             language);
         verify(mockFieldTestService).isFieldTestEligible(exam, assessment, segment.getKey());
@@ -429,7 +429,7 @@ public class ExamSegmentServiceImplTest {
         when(mockFieldTestService.isFieldTestEligible(exam, assessment, segment.getKey()))
             .thenReturn(true);
         int totalItems = examSegmentService.initializeExamSegments(exam, assessment);
-        assertThat(totalItems).isEqualTo(segmentPoolInfo.getPoolCount());
+        assertThat(totalItems).isEqualTo(5);
         verify(mockSegmentPoolService).computeSegmentPool(exam.getId(), segment, assessment.getItemConstraints(),
             language);
         verify(mockFieldTestService).isFieldTestEligible(exam, assessment, segment.getKey());
@@ -569,7 +569,7 @@ public class ExamSegmentServiceImplTest {
         when(mockFieldTestService.selectItemGroups(exam, assessment, segment.getKey()))
             .thenReturn(2);
         int totalItems = examSegmentService.initializeExamSegments(exam, assessment);
-        assertThat(totalItems).isEqualTo(segmentPoolInfo.getPoolCount() + 2);
+        assertThat(totalItems).isEqualTo(5);
         verify(mockSegmentPoolService).computeSegmentPool(exam.getId(), segment, assessment.getItemConstraints(),
             language);
         verify(mockFieldTestService).isFieldTestEligible(exam, assessment, segment.getKey());
