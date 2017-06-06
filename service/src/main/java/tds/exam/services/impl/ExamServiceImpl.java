@@ -12,6 +12,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -19,7 +20,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -956,15 +956,15 @@ class ExamServiceImpl implements ExamService {
         /* StudentDLL - 10439 and 10535 - get both student package attributes at once */
         List<RtsStudentPackageAttribute> attributes = studentService.findStudentPackageAttributes(studentId, clientName, ELIGIBLE_ASSESSMENTS, BLOCKED_SUBJECT);
         /* StudentDLL.java - 10451 - for _GetCurrentTests, we need assessment metadata for each eligible assessment */
-        List<AssessmentInfo> eligibleAssessments = assessmentService.findAssessmentInfosForAssessments(clientName,
-            getEligibleAssessmentKeysFromAttributes(attributes));
+        String[] eligibleAssessmentKeys = getEligibleAssessmentKeysFromAttributes(attributes);
+        if (eligibleAssessmentKeys.length == 0) {
+            // If there are no eligible assessments, no need to go any further.
+            return Collections.emptyList();
+        }
 
+        List<AssessmentInfo> eligibleAssessments = assessmentService.findAssessmentInfosForAssessments(clientName, eligibleAssessmentKeys);
         /* StudentDLL [10520] - _GetOpportunityInfo - Get the exam and session data for all exams taken by this student */
         List<Exam> studentExams = examQueryRepository.findAllExamsForStudent(studentId);
-        List<UUID> examSessionIds = studentExams.stream().map(Exam::getSessionId).collect(Collectors.toList());
-        // SessionId -> Session for quick lookup - these are the sessions associated with each exam
-        Map<UUID, Session> examSessions = sessionService.findSessionsByIds(examSessionIds)
-            .stream().collect(Collectors.toMap(Session::getId, Function.identity()));
         // A map from assessmentKey -> all exams taken for that exam by this student
         Map<String, List<Exam>> assessmentExams = studentExams.stream().collect(Collectors.groupingBy(Exam::getAssessmentKey));
 
