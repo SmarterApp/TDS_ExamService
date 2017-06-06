@@ -131,10 +131,11 @@ public class ExamSegmentServiceImpl implements ExamSegmentService {
                 isSatisfied = fieldTestItemCount + segmentPoolInfo.getLength() == 0;
             }
 
-            // Keep track of the total number of items in the exam
-            totalItems += (poolCount + fieldTestItemCount);
-            /* Case statement within query in line [4712] - formLength is set to poolCount for fixed form on ln [4689] */
+                        /* Case statement within query in line [4712] - formLength is set to poolCount for fixed form on ln [4689] */
             int examItemCount = segment.getSelectionAlgorithm() == Algorithm.FIXED_FORM ? poolCount : segmentPoolInfo.getLength();
+
+            // Keep track of the total number of items in the exam
+            totalItems += examItemCount;
 
             examSegments.add(new ExamSegment.Builder()
                 .withExamId(exam.getId())
