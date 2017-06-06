@@ -607,8 +607,7 @@ class ExamServiceImpl implements ExamService {
 
     private static boolean isItemUnanswered(final ExamItem examItem) {
         return !examItem.getResponse().isPresent()
-            || (examItem.getResponse().get().getResponse().equals("")
-            && !examItem.getResponse().get().isValid());
+            || !examItem.getResponse().get().isValid();
     }
 
     private Exam initializeExam(final Exam exam, final Assessment assessment, final String browserUserAgent) {
