@@ -3,6 +3,10 @@ package tds.exam.utils.listeners;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
 import tds.common.entity.utils.ChangeListener;
 import tds.common.util.Preconditions;
 import tds.exam.Exam;
@@ -14,9 +18,6 @@ import tds.exam.services.ExamSegmentService;
 import tds.exam.services.ExamineeService;
 import tds.exam.services.FieldTestService;
 import tds.exam.services.MessagingService;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Listener to apply business rules when an {@link tds.exam.Exam}'s status is set to "completed"
@@ -86,6 +87,9 @@ public class OnCompletedStatusExamChangeListener implements ChangeListener<Exam>
 
         // Publish the submitted exam to the Messaging backend, allowing other services to continue processing it.
         // Submit for scoring (CommonDLL#_OnStatus_Completed_SP, line 1433 - 1434), which changes the exam's status to "submitted"
-        messagingService.sendExamCompletion(newExam.getId());
+        // Guests are not sent to TIS
+        if(newExam.getStudentId() > 0) {
+            messagingService.sendExamCompletion(newExam.getId());
+        }
     }
 }

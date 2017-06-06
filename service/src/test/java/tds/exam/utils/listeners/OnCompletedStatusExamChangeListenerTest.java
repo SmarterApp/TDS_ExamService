@@ -8,6 +8,14 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
+
 import tds.common.entity.utils.ChangeListener;
 import tds.exam.Exam;
 import tds.exam.ExamSegment;
@@ -20,13 +28,6 @@ import tds.exam.services.ExamSegmentService;
 import tds.exam.services.ExamineeService;
 import tds.exam.services.FieldTestService;
 import tds.exam.services.MessagingService;
-
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
 
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -203,5 +204,18 @@ public class OnCompletedStatusExamChangeListenerTest {
 
         onCompletedExamStatusChangeListener.accept(oldExam, newExam);
         verify(mockMessagingService).sendExamCompletion(eq(oldExam.getId()));
+    }
+
+    @Test
+    public void shouldNotSubmitGuestCompletedExamToTheMessagingService() {
+        final Exam oldExam = new ExamBuilder().withId(UUID.randomUUID()).build();
+        final Exam newExam = new ExamBuilder()
+            .withId(oldExam.getId())
+            .withStudentId(-1)
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_COMPLETED, ExamStatusStage.IN_PROGRESS), Instant.now())
+            .build();
+
+        onCompletedExamStatusChangeListener.accept(oldExam, newExam);
+        verifyZeroInteractions(mockMessagingService);
     }
 }
