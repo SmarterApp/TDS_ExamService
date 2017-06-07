@@ -1,6 +1,5 @@
 package tds.exam;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Optional;
 import org.joda.time.Instant;
 
@@ -187,11 +186,7 @@ public class ExamItemResponse {
      * @return The {@link tds.exam.ExamItemResponseScore} for this {@link tds.exam.ExamItemResponse}, if one has been
      * provided
      */
-    @JsonIgnore
     public Optional<ExamItemResponseScore> getScore() {
-        // NOTE:  Scores should not be exposed outside of the server thus should not be returned to the caller.  There
-        // is a debug setting in the legacy Student application that allows for returning the scores to the client.
-        // Since we are not porting the debugging behavior to the microservice(s), that feature will not be implemented.
         return Optional.fromNullable(score);
     }
 
