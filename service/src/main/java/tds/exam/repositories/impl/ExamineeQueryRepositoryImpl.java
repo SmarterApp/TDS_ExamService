@@ -49,9 +49,13 @@ public class ExamineeQueryRepositoryImpl implements ExamineeQueryRepository {
                 "   FROM \n" +
                 "       examinee_attribute \n" +
                 "   WHERE \n" +
-                "       exam_id = :examId \n" +
-                "       AND context = :context \n" +
-                "   GROUP BY \n" +
+                "       exam_id = :examId \n";
+
+        if (context != null) {
+            SQL += "   AND context = :context \n";
+        }
+
+        SQL +=  "   GROUP BY \n" +
                 "       exam_id, \n" +
                 "       context, \n" +
                 "       attribute_name \n" +
@@ -103,9 +107,13 @@ public class ExamineeQueryRepositoryImpl implements ExamineeQueryRepository {
                 "   FROM \n" +
                 "       examinee_relationship \n" +
                 "   WHERE \n" +
-                "       exam_id = :examId \n" +
-                "       AND context = :context \n" +
-                "   GROUP BY \n" +
+                "       exam_id = :examId \n";
+
+        if (context != null) {
+            SQL += "   AND context = :context \n";
+        }
+
+        SQL +=  "   GROUP BY \n" +
                 "       exam_id, \n" +
                 "       context, \n" +
                 "       attribute_name, \n" +
@@ -127,6 +135,7 @@ public class ExamineeQueryRepositoryImpl implements ExamineeQueryRepository {
             .withName(rs.getString("attribute_name"))
             .withValue(rs.getString("attribute_value"))
             .withType(rs.getString("attribute_relationship"))
+            .withCreatedAt(ResultSetMapperUtility.mapTimestampToJodaInstant(rs, "created_at"))
             .build());
     }
 }

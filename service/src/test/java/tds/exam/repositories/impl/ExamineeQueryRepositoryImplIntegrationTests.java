@@ -69,6 +69,84 @@ public class ExamineeQueryRepositoryImplIntegrationTests {
     }
 
     @Test
+    public void shouldFetchAllAttributes() {
+        examCommandRepository.insert(new ExamBuilder().withId(examId).build());
+
+        ExamineeAttribute attribute1 = new ExamineeAttributeBuilder()
+            .withId(1)
+            .withExamId(examId)
+            .withValue("1 attribute value")
+            .withContext(ExamineeContext.INITIAL)
+            .build();
+        ExamineeAttribute attribute2 = new ExamineeAttributeBuilder()
+            .withId(2)
+            .withExamId(examId)
+            .withValue("2 attribute value")
+            .withContext(ExamineeContext.FINAL)
+            .build();
+
+        examineeCommandRepository.insertAttributes(attribute1, attribute2);
+
+        List<ExamineeAttribute> result = examineeQueryRepository.findAllAttributes(examId);
+
+        assertThat(result).hasSize(2);
+        ExamineeAttribute retAttribute1 = null;
+        ExamineeAttribute retAttribute2 = null;
+
+        for (ExamineeAttribute a : result) {
+            if (a.getValue().equals(attribute1.getValue())) {
+                retAttribute1 = a;
+            } else if (a.getValue().equals(attribute2.getValue())) {
+                retAttribute2 = a;
+            }
+        }
+
+        assertThat(retAttribute1.getCreatedAt()).isNotNull();
+        assertThat(retAttribute1).isNotNull();
+        assertThat(retAttribute2).isNotNull();
+        assertThat(retAttribute1.getCreatedAt()).isNotNull();
+    }
+
+    @Test
+    public void shouldFetchAllRelationships() {
+        examCommandRepository.insert(new ExamBuilder().withId(examId).build());
+
+        ExamineeRelationship relationship1 = new ExamineeRelationshipBuilder()
+            .withId(1)
+            .withExamId(examId)
+            .withValue("1 relationship value")
+            .withContext(ExamineeContext.INITIAL)
+            .build();
+        ExamineeRelationship relationship2 = new ExamineeRelationshipBuilder()
+            .withId(2)
+            .withExamId(examId)
+            .withValue("2 relationship value")
+            .withContext(ExamineeContext.FINAL)
+            .build();
+
+        examineeCommandRepository.insertRelationships(relationship1, relationship2);
+
+        List<ExamineeRelationship> result = examineeQueryRepository.findAllRelationships(examId);
+
+        assertThat(result).hasSize(2);
+        ExamineeRelationship retRelationship1 = null;
+        ExamineeRelationship retRelationship2 = null;
+
+        for (ExamineeRelationship r : result) {
+            if (r.getValue().equals(relationship1.getValue())) {
+                retRelationship1 = r;
+            } else if (r.getValue().equals(relationship2.getValue())) {
+                retRelationship2 = r;
+            }
+        }
+
+        assertThat(retRelationship1.getCreatedAt()).isNotNull();
+        assertThat(retRelationship1).isNotNull();
+        assertThat(retRelationship2).isNotNull();
+        assertThat(retRelationship2.getCreatedAt()).isNotNull();
+    }
+
+    @Test
     public void shouldFetchTheMostRecentExamineeRelationshipValue() {
         examCommandRepository.insert(new ExamBuilder().withId(examId).build());
 
