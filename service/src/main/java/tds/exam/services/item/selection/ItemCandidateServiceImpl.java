@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -92,12 +93,6 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
     @Override
     public ItemCandidatesData getItemCandidates(UUID examId) throws ReturnStatusException {
         //Port of ItemSelectionDLL.AA_GetNextItemCandidates_SP
-        return getAllItemCandidates(examId).get(0);
-    }
-
-    @Override
-    public List<ItemCandidatesData> getAllItemCandidates(UUID examId) throws ReturnStatusException {
-        //Port of ItemSelectionDLL.AA_GetNextItemCandidates_SP
         ExpandableExam exam = expandableExamService.findExam(examId, ExpandableExamAttributes.EXAM_SEGMENTS, ExpandableExamAttributes.EXAM_PAGE_AND_ITEMS)
             .orElseThrow(() -> new ReturnStatusException("Could not find Exam for id" + examId));
 
@@ -106,18 +101,18 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
 
         List<ExamSegmentWrapper> segments = mapSegmentToItems(exam);
 
+        final List<FieldTestItemGroup> fieldTestItemGroups = fieldTestService.findUsageInExam(examId);
+
         List<ExamSegmentWrapper> unsatisfiedSegments = segments.stream()
             .filter(segmentHolder -> !segmentHolder.getExamSegment().isSatisfied())
             .collect(Collectors.toList());
-
-        final List<FieldTestItemGroup> fieldTestItemGroups = fieldTestService.findUsageInExam(examId);
 
         //Only care about non deleted nor administered field tests
         final Map<String, List<FieldTestItemGroup>> fieldTestItemsBySegmentKey = fieldTestItemGroups.stream()
             .filter(fieldTestItemGroup -> !fieldTestItemGroup.isDeleted() && fieldTestItemGroup.getAdministeredAt() == null)
             .collect(Collectors.groupingBy(FieldTestItemGroup::getSegmentKey));
 
-        List<ExamSegment> satisfiedSegments = new ArrayList<>();
+        List<ExamSegmentWrapper> satisfiedSegments = new ArrayList<>();
         List<ExamSegmentWrapper> nonSatisfiedSegments = new ArrayList<>();
         for (ExamSegmentWrapper examSegmentWrapper : unsatisfiedSegments) {
             long nonFieldTestItemCount = examSegmentWrapper.getItems().stream()
@@ -135,10 +130,10 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
             if (examSegment.getAlgorithm().getType().contains(ADAPTIVE)
                 && examSegment.getExamItemCount() == nonFieldTestItemCount
                 && fieldTestItemsSatisfied) {
-                satisfiedSegments.add(examSegment);
+                satisfiedSegments.add(examSegmentWrapper);
             } else if (examSegment.getAlgorithm().equals(Algorithm.FIXED_FORM)
                 && examSegment.getExamItemCount() == (nonFieldTestItemCount + fieldTestItemCount)) {
-                satisfiedSegments.add(examSegment);
+                satisfiedSegments.add(examSegmentWrapper);
             } else {
                 nonSatisfiedSegments.add(examSegmentWrapper);
             }
@@ -149,12 +144,71 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
             updateSatisfiedSegments(satisfiedSegments);
         }
 
-        if (nonSatisfiedSegments.isEmpty()) {
-            return Collections.singletonList(new ItemCandidatesData(examId, AlgorithmType.SATISFIED.getType()));
+        return nonSatisfiedSegments.stream()
+            .map(examSegmentWrapper -> convertSegmentHolderToItemCandidateData(exam, assessment, fieldTestItemGroups, examSegmentWrapper))
+            .findFirst().orElse(new ItemCandidatesData(examId, AlgorithmType.SATISFIED.getType()));
+    }
+
+    @Override
+    public List<ItemCandidatesData> getAllItemCandidates(UUID examId) throws ReturnStatusException {
+        //Port of ItemSelectionDLL.AA_GetNextItemCandidates_SP
+        ExpandableExam exam = expandableExamService.findExam(examId, ExpandableExamAttributes.EXAM_SEGMENTS, ExpandableExamAttributes.EXAM_PAGE_AND_ITEMS)
+            .orElseThrow(() -> new ReturnStatusException("Could not find Exam for id" + examId));
+
+        Assessment assessment = assessmentService.findAssessment(exam.getExam().getClientName(), exam.getExam().getAssessmentKey())
+            .orElseThrow(() -> new ReturnStatusException("Could not find assessment for " + exam.getExam().getAssessmentKey()));
+
+        List<ExamSegmentWrapper> segments = mapSegmentToItems(exam);
+
+        final List<FieldTestItemGroup> fieldTestItemGroups = fieldTestService.findUsageInExam(examId);
+
+        List<ExamSegmentWrapper> unsatisfiedSegments = segments.stream()
+            .filter(segmentHolder -> !segmentHolder.getExamSegment().isSatisfied())
+            .collect(Collectors.toList());
+
+        //Only care about non deleted nor administered field tests
+        final Map<String, List<FieldTestItemGroup>> fieldTestItemsBySegmentKey = fieldTestItemGroups.stream()
+            .filter(fieldTestItemGroup -> !fieldTestItemGroup.isDeleted() && fieldTestItemGroup.getAdministeredAt() == null)
+            .collect(Collectors.groupingBy(FieldTestItemGroup::getSegmentKey));
+
+        List<ExamSegmentWrapper> satisfiedSegments = new ArrayList<>();
+        List<ExamSegmentWrapper> nonSatisfiedSegments = new ArrayList<>();
+        for (ExamSegmentWrapper examSegmentWrapper : unsatisfiedSegments) {
+            long nonFieldTestItemCount = examSegmentWrapper.getItems().stream()
+                .filter(examItem -> !examItem.isFieldTest())
+                .count();
+
+            long fieldTestItemCount = examSegmentWrapper.getItems().stream()
+                .filter(ExamItem::isFieldTest)
+                .count();
+
+            final ExamSegment examSegment = examSegmentWrapper.getExamSegment();
+            boolean fieldTestItemsSatisfied = !fieldTestItemsBySegmentKey.containsKey(examSegment.getSegmentKey())
+                || fieldTestItemsBySegmentKey.get(examSegment.getSegmentKey()).isEmpty();
+
+            if (examSegment.getAlgorithm().getType().contains(ADAPTIVE)
+                && examSegment.getExamItemCount() == nonFieldTestItemCount
+                && fieldTestItemsSatisfied) {
+                satisfiedSegments.add(examSegmentWrapper);
+            } else if (examSegment.getAlgorithm().equals(Algorithm.FIXED_FORM)
+                && examSegment.getExamItemCount() == (nonFieldTestItemCount + fieldTestItemCount)) {
+                satisfiedSegments.add(examSegmentWrapper);
+            } else {
+                nonSatisfiedSegments.add(examSegmentWrapper);
+            }
         }
 
+        List<ExamSegmentWrapper> examSegments = Collections.emptyList();
+
+        //Means that a segment has been satisfied but hasn't been updated to be satisfied
+        if (!satisfiedSegments.isEmpty()) {
+            examSegments = updateSatisfiedSegments(satisfiedSegments);
+        }
+
+        nonSatisfiedSegments.addAll(examSegments);
         return nonSatisfiedSegments.stream()
-            .map(segmentHolder -> convertSegmentHolderToItemCandidateData(exam, assessment, fieldTestItemGroups, segmentHolder))
+            .sorted(Comparator.comparingInt(o -> o.getExamSegment().getSegmentPosition()))
+            .map(examSegmentWrapper -> convertSegmentHolderToItemCandidateData(exam, assessment, fieldTestItemGroups, examSegmentWrapper))
             .collect(Collectors.toList());
     }
 
@@ -163,7 +217,7 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
         List<ExamSegment> segments = examSegmentService.findExamSegments(examId)
             .stream()
             .filter(examSegment -> !examSegment.isSatisfied())
-            .filter(examSegment -> examSegment.getSegmentPosition() == selectedSegmentPosition.intValue())
+            .filter(examSegment -> examSegment.getSegmentPosition() != selectedSegmentPosition.intValue())
             .map(examSegment -> ExamSegment.Builder.fromSegment(examSegment)
                 .withSatisfied(true)
                 .build())
@@ -512,15 +566,22 @@ public class ItemCandidateServiceImpl implements ItemCandidatesService {
             !examSegment.isSatisfied());
     }
 
-    private void updateSatisfiedSegments(final List<ExamSegment> satisfiedSegments) {
-        List<ExamSegment> segmentsToUpdate = satisfiedSegments.stream()
-            .map(examSegment -> ExamSegment.Builder
-                .fromSegment(examSegment)
-                .withSatisfied(true)
-                .build())
-            .collect(Collectors.toList());
+    private List<ExamSegmentWrapper> updateSatisfiedSegments(final List<ExamSegmentWrapper> satisfiedSegments) {
+        List<ExamSegment> segments = new ArrayList<>();
 
-        examSegmentService.update(segmentsToUpdate.toArray(new ExamSegment[segmentsToUpdate.size()]));
+        for (ExamSegmentWrapper wrapper : satisfiedSegments) {
+            ExamSegment newSegment = ExamSegment.Builder
+                .fromSegment(wrapper.getExamSegment())
+                .withSatisfied(true)
+                .build();
+
+            segments.add(newSegment);
+            wrapper.setExamSegment(newSegment);
+        }
+
+        examSegmentService.update(segments.toArray(new ExamSegment[segments.size()]));
+
+        return satisfiedSegments;
     }
 
     /**

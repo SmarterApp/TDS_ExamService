@@ -173,11 +173,11 @@ public class ItemCandidateServiceImplTest {
         ArgumentCaptor<ExamSegment> varArgs = ArgumentCaptor.forClass(ExamSegment.class);
         verify(mockExamSegmentService).update(varArgs.capture());
 
-        assertThat(candidates).hasSize(1);
+        assertThat(candidates).hasSize(2);
 
         ItemCandidatesData data = candidates.get(0);
 
-        assertThat(data.getSegmentKey()).isEqualTo(segment2.getKey());
+        assertThat(data.getSegmentKey()).isEqualTo(segment.getKey());
 
         assertThat(varArgs.getAllValues()).hasSize(1);
 
@@ -318,7 +318,7 @@ public class ItemCandidateServiceImplTest {
         verify(mockExamSegmentService).update(varArgs.capture());
 
         assertThat(varArgs.getAllValues()).hasSize(1);
-        assertThat(varArgs.getAllValues().get(0).getSegmentKey()).isEqualTo("segment2");
+        assertThat(varArgs.getAllValues().get(0).getSegmentKey()).isEqualTo("segment3");
     }
 
     @Test
