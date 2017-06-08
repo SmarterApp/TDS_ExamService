@@ -46,7 +46,6 @@ public class OpenExamRequestBuilder {
         return new OpenExamRequest.Builder()
             .withStudentId(studentId)
             .withAssessmentKey(assessmentKey)
-            .withMaxAttempts(maxAttempts)
             .withSessionId(sessionId)
             .withGuestAccommodations(guestAccommodations)
             .withBrowserId(browserId)

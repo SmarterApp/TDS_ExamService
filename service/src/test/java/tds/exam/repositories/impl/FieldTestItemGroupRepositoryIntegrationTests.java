@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -137,19 +138,15 @@ public class FieldTestItemGroupRepositoryIntegrationTests {
             .build();
         ExamPage mockFirstPage = new ExamPageBuilder()
             .withExamId(mockExam.getId())
-            .withSegmentId(mockExamSegment.getSegmentId())
             .withSegmentKey(mockExamSegment.getSegmentKey())
             .withPagePosition(1)
-            .withSegmentPosition(1)
             .build();
         ExamPage mockSecondPage = new ExamPageBuilder()
             .withId(UUID.randomUUID())
             .withExamId(mockExam.getId())
-            .withSegmentId(mockExamSegment.getSegmentId())
             .withSegmentKey(mockExamSegment.getSegmentKey())
             .withItemGroupKey("item-group-key-2")
             .withPagePosition(2)
-            .withSegmentPosition(2)
             .build();
         ExamItem mockFirstPageFirstItem = new ExamItemBuilder()
             .withExamPageId(mockFirstPage.getId())
@@ -198,7 +195,7 @@ public class FieldTestItemGroupRepositoryIntegrationTests {
             .build();
 
         examCommandRepository.insert(mockExam);
-        examSegmentCommandRepository.insert(Arrays.asList(mockExamSegment));
+        examSegmentCommandRepository.insert(Collections.singletonList(mockExamSegment));
         examPageCommandRepository.insert(mockFirstPage, mockSecondPage);
         examItemCommandRepository.insert(mockFirstPageFirstItem, mockFirstPageSecondItem, mockSecondPageFirstItem);
         fieldTestItemGroupCommandRepository.insert(Arrays.asList(mockFirstFtItemGroup, mockSecondFtItemGroup));
@@ -232,7 +229,7 @@ public class FieldTestItemGroupRepositoryIntegrationTests {
             .build();
 
         examCommandRepository.insert(mockExam);
-        fieldTestItemGroupCommandRepository.insert(Arrays.asList(mockFirstFtItemGroup));
+        fieldTestItemGroupCommandRepository.insert(Collections.singletonList(mockFirstFtItemGroup));
 
         Instant newAdministeredAt = Instant.now().minus(60L, ChronoUnit.SECONDS);
         FieldTestItemGroup updatedFirstFtItemGroup = new FieldTestItemGroup.Builder()

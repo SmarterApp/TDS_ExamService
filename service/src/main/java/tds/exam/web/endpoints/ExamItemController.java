@@ -5,45 +5,56 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
-import tds.common.Response;
-import tds.exam.ExamInfo;
-import tds.exam.ExamItemResponse;
-import tds.exam.ExamPage;
+import tds.common.ValidationError;
+import tds.common.web.resources.NoContentResponseResource;
+import tds.exam.services.ExamItemSelectionService;
 import tds.exam.services.ExamItemService;
+import tds.exam.web.annotations.VerifyAccess;
+import tds.student.sql.data.OpportunityItem;
 
 @RestController
 @RequestMapping("/exam")
 public class ExamItemController {
     private final ExamItemService examItemService;
+    private final ExamItemSelectionService examItemSelectionService;
 
     @Autowired
-    public ExamItemController(ExamItemService examItemService) {
+    public ExamItemController(final ExamItemService examItemService,
+                              final ExamItemSelectionService examItemSelectionService) {
         this.examItemService = examItemService;
+        this.examItemSelectionService = examItemSelectionService;
     }
 
-    //@RequestMapping(value = "/{id}/page/{position}/responses", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-    @PostMapping("/{id}/page/{position}/responses")
-    ResponseEntity<Response<ExamPage>> insertResponses(@PathVariable final UUID id,
-                                                       @PathVariable final int position,
-                                                       @RequestParam final UUID sessionId,
-                                                       @RequestParam final UUID browserId,
-                                                       @RequestBody final ExamItemResponse[] responses) {
-        ExamInfo examInfo = new ExamInfo(id, sessionId, browserId);
-        Response<ExamPage> nextPage = examItemService.insertResponses(examInfo,
-            position,
-            responses);
+    @PutMapping("/{examId}/item/{position}/review")
+    @VerifyAccess
+    ResponseEntity<NoContentResponseResource> markItemForReview(@PathVariable final UUID examId,
+                                                                @PathVariable final int position,
+                                                                @RequestBody final Boolean mark) {
+        final Optional<ValidationError> maybeMarkFailure = examItemService.markForReview(examId, position, mark);
 
-        if (nextPage.hasError()) {
-            return new ResponseEntity<>(nextPage, HttpStatus.UNPROCESSABLE_ENTITY);
+        if (maybeMarkFailure.isPresent()) {
+            NoContentResponseResource response = new NoContentResponseResource(maybeMarkFailure.get());
+            return new ResponseEntity<>(response, HttpStatus.UNPROCESSABLE_ENTITY);
         }
 
-        return ResponseEntity.ok(nextPage);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @PostMapping("/{examId}/item")
+    ResponseEntity<List<OpportunityItem>> getNextItemGroup(@PathVariable final UUID examId,
+                                                           @RequestParam int lastPagePosition,
+                                                           @RequestParam int lastItemPosition) {
+        List<OpportunityItem> page = examItemSelectionService.createNextPageGroup(examId, lastPagePosition, lastItemPosition);
+        return ResponseEntity.ok(page);
     }
 }

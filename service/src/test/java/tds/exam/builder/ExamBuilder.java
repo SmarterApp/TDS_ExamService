@@ -7,7 +7,6 @@ import java.util.UUID;
 import tds.common.util.Preconditions;
 import tds.exam.Exam;
 import tds.exam.ExamStatusCode;
-import tds.exam.ExamStatusStage;
 
 import static tds.exam.ExamStatusCode.STATUS_PENDING;
 
@@ -29,6 +28,7 @@ public class ExamBuilder {
     private Instant startedAt = null;
     private Instant completedAt = null;
     private Instant expiresAt = null;
+    private Instant createdAt = null;
     private ExamStatusCode status = new ExamStatusCode(STATUS_PENDING);
     private Instant statusChangeDate = Instant.now();
     private String subject = "ELA";
@@ -45,9 +45,10 @@ public class ExamBuilder {
     private int waitingForSegmentApprovalPosition = -1;
     private int currentSegmentPosition = 1;
     private boolean customAccommodations = true;
-    private String language = "English";
     private int resumptions = 5;
     private int restartsAndResumptions = 7;
+    private String browserUserAgent = "user agent";
+    private boolean multiStageBraille = false;
 
     public Exam build() {
         return new Exam.Builder()
@@ -82,6 +83,9 @@ public class ExamBuilder {
             .withCustomAccommodation(customAccommodations)
             .withResumptions(resumptions)
             .withRestartsAndResumptions(restartsAndResumptions)
+            .withCreatedAt(createdAt)
+            .withBrowserUserAgent(browserUserAgent)
+            .withMultiStageBraille(multiStageBraille)
             .build();
     }
 
@@ -190,6 +194,11 @@ public class ExamBuilder {
         return this;
     }
 
+    public ExamBuilder withCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+        return this;
+    }
+
     public ExamBuilder withStatus(ExamStatusCode status, Instant statusChangeDate) {
         Preconditions.checkNotNull(status, "status cannot be null");
         Preconditions.checkNotNull(statusChangeDate, "status change date cannot be null");
@@ -229,11 +238,6 @@ public class ExamBuilder {
         return this;
     }
 
-    public ExamBuilder withLanguage(String language) {
-        this.language = language;
-        return this;
-    }
-
     public ExamBuilder withResumptions(int resumptions) {
         this.resumptions = resumptions;
         return this;
@@ -249,4 +253,13 @@ public class ExamBuilder {
         return this;
     }
 
+    public ExamBuilder withBrowserUserAgent(String browserUserAgent) {
+        this.browserUserAgent = browserUserAgent;
+        return this;
+    }
+
+    public ExamBuilder withMultiStageBraille(boolean multiStageBraille) {
+        this.multiStageBraille = multiStageBraille;
+        return this;
+    }
 }

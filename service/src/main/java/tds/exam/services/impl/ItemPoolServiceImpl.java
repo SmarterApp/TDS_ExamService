@@ -55,7 +55,7 @@ public class ItemPoolServiceImpl implements ItemPoolService {
         Set<ExamAccommodation> includedAccommodations = allAccommodations.stream()
             .flatMap(accommodation -> itemConstraints.stream()
                 .filter(itemConstraint -> itemConstraint.isInclusive() &&
-                    itemConstraint.getPropertyName().equals(accommodation.getType()) &&
+                    itemConstraint.getPropertyName().equalsIgnoreCase(accommodation.getType()) &&
                     itemConstraint.getPropertyValue().equals(accommodation.getCode()))
                 .map(itemConstraint -> accommodation))
             .collect(Collectors.toSet());
@@ -64,7 +64,7 @@ public class ItemPoolServiceImpl implements ItemPoolService {
         Set<String> itemPoolIds = allItemProperties.stream()
             .flatMap(itemProperty -> includedAccommodations.stream()
                 .filter(accommodation ->
-                    itemProperty.getName().equals(accommodation.getType()) &&
+                    itemProperty.getName().equalsIgnoreCase(accommodation.getType()) &&
                         itemProperty.getValue().equals(accommodation.getCode()))
                 .map(accommodation -> itemProperty.getItemId()))
             .collect(Collectors.toSet());
@@ -76,7 +76,7 @@ public class ItemPoolServiceImpl implements ItemPoolService {
         Set<ExamAccommodation> excludedAccommodations = allAccommodations.stream()
             .flatMap(accommodation -> itemConstraints.stream()
                 .filter(itemConstraint -> !itemConstraint.isInclusive() &&
-                    itemConstraint.getPropertyName().equals(accommodation.getType()) &&
+                    itemConstraint.getPropertyName().equalsIgnoreCase(accommodation.getType()) &&
                     itemConstraint.getPropertyValue().equals(accommodation.getCode()))
                 .map(itemConstraint -> accommodation))
             .collect(Collectors.toSet());
@@ -85,7 +85,7 @@ public class ItemPoolServiceImpl implements ItemPoolService {
         Set<String> excludedItemIds = allItemProperties.stream()
             .flatMap(itemProperty -> excludedAccommodations.stream()
                 .filter(accommodation ->
-                    itemProperty.getName().equals(accommodation.getType()) &&
+                    itemProperty.getName().equalsIgnoreCase(accommodation.getType()) &&
                         itemProperty.getValue().equals(accommodation.getCode()))
                 .map(accommodation -> itemProperty.getItemId()))
             .collect(Collectors.toSet());

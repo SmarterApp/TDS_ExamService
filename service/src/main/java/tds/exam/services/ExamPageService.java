@@ -1,10 +1,9 @@
 package tds.exam.services;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
-import tds.common.Response;
-import tds.exam.ExamInfo;
 import tds.exam.ExamPage;
 
 /**
@@ -34,12 +33,17 @@ public interface ExamPageService {
     List<ExamPage> findAllPages(final UUID examId);
 
     /**
-     * Fetch an {@link tds.exam.ExamPage} for the specified {@link tds.exam.Exam} id and page number.
+     * Finds an {@link tds.exam.ExamPage} by its id
      *
-     * @param request    The data required to verify the requester can fetch the requested page
-     * @param pageNumber The page number (1-based) of the page to return
-     * @return An {@link tds.exam.ExamPage} containing a collection of {@link tds.exam.ExamItem}s that
-     * should be displayed
+     * @param id the exam page id
+     * @return {@link tds.exam.ExamPage} if found otherwise empty
      */
-    Response<ExamPage> getPage(final ExamInfo request, final int pageNumber);
+    Optional<ExamPage> find(final UUID id);
+
+    /**
+     * Updates the exam page
+     *
+     * @param examPage exam pages to update
+     */
+    void update(ExamPage... examPage);
 }

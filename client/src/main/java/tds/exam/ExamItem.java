@@ -1,10 +1,11 @@
 package tds.exam;
 
 import com.google.common.base.Optional;
+import org.joda.time.Instant;
 
 import java.util.UUID;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static tds.common.util.Preconditions.checkNotNull;
 
 /**
  * Represent the item on a page of an exam
@@ -13,16 +14,17 @@ public class ExamItem {
     private UUID id;
     private UUID examPageId;
     private String itemKey;
+    private String groupId;
     private long assessmentItemBankKey;
     private long assessmentItemKey;
     private String itemType;
     private int position;
     private boolean required;
-    private boolean markedForReview;
     private boolean fieldTest;
     private String itemFilePath;
     private String stimulusFilePath;
     private ExamItemResponse response;
+    private Instant createdAt;
 
     /**
      * Private constructor for frameworks
@@ -32,19 +34,20 @@ public class ExamItem {
 
 
     private ExamItem(Builder builder) {
-        id = builder.id;
-        examPageId = builder.examPageId;
-        itemKey = builder.itemKey;
-        assessmentItemBankKey = builder.assessmentItemBankKey;
+        id = checkNotNull(builder.id);
+        examPageId = checkNotNull(builder.examPageId);
+        itemKey = checkNotNull(builder.itemKey);
+        assessmentItemBankKey = checkNotNull(builder.assessmentItemBankKey);
         assessmentItemKey = builder.assessmentItemKey;
-        itemType = builder.itemType;
+        itemType = checkNotNull(builder.itemType);
         position = builder.position;
         required = builder.required;
-        markedForReview = builder.markedForReview;
         fieldTest = builder.fieldTest;
-        itemFilePath = builder.itemFilePath;
+        itemFilePath = checkNotNull(builder.itemFilePath);
         stimulusFilePath = builder.stimulusFilePath;
         response = builder.response;
+        createdAt = builder.createdAt;
+        groupId = checkNotNull(builder.groupId);
     }
 
     public static final class Builder {
@@ -56,75 +59,107 @@ public class ExamItem {
         private String itemType;
         private int position;
         private boolean required;
-
-        private boolean markedForReview;
         private boolean fieldTest;
         private String itemFilePath;
         private String stimulusFilePath;
         private ExamItemResponse response;
+        private Instant createdAt;
+        private String groupId;
 
-        public Builder(UUID id) {
+        public Builder(final UUID id) {
+            this.id = checkNotNull(id);
+        }
+
+        public Builder withId(final UUID id) {
             this.id = id;
-        }
-
-        public Builder withExamPageId(UUID examPageId) {
-            this.examPageId = examPageId;
             return this;
         }
 
-        public Builder withItemKey(String itemKey) {
-            this.itemKey = itemKey;
+        public Builder withExamPageId(final UUID examPageId) {
+            this.examPageId = checkNotNull(examPageId);
             return this;
         }
 
-        public Builder withAssessmentItemBankKey(long assessmentItemBankKey) {
-            this.assessmentItemBankKey = assessmentItemBankKey;
+        public Builder withItemKey(final String itemKey) {
+            this.itemKey = checkNotNull(itemKey);
             return this;
         }
 
-        public Builder withAssessmentItemKey(long assessmentItemKey) {
+        public Builder withAssessmentItemBankKey(final long assessmentItemBankKey) {
+            this.assessmentItemBankKey = checkNotNull(assessmentItemBankKey);
+            return this;
+        }
+
+        public Builder withAssessmentItemKey(final long assessmentItemKey) {
             this.assessmentItemKey = assessmentItemKey;
             return this;
         }
 
-        public Builder withItemType(String itemType) {
-            this.itemType = itemType;
+        public Builder withItemType(final String itemType) {
+            this.itemType = checkNotNull(itemType);
             return this;
         }
 
-        public Builder withPosition(int position) {
+        public Builder withPosition(final int position) {
+            if (position < 1) {
+                throw new IllegalArgumentException("Item position must be greater than 0");
+            }
+
             this.position = position;
             return this;
         }
 
-        public Builder withRequired(boolean required) {
+        public Builder withRequired(final boolean required) {
             this.required = required;
             return this;
         }
 
-        public Builder withMarkedForReview(boolean markedForReview) {
-            this.markedForReview = markedForReview;
-            return this;
-        }
-
-        public Builder withFieldTest(boolean fieldTest) {
+        public Builder withFieldTest(final boolean fieldTest) {
             this.fieldTest = fieldTest;
             return this;
         }
 
-        public Builder withResponse(ExamItemResponse response) {
+        public Builder withResponse(final ExamItemResponse response) {
             this.response = response;
             return this;
         }
 
-        public Builder withItemFilePath(String itemFilePath) {
+        public Builder withItemFilePath(final String itemFilePath) {
             this.itemFilePath = checkNotNull(itemFilePath, "Item file path cannot be null");
             return this;
         }
 
-        public Builder withStimulusFilePath(String stimulusFilePath) {
+        public Builder withStimulusFilePath(final String stimulusFilePath) {
             this.stimulusFilePath = stimulusFilePath;
             return this;
+        }
+
+        public Builder withCreatedAt(final Instant createdAt) {
+            this.createdAt = createdAt;
+            return this;
+        }
+
+        public Builder withGroupId(final String groupId){
+            this.groupId = checkNotNull(groupId);
+            return this;
+        }
+
+        public static Builder fromExamItem(final ExamItem examItem) {
+            return new Builder(examItem.getId())
+                .withId(examItem.getId())
+                .withExamPageId(examItem.getExamPageId())
+                .withItemKey(examItem.getItemKey())
+                .withAssessmentItemBankKey(examItem.getAssessmentItemBankKey())
+                .withAssessmentItemKey(examItem.getAssessmentItemKey())
+                .withItemType(examItem.getItemType())
+                .withPosition(examItem.getPosition())
+                .withRequired(examItem.isRequired())
+                .withFieldTest(examItem.isFieldTest())
+                .withResponse(examItem.getResponse().orNull())
+                .withItemFilePath(examItem.getItemFilePath())
+                .withStimulusFilePath(examItem.getStimulusFilePath().orNull())
+                .withCreatedAt(examItem.getCreatedAt())
+                .withGroupId(examItem.getGroupId());
         }
 
         public ExamItem build() {
@@ -190,13 +225,6 @@ public class ExamItem {
     }
 
     /**
-     * @return True if a student has marked this {@link tds.exam.ExamItem} for review; otherwise false
-     */
-    public boolean isMarkedForReview() {
-        return markedForReview;
-    }
-
-    /**
      * @return Flag indicating whether this is a field test {@link tds.exam.ExamItem}
      */
     public boolean isFieldTest() {
@@ -222,5 +250,19 @@ public class ExamItem {
      */
     public Optional<ExamItemResponse> getResponse() {
         return Optional.fromNullable(response);
+    }
+
+    /**
+     * @return The date/time when this {@link tds.exam.ExamItem} was created
+     */
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    /**
+     * @return the associated group id
+     */
+    public String getGroupId() {
+        return groupId;
     }
 }

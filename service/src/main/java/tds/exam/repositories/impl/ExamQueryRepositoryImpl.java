@@ -9,6 +9,13 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
+import tds.common.data.mapping.ResultSetMapperUtility;
+import tds.common.data.mysql.UuidAdapter;
+import tds.exam.Exam;
+import tds.exam.ExamStatusCode;
+import tds.exam.ExamStatusStage;
+import tds.exam.models.Ability;
+import tds.exam.repositories.ExamQueryRepository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -20,14 +27,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-
-import tds.common.data.mapping.ResultSetMapperUtility;
-import tds.common.data.mysql.UuidAdapter;
-import tds.exam.Exam;
-import tds.exam.ExamStatusCode;
-import tds.exam.ExamStatusStage;
-import tds.exam.models.Ability;
-import tds.exam.repositories.ExamQueryRepository;
 
 import static tds.common.data.mapping.ResultSetMapperUtility.mapTimestampToJodaInstant;
 import static tds.exam.ExamStatusCode.STATUS_PENDING;
@@ -56,6 +55,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
         "e.assessment_window_id, \n" +
         "e.assessment_algorithm, \n" +
         "e.segmented, \n" +
+        "e.msb, \n" +
         "lang.code AS language_code, \n" +
         "ee.attempts, \n" +
         "ee.status, \n" +
@@ -72,6 +72,9 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
         "ee.waiting_for_segment_approval_position, \n" +
         "ee.current_segment_position, \n" +
         "ee.custom_accommodations, \n" +
+        "ee.browser_user_agent, \n" +
+        "ee.resumptions, \n" +
+        "ee.restarts_and_resumptions, \n" +
         "e.created_at, \n" +
         "esc.description, \n" +
         "esc.status, \n" +
@@ -89,15 +92,16 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
         String querySQL =
             "SELECT \n" +
                 EXAM_QUERY_COLUMN_LIST +
-                "FROM exam.exam e\n" +
+                "FROM exam.exam e \n" +
                 "JOIN ( \n" +
                 "   SELECT \n" +
-                "       exam_id, \n" +
-                "       MAX(id) AS id \n" +
+                "       id, \n" +
+                "       exam_id \n" +
                 "   FROM \n" +
                 "       exam.exam_event \n" +
-                "   WHERE exam_id = :examId\n" +
-                "   GROUP BY exam_id \n" +
+                "   WHERE exam_id = :examId \n" +
+                "   ORDER BY id DESC \n" +
+                "   LIMIT 1 \n" +
                 ") last_event \n" +
                 "  ON e.id = last_event.exam_id \n" +
                 "JOIN exam.exam_event ee \n" +
@@ -107,16 +111,16 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "  ON esc.status = ee.status \n" +
                 "LEFT JOIN exam.exam_accommodation lang \n" +
                 "  ON lang.exam_id = e.id \n" +
-                "  AND lang.created_at = \n" +
-                "  ( \n" +
+                "  AND lang.id = ( \n" +
                 "       SELECT \n" +
-                "           MAX(eacc.created_at) \n" +
+                "           id \n" +
                 "       FROM \n" +
-                "          exam.exam_accommodation eacc \n" +
-                "          WHERE \n" +
-                "          eacc.exam_id = e.id \n" +
-                "          AND eacc.type = 'Language'\n" +
-                "  ) \n" +
+                "           exam.exam_accommodation \n" +
+                "       WHERE \n" +
+                "           exam_id = e.id \n" +
+                "           AND type = 'Language' \n" +
+                "       ORDER BY created_at DESC \n" +
+                "       LIMIT 1) \n" +
                 "WHERE \n" +
                 "   lang.type = 'Language'";
 
@@ -141,43 +145,40 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
         final SqlParameterSource parameters = new MapSqlParameterSource(queryParameters);
 
         String query =
-            "SELECT " +
+            "SELECT \n" +
                 EXAM_QUERY_COLUMN_LIST +
-                "FROM exam.exam e\n" +
-                "JOIN ( \n" +
-                "   SELECT \n" +
-                "       exam_id, \n" +
-                "       MAX(id) AS id \n" +
-                "   FROM \n" +
-                "       exam.exam_event \n" +
-                "   WHERE deleted_at IS NULL \n" +
-                "   GROUP BY exam_id \n" +
-                ") last_event \n" +
-                "  ON e.id = last_event.exam_id \n" +
-                "JOIN exam.exam_event ee \n" +
-                "  ON last_event.exam_id = ee.exam_id AND \n" +
-                "     last_event.id = ee.id \n" +
-                "JOIN exam.exam_status_codes esc \n" +
-                "  ON esc.status = ee.status \n" +
-                "LEFT JOIN exam.exam_accommodation lang \n" +
-                "  ON lang.exam_id = e.id \n" +
-                "  AND lang.created_at = \n" +
-                "  ( \n" +
+                "FROM \n" +
+                "   exam.exam e \n" +
+                "JOIN \n" +
+                "   exam.exam_event ee \n" +
+                "   ON ee.exam_id = e.id \n" +
+                "   AND ee.deleted_at IS NULL \n" +
+                "JOIN \n" +
+                "   exam.exam_status_codes esc \n" +
+                "   ON esc.status = ee.status \n" +
+                "LEFT JOIN \n" +
+                "   exam.exam_accommodation lang \n" +
+                "   ON lang.exam_id = e.id \n" +
+                "   AND lang.type = 'Language' \n" +
+                "   AND lang.id = ( \n" +
                 "       SELECT \n" +
-                "           MAX(eacc.created_at) \n" +
+                "           id \n" +
                 "       FROM \n" +
-                "          exam.exam_accommodation eacc \n" +
-                "          WHERE \n" +
-                "          eacc.exam_id = e.id \n" +
-                "          AND eacc.type = 'Language'\n" +
-                "  ) \n" +
+                "           exam.exam_accommodation \n" +
+                "       WHERE \n" +
+                "           exam_id = e.id \n" +
+                "           AND type = 'Language' \n" +
+                "       ORDER BY created_at DESC \n" +
+                "       LIMIT 1) \n" +
                 "WHERE \n" +
                 "   e.student_id = :studentId \n" +
                 "   AND e.assessment_id = :assessmentId \n" +
                 "   AND e.client_name = :clientName \n" +
-                "   AND lang.type = 'Language'" +
+                "   AND lang.type = 'Language' \n" +
                 "ORDER BY \n" +
-                "   e.created_at DESC";
+                "   ee.id DESC, \n" +
+                "   e.created_at DESC \n" +
+                "LIMIT 1";
 
 
         Optional<Exam> examOptional;
@@ -196,57 +197,54 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
 
         final String SQL =
             "SELECT \n" +
-                "   MAX(lastStudentActivityTime)\n" +
-                "FROM (\n" +
-                "   SELECT \n" +
-                "       MAX(ee.changed_at) AS lastStudentActivityTime\n" +
-                "   FROM \n" +
-                "       exam e \n" +
-                "   JOIN \n" +
-                "       exam_event ee\n" +
-                "   ON \n" +
-                "       ee.exam_id = e.id\n" +
-                "   WHERE\n" +
-                "       ee.status = 'paused' AND\n" +
-                "       e.id = :examId\n" +
-                "   UNION ALL\n" +
-                "   SELECT \n" +
-                "       MAX(IR.created_at) AS lastStudentActivityTime\n" +
-                "   FROM \n" +
-                "       exam_item_response IR\n" +
-                "   JOIN\n" +
-                "       exam_item I\n" +
-                "   ON \n" +
-                "       I.id = IR.exam_item_id\n" +
-                "   JOIN \n" +
-                "       exam_page P \n" +
-                "   ON\n" +
-                "       P.id = I.exam_page_id\n" +
-                "   JOIN\n" +
-                "       exam_page_event PE\n" +
-                "   ON\n" +
-                "       P.id = PE.exam_page_id\n" +
-                "   WHERE\n" +
-                "       P.exam_id = :examId AND\n" +
-                "       PE.deleted_at IS NULL \n" +
-                "   UNION ALL\n" +
-                "   SELECT \n" +
-                "       MAX(P.created_at) AS lastStudentActivityTime\n" +
-                "   FROM \n" +
-                "       exam_page P\n" +
-                "   JOIN \n" +
-                "       exam_page_event PE\n" +
-                "   ON\n" +
-                "       P.id = PE.exam_page_id\n" +
-                "   WHERE \n" +
-                "       P.exam_id = :examId AND\n" +
-                "       PE.deleted_at IS NULL \n" +
-                ") AS lastStudentActivityTime";
+                "   MAX(ee.changed_at) AS lastStudentActivityTime \n" +
+                "FROM \n" +
+                "   exam e \n" +
+                "JOIN \n" +
+                "   exam_event ee \n" +
+                "   ON ee.exam_id = e.id \n" +
+                "WHERE \n" +
+                "   ee.status = 'paused' " +
+                "   AND e.id = :examId \n" +
+                "UNION ALL \n" +
+                "SELECT \n" +
+                "   MAX(IR.created_at) AS lastStudentActivityTime \n" +
+                "FROM \n" +
+                "   exam_item_response IR \n" +
+                "JOIN \n " +
+                "   exam_item I \n" +
+                "   ON I.id = IR.exam_item_id \n " +
+                "JOIN \n " +
+                "   exam_page P \n" +
+                "   ON P.id = I.exam_page_id \n" +
+                "JOIN \n" +
+                "   exam_page_event PE \n" +
+                "ON \n" +
+                "   P.id = PE.exam_page_id \n" +
+                "   AND PE.deleted_at IS NULL \n" +
+                "WHERE \n" +
+                "   P.exam_id = :examId \n" +
+                "UNION ALL \n" +
+                "SELECT \n" +
+                "   MAX(P.created_at) AS lastStudentActivityTime \n" +
+                "FROM \n" +
+                "   exam_page P \n" +
+                "JOIN \n" +
+                "   exam_page_event PE \n" +
+                "   ON P.id = PE.exam_page_id \n" +
+                "WHERE \n" +
+                "   P.exam_id = :examId \n" +
+                "   AND PE.deleted_at IS NULL \n" +
+                "ORDER BY \n" +
+                "   lastStudentActivityTime DESC \n" +
+                "LIMIT 1";
 
         Optional<Instant> maybeLastStudentActivityTime;
         try {
             Timestamp lastPausedTime = jdbcTemplate.queryForObject(SQL, parameters, Timestamp.class);
-            maybeLastStudentActivityTime = Optional.of(new Instant(lastPausedTime.getTime()));
+            maybeLastStudentActivityTime = (lastPausedTime != null)
+                ? Optional.of(new Instant(lastPausedTime.getTime()))
+                : Optional.empty();
         } catch (EmptyResultDataAccessException e) {
             maybeLastStudentActivityTime = Optional.empty();
         }
@@ -278,26 +276,29 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "       MAX(id) AS id \n" +
                 "   FROM \n" +
                 "       exam.exam_event \n" +
-                "   GROUP BY exam_id \n" +
-                ") last_event \n" +
-                "  ON e.id = last_event.exam_id \n" +
+                "   WHERE \n" +
+                "       session_id = :sessionId" +
+                "   GROUP BY \n" +
+                "       exam_id \n" +
+                ")  last_event \n" +
+                "   ON e.id = last_event.exam_id \n" +
                 "JOIN exam.exam_event ee \n" +
-                "  ON last_event.exam_id = ee.exam_id AND \n" +
-                "     last_event.id = ee.id\n" +
+                "   ON last_event.exam_id = ee.exam_id \n" +
+                "   AND last_event.id = ee.id \n" +
                 "JOIN exam.exam_status_codes esc \n" +
-                "  ON esc.status = ee.status \n" +
+                "   ON esc.status = ee.status \n" +
                 "LEFT JOIN exam.exam_accommodation lang \n" +
-                "  ON lang.exam_id = e.id \n" +
-                "  AND lang.created_at = \n" +
-                "  ( \n" +
+                "   ON lang.exam_id = e.id \n" +
+                "   AND lang.id = ( \n" +
                 "       SELECT \n" +
-                "           MAX(eacc.created_at) \n" +
+                "           id \n" +
                 "       FROM \n" +
-                "          exam.exam_accommodation eacc \n" +
-                "          WHERE \n" +
-                "          eacc.exam_id = e.id \n" +
-                "          AND eacc.type = 'Language'\n" +
-                "  ) \n" +
+                "           exam.exam_accommodation \n" +
+                "       WHERE \n" +
+                "           exam_id = e.id \n" +
+                "           AND type = 'Language' \n" +
+                "       ORDER BY created_at DESC \n" +
+                "       LIMIT 1) \n" +
                 "WHERE ee.session_id = :sessionId \n" +
                 "   AND ee.status " + (inverse ? "NOT " : "") + " IN (:statuses) \n " +
                 "   AND lang.type = 'Language'";
@@ -331,8 +332,8 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 ") last_event \n" +
                 "  ON exam.id = last_event.exam_id \n" +
                 "JOIN exam.exam_event ee \n" +
-                "  ON last_event.exam_id = ee.exam_id AND \n" +
-                "     last_event.id = ee.id \n" +
+                "  ON last_event.exam_id = ee.exam_id \n" +
+                "  AND last_event.id = ee.id \n" +
                 "JOIN exam.exam_status_codes esc \n" +
                 "  ON esc.status = ee.status \n" +
                 "INNER JOIN \n" +
@@ -366,35 +367,69 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
             "SELECT \n" +
                 EXAM_QUERY_COLUMN_LIST +
                 "FROM exam e \n" +
-                "JOIN ( \n" +
-                "  SELECT \n" +
-                "    exam_id, \n" +
-                "    MAX(id) AS id \n" +
-                "  FROM exam_event \n" +
-                "  GROUP BY exam_id \n" +
-                ") last_event ON \n" +
-                "  last_event.exam_id = e.id \n" +
-                "JOIN exam_event ee \n" +
-                "  ON last_event.id = ee.id \n" +
+                "JOIN exam.exam_event ee \n" +
+                "   ON ee.exam_id = e.id \n" +
+                "   AND ee.id = (SELECT MAX(id) FROM exam_event WHERE exam_id = e.id) \n" +
                 "JOIN exam.exam_status_codes esc \n" +
-                "  ON esc.status = ee.status \n" +
+                "   ON esc.status = ee.status \n" +
                 "LEFT JOIN exam.exam_accommodation lang \n" +
-                "  ON lang.exam_id = e.id \n" +
-                "  AND lang.created_at = \n" +
-                "  ( \n" +
+                "   ON lang.exam_id = e.id \n" +
+                "   AND lang.id = ( \n" +
                 "       SELECT \n" +
-                "           MAX(eacc.created_at) \n" +
+                "           id \n" +
                 "       FROM \n" +
-                "          exam.exam_accommodation eacc \n" +
-                "          WHERE \n" +
-                "          eacc.exam_id = e.id \n" +
-                "          AND eacc.type = 'Language'\n" +
-                "  ) \n" +
+                "           exam.exam_accommodation \n" +
+                "       WHERE \n" +
+                "           exam_id = e.id \n" +
+                "           AND type = 'Language' \n" +
+                "       ORDER BY created_at DESC \n" +
+                "       LIMIT 1) \n" +
                 "WHERE \n" +
                 "  ee.session_id = :sessionId \n" +
                 "  AND ee.status IN (:statusSet) \n" +
                 "  AND lang.type = 'Language' \n";
 
+
+        return jdbcTemplate.query(SQL, parameters, examRowMapper);
+    }
+
+    @Override
+    public List<Exam> findAllExamsForStudent(final long studentId) {
+        final SqlParameterSource parameters = new MapSqlParameterSource("studentId", studentId);
+
+        final String SQL =
+            "SELECT \n" +
+                EXAM_QUERY_COLUMN_LIST +
+                "FROM exam.exam e \n" +
+                "JOIN ( \n" +
+                "   SELECT \n" +
+                "       exam_id, \n" +
+                "       MAX(id) AS id \n" +
+                "   FROM \n" +
+                "       exam.exam_event \n" +
+                "   GROUP BY exam_id \n" +
+                ") last_event \n" +
+                "   ON e.id = last_event.exam_id \n" +
+                "JOIN exam.exam_event ee \n" +
+                "   ON last_event.exam_id = ee.exam_id \n" +
+                "   AND last_event.id = ee.id\n" +
+                "JOIN exam.exam_status_codes esc \n" +
+                "   ON esc.status = ee.status \n" +
+                "LEFT JOIN exam.exam_accommodation lang \n" +
+                "   ON lang.exam_id = e.id \n" +
+                "   AND lang.id = ( \n" +
+                "       SELECT \n" +
+                "           id \n" +
+                "       FROM \n" +
+                "           exam.exam_accommodation \n" +
+                "       WHERE \n" +
+                "           exam_id = e.id \n" +
+                "           AND type = 'Language' \n" +
+                "       ORDER BY created_at DESC \n" +
+                "       LIMIT 1) \n" +
+                "WHERE e.student_id = :studentId \n" +
+                "   AND lang.type = 'Language' \n" +
+                "   AND ee.deleted_at IS NULL";
 
         return jdbcTemplate.query(SQL, parameters, examRowMapper);
     }
@@ -449,6 +484,10 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 .withWaitingForSegmentApprovalPosition(rs.getInt("waiting_for_segment_approval_position"))
                 .withCurrentSegmentPosition(rs.getInt("current_segment_position"))
                 .withCustomAccommodation(rs.getBoolean("custom_accommodations"))
+                .withBrowserUserAgent(rs.getString("browser_user_agent"))
+                .withRestartsAndResumptions(rs.getInt("restarts_and_resumptions"))
+                .withResumptions(rs.getInt("resumptions"))
+                .withMultiStageBraille(rs.getBoolean("msb"))
                 .build();
         }
     }

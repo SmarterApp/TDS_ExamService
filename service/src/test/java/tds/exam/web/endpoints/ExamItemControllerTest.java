@@ -3,29 +3,23 @@ package tds.exam.web.endpoints;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
-import tds.common.Response;
-import tds.exam.ExamInfo;
-import tds.exam.ExamItem;
-import tds.exam.ExamItemResponse;
-import tds.exam.ExamPage;
-import tds.exam.builder.ExamItemBuilder;
-import tds.exam.builder.ExamItemResponseBuilder;
-import tds.exam.builder.ExamPageBuilder;
+import tds.common.ValidationError;
+import tds.common.web.resources.NoContentResponseResource;
+import tds.exam.services.ExamItemSelectionService;
 import tds.exam.services.ExamItemService;
+import tds.student.sql.data.OpportunityItem;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -34,44 +28,51 @@ public class ExamItemControllerTest {
     @Mock
     private ExamItemService mockExamItemService;
 
+    @Mock
+    private ExamItemSelectionService mockExamItemSelectionService;
+
     private ExamItemController examItemController;
 
     @Before
     public void setUp() {
-        examItemController = new ExamItemController(mockExamItemService);
+        examItemController = new ExamItemController(mockExamItemService, mockExamItemSelectionService);
     }
 
     @Test
-    public void shouldInsertExamItemResponses() {
-        ExamInfo mockExamInfo = new ExamInfo(UUID.randomUUID(),
-            UUID.randomUUID(),
-            UUID.randomUUID());
-        ExamItem mockExamItem = new ExamItemBuilder().build();
-        List<ExamItem> mockExamItems = Arrays.asList(mockExamItem);
-        ExamPage mockNextExamPage = new ExamPageBuilder()
-            .withExamId(mockExamInfo.getExamId())
-            .withPagePosition(2)
-            .withExamItems(mockExamItems)
-            .build();
+    public void shouldMarkItemForReview() {
+        final UUID examId = UUID.randomUUID();
+        final int position = 6;
+        final boolean mark = true;
 
-        ArgumentCaptor<ExamInfo> approvalRequestArgumentCaptor = ArgumentCaptor.forClass(ExamInfo.class);
-        when(mockExamItemService.insertResponses(isA(ExamInfo.class),
-            isA(Integer.class),
-            any(ExamItemResponse[].class)))
-            .thenReturn(new Response<>(mockNextExamPage));
+        when(mockExamItemService.markForReview(examId, position, mark)).thenReturn(Optional.empty());
+        ResponseEntity<NoContentResponseResource> response = examItemController.markItemForReview(examId, position, mark);
+        verify(mockExamItemService).markForReview(examId, position, mark);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+    }
 
-        ExamItemResponse[] responses = new ExamItemResponse[] { new ExamItemResponseBuilder().build() };
+    @Test
+    public void shouldFailToMarkItemForReview() {
+        final UUID examId = UUID.randomUUID();
+        final int position = 6;
+        final boolean mark = true;
 
-        ResponseEntity<Response<ExamPage>> result = examItemController.insertResponses(mockExamInfo.getExamId(),
-            1,
-            mockExamInfo.getSessionId(),
-            mockExamInfo.getBrowserId(),
-            responses);
-        verify(mockExamItemService).insertResponses(approvalRequestArgumentCaptor.capture(), isA(Integer.class), any(ExamItemResponse[].class));
+        when(mockExamItemService.markForReview(examId, position, mark)).thenReturn(Optional.of(new ValidationError("some", "error")));
+        ResponseEntity<NoContentResponseResource> response = examItemController.markItemForReview(examId, position, mark);
+        verify(mockExamItemService).markForReview(examId, position, mark);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+    }
 
-        assertThat(approvalRequestArgumentCaptor.getValue()).isEqualTo(mockExamInfo);
-        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(result.getBody().getData().isPresent()).isTrue();
-        assertThat(result.getBody().getError().isPresent()).isFalse();
+    @Test
+    public void shouldReturnPageGroup() {
+        UUID examId = UUID.randomUUID();
+        OpportunityItem item = new OpportunityItem();
+        when(mockExamItemSelectionService.createNextPageGroup(examId, 1, 2)).thenReturn(Collections.singletonList(item));
+
+        ResponseEntity<List<OpportunityItem>> response = examItemController.getNextItemGroup(examId, 1, 2);
+
+        verify(mockExamItemSelectionService).createNextPageGroup(examId, 1, 2);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).containsExactly(item);
     }
 }

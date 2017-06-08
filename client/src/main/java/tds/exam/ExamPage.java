@@ -2,8 +2,9 @@ package tds.exam;
 
 import org.joda.time.Instant;
 
-import java.util.List;
 import java.util.UUID;
+
+import static tds.common.util.Preconditions.checkNotNull;
 
 /**
  * Represents the page of an exam
@@ -13,15 +14,14 @@ public class ExamPage {
     private UUID id;
     private int pagePosition;
     private String segmentKey;
-    private String segmentId;
-    private int segmentPosition;
     private String itemGroupKey;
-    private boolean groupItemsRequired;
+    private int groupItemsRequired;
     private UUID examId;
-    private List<ExamItem> examItems;
     private Instant createdAt;
     private Instant deletedAt;
     private Instant startedAt;
+    private long duration;
+    private boolean visible;
 
     /**
      * Private constructor for frameworks
@@ -30,49 +30,31 @@ public class ExamPage {
     }
 
     private ExamPage(Builder builder) {
-        id = builder.id;
+        id = checkNotNull(builder.id);
         pagePosition = builder.pagePosition;
-        segmentKey = builder.segmentKey;
-        segmentId = builder.segmentId;
-        segmentPosition = builder.segmentPosition;
-        itemGroupKey = builder.itemGroupKey;
+        segmentKey = checkNotNull(builder.segmentKey);
+        itemGroupKey = checkNotNull(builder.itemGroupKey);
         groupItemsRequired = builder.groupItemsRequired;
-        examId = builder.examId;
-        examItems = builder.examItems;
+        examId = checkNotNull(builder.examId);
         createdAt = builder.createdAt;
         deletedAt = builder.deletedAt;
         startedAt = builder.startedAt;
+        duration = builder.duration;
+        visible = builder.visible;
     }
 
     public static final class Builder {
         private UUID id;
         private int pagePosition;
         private String segmentKey;
-        private String segmentId;
-        private int segmentPosition;
         private String itemGroupKey;
-        private boolean groupItemsRequired;
+        private int groupItemsRequired;
         private UUID examId;
-        private List<ExamItem> examItems;
         private Instant createdAt;
         private Instant deletedAt;
         private Instant startedAt;
-
-        public Builder fromExamPage(ExamPage examPage) {
-            id = examPage.id;
-            pagePosition = examPage.pagePosition;
-            segmentKey = examPage.segmentKey;
-            segmentId = examPage.segmentId;
-            segmentPosition = examPage.segmentPosition;
-            itemGroupKey = examPage.itemGroupKey;
-            groupItemsRequired = examPage.groupItemsRequired;
-            examId = examPage.examId;
-            examItems = examPage.examItems;
-            createdAt = examPage.createdAt;
-            deletedAt = examPage.deletedAt;
-            startedAt = examPage.startedAt;
-            return this;
-        }
+        private long duration;
+        private boolean visible;
 
         public Builder withPagePosition(int pagePosition) {
             this.pagePosition = pagePosition;
@@ -84,22 +66,12 @@ public class ExamPage {
             return this;
         }
 
-        public Builder withSegmentId(String segmentId) {
-            this.segmentId = segmentId;
-            return this;
-        }
-
-        public Builder withSegmentPosition(int segmentPosition) {
-            this.segmentPosition = segmentPosition;
-            return this;
-        }
-
         public Builder withItemGroupKey(String itemGroupKey) {
             this.itemGroupKey = itemGroupKey;
             return this;
         }
 
-        public Builder withGroupItemsRequired(boolean groupItemsRequired) {
+        public Builder withGroupItemsRequired(final int groupItemsRequired) {
             this.groupItemsRequired = groupItemsRequired;
             return this;
         }
@@ -111,11 +83,6 @@ public class ExamPage {
 
         public Builder withCreatedAt(Instant createdAt) {
             this.createdAt = createdAt;
-            return this;
-        }
-
-        public Builder withExamItems(List<ExamItem> examItems) {
-            this.examItems = examItems;
             return this;
         }
 
@@ -134,8 +101,33 @@ public class ExamPage {
             return this;
         }
 
+        public Builder withDuration(long duration) {
+            this.duration = duration;
+            return this;
+        }
+
+        public Builder withVisible(boolean visible) {
+            this.visible = visible;
+            return this;
+        }
+
         public ExamPage build() {
             return new ExamPage(this);
+        }
+
+        public static Builder fromExamPage(ExamPage examPage) {
+            return new ExamPage.Builder()
+                .withId(examPage.getId())
+                .withPagePosition(examPage.getPagePosition())
+                .withSegmentKey(examPage.getSegmentKey())
+                .withItemGroupKey(examPage.getItemGroupKey())
+                .withGroupItemsRequired(examPage.getGroupItemsRequired())
+                .withExamId(examPage.getExamId())
+                .withCreatedAt(examPage.getCreatedAt())
+                .withDeletedAt(examPage.getDeletedAt())
+                .withStartedAt(examPage.getStartedAt())
+                .withDuration(examPage.getDuration())
+                .withVisible(examPage.isVisible());
         }
     }
 
@@ -161,20 +153,6 @@ public class ExamPage {
     }
 
     /**
-     * @return The id of which segment owns this page
-     */
-    public String getSegmentId() {
-        return segmentId;
-    }
-
-    /**
-     * @return The position of the segment owns this page
-     */
-    public int getSegmentPosition() {
-        return segmentPosition;
-    }
-
-    /**
      * @return The item group key of the page
      */
     public String getItemGroupKey() {
@@ -182,15 +160,10 @@ public class ExamPage {
     }
 
     /**
-     * @return True if all items in this page's item group are required; otherwise false
+     * @return the number of items required for the group.  -1 means that the all the items in the
+     * group are required.  Item groups (group starts with an 'I-') seem to always have a size of 0.
      */
-    public boolean isGroupItemsRequired() {
-        // This value is only ever 0 or -1 in the database.  When the value is -1 all items are required (from comment
-        // in https://github.com/SmarterApp/TDS_TestDeliverySystemDataAccess/blob/cebc3996ab000dc604b539da51235eaf20039d0d/database%20scripts%20-%20mysql/Session/User-Defined%20Functions/iscomplete.sql#L46)
-
-        // In legacy, this value is stored in the session.testeeresponse table.  Since it pertains to an item group
-        // (which is a super-set of items), it seems appropriate to store it at the page level.  From here, it can be
-        // mapped to the legacy OpportunityItem.
+    public int getGroupItemsRequired() {
         return groupItemsRequired;
     }
 
@@ -199,13 +172,6 @@ public class ExamPage {
      */
     public UUID getExamId() {
         return examId;
-    }
-
-    /**
-     * @return The collection of {@link tds.exam.ExamItem}s for this page
-     */
-    public List<ExamItem> getExamItems() {
-        return examItems;
     }
 
     /**
@@ -227,5 +193,19 @@ public class ExamPage {
      */
     public Instant getStartedAt() {
         return startedAt;
+    }
+
+    /**
+     * @return the amount of time spent on a page
+     */
+    public long getDuration() {
+        return duration;
+    }
+
+    /**
+     * @return {@code true} if the pages is visible for the student
+     */
+    public boolean isVisible() {
+        return visible;
     }
 }

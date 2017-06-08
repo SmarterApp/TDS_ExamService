@@ -1,9 +1,11 @@
 package tds.exam.repositories;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
 import tds.exam.ExamAccommodation;
+import tds.exam.models.ExamAccommodationFilter;
 
 /**
  * Interface for reading {@link tds.exam.ExamAccommodation} data for an {@link tds.exam.Exam}.
@@ -34,4 +36,13 @@ public interface ExamAccommodationQueryRepository {
      * @return list containing approved {@link tds.exam.ExamAccommodation}
      */
     List<ExamAccommodation> findApprovedAccommodations(final UUID... examIds);
+
+    /**
+     * Finds non deleted {@link tds.exam.ExamAccommodation}
+     *
+     * @param examId                   the exam id
+     * @param examAccommodationFilters a way to filter exam accommodations
+     * @return list of matching of {@link tds.exam.ExamAccommodation}
+     */
+    List<ExamAccommodation> findAccommodations(final UUID examId, final Collection<ExamAccommodationFilter> examAccommodationFilters);
 }

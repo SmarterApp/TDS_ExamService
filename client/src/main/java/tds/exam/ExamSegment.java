@@ -29,6 +29,7 @@ public class ExamSegment {
     private Set<String> itemPool;
     private int poolCount;
     private Instant createdAt;
+    private String offGradeItems;
 
     /**
      * Private constructor for frameworks
@@ -53,6 +54,7 @@ public class ExamSegment {
         this.itemPool = builder.itemPool;
         this.poolCount = builder.poolCount;
         this.createdAt = builder.createdAt;
+        this.offGradeItems = builder.offGradeItems;
     }
 
     public static class Builder {
@@ -73,6 +75,7 @@ public class ExamSegment {
         private Set<String> itemPool;
         private int poolCount;
         private Instant createdAt;
+        private String offGradeItems;
 
         public static Builder fromSegment(final ExamSegment segment) {
             return new Builder()
@@ -92,6 +95,7 @@ public class ExamSegment {
                 .withExitedAt(segment.exitedAt)
                 .withItemPool(segment.itemPool)
                 .withPoolCount(segment.poolCount)
+                .withOffGradeItems(segment.offGradeItems)
                 .withCreatedAt(segment.createdAt);
         }
 
@@ -177,6 +181,11 @@ public class ExamSegment {
 
         public Builder withCreatedAt(Instant newCreatedAt) {
             this.createdAt = newCreatedAt;
+            return this;
+        }
+
+        public Builder withOffGradeItems(final String offGradeItems) {
+            this.offGradeItems = offGradeItems;
             return this;
         }
 
@@ -302,5 +311,12 @@ public class ExamSegment {
      */
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    /**
+     * @return the off grade items associated with the segment
+     */
+    public String getOffGradeItems() {
+        return offGradeItems;
     }
 }

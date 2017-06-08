@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -13,7 +14,7 @@ import tds.common.Response;
 import tds.common.ValidationError;
 import tds.common.web.exceptions.NotFoundException;
 import tds.exam.Exam;
-import tds.exam.ExamInfo;
+import tds.exam.ExamItem;
 import tds.exam.ExamItemResponse;
 import tds.exam.ExamItemResponseScore;
 import tds.exam.ExamPage;
@@ -24,9 +25,10 @@ import tds.exam.repositories.ExamItemQueryRepository;
 import tds.exam.repositories.ExamPageCommandRepository;
 import tds.exam.repositories.ExamPageQueryRepository;
 import tds.exam.repositories.ExamQueryRepository;
-import tds.exam.services.ExamApprovalService;
 import tds.exam.services.ExamItemResponseScoringService;
 import tds.exam.services.ExamItemService;
+
+import static tds.exam.error.ValidationErrorCode.EXAM_ITEM_DOES_NOT_EXIST;
 
 @Service
 public class ExamItemServiceImpl implements ExamItemService {
@@ -35,7 +37,6 @@ public class ExamItemServiceImpl implements ExamItemService {
     private final ExamPageCommandRepository examPageCommandRepository;
     private final ExamPageQueryRepository examPageQueryRepository;
     private final ExamQueryRepository examQueryRepository;
-    private final ExamApprovalService examApprovalService;
     private final ExamItemResponseScoringService examItemResponseScoringService;
 
     @Autowired
@@ -44,27 +45,21 @@ public class ExamItemServiceImpl implements ExamItemService {
                                final ExamPageCommandRepository examPageCommandRepository,
                                final ExamPageQueryRepository examPageQueryRepository,
                                final ExamQueryRepository examQueryRepository,
-                               final ExamApprovalService examApprovalService,
                                final ExamItemResponseScoringService examItemResponseScoringService) {
         this.examItemQueryRepository = examItemQueryRepository;
         this.examItemCommandRepository = examItemCommandRepository;
         this.examPageCommandRepository = examPageCommandRepository;
         this.examPageQueryRepository = examPageQueryRepository;
         this.examQueryRepository = examQueryRepository;
-        this.examApprovalService = examApprovalService;
         this.examItemResponseScoringService = examItemResponseScoringService;
     }
 
     @Transactional
     @Override
-    public Response<ExamPage> insertResponses(final ExamInfo request, final int mostRecentPagePosition, final ExamItemResponse... responses) {
-        Exam exam = examQueryRepository.getExamById(request.getExamId())
-            .orElseThrow(() -> new NotFoundException(String.format("Could not find an exam for exam id %s", request.getExamId())));
+    public Response<ExamPage> insertResponses(final UUID examId, final int mostRecentPagePosition, final ExamItemResponse... responses) {
+        Exam exam = examQueryRepository.getExamById(examId)
+            .orElseThrow(() -> new NotFoundException(String.format("Could not find an exam for exam id %s", examId)));
 
-        Optional<ValidationError> maybeValidationError = examApprovalService.verifyAccess(request, exam);
-        if (maybeValidationError.isPresent()) {
-            return new Response<>(maybeValidationError.get());
-        }
 
         // RULE:  An exam must be in the "started" or "review" status for responses to be saved.  Legacy rule location:
         // StudentDLL.T_UpdateScoredResponse_common, line 2031
@@ -74,15 +69,15 @@ public class ExamItemServiceImpl implements ExamItemService {
         }
 
         // Get the current page, which will be used as the basis for creating the next page
-        ExamPage currentPage = examPageQueryRepository.find(request.getExamId(), mostRecentPagePosition)
-            .orElseThrow(() -> new NotFoundException(String.format("Could not find exam page for id %s and position %d", request.getExamId(), mostRecentPagePosition)));
+        ExamPage currentPage = examPageQueryRepository.find(examId, mostRecentPagePosition)
+            .orElseThrow(() -> new NotFoundException(String.format("Could not find exam page for id %s and position %d", examId, mostRecentPagePosition)));
 
         // Score each response
         // TODO:  Revisit this once scoring logic has been ported over; getting a score may be more complex and/or require more data
         ExamItemResponse[] scoredResponses = Stream.of(responses).map(response -> {
             ExamItemResponseScore score = examItemResponseScoringService.getScore(response);
 
-            return new ExamItemResponse.Builder()
+            return ExamItemResponse.Builder
                 .fromExamItemResponse(response)
                 .withScore(score)
                 .build();
@@ -90,7 +85,7 @@ public class ExamItemServiceImpl implements ExamItemService {
 
         examItemCommandRepository.insertResponses(scoredResponses);
 
-        ExamPage nextPage = new ExamPage.Builder()
+        ExamPage nextPage = ExamPage.Builder
             .fromExamPage(currentPage)
             .withPagePosition(mostRecentPagePosition + 1)
             .build();
@@ -108,5 +103,53 @@ public class ExamItemServiceImpl implements ExamItemService {
     @Override
     public Map<UUID, Integer> getResponseCounts(final UUID... examIds) {
         return examItemQueryRepository.getResponseCounts(examIds);
+    }
+
+    @Override
+    public Optional<ValidationError> markForReview(final UUID examId, final int position, final Boolean mark) {
+        Optional<ExamItem> maybeExamItem = examItemQueryRepository.findExamItemAndResponse(examId, position);
+
+        if (!maybeExamItem.isPresent()) {
+            return Optional.of(new ValidationError(EXAM_ITEM_DOES_NOT_EXIST,
+                String.format("No exam item found for exam id '%s' at position '%s'.", examId, position)));
+        }
+
+        ExamItem examItem = maybeExamItem.get();
+
+        if (!examItem.getResponse().isPresent()) {
+            // If the item has no response yet, mark the item and create an "empty" response
+            examItemCommandRepository.insertResponses(new ExamItemResponse.Builder()
+                .withExamItemId(examItem.getId())
+                .withExamId(examId)
+                .withResponse("")
+                .withMarkedForReview(mark)
+                .withSequence(1)
+                .build()
+            );
+        } else {
+            examItemCommandRepository.insertResponses(ExamItemResponse.Builder
+                .fromExamItemResponse(examItem.getResponse().get())
+                .withMarkedForReview(mark)
+                .build()
+            );
+        }
+
+
+        return Optional.empty();
+    }
+
+    @Override
+    public List<ExamItem> findExamItemAndResponses(final UUID examId) {
+        return examItemQueryRepository.findExamItemAndResponses(examId);
+    }
+
+    @Override
+    public Optional<ExamItem> findExamItemAndResponse(final UUID examId, final int position) {
+        return examItemQueryRepository.findExamItemAndResponse(examId, position);
+    }
+
+    @Override
+    public Map<UUID, Integer> getResponseUpdateCounts(final UUID examId) {
+        return examItemQueryRepository.getResponseUpdateCounts(examId);
     }
 }

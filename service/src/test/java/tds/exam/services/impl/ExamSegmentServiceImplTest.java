@@ -9,6 +9,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -19,14 +20,9 @@ import tds.assessment.Form;
 import tds.assessment.Item;
 import tds.assessment.Segment;
 import tds.common.Algorithm;
-import tds.common.Response;
 import tds.common.ValidationError;
-import tds.common.web.exceptions.NotFoundException;
 import tds.exam.Exam;
-import tds.exam.ExamApproval;
-import tds.exam.ExamInfo;
 import tds.exam.ExamSegment;
-import tds.exam.ExamStatusCode;
 import tds.exam.builder.AssessmentBuilder;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.builder.ExamSegmentBuilder;
@@ -36,7 +32,7 @@ import tds.exam.error.ValidationErrorCode;
 import tds.exam.models.SegmentPoolInfo;
 import tds.exam.repositories.ExamSegmentCommandRepository;
 import tds.exam.repositories.ExamSegmentQueryRepository;
-import tds.exam.services.ExamApprovalService;
+import tds.exam.services.ExamPageService;
 import tds.exam.services.FieldTestService;
 import tds.exam.services.FormSelector;
 import tds.exam.services.SegmentPoolService;
@@ -69,7 +65,7 @@ public class ExamSegmentServiceImplTest {
     private FormSelector mockFormSelector;
 
     @Mock
-    private ExamApprovalService mockExamApprovalService;
+    private ExamPageService mockExamPageService;
 
     @Captor
     private ArgumentCaptor<List<ExamSegment>> examSegmentsCaptor;
@@ -80,7 +76,7 @@ public class ExamSegmentServiceImplTest {
     @Before
     public void setUp() {
         examSegmentService = new ExamSegmentServiceImpl(mockExamSegmentCommandRepository, mockExamSegmentQueryRepository,
-            mockSegmentPoolService, mockFormSelector, mockFieldTestService, mockExamApprovalService);
+            mockSegmentPoolService, mockFormSelector, mockFieldTestService, mockExamPageService);
     }
 
     @Test(expected = IllegalStateException.class)
@@ -92,7 +88,7 @@ public class ExamSegmentServiceImplTest {
             .withMaxItems(5)
             .build();
         Assessment assessment = new AssessmentBuilder()
-            .withSegments(Arrays.asList(segment))
+            .withSegments(Collections.singletonList(segment))
             .build();
         // Empty segment pool should result in an error
         SegmentPoolInfo segmentPoolInfo = new SegmentPoolInfo(0, 0, new HashSet<>());
@@ -115,7 +111,7 @@ public class ExamSegmentServiceImplTest {
             .withMaxItems(5)
             .build();
         Assessment assessment = new AssessmentBuilder()
-            .withSegments(Arrays.asList(segment))
+            .withSegments(Collections.singletonList(segment))
             .build();
         // Empty segment pool should result in an error
         SegmentPoolInfo segmentPoolInfo = new SegmentPoolInfo(0, 0, new HashSet<>());
@@ -146,18 +142,16 @@ public class ExamSegmentServiceImplTest {
         Segment segment1 = new SegmentBuilder()
             .withSelectionAlgorithm(Algorithm.FIXED_FORM)
             .withMaxItems(5)
-            .withForms(Arrays.asList(form1))
+            .withForms(Collections.singletonList(form1))
             .build();
         Segment segment2 = new SegmentBuilder()
             .withSelectionAlgorithm(Algorithm.FIXED_FORM)
             .withMaxItems(5)
-            .withForms(Arrays.asList(form2))
+            .withForms(Collections.singletonList(form2))
             .build();
         Assessment assessment = new AssessmentBuilder()
             .withSegments(Arrays.asList(segment1, segment2))
             .build();
-        // Empty segment pool should result in an error
-        SegmentPoolInfo segmentPoolInfo = new SegmentPoolInfo(0, 0, new HashSet<>());
 
         when(mockFormSelector.selectForm(segment1, language)).thenReturn(Optional.of(form1));
         examSegmentService.initializeExamSegments(exam, assessment);
@@ -181,7 +175,7 @@ public class ExamSegmentServiceImplTest {
         Segment segment2 = new SegmentBuilder()
             .withKey("segment2-key")
             .withSelectionAlgorithm(Algorithm.FIXED_FORM)
-            .withForms(Arrays.asList(enuForm))
+            .withForms(Collections.singletonList(enuForm))
             .withPosition(2)
             .build();
         Assessment assessment = new AssessmentBuilder()
@@ -203,7 +197,7 @@ public class ExamSegmentServiceImplTest {
             .thenReturn(2);
         when(mockFormSelector.selectForm(segment2, language)).thenReturn(Optional.of(enuForm));
         int totalItems = examSegmentService.initializeExamSegments(exam, assessment);
-        assertThat(totalItems).isEqualTo(8);
+        assertThat(totalItems).isEqualTo(5);
         // ExamSeg 1
         verify(mockSegmentPoolService).computeSegmentPool(exam.getId(), segment1, assessment.getItemConstraints(),
             language);
@@ -224,6 +218,9 @@ public class ExamSegmentServiceImplTest {
                 examSegment2 = seg;
             }
         }
+
+        assertThat(examSegment1).isNotNull();
+        assertThat(examSegment2).isNotNull();
 
         assertThat(examSegment1.getExamId()).isEqualTo(exam.getId());
         assertThat(examSegment1.getSegmentId()).isEqualTo(segment1.getSegmentId());
@@ -287,7 +284,7 @@ public class ExamSegmentServiceImplTest {
             .thenReturn(false);
 
         int totalItems = examSegmentService.initializeExamSegments(exam, assessment);
-        assertThat(totalItems).isEqualTo(segmentPoolInfo1.getPoolCount());
+        assertThat(totalItems).isEqualTo(3);
         // ExamSeg 1
         verify(mockSegmentPoolService).computeSegmentPool(exam.getId(), segment1, assessment.getItemConstraints(),
             language);
@@ -337,7 +334,7 @@ public class ExamSegmentServiceImplTest {
             .withForms(Arrays.asList(enuForm, esnForm))
             .build();
         Assessment assessment = new AssessmentBuilder()
-            .withSegments(Arrays.asList(segment))
+            .withSegments(Collections.singletonList(segment))
             .build();
 
         when(mockFormSelector.selectForm(segment, language)).thenReturn(Optional.of(enuForm));
@@ -369,7 +366,7 @@ public class ExamSegmentServiceImplTest {
             .withSelectionAlgorithm(Algorithm.ADAPTIVE_2)
             .build();
         Assessment assessment = new AssessmentBuilder()
-            .withSegments(Arrays.asList(segment))
+            .withSegments(Collections.singletonList(segment))
             .build();
         SegmentPoolInfo segmentPoolInfo = new SegmentPoolInfo(3, 4,
             new HashSet<>(Arrays.asList(
@@ -385,7 +382,7 @@ public class ExamSegmentServiceImplTest {
         when(mockFieldTestService.isFieldTestEligible(exam, assessment, segment.getKey()))
             .thenReturn(false);
         int totalItems = examSegmentService.initializeExamSegments(exam, assessment);
-        assertThat(totalItems).isEqualTo(segmentPoolInfo.getPoolCount());
+        assertThat(totalItems).isEqualTo(3);
         verify(mockSegmentPoolService).computeSegmentPool(exam.getId(), segment, assessment.getItemConstraints(),
             language);
         verify(mockFieldTestService).isFieldTestEligible(exam, assessment, segment.getKey());
@@ -416,7 +413,7 @@ public class ExamSegmentServiceImplTest {
             .withMaxItems(7)
             .build();
         Assessment assessment = new AssessmentBuilder()
-            .withSegments(Arrays.asList(segment))
+            .withSegments(Collections.singletonList(segment))
             .build();
         SegmentPoolInfo segmentPoolInfo = new SegmentPoolInfo(5, 4,
             new HashSet<>(Arrays.asList(
@@ -432,7 +429,7 @@ public class ExamSegmentServiceImplTest {
         when(mockFieldTestService.isFieldTestEligible(exam, assessment, segment.getKey()))
             .thenReturn(true);
         int totalItems = examSegmentService.initializeExamSegments(exam, assessment);
-        assertThat(totalItems).isEqualTo(segmentPoolInfo.getPoolCount());
+        assertThat(totalItems).isEqualTo(5);
         verify(mockSegmentPoolService).computeSegmentPool(exam.getId(), segment, assessment.getItemConstraints(),
             language);
         verify(mockFieldTestService).isFieldTestEligible(exam, assessment, segment.getKey());
@@ -460,7 +457,7 @@ public class ExamSegmentServiceImplTest {
         final String language = "ENU";
         // Items are just used for formLength calculation
         List<Item> items1 = Arrays.asList(new Item("item1"), new Item("item2"));
-        List<Item> items2 = Arrays.asList(new Item("item3"));
+        List<Item> items2 = Collections.singletonList(new Item("item3"));
 
         Form enuForm1Seg1 = new Form.Builder("formKey1")
             .withCohort("churro")
@@ -554,7 +551,7 @@ public class ExamSegmentServiceImplTest {
             .withMaxItems(5)
             .build();
         Assessment assessment = new AssessmentBuilder()
-            .withSegments(Arrays.asList(segment))
+            .withSegments(Collections.singletonList(segment))
             .build();
         SegmentPoolInfo segmentPoolInfo = new SegmentPoolInfo(segment.getMaxItems(), 4,
             new HashSet<>(Arrays.asList(
@@ -572,7 +569,7 @@ public class ExamSegmentServiceImplTest {
         when(mockFieldTestService.selectItemGroups(exam, assessment, segment.getKey()))
             .thenReturn(2);
         int totalItems = examSegmentService.initializeExamSegments(exam, assessment);
-        assertThat(totalItems).isEqualTo(segmentPoolInfo.getPoolCount() + 2);
+        assertThat(totalItems).isEqualTo(5);
         verify(mockSegmentPoolService).computeSegmentPool(exam.getId(), segment, assessment.getItemConstraints(),
             language);
         verify(mockFieldTestService).isFieldTestEligible(exam, assessment, segment.getKey());
@@ -596,37 +593,8 @@ public class ExamSegmentServiceImplTest {
     }
 
     @Test
-    public void shouldReturnValidationErrorForFailedVerifyAccessFindExamSegments() {
-        UUID examId = UUID.randomUUID();
-        UUID sessionId = UUID.randomUUID();
-        UUID browserId = UUID.randomUUID();
-        ExamSegment seg1 = new ExamSegment.Builder()
-            .withSegmentKey("seg1")
-            .withExamId(examId)
-            .withSegmentPosition(1)
-            .build();
-        ExamSegment seg2 = new ExamSegment.Builder()
-            .withSegmentKey("seg2")
-            .withExamId(examId)
-            .withSegmentPosition(2)
-            .build();
-        ExamInfo examInfo = new ExamInfo(examId, sessionId, browserId);
-
-        when(mockExamApprovalService.getApproval(examInfo)).thenReturn(new Response<>(new ValidationError("Oh", "no")));
-        when(mockExamSegmentQueryRepository.findByExamId(examId)).thenReturn(Arrays.asList(seg1, seg2));
-        Response<List<ExamSegment>> response = examSegmentService.findExamSegments(examId, sessionId, browserId);
-        verify(mockExamApprovalService).getApproval(examInfo);
-        verify(mockExamSegmentQueryRepository, never()).findByExamId(examId);
-
-        assertThat(response.getError().isPresent()).isTrue();
-        assertThat(response.getData().isPresent()).isFalse();
-    }
-
-    @Test
     public void shouldReturnExamSegmentsForExamId() {
         UUID examId = UUID.randomUUID();
-        UUID sessionId = UUID.randomUUID();
-        UUID browserId = UUID.randomUUID();
         ExamSegment seg1 = new ExamSegment.Builder()
             .withSegmentKey("seg1")
             .withExamId(examId)
@@ -637,18 +605,12 @@ public class ExamSegmentServiceImplTest {
             .withExamId(examId)
             .withSegmentPosition(2)
             .build();
-        ExamInfo examInfo = new ExamInfo(examId, sessionId, browserId);
-        ExamApproval mockExamApproval = new ExamApproval(examId, new ExamStatusCode(ExamStatusCode.STATUS_APPROVED), "reason");
 
-        when(mockExamApprovalService.getApproval(examInfo)).thenReturn(new Response<>(mockExamApproval));
         when(mockExamSegmentQueryRepository.findByExamId(examId)).thenReturn(Arrays.asList(seg1, seg2));
-        Response<List<ExamSegment>> response = examSegmentService.findExamSegments(examId, sessionId, browserId);
-        verify(mockExamApprovalService).getApproval(examInfo);
+        List<ExamSegment> examSegments = examSegmentService.findExamSegments(examId);
         verify(mockExamSegmentQueryRepository).findByExamId(examId);
 
-        assertThat(response.getError().isPresent()).isFalse();
-        assertThat(response.getData().isPresent()).isTrue();
-        assertThat(response.getData().get()).hasSize(2);
+        assertThat(examSegments).hasSize(2);
     }
 
     @Test
@@ -659,17 +621,15 @@ public class ExamSegmentServiceImplTest {
         when(mockExamSegmentQueryRepository.findByExamIdAndSegmentPosition(any(UUID.class), any(Integer.class)))
             .thenReturn(Optional.of(mockSegment));
 
-        Response<ExamSegment> segmentResponse =
+        Optional<ExamSegment> maybeExamSegment =
             examSegmentService.findByExamIdAndSegmentPosition(mockExam.getId(), mockExam.getCurrentSegmentPosition());
 
-        assertThat(segmentResponse.getData().isPresent()).isTrue();
-        assertThat(segmentResponse.getError().isPresent()).isFalse();
-        ExamSegment result = segmentResponse.getData().get();
-        assertThat(result).isEqualToComparingFieldByFieldRecursively(mockSegment);
+        assertThat(maybeExamSegment.isPresent()).isTrue();
+        assertThat(maybeExamSegment.get()).isEqualToComparingFieldByFieldRecursively(mockSegment);
     }
 
-    @Test(expected = NotFoundException.class)
-    public void shouldThrowNotFoundExceptionWhenAnExamSegmentCannotBeFoundForExamIdAndSegmentPosition() {
+    @Test
+    public void shouldReturnEmptyWhenAnExamSegmentCannotBeFoundForExamIdAndSegmentPosition() {
         Exam mockExam = new ExamBuilder().build();
 
         when(mockExamSegmentQueryRepository.findByExamIdAndSegmentPosition(any(UUID.class), any(Integer.class)))
@@ -682,7 +642,7 @@ public class ExamSegmentServiceImplTest {
     public void shouldExitExamSegment() {
         final UUID examId = UUID.randomUUID();
         final int segmentPosition = 1;
-        ExamSegment segment = new ExamSegment.Builder()
+        ExamSegment segment = ExamSegment.Builder
             .fromSegment(random(ExamSegment.class))
             .withExitedAt(null)
             .withSegmentPosition(segmentPosition)
@@ -718,5 +678,34 @@ public class ExamSegmentServiceImplTest {
 
         verify(mockExamSegmentQueryRepository).findByExamIdAndSegmentPosition(examId, segmentPosition);
         verify(mockExamSegmentCommandRepository, never()).update(isA(ExamSegment.class));
+    }
+
+
+    @Test
+    public void shouldReturnTrueForAllSegmentsSatisfied() {
+        final UUID examId = UUID.randomUUID();
+        when(mockExamSegmentQueryRepository.findCountOfUnsatisfiedSegments(examId)).thenReturn(0);
+        assertThat(examSegmentService.checkIfSegmentsCompleted(examId)).isTrue();
+        verify(mockExamSegmentQueryRepository).findCountOfUnsatisfiedSegments(examId);
+    }
+
+    @Test
+    public void shouldReturnFalseForSegmentsUnsatisfied() {
+        final UUID examId = UUID.randomUUID();
+
+        when(mockExamSegmentQueryRepository.findCountOfUnsatisfiedSegments(examId)).thenReturn(1);
+        assertThat(examSegmentService.checkIfSegmentsCompleted(examId)).isFalse();
+        verify(mockExamSegmentQueryRepository).findCountOfUnsatisfiedSegments(examId);
+    }
+
+    @Test
+    public void shouldFindExamSegmentByExamIdAndSegmentKey() {
+        final UUID examId = UUID.randomUUID();
+        final String segmentKey = "segmentKey";
+        final ExamSegment examSegment = new ExamSegmentBuilder().build();
+
+        when(mockExamSegmentQueryRepository.findByExamIdAndSegmentKey(examId, segmentKey)).thenReturn(Optional.of(examSegment));
+        assertThat(examSegmentService.findByExamIdAndSegmentKey(examId, segmentKey).get()).isEqualTo(examSegment);
+        verify(mockExamSegmentQueryRepository).findByExamIdAndSegmentKey(examId, segmentKey);
     }
 }

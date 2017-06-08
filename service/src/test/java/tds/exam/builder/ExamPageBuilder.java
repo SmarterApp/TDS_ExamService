@@ -2,46 +2,41 @@ package tds.exam.builder;
 
 import org.joda.time.Instant;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
-import tds.exam.ExamItem;
 import tds.exam.ExamPage;
 
 /**
  * Build a {@link tds.exam.ExamPage} with test data
  */
 public class ExamPageBuilder {
-    public static final UUID DEFAULT_ID = UUID.fromString("b868561f-8264-42b1-80ce-e812f2bad7f7");
+    static final UUID DEFAULT_ID = UUID.fromString("b868561f-8264-42b1-80ce-e812f2bad7f7");
 
     private UUID id = DEFAULT_ID;
     private int pagePosition = 1;
     private String segmentKey = "segment-key-1";
-    private String segmentId = "segment-id-1";
-    private int segmentPosition = 1;
     private String itemGroupKey = "item-group-key";
-    private boolean groupItemsRequired = true;
+    private int groupItemsRequired = -1;
     private UUID examId = UUID.randomUUID();
-    private List<ExamItem> examItems = new ArrayList<>();
     private Instant createdAt = Instant.now();
     private Instant deletedAt;
     private Instant startedAt;
+    private long duration = 100;
+    private boolean visible;
 
     public ExamPage build() {
         return new ExamPage.Builder()
             .withId(id)
             .withPagePosition(pagePosition)
             .withSegmentKey(segmentKey)
-            .withSegmentId(segmentId)
-            .withSegmentPosition(segmentPosition)
             .withItemGroupKey(itemGroupKey)
             .withGroupItemsRequired(groupItemsRequired)
             .withExamId(examId)
-            .withExamItems(examItems)
             .withCreatedAt(createdAt)
             .withDeletedAt(deletedAt)
             .withStartedAt(startedAt)
+            .withDuration(duration)
+            .withVisible(visible)
             .build();
     }
 
@@ -60,33 +55,18 @@ public class ExamPageBuilder {
         return this;
     }
 
-    public ExamPageBuilder withSegmentId(String segmentId) {
-        this.segmentId = segmentId;
-        return this;
-    }
-
-    public ExamPageBuilder withSegmentPosition(int segmentPosition) {
-        this.segmentPosition = segmentPosition;
-        return this;
-    }
-
     public ExamPageBuilder withItemGroupKey(String itemGroupKey) {
         this.itemGroupKey = itemGroupKey;
         return this;
     }
 
-    public ExamPageBuilder withGroupItemsRequired(boolean groupItemsRequired) {
+    public ExamPageBuilder withGroupItemsRequired(int groupItemsRequired) {
         this.groupItemsRequired = groupItemsRequired;
         return this;
     }
 
     public ExamPageBuilder withExamId(UUID examId) {
         this.examId = examId;
-        return this;
-    }
-
-    public ExamPageBuilder withExamItems(List<ExamItem> examItems) {
-        this.examItems = examItems;
         return this;
     }
 
@@ -102,6 +82,16 @@ public class ExamPageBuilder {
 
     public ExamPageBuilder withStartedAt(Instant startedAt) {
         this.startedAt = startedAt;
+        return this;
+    }
+
+    public ExamPageBuilder withDuration(long duration) {
+        this.duration = duration;
+        return this;
+    }
+
+    public ExamPageBuilder withVisible(final boolean visible) {
+        this.visible = visible;
         return this;
     }
 }

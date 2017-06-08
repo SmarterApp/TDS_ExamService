@@ -9,6 +9,13 @@ spring:
     username: ${sbac.jdbc.user}
     password: ${sbac.jdbc.password}
     driver-class-name: 'com.mysql.jdbc.Driver'
+  cloud:
+    bus:
+      enabled: false
+
+tds:
+  cache:
+    enabled: false
 
 server:
   undertow:
@@ -23,3 +30,18 @@ flyway:
   url: ${sbac.jdbc.host}/exam
   user: ${sbac.jdbc.user}
   password: ${sbac.jdbc.password}
+
+exam:
+  scoring:
+    engine:
+      queueThreadCount: 20
+      queueHiWaterMark: 500
+      queueLowWaterMark: 400
+      pythonScoringUrl: http://localhost:32845
+      maxAttempts: 3
+      sympyTimeoutMillis: 1000
+    s3:
+      bucketName: tds-resources
+      prefix: item-content/local/
+      accessKey: ${s3.key}
+      secretKey: ${s3.secret}
