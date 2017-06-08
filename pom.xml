@@ -33,7 +33,7 @@
         <tds-student-client.version>0.0.3</tds-student-client.version>
         <tds-config-client.version>0.0.2</tds-config-client.version>
         <tds-student-library.version>3.0.5</tds-student-library.version>
-        <tds-item-selection.version>3.0.5</tds-item-selection.version>
+        <tds-item-selection.version>3.1.0.RELEASE</tds-item-selection.version>
 
         <maven.compiler.plugin.version>3.5.1</maven.compiler.plugin.version>
         <maven.release.plugin.version>2.5.3</maven.release.plugin.version>
