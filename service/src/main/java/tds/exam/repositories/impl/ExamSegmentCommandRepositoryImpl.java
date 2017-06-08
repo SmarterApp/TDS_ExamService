@@ -1,5 +1,6 @@
 package tds.exam.repositories.impl;
 
+import org.joda.time.Instant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -7,6 +8,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -15,6 +17,8 @@ import java.util.stream.Collectors;
 import tds.common.data.mapping.ResultSetMapperUtility;
 import tds.exam.ExamSegment;
 import tds.exam.repositories.ExamSegmentCommandRepository;
+
+import static tds.common.data.mapping.ResultSetMapperUtility.mapJodaInstantToTimestamp;
 
 /**
  * Repository responsible for writing to the exam_segment and exam_segment_event table.
@@ -33,6 +37,7 @@ public class ExamSegmentCommandRepositoryImpl implements ExamSegmentCommandRepos
      */
     @Override
     public void insert(final List<ExamSegment> segments) {
+        final Timestamp createdAt = mapJodaInstantToTimestamp(Instant.now());
         final List<SqlParameterSource> parameterSources = segments.stream()
             .map(segment -> new MapSqlParameterSource("examId", segment.getExamId().toString())
                 .addValue("segmentKey", segment.getSegmentKey())
@@ -49,7 +54,8 @@ public class ExamSegmentCommandRepositoryImpl implements ExamSegmentCommandRepos
                 .addValue("isPermeable", segment.isPermeable())
                 .addValue("restorePermeableOn", segment.getRestorePermeableCondition())
                 .addValue("exitedAt", ResultSetMapperUtility.mapJodaInstantToTimestamp(segment.getExitedAt()))
-                .addValue("itemPool", String.join(",", segment.getItemPool())))
+                .addValue("itemPool", String.join(",", segment.getItemPool()))
+                .addValue("createdAt", createdAt))
             .collect(Collectors.toList());
 
         final String segmentQuery =
@@ -64,7 +70,8 @@ public class ExamSegmentCommandRepositoryImpl implements ExamSegmentCommandRepos
                 "   exam_item_count, \n" +
                 "   field_test_item_count, \n" +
                 "   form_cohort, \n" +
-                "   pool_count \n" +
+                "   pool_count, \n" +
+                "   created_at \n" +
                 ") \n" +
                 "VALUES ( \n" +
                 "   :examId, \n" +
@@ -77,7 +84,8 @@ public class ExamSegmentCommandRepositoryImpl implements ExamSegmentCommandRepos
                 "   :examItemCount, \n" +
                 "   :fieldTestItemCount, \n" +
                 "   :formCohort, \n" +
-                "   :poolCount \n" +
+                "   :poolCount, \n" +
+                "   :createdAt \n" +
                 ")";
 
         jdbcTemplate.batchUpdate(segmentQuery, parameterSources.toArray(new SqlParameterSource[parameterSources.size()]));
@@ -92,6 +100,7 @@ public class ExamSegmentCommandRepositoryImpl implements ExamSegmentCommandRepos
     @Override
     public void update(final List<ExamSegment> segments) {
         final List<SqlParameterSource> parameterSources = new ArrayList<>();
+        final Timestamp createdAt = mapJodaInstantToTimestamp(Instant.now());
         segments.forEach(segment -> {
             SqlParameterSource parameters = new MapSqlParameterSource(
                 "examId", segment.getExamId().toString())
@@ -100,7 +109,9 @@ public class ExamSegmentCommandRepositoryImpl implements ExamSegmentCommandRepos
                 .addValue("isPermeable", segment.isPermeable())
                 .addValue("restorePermeableCondition", segment.getRestorePermeableCondition())
                 .addValue("exitedAt", ResultSetMapperUtility.mapJodaInstantToTimestamp(segment.getExitedAt()))
-                .addValue("itemPool", String.join(",", segment.getItemPool()));
+                .addValue("itemPool", String.join(",", segment.getItemPool()))
+                .addValue("offGradeItems", segment.getOffGradeItems())
+                .addValue("createdAt", createdAt);
             parameterSources.add(parameters);
         });
 
@@ -112,7 +123,9 @@ public class ExamSegmentCommandRepositoryImpl implements ExamSegmentCommandRepos
                 "   permeable, \n" +
                 "   restore_permeable_condition, \n" +
                 "   exited_at, \n" +
-                "   item_pool \n" +
+                "   item_pool, \n" +
+                "   off_grade_items, \n" +
+                "   created_at \n" +
                 ") \n" +
                 "VALUES ( \n" +
                 "   :examId, \n" +
@@ -121,7 +134,9 @@ public class ExamSegmentCommandRepositoryImpl implements ExamSegmentCommandRepos
                 "   :isPermeable, \n" +
                 "   :restorePermeableCondition, \n" +
                 "   :exitedAt, \n" +
-                "   :itemPool \n" +
+                "   :itemPool, \n" +
+                "   :offGradeItems, \n" +
+                "   :createdAt \n" +
                 ")";
 
         jdbcTemplate.batchUpdate(segmentEventQuery, parameterSources.toArray(new SqlParameterSource[parameterSources.size()]));

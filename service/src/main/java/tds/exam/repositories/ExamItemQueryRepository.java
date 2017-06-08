@@ -1,7 +1,11 @@
 package tds.exam.repositories;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
+
+import tds.exam.ExamItem;
 
 /**
  * Handles data reads from the exam_item_response table
@@ -25,4 +29,27 @@ public interface ExamItemQueryRepository {
      */
     Map<UUID, Integer> getResponseCounts(final UUID... examIds);
 
+    /**
+     * Fetches Exam Item and Response based on exam id and position
+     *
+     * @param examId   the exam UUID
+     * @param position the item position
+     * @return ExamItem if found otherwise empty.  ExamItemResponse will be empty if a response is not present
+     */
+    Optional<ExamItem> findExamItemAndResponse(final UUID examId, int position);
+
+    /**
+     * Fetches all the exam items and the associated valid responses for the exam
+     * @param examId the exam UUID
+     * @return List of {@link tds.exam.ExamItem} with the most active {@link tds.exam.ExamItemResponse}
+     */
+    List<ExamItem> findExamItemAndResponses(final UUID examId);
+
+    /**
+     * Fetches a mapping of the ids of the {@link tds.exam.ExamItem} to their number of responses
+     *
+     * @param examId the exam UUID
+     * @return A map of the item id to the number of response updates
+     */
+    Map<UUID,Integer> getResponseUpdateCounts(final UUID examId);
 }

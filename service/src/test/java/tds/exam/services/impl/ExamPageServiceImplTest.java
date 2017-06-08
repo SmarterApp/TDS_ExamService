@@ -1,60 +1,41 @@
 package tds.exam.services.impl;
 
-import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import tds.common.Response;
-import tds.common.ValidationError;
-import tds.exam.ExamApproval;
-import tds.exam.ExamInfo;
-import tds.exam.ExamItem;
-import tds.exam.ExamItemResponse;
 import tds.exam.ExamPage;
-import tds.exam.ExamStatusCode;
-import tds.exam.ExamStatusStage;
-import tds.exam.builder.ExamItemBuilder;
 import tds.exam.builder.ExamPageBuilder;
-import tds.exam.error.ValidationErrorCode;
 import tds.exam.repositories.ExamPageCommandRepository;
 import tds.exam.repositories.ExamPageQueryRepository;
-import tds.exam.services.ExamApprovalService;
 import tds.exam.services.ExamPageService;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ExamPageServiceImplTest {
-
     @Mock
     private ExamPageCommandRepository mockExamPageCommandRepository;
 
     @Mock
     private ExamPageQueryRepository mockExamPageQueryRepository;
 
-    @Mock
-    private ExamApprovalService mockExamApprovalService;
-
     private ExamPageService examPageService;
 
     @Before
     public void setUp() {
         examPageService = new ExamPageServiceImpl(mockExamPageQueryRepository,
-            mockExamPageCommandRepository,
-            mockExamApprovalService);
+            mockExamPageCommandRepository);
     }
 
     @Test
@@ -91,82 +72,23 @@ public class ExamPageServiceImplTest {
     }
 
     @Test
-    public void shouldGetAnExamPageWithItems() {
-        UUID mockExamId = UUID.randomUUID();
-        UUID mockSessionId = UUID.randomUUID();
-        UUID mockBrowserId = UUID.randomUUID();
+    public void shouldFindExamPageById() {
+        ExamPage examPage = new ExamPageBuilder().build();
 
-        Instant respondedAtInstant = Instant.now().minus(200000);
-        ExamItem mockFirstExamItem = new ExamItemBuilder()
-            .withExamPageId(ExamPageBuilder.DEFAULT_ID)
-            .withItemKey("187-1234")
-            .withRequired(true)
-            .withResponse(new ExamItemResponse.Builder()
-                .withResponse("first item response")
-                .withValid(true)
-                .withCreatedAt(respondedAtInstant)
-                .build())
-            .build();
-        ExamItem mockSecondExamItem = new ExamItemBuilder()
-            .withId(UUID.randomUUID())
-            .withExamPageId(ExamPageBuilder.DEFAULT_ID)
-            .withItemKey("187-5678")
-            .withAssessmentItemKey(5678L)
-            .withItemType("TEST")
-            .withItemFilePath("/path/to/item/187-5678.xml")
-            .build();
+        when(mockExamPageQueryRepository.find(examPage.getId())).thenReturn(Optional.of(examPage));
 
-        List<ExamItem> mockExamItems = Arrays.asList(mockFirstExamItem, mockSecondExamItem);
-
-        ExamPage mockExamPage = new ExamPageBuilder()
-            .withExamId(mockExamId)
-            .withExamItems(mockExamItems)
-            .build();
-
-        ExamInfo mockExamInfo = new ExamInfo(mockExamId, mockSessionId, mockBrowserId);
-
-        ExamApproval mockExamApproval = new ExamApproval(mockExamId,
-            new ExamStatusCode(ExamStatusCode.STATUS_STARTED, ExamStatusStage.IN_PROGRESS),
-            null);
-
-        when(mockExamApprovalService.getApproval(mockExamInfo))
-            .thenReturn(new Response<>(mockExamApproval));
-        when(mockExamPageQueryRepository.findPageWithItems(mockExamId, mockExamPage.getPagePosition()))
-            .thenReturn(Optional.of(mockExamPage));
-
-        Response<ExamPage> examPageResponse = examPageService.getPage(mockExamInfo, mockExamPage.getPagePosition());
-        verify(mockExamApprovalService).getApproval(mockExamInfo);
-        verify(mockExamPageQueryRepository).findPageWithItems(mockExamPage.getExamId(), mockExamPage.getPagePosition());
-        verify(mockExamPageCommandRepository).update(any(ExamPage[].class));
-
-        assertThat(examPageResponse.getData().isPresent()).isTrue();
-        assertThat(examPageResponse.hasError()).isFalse();
-
-        ExamPage examPage = examPageResponse.getData().get();
-        assertThat(examPage).isEqualToComparingFieldByFieldRecursively(mockExamPage);
+        assertThat(examPageService.find(examPage.getId()).get()).isEqualTo(examPage);
+        verify(mockExamPageQueryRepository).find(examPage.getId());
     }
 
     @Test
-    public void shouldNotGetAnExamPageWhenTheApprovalRequestIsDeniedBecauseSessionIsClosed() {
-        UUID mockExamId = UUID.randomUUID();
-        UUID mockSessionId = UUID.randomUUID();
-        UUID mockBrowserId = UUID.randomUUID();
-        ExamInfo mockExamInfo = new ExamInfo(mockExamId,
-            mockSessionId,
-            mockBrowserId);
+    public void shouldUpdateExamPage() {
+        ExamPage examPage = new ExamPageBuilder().build();
+        ArgumentCaptor<ExamPage> captor = ArgumentCaptor.forClass(ExamPage.class);
 
-        Response<ExamApproval> mockApprovalFailure =
-            new Response<>(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_SESSION_CLOSED,
-                "The session is not available for testing, please check with your test administrator."));
+        examPageService.update(examPage);
+        verify(mockExamPageCommandRepository).update(captor.capture());
 
-        when(mockExamApprovalService.getApproval(mockExamInfo))
-            .thenReturn(mockApprovalFailure);
-
-        Response<ExamPage> examPageResponse = examPageService.getPage(mockExamInfo, 1);
-        verify(mockExamApprovalService).getApproval(mockExamInfo);
-        verifyZeroInteractions(mockExamPageQueryRepository);
-
-        assertThat(examPageResponse.getError().isPresent()).isTrue();
-        assertThat(examPageResponse.getData().isPresent()).isFalse();
+        assertThat(captor.getValue()).isEqualTo(examPage);
     }
 }

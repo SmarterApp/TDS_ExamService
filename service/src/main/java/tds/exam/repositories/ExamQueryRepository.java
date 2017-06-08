@@ -46,7 +46,7 @@ public interface ExamQueryRepository {
      * Find all {@link tds.exam.Exam}s that belong to a {@link tds.session.Session} so they can be paused.
      *
      * @param sessionId The unique identifier of the session
-     * @param statuses A {@code java.util.Set} the statuses to filter by
+     * @param statuses  A {@code java.util.Set} the statuses to filter by
      * @return A collection of exams that are assigned to the specified session
      */
     List<Exam> findAllExamsInSessionWithStatus(final UUID sessionId, final Set<String> statuses);
@@ -56,7 +56,7 @@ public interface ExamQueryRepository {
      * status codes
      *
      * @param sessionId The unique identifier of the session
-     * @param statuses A {@code java.util.Set} the statuses to filter by
+     * @param statuses  A {@code java.util.Set} the statuses to filter by
      * @return A collection of exams that are assigned to the specified session
      */
     List<Exam> findAllExamsInSessionWithoutStatus(final UUID sessionId, final Set<String> statuses);
@@ -79,4 +79,12 @@ public interface ExamQueryRepository {
      * @return list of {@link tds.exam.Exam} pending approval
      */
     List<Exam> getExamsPendingApproval(final UUID sessionId);
+
+    /**
+     * Finds all exams taken by a student
+     *
+     * @param studentId the id of the student to fetch exams for
+     * @return The list of {@link tds.exam.Exam}s the student has taken
+     */
+    List<Exam> findAllExamsForStudent(final long studentId);
 }

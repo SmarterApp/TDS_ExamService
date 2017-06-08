@@ -13,4 +13,11 @@ public interface ExamPrintRequestCommandRepository {
      * @param examPrintRequest
      */
     void insert(final ExamPrintRequest examPrintRequest);
+
+    /**
+     * Updates an exam print request
+     *
+     * @param examPrintRequest
+     */
+    void update(final ExamPrintRequest examPrintRequest);
 }

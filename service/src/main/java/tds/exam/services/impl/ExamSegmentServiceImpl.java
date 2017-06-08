@@ -19,18 +19,14 @@ import tds.assessment.Form;
 import tds.assessment.Item;
 import tds.assessment.Segment;
 import tds.common.Algorithm;
-import tds.common.Response;
 import tds.common.ValidationError;
-import tds.common.web.exceptions.NotFoundException;
 import tds.exam.Exam;
-import tds.exam.ExamApproval;
-import tds.exam.ExamInfo;
 import tds.exam.ExamSegment;
 import tds.exam.error.ValidationErrorCode;
 import tds.exam.models.SegmentPoolInfo;
 import tds.exam.repositories.ExamSegmentCommandRepository;
 import tds.exam.repositories.ExamSegmentQueryRepository;
-import tds.exam.services.ExamApprovalService;
+import tds.exam.services.ExamPageService;
 import tds.exam.services.ExamSegmentService;
 import tds.exam.services.FieldTestService;
 import tds.exam.services.FormSelector;
@@ -43,7 +39,7 @@ public class ExamSegmentServiceImpl implements ExamSegmentService {
     private final SegmentPoolService segmentPoolService;
     private final FormSelector formSelector;
     private final FieldTestService fieldTestService;
-    private final ExamApprovalService examApprovalService;
+    private final ExamPageService examPageService;
 
     @Autowired
     public ExamSegmentServiceImpl(final ExamSegmentCommandRepository examSegmentCommandRepository,
@@ -51,13 +47,13 @@ public class ExamSegmentServiceImpl implements ExamSegmentService {
                                   final SegmentPoolService segmentPoolService,
                                   final FormSelector formSelector,
                                   final FieldTestService fieldTestService,
-                                  final ExamApprovalService examApprovalService) {
+                                  final ExamPageService examPageService) {
         this.examSegmentCommandRepository = examSegmentCommandRepository;
         this.examSegmentQueryRepository = examSegmentQueryRepository;
         this.segmentPoolService = segmentPoolService;
         this.fieldTestService = fieldTestService;
         this.formSelector = formSelector;
-        this.examApprovalService = examApprovalService;
+        this.examPageService = examPageService;
     }
 
     /*
@@ -135,10 +131,11 @@ public class ExamSegmentServiceImpl implements ExamSegmentService {
                 isSatisfied = fieldTestItemCount + segmentPoolInfo.getLength() == 0;
             }
 
-            // Keep track of the total number of items in the exam
-            totalItems += (poolCount + fieldTestItemCount);
             /* Case statement within query in line [4712] - formLength is set to poolCount for fixed form on ln [4689] */
             int examItemCount = segment.getSelectionAlgorithm() == Algorithm.FIXED_FORM ? poolCount : segmentPoolInfo.getLength();
+
+            // Keep track of the total number of items in the exam
+            totalItems += examItemCount;
 
             examSegments.add(new ExamSegment.Builder()
                 .withExamId(exam.getId())
@@ -169,26 +166,13 @@ public class ExamSegmentServiceImpl implements ExamSegmentService {
     }
 
     @Override
-    public Response<List<ExamSegment>> findExamSegments(final UUID examId, final UUID sessionId, final UUID browserId) {
-        /* This method is a port of the legacy OpportunityRepository.getOpportunitySegments() [241] and
-        *  StudentDLL.T_GetOpportunitySegments_SP [10212]*/
-        ExamInfo examInfo = new ExamInfo(examId, sessionId, browserId);
-        /* ValidateItemsAccess_FN() in StudentDLL [10214] */
-        Response<ExamApproval> approval = examApprovalService.getApproval(examInfo);
-
-        if (approval.getError().isPresent()) {
-            return new Response<>(approval.getError().get());
-        }
-
-        return new Response<>(examSegmentQueryRepository.findByExamId(examId));
+    public List<ExamSegment> findExamSegments(final UUID examId) {
+        return examSegmentQueryRepository.findByExamId(examId);
     }
 
     @Override
-    public Response<ExamSegment> findByExamIdAndSegmentPosition(final UUID examId, final int segmentPosition) {
-        ExamSegment segment = examSegmentQueryRepository.findByExamIdAndSegmentPosition(examId, segmentPosition)
-            .orElseThrow(() -> new NotFoundException(String.format("Could not find an exam segment for exam id %s and segment position %d", examId, segmentPosition)));
-
-        return new Response<>(segment);
+    public Optional<ExamSegment> findByExamIdAndSegmentPosition(final UUID examId, final int segmentPosition) {
+        return examSegmentQueryRepository.findByExamIdAndSegmentPosition(examId, segmentPosition);
     }
 
     @Override
@@ -204,7 +188,7 @@ public class ExamSegmentServiceImpl implements ExamSegmentService {
             return Optional.of(new ValidationError(ValidationErrorCode.EXAM_SEGMENT_DOES_NOT_EXIST, "The exam segment does not exist"));
         }
 
-        ExamSegment updatedExamSegment = new ExamSegment.Builder()
+        ExamSegment updatedExamSegment = ExamSegment.Builder
             .fromSegment(maybeExamSegment.get())
             .withExitedAt(Instant.now())
             .build();
@@ -212,5 +196,15 @@ public class ExamSegmentServiceImpl implements ExamSegmentService {
         examSegmentCommandRepository.update(updatedExamSegment);
 
         return Optional.empty();
+    }
+
+    @Override
+    public boolean checkIfSegmentsCompleted(final UUID examId) {
+        return examSegmentQueryRepository.findCountOfUnsatisfiedSegments(examId) == 0;
+    }
+
+    @Override
+    public Optional<ExamSegment> findByExamIdAndSegmentKey(final UUID examId, final String segmentKey) {
+        return examSegmentQueryRepository.findByExamIdAndSegmentKey(examId, segmentKey);
     }
 }

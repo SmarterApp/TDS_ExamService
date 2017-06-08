@@ -1,5 +1,6 @@
 package tds.exam.repositories.impl;
 
+import org.joda.time.Instant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -8,6 +9,7 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 
 import tds.exam.ExamPrintRequest;
+import tds.exam.ExamPrintRequestStatus;
 import tds.exam.repositories.ExamPrintRequestCommandRepository;
 
 import static tds.common.data.mapping.ResultSetMapperUtility.mapJodaInstantToTimestamp;
@@ -31,7 +33,8 @@ public class ExamPrintRequestCommandRepositoryImpl implements ExamPrintRequestCo
             .addValue("itemPosition", examPrintRequest.getItemPosition())
             .addValue("pagePosition", examPrintRequest.getPagePosition())
             .addValue("parameters", examPrintRequest.getParameters())
-            .addValue("description", examPrintRequest.getDescription());
+            .addValue("description", examPrintRequest.getDescription())
+            .addValue("createdAt", mapJodaInstantToTimestamp(Instant.now()));
 
         final String examPrintRequestSQL =
             "INSERT INTO \n" +
@@ -44,7 +47,8 @@ public class ExamPrintRequestCommandRepositoryImpl implements ExamPrintRequestCo
                 "   item_position, \n" +
                 "   page_position, \n" +
                 "   parameters, \n" +
-                "   description \n" +
+                "   description, \n" +
+                "   created_at \n" +
                 ") \n" +
                 "VALUES ( \n" +
                 "   :id, \n" +
@@ -55,31 +59,33 @@ public class ExamPrintRequestCommandRepositoryImpl implements ExamPrintRequestCo
                 "   :itemPosition, \n" +
                 "   :pagePosition, \n" +
                 "   :parameters, \n" +
-                "   :description \n" +
+                "   :description, \n" +
+                "   :createdAt \n" +
                 ")";
 
         jdbcTemplate.update(examPrintRequestSQL, params);
         update(examPrintRequest);
     }
 
-    private void update(final ExamPrintRequest examPrintRequest) {
+    @Override
+    public void update(final ExamPrintRequest examPrintRequest) {
         final SqlParameterSource params = new MapSqlParameterSource("examRequestId", examPrintRequest.getId().toString())
-            .addValue("approvedAt", mapJodaInstantToTimestamp(examPrintRequest.getApprovedAt()))
-            .addValue("deniedAt", mapJodaInstantToTimestamp(examPrintRequest.getDeniedAt()))
+            .addValue("status", examPrintRequest.getStatus() != null ? examPrintRequest.getStatus().name() : ExamPrintRequestStatus.SUBMITTED.name())
+            .addValue("createdAt", mapJodaInstantToTimestamp(Instant.now()))
             .addValue("reasonDenied", examPrintRequest.getReasonDenied());
 
         final String updateExamPrintRequestSQL =
             "INSERT INTO \n" +
                 "exam.exam_print_request_event ( \n" +
                 "   exam_print_request_id, \n" +
-                "   approved_at, \n" +
-                "   denied_at, \n" +
+                "   status, \n" +
+                "   created_at, \n" +
                 "   reason_denied \n" +
                 ") \n" +
                 "VALUES ( \n" +
                 "   :examRequestId, \n" +
-                "   :approvedAt, \n" +
-                "   :deniedAt, \n" +
+                "   :status, \n" +
+                "   :createdAt, \n" +
                 "   :reasonDenied \n" +
                 ")";
 

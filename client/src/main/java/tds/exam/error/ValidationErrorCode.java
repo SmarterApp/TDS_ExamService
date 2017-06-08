@@ -23,6 +23,9 @@ public class ValidationErrorCode {
     // Save responses error codes
     public static final String EXAM_INTERRUPTED = "examInterrupted";
 
+    // Review Exam error codes
+    public static final String EXAM_INCOMPLETE = "examIncomplete";
+
     // Exam acccommodations approval validation errors
     public static final String EXAM_DOES_NOT_EXIST = "examDoesNotExist";
     public static final String EXAM_NOT_ENROLLED_IN_SESSION = "examNotEnrolledInSession";
@@ -30,4 +33,8 @@ public class ValidationErrorCode {
 
     // Exam Segments
     public static final String EXAM_SEGMENT_DOES_NOT_EXIST = "examSegmentDoesNotExist";
+
+    // Exam Items/Responses
+    public static final String EXAM_ITEM_DOES_NOT_EXIST = "examItemDoesNotExist";
+    public static final String EXAM_ITEM_RESPONSE_DOES_NOT_EXIST = "examItemResponseDoesNotExist";
 }

@@ -1,5 +1,6 @@
 package tds.exam.repositories.impl;
 
+import com.google.common.collect.ImmutableList;
 import org.joda.time.Instant;
 import org.joda.time.Minutes;
 import org.junit.Before;
@@ -13,16 +14,6 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-
 import tds.accommodation.Accommodation;
 import tds.exam.Exam;
 import tds.exam.ExamAccommodation;
@@ -35,7 +26,18 @@ import tds.exam.repositories.ExamAccommodationCommandRepository;
 import tds.exam.repositories.ExamCommandRepository;
 import tds.exam.repositories.ExamQueryRepository;
 
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.joda.time.Duration.standardDays;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest
@@ -64,6 +66,10 @@ public class ExamQueryRepositoryImplIntegrationTests {
         // Build a basic exam record
         exams.add(new ExamBuilder().build());
 
+        exams.add(new ExamBuilder()
+            .withCreatedAt(Instant.now().minus(99999))
+            .build());
+
         // Build an exam record that has been marked as deleted
         exams.add(new ExamBuilder()
             .withId(UUID.fromString("ab880054-d1d2-4c24-805c-0dfdb45a0d24"))
@@ -78,21 +84,23 @@ public class ExamQueryRepositoryImplIntegrationTests {
             .withAssessmentId("assessmentId3")
             .withStudentId(9999L)
             .withAttempts(2)
+            .withResumptions(2)
+            .withRestartsAndResumptions(3)
             .withScoredAt(Instant.now().minus(Minutes.minutes(5).toStandardDuration()))
             .build());
 
         exams.forEach(exam -> {
             examCommandRepository.insert(exam);
-            examAccommodationCommandRepository.insert(Arrays.asList(
-              new ExamAccommodationBuilder()
-                .withType("Language")
-                .withCode("ENU")
-                .withExamId(exam.getId())
-                .withSegmentPosition(0)
-                .build()
+            examAccommodationCommandRepository.insert(Collections.singletonList(
+                new ExamAccommodationBuilder()
+                    .withType("Language")
+                    .withCode("ENU")
+                    .withExamId(exam.getId())
+                    .withSegmentPosition(0)
+                    .build()
             ));
         });
-        
+
         insertExamScoresData();
 
         // Build exams that belong to the same session
@@ -106,7 +114,6 @@ public class ExamQueryRepositoryImplIntegrationTests {
             .withAssessmentId("assessmentId5")
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.INACTIVE), Instant.now())
             .withStudentId(7L)
-            .withAssessmentId("assessmentId5")
             .build());
         examsInSession.add(new ExamBuilder().withSessionId(mockSessionId)
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_STARTED, ExamStatusStage.INACTIVE), Instant.now())
@@ -118,16 +125,26 @@ public class ExamQueryRepositoryImplIntegrationTests {
             .withAssessmentId("assessmentId6")
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_FAILED, ExamStatusStage.INACTIVE), Instant.now())
             .build());
+        examsInSession.add(new ExamBuilder().withSessionId(UUID.randomUUID())
+            .withStudentId(10L)
+            .withAssessmentId("assessmentId7")
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_STARTED, ExamStatusStage.INACTIVE), Instant.now())
+            .build());
+        examsInSession.add(new ExamBuilder().withSessionId(UUID.randomUUID())
+            .withStudentId(10L)
+            .withAssessmentId("assessmentId7")
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_STARTED, ExamStatusStage.INACTIVE), Instant.now())
+            .build());
 
         examsInSession.forEach(exam -> {
             examCommandRepository.insert(exam);
-            examAccommodationCommandRepository.insert(Arrays.asList(
-              new ExamAccommodationBuilder()
-                .withType("Language")
-                .withCode("ENU")
-                .withExamId(exam.getId())
-                .withSegmentPosition(0)
-                .build()
+            examAccommodationCommandRepository.insert(Collections.singletonList(
+                new ExamAccommodationBuilder()
+                    .withType("Language")
+                    .withCode("ENU")
+                    .withExamId(exam.getId())
+                    .withSegmentPosition(0)
+                    .build()
             ));
         });
 
@@ -144,6 +161,8 @@ public class ExamQueryRepositoryImplIntegrationTests {
     public void shouldRetrieveExamForUniqueKey() {
         Optional<Exam> examOptional = examQueryRepository.getExamById(currentExamId);
         assertThat(examOptional.isPresent()).isTrue();
+        assertThat(examOptional.get().getRestartsAndResumptions()).isEqualTo(3);
+        assertThat(examOptional.get().getResumptions()).isEqualTo(2);
     }
 
     @Test
@@ -177,56 +196,56 @@ public class ExamQueryRepositoryImplIntegrationTests {
 
     @Test
     public void shouldReturnLastPausedDate() {
-        Instant pausedAt = Instant.now().minus(99999);
+        Instant now = Instant.now();
+        Instant pausedAt = now.minus(99999);
+
         Exam exam = new ExamBuilder()
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE), pausedAt)
-            .withChangedAt(pausedAt)
             .build();
         examCommandRepository.insert(exam);
 
         Exam approvedExam = new Exam.Builder()
             .fromExam(exam)
-            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.IN_PROGRESS), Instant.now().minus(5000))
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.IN_PROGRESS), now.minus(5000))
             .build();
 
         examCommandRepository.update(approvedExam);
 
         Optional<Instant> maybeLastTimePaused = examQueryRepository.findLastStudentActivity(exam.getId());
         assertThat(maybeLastTimePaused).isPresent();
-        assertThat(maybeLastTimePaused.get()).isEqualTo(pausedAt);
+        assertThat(maybeLastTimePaused.get()).isGreaterThanOrEqualTo(now);
     }
-    
+
     @Test
     public void shouldFindExamWithLatestLanguage() throws InterruptedException {
-        Exam exam = new ExamBuilder().build();
+        final Exam exam = new ExamBuilder().build();
         examCommandRepository.insert(exam);
-    
-        ExamAccommodation enuAccommodation =
-            new ExamAccommodationBuilder()
-                .withType(Accommodation.ACCOMMODATION_TYPE_LANGUAGE)
-                .withCode("ENU")
-                .withExamId(exam.getId())
-                .build();
-    
-        ExamAccommodation esnAccommodation =
-            new ExamAccommodationBuilder()
-                .withType(Accommodation.ACCOMMODATION_TYPE_LANGUAGE)
-                .withCode("ESN")
-                .withExamId(exam.getId())
-                .build();
-        
-        examAccommodationCommandRepository.insert(Arrays.asList(enuAccommodation));
-        
-        Optional<Exam> maybeExam = examQueryRepository.getExamById(exam.getId());
+
+        final ExamAccommodation enuAcc = new ExamAccommodationBuilder()
+            .withId(UUID.randomUUID())
+            .withExamId(exam.getId())
+            .withType(Accommodation.ACCOMMODATION_TYPE_LANGUAGE)
+            .withCode("ENU")
+            .withCreatedAt(Instant.now().minus(standardDays(1)))
+            .build();
+        examAccommodationCommandRepository.insert(ImmutableList.of(enuAcc));
+
+        final Optional<Exam> maybeExam = examQueryRepository.getExamById(exam.getId());
         assertThat(maybeExam).isPresent();
-        assertThat(maybeExam.get().getLanguageCode()).isEqualTo("ENU");
-    
-        Thread.sleep(5000);
-        examAccommodationCommandRepository.insert(Arrays.asList(esnAccommodation));
-    
-        Optional<Exam> maybeUpdatedExam = examQueryRepository.getExamById(exam.getId());
+        assertThat(maybeExam.orElse(null).getLanguageCode()).isEqualTo("ENU");
+
+        final ExamAccommodation esnAcc = new ExamAccommodationBuilder()
+            .withId(UUID.randomUUID())
+            .withExamId(exam.getId())
+            .withType(Accommodation.ACCOMMODATION_TYPE_LANGUAGE)
+            .withCode("ESN")
+            .withCreatedAt(Instant.now())
+            .build();
+        examAccommodationCommandRepository.insert(ImmutableList.of(esnAcc));
+
+        final Optional<Exam> maybeUpdatedExam = examQueryRepository.getExamById(exam.getId());
         assertThat(maybeUpdatedExam).isPresent();
-        assertThat(maybeUpdatedExam.get().getLanguageCode()).isEqualTo("ESN");
+        assertThat(maybeUpdatedExam.orElse(null).getLanguageCode()).isEqualTo("ESN");
     }
 
     @Test
@@ -238,7 +257,6 @@ public class ExamQueryRepositoryImplIntegrationTests {
 
         Exam exam = new ExamBuilder()
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE), pausedAt)
-            .withChangedAt(pausedAt)
             .build();
         examCommandRepository.insert(exam);
 
@@ -246,7 +264,7 @@ public class ExamQueryRepositoryImplIntegrationTests {
 
         Optional<Instant> maybeLastTimeStudentResponded = examQueryRepository.findLastStudentActivity(exam.getId());
         assertThat(maybeLastTimeStudentResponded).isPresent();
-        assertThat(maybeLastTimeStudentResponded.get()).isEqualTo(lastResponseSubmittedAt);
+        assertThat(maybeLastTimeStudentResponded.get()).isGreaterThanOrEqualTo(lastResponseSubmittedAt);
     }
 
     @Test
@@ -266,7 +284,18 @@ public class ExamQueryRepositoryImplIntegrationTests {
 
         Optional<Instant> maybeLastTimeStudentResponded = examQueryRepository.findLastStudentActivity(exam.getId());
         assertThat(maybeLastTimeStudentResponded).isPresent();
-        assertThat(maybeLastTimeStudentResponded.get()).isEqualTo(pageCreatedAt);
+        assertThat(maybeLastTimeStudentResponded.get()).isGreaterThanOrEqualTo(pageCreatedAt);
+    }
+
+    @Test
+    public void shouldReturnEmptyForNullLastActivity() {
+        Exam exam = new ExamBuilder()
+          .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_STARTED), Instant.now())
+          .build();
+        examCommandRepository.insert(exam);
+
+        Optional<Instant> maybeLastTimeStudentResponded = examQueryRepository.findLastStudentActivity(exam.getId());
+        assertThat(maybeLastTimeStudentResponded).isNotPresent();
     }
 
     private void insertTestDataForResponses(Instant pageCreatedAt, Instant lastResponseSubmittedAt, Instant earlierResponseSubmittedAt, Exam exam) {
@@ -277,20 +306,20 @@ public class ExamQueryRepositoryImplIntegrationTests {
 
         final String insertSegmentSQL =
             "INSERT INTO exam_segment(exam_id, segment_key, segment_id, segment_position, created_at)" +
-                "VALUES (:examId, 'segment-key-1', 'segment-id-1', 1, CURRENT_TIMESTAMP)";
+                "VALUES (:examId, 'segment-key-1', 'segment-id-1', 1, UTC_TIMESTAMP())";
         final String insertPageSQL =
-            "INSERT INTO exam_page (id, page_position, exam_segment_key, item_group_key, exam_id, created_at) " +
+            "INSERT INTO exam_page (id, page_position, segment_key, item_group_key, exam_id, created_at) " +
                 "VALUES (805, 1, 'segment-key-1', 'GroupKey1', :examId, :pageCreatedAt)";
         final String insertPageEventSQL =
-            "INSERT INTO exam_page_event (exam_page_id, started_at) VALUES (805, now())";
+            "INSERT INTO exam_page_event (exam_page_id, exam_id, started_at, created_at) VALUES (805, :examId, UTC_TIMESTAMP(), UTC_TIMESTAMP())";
         final String insertItemSQL =
-            "INSERT INTO exam_item (id, item_key, assessment_item_bank_key, assessment_item_key, item_type, exam_page_id, position, item_file_path)" +
-                "VALUES (2112, '187-1234', 187, 1234, 'MS', 805, 1, '/path/to/item/187-1234.xml')";
+            "INSERT INTO exam_item (id, item_key, assessment_item_bank_key, assessment_item_key, item_type, exam_page_id, position, item_file_path, created_at, group_id)" +
+                "VALUES (2112, '187-1234', 187, 1234, 'MS', 805, 1, '/path/to/item/187-1234.xml', UTC_TIMESTAMP(), 'group-123')";
         final String insertResponsesSQL =
-            "INSERT INTO exam_item_response (id, exam_item_id, response, sequence, created_at) " +
+            "INSERT INTO exam_item_response (id, exam_item_id, exam_id, response, sequence, created_at) " +
                 "VALUES " +
-                "(1337, 2112, 'Response 1', 1, :lastResponseSubmittedAt), " +
-                "(1338, 2112, 'Response 2', 1, :earlierResponseSubmittedAt)";
+                "(1337, 2112, :examId, 'Response 1', 1, :lastResponseSubmittedAt), " +
+                "(1338, 2112, :examId, 'Response 2', 1, :earlierResponseSubmittedAt)";
 
         jdbcTemplate.update(insertSegmentSQL, testParams);
         jdbcTemplate.update(insertPageSQL, testParams);
@@ -347,5 +376,12 @@ public class ExamQueryRepositoryImplIntegrationTests {
     public void shouldReturnListOfExamsPendingApproval() {
         List<Exam> examsPendingApproval = examQueryRepository.getExamsPendingApproval(mockSessionId);
         assertThat(examsPendingApproval.size()).isEqualTo(1);
+    }
+
+    @Test
+    public void shouldReturnListOfExamsForStudent() {
+        final long studentId = 10;
+        List<Exam> exams = examQueryRepository.findAllExamsForStudent(studentId);
+        assertThat(exams).hasSize(2);
     }
 }

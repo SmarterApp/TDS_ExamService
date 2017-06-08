@@ -15,6 +15,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -22,9 +23,11 @@ import tds.common.Response;
 import tds.common.ValidationError;
 import tds.common.web.exceptions.NotFoundException;
 import tds.common.web.resources.NoContentResponseResource;
+import tds.exam.ApproveAccommodationsRequest;
 import tds.exam.Exam;
 import tds.exam.ExamConfiguration;
 import tds.exam.ExamStatusCode;
+import tds.exam.ExamStatusRequest;
 import tds.exam.ExamStatusStage;
 import tds.exam.OpenExamRequest;
 import tds.exam.builder.ExamBuilder;
@@ -32,12 +35,13 @@ import tds.exam.builder.OpenExamRequestBuilder;
 import tds.exam.error.ValidationErrorCode;
 import tds.exam.services.ExamService;
 
+import static io.github.benas.randombeans.api.EnhancedRandom.random;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -105,16 +109,17 @@ public class ExamControllerTest {
 
     @Test
     public void shouldReturnExamConfiguration() {
+        final String browserUserAgent = "007";
         Exam exam = new ExamBuilder().build();
         ExamConfiguration mockExamConfig = new ExamConfiguration.Builder()
             .withExam(exam)
             .withStatus("started")
             .build();
-        when(mockExamService.startExam(exam.getId())).thenReturn(
+        when(mockExamService.startExam(exam.getId(), browserUserAgent)).thenReturn(
             new Response<>(mockExamConfig));
 
-        ResponseEntity<Response<ExamConfiguration>> response = controller.startExam(exam.getId());
-        verify(mockExamService).startExam(exam.getId());
+        ResponseEntity<Response<ExamConfiguration>> response = controller.startExam(exam.getId(), browserUserAgent);
+        verify(mockExamService).startExam(exam.getId(), browserUserAgent);
 
         assertThat(response.getBody().getData().get().getExam().getId()).isEqualTo(exam.getId());
         assertThat(response.getBody().getData().get().getStatus()).isEqualTo("started");
@@ -124,11 +129,12 @@ public class ExamControllerTest {
 
     @Test
     public void shouldCreateErrorResponseWhenStartExamValidationError() {
+        final String browserUserAgent = "007";
         final UUID examId = UUID.randomUUID();
-        when(mockExamService.startExam(examId)).thenReturn(
+        when(mockExamService.startExam(examId, browserUserAgent)).thenReturn(
             new Response<>(new ValidationError(ValidationErrorCode.EXAM_APPROVAL_SESSION_ID_MISMATCH, "Session mismatch")));
 
-        ResponseEntity<Response<ExamConfiguration>> response = controller.startExam(examId);
+        ResponseEntity<Response<ExamConfiguration>> response = controller.startExam(examId, browserUserAgent);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
         assertThat(response.getBody().hasError()).isTrue();
@@ -180,46 +186,62 @@ public class ExamControllerTest {
         verify(mockExamService).pauseAllExamsInSession(sessionId);
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void shouldThrowForStatusWithStageNotFound() {
-        final UUID examId = UUID.randomUUID();
-        final String statusWithNoStage = "foo";
-        controller.updateStatus(examId, statusWithNoStage, null, null);
-    }
-    
-    @Test
-    public void shouldUpdateStatusWithNoStageProvided() {
-        final UUID examId = UUID.randomUUID();
-        final String statusCode = ExamStatusCode.STATUS_APPROVED;
-        
-        when(mockExamService.updateExamStatus(eq(examId), any(), (String) isNull())).thenReturn(Optional.empty());
-        ResponseEntity<NoContentResponseResource> response = controller.updateStatus(examId, statusCode, null, null);
-        assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
-    }
-    
+
     @Test
     public void shouldUpdateStatusWithStageAndReasonProvided() {
         final UUID examId = UUID.randomUUID();
-        final String statusCode = ExamStatusCode.STATUS_APPROVED;
-        final String stage = ExamStatusStage.OPEN.getType();
-        final String reason = "Nausea";
-        
-        when(mockExamService.updateExamStatus(eq(examId), any(), eq(reason))).thenReturn(Optional.empty());
-        ResponseEntity<NoContentResponseResource> response = controller.updateStatus(examId, statusCode, stage, reason);
+        final ExamStatusRequest request = random(ExamStatusRequest.class);
+
+        when(mockExamService.updateExamStatus(eq(examId), any(), eq(request.getReason()))).thenReturn(Optional.empty());
+        ResponseEntity<NoContentResponseResource> response = controller.updateStatus(examId, request);
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
     }
-    
+
     @Test
     public void shouldReturn422ForValidationErrors() {
         final UUID examId = UUID.randomUUID();
-        final String statusCode = ExamStatusCode.STATUS_APPROVED;
-        final String stage = ExamStatusStage.OPEN.getType();
-        final String reason = "Puppies";
+        final ExamStatusRequest request = random(ExamStatusRequest.class);
 
-        when(mockExamService.updateExamStatus(eq(examId), any(), eq(reason))).thenReturn(Optional.of(new ValidationError("Some", "Error")));
-        ResponseEntity<NoContentResponseResource> response = controller.updateStatus(examId, statusCode, stage, reason);
+        when(mockExamService.updateExamStatus(eq(examId), any(), eq(request.getReason()))).thenReturn(Optional.of(new ValidationError("Some", "Error")));
+        ResponseEntity<NoContentResponseResource> response = controller.updateStatus(examId, request);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+
+    @Test
+    public void shouldApproveAccommodationsAndReturnNoErrors() {
+        final UUID examId = UUID.randomUUID();
+        final UUID sessionId = UUID.randomUUID();
+        final UUID browserId = UUID.randomUUID();
+        ApproveAccommodationsRequest request = new ApproveAccommodationsRequest(sessionId, browserId, new HashMap<>());
+
+        when(mockExamService.updateExamAccommodationsAndExam(examId, request)).thenReturn(Optional.empty());
+
+        ResponseEntity<NoContentResponseResource> response = controller.approveAccommodations(examId, request);
+
+        verify(mockExamService).updateExamAccommodationsAndExam(examId, request);
+        verifyNoMoreInteractions(mockExamService);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+    }
+
+    @Test
+    public void shouldReturnValidationError() {
+        final UUID examId = UUID.randomUUID();
+        final UUID sessionId = UUID.randomUUID();
+        final UUID browserId = UUID.randomUUID();
+        final String errCode = "Error code";
+        final String errMsg = "Error message";
+        ApproveAccommodationsRequest request = new ApproveAccommodationsRequest(sessionId, browserId, new HashMap<>());
+
+        when(mockExamService.updateExamAccommodationsAndExam(examId, request)).thenReturn(Optional.of(new ValidationError(errCode, errMsg)));
+
+        ResponseEntity<NoContentResponseResource> response = controller.approveAccommodations(examId, request);
+
+        verify(mockExamService).updateExamAccommodationsAndExam(examId, request);
+        verifyNoMoreInteractions(mockExamService);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        assertThat(response.getBody().getErrors()).isNotEmpty();
     }
 }

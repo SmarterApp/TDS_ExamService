@@ -13,7 +13,7 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -66,14 +66,12 @@ public class ExamItemCommandRepositoryImplIntegrationTests {
         examItemQueryRepository = new ExamItemQueryRepositoryImpl(jdbcTemplate);
 
         ExamSegment mockExamSegment = new ExamSegmentBuilder()
-            .withSegmentId(mockPage.getSegmentId())
             .withSegmentKey(mockPage.getSegmentKey())
-            .withSegmentPosition(mockPage.getSegmentPosition())
             .withExamId(mockExam.getId())
             .build();
 
         examCommandRepository.insert(mockExam);
-        examSegmentCommandRepository.insert(Arrays.asList(mockExamSegment));
+        examSegmentCommandRepository.insert(Collections.singletonList(mockExamSegment));
         examPageCommandRepository.insert(mockPage);
     }
 
@@ -106,6 +104,7 @@ public class ExamItemCommandRepositoryImplIntegrationTests {
 
         ExamItemResponse response = new ExamItemResponseBuilder()
             .withExamItemId(savedExamItem.getId())
+            .withExamId(mockExam.getId())
             .build();
 
         examItemCommandRepository.insertResponses(response);
@@ -126,18 +125,23 @@ public class ExamItemCommandRepositoryImplIntegrationTests {
 
         final String insertSegmentSQL =
             "INSERT INTO exam_segment(exam_id, segment_key, segment_id, segment_position, created_at)" +
-                "VALUES (:examId, 'segment-key-1', 'segment-id-1', 1, CURRENT_TIMESTAMP )";
+                "VALUES (:examId, 'segment-key-1', 'segment-id-1', 1, UTC_TIMESTAMP() )";
         final String insertPageSQL =
-            "INSERT INTO exam_page (id, page_position, exam_segment_key, item_group_key, exam_id) " +
-                "VALUES (805, 1, 'segment-key-1', 'GroupKey1', :examId), (806, 2, 'segment-key-1', 'GroupKey2', :examId)";
-        final String insertPageEventSQL = // Create two pages, second page is deleted
-            "INSERT INTO exam_page_event (exam_page_id, started_at, deleted_at) VALUES (805, now(), NULL), (806, now(), now())";
-        final String insertItemSQL = // Two items on first page, 1 item on deleted (second) page
-            "INSERT INTO exam_item (id, item_key, assessment_item_bank_key, assessment_item_key, item_type, exam_page_id, position, item_file_Path)" +
+            "INSERT INTO exam_page (id, page_position, segment_key, item_group_key, exam_id, created_at) " +
                 "VALUES " +
-                "(:item1Id, '187-1234', 187, 1234, 'MS', 805, 1, '/path/to/item/187-1234.xml')," +
-                "(:item2Id, '187-1235', 187, 1235, 'MS', 805, 2, '/path/to/item/187-1235.xml')," +
-                "(:item3Id, '187-1236', 187, 1236, 'ER', 806, 3, '/path/to/item/187-1236.xml')";
+                "(805, 1, 'segment-key-1', 'GroupKey1', :examId, UTC_TIMESTAMP()), " +
+                "(806, 2, 'segment-key-1', 'GroupKey2', :examId, UTC_TIMESTAMP())";
+        final String insertPageEventSQL = // Create two pages, second page is deleted
+            "INSERT INTO exam_page_event (exam_page_id, exam_id, started_at, deleted_at, created_at) " +
+                "VALUES " +
+                "(805, :examId, now(), NULL, UTC_TIMESTAMP()), " +
+                "(806, :examId, UTC_TIMESTAMP(), UTC_TIMESTAMP(), UTC_TIMESTAMP())";
+        final String insertItemSQL = // Two items on first page, 1 item on deleted (second) page
+            "INSERT INTO exam_item (id, item_key, assessment_item_bank_key, assessment_item_key, item_type, exam_page_id, position, item_file_Path, created_at, group_id)" +
+                "VALUES " +
+                "(:item1Id, '187-1234', 187, 1234, 'MS', 805, 1, '/path/to/item/187-1234.xml', UTC_TIMESTAMP(), 'group-id-123')," +
+                "(:item2Id, '187-1235', 187, 1235, 'MS', 805, 2, '/path/to/item/187-1235.xml', UTC_TIMESTAMP(), 'group-id-123')," +
+                "(:item3Id, '187-1236', 187, 1236, 'ER', 806, 3, '/path/to/item/187-1236.xml', UTC_TIMESTAMP(), 'group-id-123')";
 
         jdbcTemplate.update(insertSegmentSQL, testParams);
         jdbcTemplate.update(insertPageSQL, testParams);
@@ -146,6 +150,7 @@ public class ExamItemCommandRepositoryImplIntegrationTests {
 
         ExamItemResponse examItem1Response = new ExamItemResponseBuilder()
             .withExamItemId(item1Id)
+            .withExamId(exam.getId())
             .withResponse("response1")
             .withSequence(1)
             .withScore(new ExamItemResponseScoreBuilder()
@@ -159,12 +164,14 @@ public class ExamItemCommandRepositoryImplIntegrationTests {
 
         ExamItemResponse examItem2Response = new ExamItemResponseBuilder()
             .withExamItemId(item2Id)
+            .withExamId(exam.getId())
             .withResponse("response2")
             .withSequence(2)
             .build();
 
         ExamItemResponse examDeletedItemResponse = new ExamItemResponseBuilder()
             .withExamItemId(item3Id)
+            .withExamId(exam.getId())
             .withResponse("response3")
             .withSequence(3)
             .build();
@@ -195,9 +202,9 @@ public class ExamItemCommandRepositoryImplIntegrationTests {
             .withPosition(rs.getInt("position"))
             .withFieldTest(rs.getBoolean("is_fieldtest"))
             .withRequired(rs.getBoolean("is_required"))
-            .withMarkedForReview(rs.getBoolean("is_marked_for_review"))
             .withItemFilePath(rs.getString("item_file_path"))
             .withStimulusFilePath(rs.getString("stimulus_file_path"))
+            .withGroupId(rs.getString("group_id"))
             .build());
     }
 }

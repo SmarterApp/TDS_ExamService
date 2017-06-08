@@ -21,6 +21,7 @@ import tds.accommodation.Accommodation;
 import tds.assessment.Assessment;
 import tds.assessment.AssessmentWindow;
 import tds.assessment.Segment;
+import tds.assessment.SegmentItemInformation;
 import tds.common.Algorithm;
 import tds.exam.builder.ExternalSessionConfigurationBuilder;
 import tds.exam.configuration.ExamServiceProperties;
@@ -91,7 +92,7 @@ public class AssessmentServiceImplTest {
     public void shouldFindAssessmentWindows() {
         AssessmentWindow window = new AssessmentWindow.Builder().build();
         URI url = UriComponentsBuilder
-            .fromHttpUrl(String.format("%s/%s/%s/%s/windows/student/%d",
+            .fromHttpUrl(String.format("%s/%s/%s/%s/windows",
                 BASE_URL,
                 "SBAC_PT",
                 ASSESSMENT_APP_CONTEXT,
@@ -101,6 +102,7 @@ public class AssessmentServiceImplTest {
             .queryParam("shiftWindowEnd", 2)
             .queryParam("shiftFormStart", 10)
             .queryParam("shiftFormEnd", 11)
+            .queryParam("guestStudent", true)
             .build()
             .toUri();
 
@@ -117,7 +119,7 @@ public class AssessmentServiceImplTest {
         }))
             .thenReturn(entity);
 
-        List<AssessmentWindow> windows = assessmentService.findAssessmentWindows("SBAC_PT", "ELA 11", 23, config);
+        List<AssessmentWindow> windows = assessmentService.findAssessmentWindows("SBAC_PT", "ELA 11", true, config);
 
         assertThat(windows).containsExactly(window);
     }
@@ -158,5 +160,26 @@ public class AssessmentServiceImplTest {
         List<Accommodation> accommodations = assessmentService.findAssessmentAccommodationsByAssessmentId("SBAC", "id");
 
         assertThat(accommodations).containsExactly(accommodation);
+    }
+
+    @Test
+    public void shouldReturnSegmentItemInformation() throws URISyntaxException {
+        URI uri = new URI(BASE_URL + "segment-items/key");
+
+        SegmentItemInformation segmentItemInformation = new SegmentItemInformation.Builder().build();
+        when(restTemplate.getForObject(uri, SegmentItemInformation.class)).thenReturn(segmentItemInformation);
+        Optional<SegmentItemInformation> maybeSegmentItemInfo = assessmentService.findSegmentItemInformation("key");
+        verify(restTemplate).getForObject(uri, SegmentItemInformation.class);
+
+        assertThat(maybeSegmentItemInfo.get()).isEqualTo(segmentItemInformation);
+    }
+
+    @Test
+    public void shouldReturnEmptyIfSegmentInformationNotFound() throws URISyntaxException {
+        URI uri = new URI(BASE_URL + "segment-items/key");
+
+        when(restTemplate.getForObject(uri, SegmentItemInformation.class)).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
+        assertThat(assessmentService.findSegmentItemInformation("key")).isNotPresent();
+        verify(restTemplate).getForObject(uri, SegmentItemInformation.class);
     }
 }

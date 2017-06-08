@@ -5,7 +5,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 import tds.assessment.Assessment;
-import tds.common.Response;
 import tds.common.ValidationError;
 import tds.exam.Exam;
 import tds.exam.ExamSegment;
@@ -27,12 +26,10 @@ public interface ExamSegmentService {
     /**
      * Fetches the {@link tds.exam.ExamSegment}s for the exam id after validating the exam and session.
      *
-     * @param examId    The id of the exam to fetch the exam segments for
-     * @param sessionId The id of the session this exam belongs to
-     * @param browserId The id of the browser this exam belongs to
+     * @param examId The id of the exam to fetch the exam segments for
      * @return The list of {@link tds.exam.ExamSegment}s for the exam
      */
-    Response<List<ExamSegment>> findExamSegments(final UUID examId, final UUID sessionId, final UUID browserId);
+    List<ExamSegment> findExamSegments(final UUID examId);
 
     /**
      * Find an {@link tds.exam.ExamSegment} for the specified exam Id and position.
@@ -41,7 +38,7 @@ public interface ExamSegmentService {
      * @param segmentPosition The position/sequence of the {@link tds.exam.ExamSegment} to find
      * @return The {@link tds.exam.ExamSegment} for the specified exam id and position
      */
-    Response<ExamSegment> findByExamIdAndSegmentPosition(final UUID examId, final int segmentPosition);
+    Optional<ExamSegment> findByExamIdAndSegmentPosition(final UUID examId, final int segmentPosition);
 
     /**
      * Update a one or more {@link tds.exam.ExamSegment}s with new values.
@@ -57,4 +54,21 @@ public interface ExamSegmentService {
      * @param segmentPosition The segment position of the {@link tds.exam.ExamSegment} to exit
      */
     Optional<ValidationError> exitSegment(final UUID examId, final int segmentPosition);
+
+    /**
+     * Checks if all the segments for the exam are completed/"satisfied"
+     *
+     * @param examId The id of the {@link tds.exam.Exam} to check for
+     * @return {@code true} if the segment is completed
+     */
+    boolean checkIfSegmentsCompleted(final UUID examId);
+
+    /**
+     * Finds an {@link tds.exam.ExamSegment} by exam id and segment key
+     *
+     * @param examId     the exam id
+     * @param segmentKey the {@link tds.exam.ExamSegment} segment key
+     * @return an {@link tds.exam.ExamSegment} otherwise empty
+     */
+    Optional<ExamSegment> findByExamIdAndSegmentKey(final UUID examId, final String segmentKey);
 }

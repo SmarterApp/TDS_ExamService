@@ -10,7 +10,6 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -51,25 +50,18 @@ public class FieldTestItemGroupQueryRepositoryImpl implements FieldTestItemGroup
                 "   FE.administered_at \n" +
                 "FROM \n" +
                 "   field_test_item_group F \n" +
-                "JOIN ( \n" +
-                "   SELECT \n" +
-                "       field_test_item_group_id, \n" +
-                "       MAX(id) AS id \n" +
-                "   FROM \n" +
-                "       field_test_item_group_event \n" +
-                "   GROUP BY field_test_item_group_id \n" +
-                ") last_event \n" +
-                "   ON F.id = last_event.field_test_item_group_id \n" +
                 "JOIN \n" +
                 "   field_test_item_group_event FE \n" +
-                "ON \n" +
-                "   last_event.id = FE.id \n" +
+                "   ON FE.field_test_item_group_id = F.id \n" +
+                "   AND FE.id = (SELECT MAX(id) \n" +
+                "                FROM field_test_item_group_event \n" +
+                "                WHERE field_test_item_group_id = F.id \n" +
+                "                AND deleted_at IS NULL) \n" +
                 "WHERE \n" +
-                "   F.exam_id = :examId AND \n" +
-                "   F.segment_key = :segmentKey AND \n" +
-                "   FE.deleted_at IS NULL \n" +
+                "   F.exam_id = :examId " +
+                "   AND F.segment_key = :segmentKey \n" +
                 "ORDER BY \n" +
-                "   F.position \n";
+                "   F.position";
 
         return jdbcTemplate.query(SQL, parameters, fieldTestItemGroupMapper);
     }
@@ -103,7 +95,7 @@ public class FieldTestItemGroupQueryRepositoryImpl implements FieldTestItemGroup
                 "JOIN \n" +
                 "   exam_segment segment \n" +
                 "   ON segment.exam_id = page.exam_id \n" +
-                "   AND segment.segment_key = page.exam_segment_key \n" +
+                "   AND segment.segment_key = page.segment_key \n" +
                 "JOIN \n" +
                 "   exam_item item \n" +
                 "   ON page.id = item.exam_page_id \n" +
@@ -112,20 +104,14 @@ public class FieldTestItemGroupQueryRepositoryImpl implements FieldTestItemGroup
                 "   ON page.exam_id = ftitem_group.exam_id \n" +
                 "   AND segment.segment_key = ftitem_group.segment_key \n" +
                 "   AND page.item_group_key = ftitem_group.group_key \n" +
-                "JOIN ( \n" +
-                "   SELECT \n" +
-                "       field_test_item_group_id, \n" +
-                "       MAX(id) AS id \n" +
-                "   FROM \n" +
-                "       field_test_item_group_event \n" +
-                "   GROUP BY \n" +
-                "       field_test_item_group_id) AS last_event \n" +
-                "   ON ftitem_group.id = last_event.field_test_item_group_id \n" +
                 "JOIN \n" +
                 "   field_test_item_group_event ftitem_event \n" +
-                "   ON last_event.id = ftitem_event.id \n" +
+                "   ON ftitem_event.field_test_item_group_id = ftitem_group.id \n" +
+                "   AND ftitem_event.id = (SELECT MAX(id) \n" +
+                "                          FROM field_test_item_group_event \n" +
+                "                          WHERE field_test_item_group_id = ftitem_group.id) \n" +
                 "WHERE \n" +
-                "   page.exam_id = :examId \n" +
+                "   page.exam_id =  :examId \n" +
                 "   AND item.is_fieldtest = 1 \n" +
                 "GROUP BY \n" +
                 "   ftitem_group.id, \n" +

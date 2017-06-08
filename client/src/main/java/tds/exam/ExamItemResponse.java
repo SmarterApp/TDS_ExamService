@@ -1,6 +1,5 @@
 package tds.exam;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Optional;
 import org.joda.time.Instant;
 
@@ -14,12 +13,14 @@ import static tds.common.util.Preconditions.checkNotNull;
 public class ExamItemResponse {
     private long id;
     private UUID examItemId;
+    private UUID examId;
     private String response;
     private int sequence;
     private boolean valid;
     private boolean selected;
     private ExamItemResponseScore score;
     private Instant createdAt;
+    private boolean markedForReview;
 
     /**
      * Private constructor for frameworks
@@ -29,54 +30,65 @@ public class ExamItemResponse {
 
     private ExamItemResponse(Builder builder) {
         id = builder.id;
-        examItemId = builder.examItemId;
-        response = builder.response;
+        examItemId = checkNotNull(builder.examItemId);
+        examId = checkNotNull(builder.examId);
+        response = checkNotNull(builder.response);
         sequence = builder.sequence;
         valid = builder.valid;
         selected = builder.selected;
         score = builder.score;
         createdAt = builder.createdAt;
+        markedForReview = builder.markedForReview;
     }
 
     public static final class Builder {
         private long id;
         private UUID examItemId;
+        private UUID examId;
         private String response;
         private int sequence;
         private boolean valid;
         private boolean selected;
         private ExamItemResponseScore score;
         private Instant createdAt;
+        private boolean markedForReview;
 
-        public Builder fromExamItemResponse(ExamItemResponse examItemResponse) {
-            id = examItemResponse.id;
-            examItemId = examItemResponse.examItemId;
-            response = examItemResponse.response;
-            sequence = examItemResponse.sequence;
-            valid = examItemResponse.valid;
-            selected = examItemResponse.selected;
-            score = examItemResponse.score;
-            createdAt = examItemResponse.createdAt;
-            return this;
+        public static Builder fromExamItemResponse(final ExamItemResponse examItemResponse) {
+            return new Builder()
+                .withId(examItemResponse.id)
+                .withExamItemId(examItemResponse.examItemId)
+                .withExamId(examItemResponse.examId)
+                .withResponse(examItemResponse.response)
+                .withSequence(examItemResponse.sequence)
+                .withValid(examItemResponse.valid)
+                .withSelected(examItemResponse.selected)
+                .withScore(examItemResponse.score)
+                .withMarkedForReview(examItemResponse.markedForReview)
+                .withCreatedAt(examItemResponse.createdAt);
         }
 
 
-        public Builder withId(long id) {
+        public Builder withId(final long id) {
             this.id = id;
             return this;
         }
 
-        public Builder withExamItemId(UUID examItemId) {
+        public Builder withExamItemId(final UUID examItemId) {
             this.examItemId = examItemId;
             return this;
         }
 
-        public Builder withResponse(String response) {
+        public Builder withExamId(final UUID examId) {
+            this.examId = examId;
+            return this;
+        }
+
+        public Builder withResponse(final String response) {
             this.response = checkNotNull(response, "Response cannot be null");
             return this;
         }
 
-        public Builder withSequence(int sequence) {
+        public Builder withSequence(final int sequence) {
             if (sequence < 1) {
                 throw new IllegalArgumentException("Sequence cannot be less than 1");
             }
@@ -85,23 +97,28 @@ public class ExamItemResponse {
             return this;
         }
 
-        public Builder withValid(boolean valid) {
+        public Builder withValid(final boolean valid) {
             this.valid = valid;
             return this;
         }
 
-        public Builder withSelected(boolean selected) {
+        public Builder withSelected(final boolean selected) {
             this.selected = selected;
             return this;
         }
 
-        public Builder withScore(ExamItemResponseScore score) {
+        public Builder withScore(final ExamItemResponseScore score) {
             this.score = score;
             return this;
         }
 
-        public Builder withCreatedAt(Instant createdAt) {
+        public Builder withCreatedAt(final Instant createdAt) {
             this.createdAt = createdAt;
+            return this;
+        }
+
+        public Builder withMarkedForReview(final boolean markedForReview) {
+            this.markedForReview = markedForReview;
             return this;
         }
 
@@ -122,6 +139,13 @@ public class ExamItemResponse {
      */
     public UUID getExamItemId() {
         return examItemId;
+    }
+
+    /**
+     * @return The id of the {@link tds.exam.Exam} this {@link tds.exam.ExamItemResponse} corresponds to
+     */
+    public UUID getExamId() {
+        return examId;
     }
 
     /**
@@ -162,11 +186,7 @@ public class ExamItemResponse {
      * @return The {@link tds.exam.ExamItemResponseScore} for this {@link tds.exam.ExamItemResponse}, if one has been
      * provided
      */
-    @JsonIgnore
     public Optional<ExamItemResponseScore> getScore() {
-        // NOTE:  Scores should not be exposed outside of the server thus should not be returned to the caller.  There
-        // is a debug setting in the legacy Student application that allows for returning the scores to the client.
-        // Since we are not porting the debugging behavior to the microservice(s), that feature will not be implemented.
         return Optional.fromNullable(score);
     }
 
@@ -175,6 +195,13 @@ public class ExamItemResponse {
      */
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    /**
+     * @return Flag indicating whether the item is marked for review
+     */
+    public boolean isMarkedForReview() {
+        return markedForReview;
     }
 
     @Override
@@ -188,6 +215,7 @@ public class ExamItemResponse {
         if (getSequence() != that.getSequence()) return false;
         if (isValid() != that.isValid()) return false;
         if (isSelected() != that.isSelected()) return false;
+        if (isMarkedForReview() != that.isMarkedForReview()) return false;
         if (!getExamItemId().equals(that.getExamItemId())) return false;
         if (!getResponse().equals(that.getResponse())) return false;
         if (!getScore().equals(that.getScore())) return false;
@@ -202,6 +230,7 @@ public class ExamItemResponse {
         result = 31 * result + getSequence();
         result = 31 * result + (isValid() ? 1 : 0);
         result = 31 * result + (isSelected() ? 1 : 0);
+        result = 31 * result + (isMarkedForReview() ? 1 : 0);
 
         return result;
     }

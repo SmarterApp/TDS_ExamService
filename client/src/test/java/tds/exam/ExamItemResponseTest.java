@@ -11,17 +11,20 @@ public class ExamItemResponseTest {
     @Test
     public void shouldBuildAnItemResponse() {
         UUID examId = UUID.randomUUID();
+        UUID examItemId = UUID.randomUUID();
         ExamItemResponse response = new ExamItemResponse.Builder()
             .withId(1L)
             .withResponse("response text")
-            .withExamItemId(examId)
+            .withExamItemId(examItemId)
+            .withExamId(examId)
             .withSequence(1)
             .withCreatedAt(Instant.now().minus(20000))
             .build();
 
         assertThat(response.getId()).isEqualTo(1L);
         assertThat(response.getResponse()).isEqualTo("response text");
-        assertThat(response.getExamItemId()).isEqualTo(examId);
+        assertThat(response.getExamItemId()).isEqualTo(examItemId);
+        assertThat(response.getExamId()).isEqualTo(examId);
         assertThat(response.getSequence()).isEqualTo(1);
         assertThat(response.getCreatedAt()).isLessThan(Instant.now());
     }

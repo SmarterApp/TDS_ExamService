@@ -11,7 +11,7 @@
     <parent>
         <groupId>org.opentestsystem.delivery</groupId>
         <artifactId>tds-exam</artifactId>
-        <version>0.0.2-SNAPSHOT</version>
+        <version>3.1.0.RELEASE</version>
     </parent>
 
     <properties>
@@ -19,23 +19,16 @@
         <assertj.version>3.4.1</assertj.version>
     </properties>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.springframework.cloud</groupId>
-                <artifactId>spring-cloud-config</artifactId>
-                <version>${spring.cloud.config.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
     <dependencies>
         <!-- TDS -->
         <dependency>
             <groupId>org.opentestsystem.delivery</groupId>
             <artifactId>tds-exam-client</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.opentestsystem.delivery</groupId>
+            <artifactId>tds-exam-scoring</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -63,6 +56,16 @@
             <artifactId>tds-config-client</artifactId>
             <version>${tds-config-client.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.opentestsystem.delivery</groupId>
+            <artifactId>tds-item-selection-components</artifactId>
+            <version>${tds-item-selection.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.opentestsystem.delivery</groupId>
+            <artifactId>student-library</artifactId>
+            <version>${tds-student-library.version}</version>
+        </dependency>
 
         <!-- Spring -->
         <dependency>
@@ -74,10 +77,6 @@
                     <artifactId>spring-boot-starter-tomcat</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-config</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -92,7 +91,6 @@
             <artifactId>spring-boot-configuration-processor</artifactId>
             <optional>true</optional>
         </dependency>
-
         <dependency>
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
@@ -261,7 +259,6 @@
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <skipTests>${unit-tests.skip}</skipTests>
                     <excludes>
                         <exclude>**/*IntegrationTests.java</exclude>
                     </excludes>

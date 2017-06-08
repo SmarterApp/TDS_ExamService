@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Root logger is set to INFO and logs are sent to CONSOLE and logstash via tcp.
+
+Spring boot default log levels are used.
+-->
+<configuration>
+    <include resource="tds/common/logging/logstash.xml"/>
+</configuration>

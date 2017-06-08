@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 import tds.common.Response;
 import tds.common.entity.utils.ChangeListener;
 import tds.common.util.Preconditions;
@@ -42,11 +44,11 @@ public class OnPausedStatusExamChangeListener implements ChangeListener<Exam> {
         // code sets isPermeable to -1, which means false.
         // Omit CommonDLL#_OnStatus_Paused_SP, line 1489 - 1493: If the segment's getRestorePermeableCondition is set to
         // "segment" or "paused", then it is not equal to "completed" thus the update to the segment should happen.
-        Response<ExamSegment> segmentResponse = examSegmentService.findByExamIdAndSegmentPosition(newExam.getId(),
+        Optional<ExamSegment> maybeExamSegment = examSegmentService.findByExamIdAndSegmentPosition(newExam.getId(),
             newExam.getCurrentSegmentPosition());
 
-        if (segmentResponse.getData().isPresent()) {
-            ExamSegment segment = segmentResponse.getData().get();
+        if (maybeExamSegment.isPresent()) {
+            ExamSegment segment = maybeExamSegment.get();
 
             if (segment.isPermeable()
                 && (segment.getRestorePermeableCondition().equalsIgnoreCase("segment")

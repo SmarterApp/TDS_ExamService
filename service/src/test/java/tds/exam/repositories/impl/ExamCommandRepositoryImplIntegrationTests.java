@@ -12,7 +12,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -53,17 +53,19 @@ public class ExamCommandRepositoryImplIntegrationTests {
         Exam exam = new ExamBuilder()
             .withJoinedAt(now)
             .withAbnormalStarts(5)
+            .withBrowserUserAgent("agent 007")
+            .withMultiStageBraille(true)
             .build();
         assertThat(examQueryRepository.getExamById(exam.getId())).isNotPresent();
 
         examCommandRepository.insert(exam);
-        examAccommodationCommandRepository.insert(Arrays.asList(
-          new ExamAccommodationBuilder()
-            .withType("Language")
-            .withCode("ENU")
-            .withExamId(exam.getId())
-            .withSegmentPosition(0)
-            .build()
+        examAccommodationCommandRepository.insert(Collections.singletonList(
+            new ExamAccommodationBuilder()
+                .withType("Language")
+                .withCode("ENU")
+                .withExamId(exam.getId())
+                .withSegmentPosition(0)
+                .build()
         ));
 
         Optional<Exam> maybeExam = examQueryRepository.getExamById(exam.getId());
@@ -83,7 +85,7 @@ public class ExamCommandRepositoryImplIntegrationTests {
         assertThat(savedExam.getAssessmentKey()).isEqualTo(exam.getAssessmentKey());
         assertThat(savedExam.getAssessmentWindowId()).isEqualTo(exam.getAssessmentWindowId());
         assertThat(savedExam.getDateJoined()).isEqualTo(now);
-        assertThat(savedExam.getChangedAt()).isEqualTo(exam.getChangedAt());
+        assertThat(savedExam.getChangedAt()).isGreaterThanOrEqualTo(now);
         assertThat(savedExam.getStartedAt()).isEqualTo(exam.getStartedAt());
         assertThat(savedExam.getScoredAt()).isEqualTo(exam.getScoredAt());
         assertThat(savedExam.getCompletedAt()).isEqualTo(exam.getCompletedAt());
@@ -95,6 +97,10 @@ public class ExamCommandRepositoryImplIntegrationTests {
         assertThat(savedExam.getWaitingForSegmentApprovalPosition()).isEqualTo(exam.getWaitingForSegmentApprovalPosition());
         assertThat(savedExam.getCurrentSegmentPosition()).isEqualTo(exam.getCurrentSegmentPosition());
         assertThat(savedExam.isCustomAccommodations()).isEqualTo(exam.isCustomAccommodations());
+        assertThat(savedExam.getCreatedAt()).isNotNull();
+        assertThat(savedExam.getCreatedAt()).isGreaterThanOrEqualTo(now);
+        assertThat(savedExam.getBrowserUserAgent()).isEqualTo(exam.getBrowserUserAgent());
+        assertThat(savedExam.isMultiStageBraille()).isTrue();
     }
 
     @Test
@@ -103,13 +109,13 @@ public class ExamCommandRepositoryImplIntegrationTests {
         assertThat(examQueryRepository.getExamById(mockExam.getId())).isNotPresent();
 
         examCommandRepository.insert(mockExam);
-        examAccommodationCommandRepository.insert(Arrays.asList(
-          new ExamAccommodationBuilder()
-            .withType("Language")
-            .withCode("ENU")
-            .withExamId(mockExam.getId())
-            .withSegmentPosition(0)
-            .build()
+        examAccommodationCommandRepository.insert(Collections.singletonList(
+            new ExamAccommodationBuilder()
+                .withType("Language")
+                .withCode("ENU")
+                .withExamId(mockExam.getId())
+                .withSegmentPosition(0)
+                .build()
         ));
         Optional<Exam> maybeExam = examQueryRepository.getExamById(mockExam.getId());
         assertThat(maybeExam).isPresent();
@@ -131,6 +137,7 @@ public class ExamCommandRepositoryImplIntegrationTests {
         Exam updatedExam = maybeUpdatedExam.get();
         assertThat(updatedExam.getStatus()).isEqualTo(pausedStatus);
         assertThat(updatedExam.getStatusChangedAt()).isEqualTo(pausedStatusDate);
+        assertThat(updatedExam.getCreatedAt()).isNotNull();
     }
 
     @Test
@@ -144,13 +151,13 @@ public class ExamCommandRepositoryImplIntegrationTests {
 
         exams.forEach(e -> {
             examCommandRepository.insert(e);
-            examAccommodationCommandRepository.insert(Arrays.asList(
-              new ExamAccommodationBuilder()
-                .withType("Language")
-                .withCode("ENU")
-                .withExamId(e.getId())
-                .withSegmentPosition(0)
-                .build()
+            examAccommodationCommandRepository.insert(Collections.singletonList(
+                new ExamAccommodationBuilder()
+                    .withType("Language")
+                    .withCode("ENU")
+                    .withExamId(e.getId())
+                    .withSegmentPosition(0)
+                    .build()
             ));
         });
         
@@ -160,11 +167,13 @@ public class ExamCommandRepositoryImplIntegrationTests {
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.IN_USE), Instant.now().plus(50000))
             .withStatusChangeReason("unit test")
             .withAttempts(500)
+            .withCreatedAt(null)
             .build());
         examsWithChanges.add(new Exam.Builder().fromExam(mockSecondExam)
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_STARTED, ExamStatusStage.IN_USE), Instant.now().plus(55000))
             .withStatusChangeReason("unit test 2")
             .withMaxItems(600)
+            .withCreatedAt(null)
             .build());
 
         examCommandRepository.update(examsWithChanges.toArray(new Exam[examsWithChanges.size()]));
@@ -178,6 +187,7 @@ public class ExamCommandRepositoryImplIntegrationTests {
         assertThat(mockFirstExamAfterUpdate.getStatusChangedAt().getMillis()).isGreaterThan(mockFirstExam.getStatusChangedAt().getMillis());
         assertThat(mockFirstExamAfterUpdate.getAttempts()).isEqualTo(500);
         assertThat(mockFirstExamAfterUpdate.getStatusChangeReason()).isEqualTo("unit test");
+        assertThat(mockFirstExamAfterUpdate.getCreatedAt()).isNotNull();
 
         // Verify the second exam was updated
         Optional<Exam> maybeMockSecondExamAfterUpdate = examQueryRepository.getExamById(mockSecondExam.getId());
@@ -188,5 +198,6 @@ public class ExamCommandRepositoryImplIntegrationTests {
         assertThat(mockSecondExamAfterUpdate.getStatusChangedAt().getMillis()).isGreaterThan(mockSecondExam.getStatusChangedAt().getMillis());
         assertThat(mockSecondExamAfterUpdate.getMaxItems()).isEqualTo(600);
         assertThat(mockSecondExamAfterUpdate.getStatusChangeReason()).isEqualTo("unit test 2");
+        assertThat(mockSecondExamAfterUpdate.getCreatedAt()).isNotNull();
     }
 }

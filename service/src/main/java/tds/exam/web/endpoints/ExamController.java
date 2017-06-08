@@ -17,18 +17,18 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 import tds.common.Response;
 import tds.common.ValidationError;
 import tds.common.web.exceptions.NotFoundException;
 import tds.common.web.resources.NoContentResponseResource;
+import tds.exam.ApproveAccommodationsRequest;
 import tds.exam.Exam;
+import tds.exam.ExamAssessmentMetadata;
 import tds.exam.ExamConfiguration;
 import tds.exam.ExamStatusCode;
-import tds.exam.ExamStatusStage;
-import tds.exam.ExpandableExam;
+import tds.exam.ExamStatusRequest;
 import tds.exam.OpenExamRequest;
 import tds.exam.SegmentApprovalRequest;
 import tds.exam.services.ExamService;
@@ -74,8 +74,8 @@ public class ExamController {
     }
 
     @RequestMapping(value = "/{examId}/start", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<Response<ExamConfiguration>> startExam(@PathVariable final UUID examId) {
-        Response<ExamConfiguration> examConfiguration = examService.startExam(examId);
+    ResponseEntity<Response<ExamConfiguration>> startExam(@PathVariable final UUID examId, @RequestBody final String browserUserAgent) {
+        Response<ExamConfiguration> examConfiguration = examService.startExam(examId, browserUserAgent);
 
         if (examConfiguration.hasError()) {
             return new ResponseEntity<>(examConfiguration, HttpStatus.UNPROCESSABLE_ENTITY);
@@ -86,12 +86,9 @@ public class ExamController {
 
     @RequestMapping(value = "/{examId}/status", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<NoContentResponseResource> updateStatus(@PathVariable final UUID examId,
-                                                           @RequestParam final String status,
-                                                           @RequestParam(required = false) final String stage,
-                                                           @RequestParam(required = false) final String reason) {
-
-        ExamStatusCode examStatus = (stage == null) ? new ExamStatusCode(status) : new ExamStatusCode(status, ExamStatusStage.fromType(stage));
-        final Optional<ValidationError> maybeStatusTransitionFailure = examService.updateExamStatus(examId, examStatus, reason);
+                                                           @RequestBody final ExamStatusRequest examStatusRequest) {
+        final Optional<ValidationError> maybeStatusTransitionFailure = examService.updateExamStatus(examId,
+            examStatusRequest.getExamStatus(), examStatusRequest.getReason());
 
         if (maybeStatusTransitionFailure.isPresent()) {
             NoContentResponseResource response = new NoContentResponseResource(maybeStatusTransitionFailure.get());
@@ -103,15 +100,6 @@ public class ExamController {
         headers.add("Location", link.getHref());
 
         return new ResponseEntity<>(headers, HttpStatus.NO_CONTENT);
-    }
-
-    @RequestMapping(value = "/session/{sessionId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<List<ExpandableExam>> findExamsForSessionId(@PathVariable final UUID sessionId,
-                                                               @RequestParam(required = false) final Set<String> statusNot,
-                                                               @RequestParam(required = false) final String... embed) {
-        final List<ExpandableExam> exams = examService.findExamsBySessionId(sessionId, statusNot, embed);
-
-        return ResponseEntity.ok(exams);
     }
 
     @RequestMapping(value = "/{examId}/pause", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -133,7 +121,7 @@ public class ExamController {
 
     @RequestMapping(value = "/pause/{sessionId}", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void pauseExamsInSession(@PathVariable final UUID sessionId) {
+    void pauseExamsInSession(@PathVariable final UUID sessionId) {
         examService.pauseAllExamsInSession(sessionId);
     }
 
@@ -152,5 +140,34 @@ public class ExamController {
         headers.add("Location", link.getHref());
 
         return new ResponseEntity<>(headers, HttpStatus.NO_CONTENT);
+    }
+
+    @RequestMapping(value = "/{examId}/accommodations", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<NoContentResponseResource> approveAccommodations(@PathVariable final UUID examId, @RequestBody ApproveAccommodationsRequest request) {
+        Optional<ValidationError> maybeError = examService.updateExamAccommodationsAndExam(examId, request);
+
+        if (maybeError.isPresent()) {
+            NoContentResponseResource response = new NoContentResponseResource(maybeError.get());
+            return new ResponseEntity<>(response, HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+
+        Link link = linkTo(methodOn(ExamAccommodationController.class).findAccommodations(examId)).withSelfRel();
+        final HttpHeaders headers = new HttpHeaders();
+        headers.add("Location", link.getHref());
+
+        return new ResponseEntity<>(headers, HttpStatus.NO_CONTENT);
+    }
+
+    @RequestMapping(value = "/metadata", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<Response<List<ExamAssessmentMetadata>>> findExamAssessmentMetadata(@RequestParam final long studentId,
+                                                                            @RequestParam final UUID sessionId,
+                                                                            @RequestParam final String grade) {
+        Response<List<ExamAssessmentMetadata>> response = examService.findExamAssessmentMetadata(studentId, sessionId, grade);
+
+        if (response.getError().isPresent()) {
+            return new ResponseEntity<>(response, HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+
+        return ResponseEntity.ok(response);
     }
 }

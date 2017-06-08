@@ -22,6 +22,7 @@ import tds.exam.ExamSegment;
 import tds.exam.builder.ExamBuilder;
 import tds.exam.builder.ExamItemBuilder;
 import tds.exam.builder.ExamItemResponseBuilder;
+import tds.exam.builder.ExamPageBuilder;
 import tds.exam.builder.ExamSegmentBuilder;
 import tds.exam.repositories.ExamCommandRepository;
 import tds.exam.repositories.ExamItemCommandRepository;
@@ -66,10 +67,9 @@ public class ExamItemRepositoryIntegrationTests {
         examSegmentCommandRepository.insert(Arrays.asList(mockExamSegment));
 
         // This page will be deleted
-        ExamPage page1 = new ExamPage.Builder()
+        ExamPage page1 = new ExamPageBuilder()
             .withId(UUID.randomUUID())
             .withExamId(exam.getId())
-            .withSegmentId(mockExamSegment.getSegmentId())
             .withSegmentKey(mockExamSegment.getSegmentKey())
             .withPagePosition(1)
             .withItemGroupKey("key1")
@@ -85,6 +85,7 @@ public class ExamItemRepositoryIntegrationTests {
 
         ExamItemResponse examItemResponse = new ExamItemResponseBuilder()
             .withExamItemId(examItem.getId())
+            .withExamId(exam.getId())
             .withSequence(2)
             .build();
 
@@ -93,10 +94,9 @@ public class ExamItemRepositoryIntegrationTests {
         // Now the above is marked as deleted.
         examPageCommandRepository.deleteAll(exam.getId());
 
-        ExamPage page2 = new ExamPage.Builder()
+        ExamPage page2 = new ExamPageBuilder()
             .withId(UUID.randomUUID())
             .withExamId(exam.getId())
-            .withSegmentId(mockExamSegment.getSegmentId())
             .withSegmentKey(mockExamSegment.getSegmentKey())
             .withPagePosition(1)
             .withItemGroupKey("key1")
@@ -112,6 +112,7 @@ public class ExamItemRepositoryIntegrationTests {
 
         ExamItemResponse examItemResponse2 = new ExamItemResponseBuilder()
             .withExamItemId(examItem.getId())
+            .withExamId(exam.getId())
             .withSequence(2)
             .build();
 
@@ -139,20 +140,18 @@ public class ExamItemRepositoryIntegrationTests {
         examSegmentCommandRepository.insert(Arrays.asList(mockExamSegment1, mockExamSegment2));
 
         // Page for 1st exam
-        ExamPage examPage1 = new ExamPage.Builder()
+        ExamPage examPage1 = new ExamPageBuilder()
             .withId(UUID.randomUUID())
             .withExamId(exam1.getId())
-            .withSegmentId(mockExamSegment1.getSegmentId())
             .withSegmentKey(mockExamSegment1.getSegmentKey())
             .withPagePosition(1)
             .withItemGroupKey("key1")
             .build();
 
         // Page for 2nd exam
-        ExamPage examPage2 = new ExamPage.Builder()
+        ExamPage examPage2 = new ExamPageBuilder()
             .withId(UUID.randomUUID())
             .withExamId(exam2.getId())
-            .withSegmentId(mockExamSegment2.getSegmentId())
             .withSegmentKey(mockExamSegment2.getSegmentKey())
             .withPagePosition(1)
             .withItemGroupKey("key1")
@@ -195,23 +194,28 @@ public class ExamItemRepositoryIntegrationTests {
         // Exam 1
         ExamItemResponse exam1Item1Response = new ExamItemResponseBuilder()
             .withExamItemId(exam1Item1.getId())
+            .withExamId(exam1.getId())
             .withSequence(2)
             .build();
         ExamItemResponse exam1Item2Response1 = new ExamItemResponseBuilder()
             .withExamItemId(exam1Item2.getId())
+            .withExamId(exam1.getId())
             .withSequence(1)
             .build();
         ExamItemResponse exam1Item2Response2 = new ExamItemResponseBuilder()
             .withExamItemId(exam1Item2.getId())
+            .withExamId(exam1.getId())
             .withSequence(3)
             .build();
         // Exam 2
         ExamItemResponse exam2Item1Response1 = new ExamItemResponseBuilder()
             .withExamItemId(exam2Item1.getId())
+            .withExamId(exam2.getId())
             .withSequence(1)
             .build();
         ExamItemResponse exam2Item1Response2 = new ExamItemResponseBuilder()
             .withExamItemId(exam2Item1.getId())
+            .withExamId(exam2.getId())
             .withSequence(2)
             .build();
 

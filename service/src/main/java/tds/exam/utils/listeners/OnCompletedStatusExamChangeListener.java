@@ -5,8 +5,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
-import tds.common.Response;
 import tds.common.entity.utils.ChangeListener;
 import tds.common.util.Preconditions;
 import tds.exam.Exam;
@@ -17,6 +17,7 @@ import tds.exam.models.FieldTestItemGroup;
 import tds.exam.services.ExamSegmentService;
 import tds.exam.services.ExamineeService;
 import tds.exam.services.FieldTestService;
+import tds.exam.services.MessagingService;
 
 /**
  * Listener to apply business rules when an {@link tds.exam.Exam}'s status is set to "completed"
@@ -26,14 +27,17 @@ public class OnCompletedStatusExamChangeListener implements ChangeListener<Exam>
     private final ExamSegmentService examSegmentService;
     private final FieldTestService fieldTestService;
     private final ExamineeService examineeService;
+    private final MessagingService messagingService;
 
     @Autowired
     public OnCompletedStatusExamChangeListener(final ExamSegmentService examSegmentService,
                                                final FieldTestService fieldTestService,
-                                               final ExamineeService examineeService) {
+                                               final ExamineeService examineeService,
+                                               final MessagingService messagingService) {
         this.examSegmentService = examSegmentService;
         this.fieldTestService = fieldTestService;
         this.examineeService = examineeService;
+        this.messagingService = messagingService;
     }
 
     @Override
@@ -50,15 +54,20 @@ public class OnCompletedStatusExamChangeListener implements ChangeListener<Exam>
         }
 
         // CommonDLL#_OnStatus_Completed_SP, line 1425: Update the exam to indicate this segment is not permeable,
-        // meaning the segment cannot be accessed/visited again.  Legacy code sets isPermeable to -1
-        Response<ExamSegment> examSegmentResponse = examSegmentService.findByExamIdAndSegmentPosition(newExam.getId(),
-            newExam.getCurrentSegmentPosition());
+        // meaning the segment cannot be accessed/visited again.  Legacy code sets isPermeable to -1 for all segments
+        final List<ExamSegment> examSegments = examSegmentService.findExamSegments(newExam.getId());
 
-        if (examSegmentResponse.getData().isPresent()) {
-            examSegmentService.update(ExamSegment.Builder
-                .fromSegment(examSegmentResponse.getData().get())
-                .withPermeable(false)
-                .build());
+        if (!examSegments.isEmpty()) {
+            final List<ExamSegment> filteredSegments = examSegments.stream()
+                .filter(ExamSegment::isPermeable)
+                .map(examSegment -> ExamSegment.Builder
+                    .fromSegment(examSegment)
+                    .withPermeable(false)
+                    .build()
+                )
+                .collect(Collectors.toList());
+
+            examSegmentService.update(filteredSegments.toArray(new ExamSegment[filteredSegments.size()]));
         }
 
         // CommonDLL#_OnStatus_Completed_SP, line 1430: insert the final version of the student's attributes and
@@ -71,13 +80,16 @@ public class OnCompletedStatusExamChangeListener implements ChangeListener<Exam>
 
         // CommonDLL#_OnStatus_Completed_SP, lines 1445 - 1453: Find all the field test items that were administered
         // during an exam and record their usage.
-        List<FieldTestItemGroup> fieldTestItemGroupsToUpdate = fieldTestService.findUsageInExam(newExam.getId());
-        if (fieldTestItemGroupsToUpdate.isEmpty()) {
-            return;
+        final List<FieldTestItemGroup> fieldTestItemGroupsToUpdate = fieldTestService.findUsageInExam(newExam.getId());
+        if (!fieldTestItemGroupsToUpdate.isEmpty()) {
+            fieldTestService.update(fieldTestItemGroupsToUpdate.toArray(new FieldTestItemGroup[fieldTestItemGroupsToUpdate.size()]));
         }
 
-        fieldTestService.update(fieldTestItemGroupsToUpdate.toArray(new FieldTestItemGroup[fieldTestItemGroupsToUpdate.size()]));
-
-        // TODO:  Submit for scoring (CommonDLL#_OnStatus_Completed_SP, line 1433 - 1434), which changes the exam's status to "submitted"
+        // Publish the submitted exam to the Messaging backend, allowing other services to continue processing it.
+        // Submit for scoring (CommonDLL#_OnStatus_Completed_SP, line 1433 - 1434), which changes the exam's status to "submitted"
+        // Guests are not sent to TIS
+        if(newExam.getStudentId() > 0) {
+            messagingService.sendExamCompletion(newExam.getId());
+        }
     }
 }
