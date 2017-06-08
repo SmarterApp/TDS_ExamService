@@ -451,8 +451,9 @@ class ExamServiceImpl implements ExamService {
         /* StudentDLL [5344] Skipping getInitialAbility() call here - the ability is retrieved in legacy but never set on TestConfig */
 
         if (exam.getStartedAt() == null) { // Start a new exam
-            // Initialize the segments in the exam and get the testlength.
-            Exam initializedExam = initializeExam(exam, assessment, browserUserAgent);
+            // Initialize the segments in the exam and get the testlength and trim the quotes off the user agent string
+            String unquotedUserAgent = browserUserAgent.replaceAll("^\"|\"$", "");
+            Exam initializedExam = initializeExam(exam, assessment, unquotedUserAgent);
             /* StudentDLL [5367] and TestOppServiceImpl [167] */
             examConfig = initializeDefaultExamConfiguration(initializedExam, assessment, timeLimitConfiguration);
         } else { // Restart or resume the most recent exam
