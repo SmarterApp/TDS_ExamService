@@ -171,7 +171,7 @@ public class ResponseServiceImpl implements ResponseService {
             .orElseThrow(() -> new ReturnStatusException("Exam page is no longer present for the updated item"));
 
         final ExamPage updatedExamPage = ExamPage.Builder.fromExamPage(examPage)
-            .withDuration(pageDuration)
+            .withDuration(pageDuration + examPage.getDuration()) // Accumulate the duration
             .build();
 
         examPageService.update(updatedExamPage);
