@@ -23,7 +23,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <integration-tests.skip>true</integration-tests.skip>
         <mockito.version>1.10.19</mockito.version>
-        <docker.image.prefix>fwsbac</docker.image.prefix>
+        <docker.image.prefix>smarterbalanced</docker.image.prefix>
         <mysql.version>5.1.39</mysql.version>
         <joda-time.version>2.9.5</joda-time.version>
 
