@@ -42,6 +42,7 @@ public class ExamPageWrapperQueryRepositoryImpl implements ExamPageWrapperQueryR
         "   page.created_at, \n" +
         "   page.segment_key, \n" +
         "   page_event.started_at, \n" +
+        "   page_event.page_duration, \n" +
         "   page_event.visible, \n" +
         "   item.id AS item_id, \n" +
         "   item.item_key, \n" +
@@ -171,6 +172,7 @@ public class ExamPageWrapperQueryRepositoryImpl implements ExamPageWrapperQueryR
                         .withId(UUID.fromString(resultExtractor.getString("page_id")))
                         .withPagePosition(resultExtractor.getInt("page_position"))
                         .withSegmentKey(resultExtractor.getString("segment_key"))
+                        .withDuration(resultExtractor.getLong("page_duration"))
                         .withItemGroupKey(resultExtractor.getString("item_group_key"))
                         .withGroupItemsRequired(resultExtractor.getInt("group_items_required"))
                         .withExamId(UUID.fromString(resultExtractor.getString("exam_id")))

@@ -184,5 +184,12 @@ public class ResponseServiceImplTest {
 
         final ExamItemResponse persisted = responseCaptor.getValue();
         assertThat(persisted.getScore().get().getScore()).isEqualTo(1);
+
+        final ArgumentCaptor<ExamPage> pageResponseCaptor = ArgumentCaptor.forClass(ExamPage.class);
+        verify(mockExamPageService).update(pageResponseCaptor.capture());
+
+        ExamPage updatedExamPage = pageResponseCaptor.getValue();
+        assertThat(updatedExamPage.getSegmentKey()).isEqualTo(examPage.getSegmentKey());
+        assertThat(updatedExamPage.getDuration()).isEqualTo(456 + examPage.getDuration());
     }
 }
