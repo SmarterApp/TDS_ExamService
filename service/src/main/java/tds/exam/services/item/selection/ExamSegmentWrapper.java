@@ -14,7 +14,7 @@ import tds.exam.ExamSegment;
  * A Wrapper class that associates {@link tds.exam.ExamSegment} with its exams
  */
 class ExamSegmentWrapper {
-    private final ExamSegment examSegment;
+    private ExamSegment examSegment;
     private Set<UUID> pageIds = new HashSet<>();
     private List<ExamItem> items = new ArrayList<>();
 
@@ -65,5 +65,9 @@ class ExamSegmentWrapper {
      */
     public ExamSegment getExamSegment() {
         return examSegment;
+    }
+
+    public void setExamSegment(final ExamSegment examSegment) {
+        this.examSegment = examSegment;
     }
 }
