@@ -975,7 +975,7 @@ public class ExamServiceImplTest {
 
     @Test
     public void shouldStartNewExam() throws InterruptedException {
-        final String browserUserAgent = "007";
+        final String browserUserAgent = "\"Mozilla\"";
         Session session = new SessionBuilder().build();
         Instant now = org.joda.time.Instant.now().minus(5000);
         Instant approvedStatusDate = now.minus(5000);
@@ -1042,7 +1042,7 @@ public class ExamServiceImplTest {
         assertThat(updatedExam.getStatus().getCode()).isEqualTo(ExamStatusCode.STATUS_STARTED);
         assertThat(updatedExam.getStatusChangedAt()).isGreaterThan(approvedStatusDate);
         assertThat(updatedExam.getWaitingForSegmentApprovalPosition()).isEqualTo(-1);
-        assertThat(updatedExam.getBrowserUserAgent()).isEqualTo(browserUserAgent);
+        assertThat(updatedExam.getBrowserUserAgent()).isEqualTo("Mozilla");
     }
 
     @Test
