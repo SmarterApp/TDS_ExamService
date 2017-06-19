@@ -262,6 +262,7 @@ class ExamServiceImpl implements ExamService {
             .withStatus(newStatus, org.joda.time.Instant.now())
             .withStatusChangeReason(statusChangeReason)
             .withWaitingForSegmentApprovalPosition(waitingForSegmentPosition)
+            .withCompletedAt(newStatus.getCode().equalsIgnoreCase(ExamStatusCode.STATUS_COMPLETED) ? org.joda.time.Instant.now() : null)
             .build();
 
         updateExam(exam, updatedExam);

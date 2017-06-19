@@ -1901,6 +1901,34 @@ public class ExamServiceImplTest {
         verify(mockReviewExamStatusChangeValidator).validate(any(Exam.class), any(ExamStatusCode.class));
 
         assertThat(maybeValidationError).isNotPresent();
+        verify(mockExamCommandRepository).update(examArgumentCaptor.capture());
+        Exam updatedExam = examArgumentCaptor.getValue();
+        assertThat(updatedExam.getCompletedAt()).isNull();
+    }
+
+    @Test
+    public void shouldUpdateAnExamToCompletedStatus() {
+        final Exam exam = new ExamBuilder()
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_STARTED), Instant.now())
+            .build();
+        final ExamStatusCode completeStatus = new ExamStatusCode(ExamStatusCode.STATUS_COMPLETED);
+
+        when(examService.findExam(any(UUID.class)))
+            .thenReturn(Optional.of(exam));
+        when(mockDefaultExamStatusChangeValidator.validate(any(Exam.class), any(ExamStatusCode.class)))
+            .thenReturn(Optional.empty());
+        when(mockReviewExamStatusChangeValidator.validate(any(Exam.class), any(ExamStatusCode.class)))
+            .thenReturn(Optional.empty());
+
+        final Optional<ValidationError> maybeValidationError = examService.updateExamStatus(exam.getId(), completeStatus);
+
+        verify(mockDefaultExamStatusChangeValidator).validate(any(Exam.class), any(ExamStatusCode.class));
+        verify(mockReviewExamStatusChangeValidator).validate(any(Exam.class), any(ExamStatusCode.class));
+
+        assertThat(maybeValidationError).isNotPresent();
+        verify(mockExamCommandRepository).update(examArgumentCaptor.capture());
+        Exam updatedExam = examArgumentCaptor.getValue();
+        assertThat(updatedExam.getCompletedAt()).isNotNull();
     }
 
     @Test
