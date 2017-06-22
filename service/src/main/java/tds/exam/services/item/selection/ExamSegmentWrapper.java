@@ -1,3 +1,16 @@
+/***************************************************************************************************
+ * Copyright 2017 Regents of the University of California. Licensed under the Educational
+ * Community License, Version 2.0 (the “license”); you may not use this file except in
+ * compliance with the License. You may obtain a copy of the license at
+ *
+ * https://opensource.org/licenses/ECL-2.0
+ *
+ * Unless required under applicable law or agreed to in writing, software distributed under the
+ * License is distributed in an “AS IS” BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for specific language governing permissions
+ * and limitations under the license.
+ **************************************************************************************************/
+
 package tds.exam.services.item.selection;
 
 import java.util.ArrayList;
@@ -14,7 +27,7 @@ import tds.exam.ExamSegment;
  * A Wrapper class that associates {@link tds.exam.ExamSegment} with its exams
  */
 class ExamSegmentWrapper {
-    private final ExamSegment examSegment;
+    private ExamSegment examSegment;
     private Set<UUID> pageIds = new HashSet<>();
     private List<ExamItem> items = new ArrayList<>();
 
@@ -65,5 +78,9 @@ class ExamSegmentWrapper {
      */
     public ExamSegment getExamSegment() {
         return examSegment;
+    }
+
+    public void setExamSegment(final ExamSegment examSegment) {
+        this.examSegment = examSegment;
     }
 }

@@ -1,3 +1,16 @@
+/***************************************************************************************************
+ * Copyright 2017 Regents of the University of California. Licensed under the Educational
+ * Community License, Version 2.0 (the “license”); you may not use this file except in
+ * compliance with the License. You may obtain a copy of the license at
+ *
+ * https://opensource.org/licenses/ECL-2.0
+ *
+ * Unless required under applicable law or agreed to in writing, software distributed under the
+ * License is distributed in an “AS IS” BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for specific language governing permissions
+ * and limitations under the license.
+ **************************************************************************************************/
+
 package tds.exam.services.item.selection;
 
 import TDS.Shared.Exceptions.ReturnStatusException;
@@ -173,11 +186,11 @@ public class ItemCandidateServiceImplTest {
         ArgumentCaptor<ExamSegment> varArgs = ArgumentCaptor.forClass(ExamSegment.class);
         verify(mockExamSegmentService).update(varArgs.capture());
 
-        assertThat(candidates).hasSize(1);
+        assertThat(candidates).hasSize(2);
 
         ItemCandidatesData data = candidates.get(0);
 
-        assertThat(data.getSegmentKey()).isEqualTo(segment2.getKey());
+        assertThat(data.getSegmentKey()).isEqualTo(segment.getKey());
 
         assertThat(varArgs.getAllValues()).hasSize(1);
 
@@ -318,7 +331,7 @@ public class ItemCandidateServiceImplTest {
         verify(mockExamSegmentService).update(varArgs.capture());
 
         assertThat(varArgs.getAllValues()).hasSize(1);
-        assertThat(varArgs.getAllValues().get(0).getSegmentKey()).isEqualTo("segment2");
+        assertThat(varArgs.getAllValues().get(0).getSegmentKey()).isEqualTo("segment3");
     }
 
     @Test
