@@ -1,3 +1,16 @@
+/***************************************************************************************************
+ * Copyright 2017 Regents of the University of California. Licensed under the Educational
+ * Community License, Version 2.0 (the “license”); you may not use this file except in
+ * compliance with the License. You may obtain a copy of the license at
+ *
+ * https://opensource.org/licenses/ECL-2.0
+ *
+ * Unless required under applicable law or agreed to in writing, software distributed under the
+ * License is distributed in an “AS IS” BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for specific language governing permissions
+ * and limitations under the license.
+ **************************************************************************************************/
+
 package tds.exam.services.impl;
 
 import org.apache.commons.lang3.StringUtils;
@@ -262,6 +275,7 @@ class ExamServiceImpl implements ExamService {
             .withStatus(newStatus, org.joda.time.Instant.now())
             .withStatusChangeReason(statusChangeReason)
             .withWaitingForSegmentApprovalPosition(waitingForSegmentPosition)
+            .withCompletedAt(newStatus.getCode().equalsIgnoreCase(ExamStatusCode.STATUS_COMPLETED) ? org.joda.time.Instant.now() : null)
             .build();
 
         updateExam(exam, updatedExam);
@@ -451,8 +465,9 @@ class ExamServiceImpl implements ExamService {
         /* StudentDLL [5344] Skipping getInitialAbility() call here - the ability is retrieved in legacy but never set on TestConfig */
 
         if (exam.getStartedAt() == null) { // Start a new exam
-            // Initialize the segments in the exam and get the testlength.
-            Exam initializedExam = initializeExam(exam, assessment, browserUserAgent);
+            // Initialize the segments in the exam and get the testlength and trim the quotes off the user agent string
+            String unquotedUserAgent = browserUserAgent.replaceAll("^\"|\"$", "");
+            Exam initializedExam = initializeExam(exam, assessment, unquotedUserAgent);
             /* StudentDLL [5367] and TestOppServiceImpl [167] */
             examConfig = initializeDefaultExamConfiguration(initializedExam, assessment, timeLimitConfiguration);
         } else { // Restart or resume the most recent exam
