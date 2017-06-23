@@ -1,3 +1,16 @@
+/***************************************************************************************************
+ * Copyright 2017 Regents of the University of California. Licensed under the Educational
+ * Community License, Version 2.0 (the “license”); you may not use this file except in
+ * compliance with the License. You may obtain a copy of the license at
+ *
+ * https://opensource.org/licenses/ECL-2.0
+ *
+ * Unless required under applicable law or agreed to in writing, software distributed under the
+ * License is distributed in an “AS IS” BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for specific language governing permissions
+ * and limitations under the license.
+ **************************************************************************************************/
+
 package tds.score.services.impl;
 
 import AIR.Common.Web.EncryptionHelper;
@@ -23,6 +36,7 @@ import tds.itemscoringengine.ScorerInfo;
 import tds.itemscoringengine.ScoringStatus;
 import tds.itemscoringengine.WebProxyItemScorerCallback;
 import tds.score.configuration.ItemScoreSettings;
+import tds.score.model.AccLookupWrapper;
 import tds.score.model.ExamInstance;
 import tds.score.services.ContentService;
 import tds.score.services.ItemScoringService;
@@ -210,7 +224,7 @@ public class ItemScoringServiceImpl implements ItemScoringService {
             ItemResponseUpdateStatus updateStatus;
 
             // get its doc
-            IITSDocument itsDoc = contentService.getContent(responseUpdate.getFilePath(), AccLookup.getNone());
+            IITSDocument itsDoc = contentService.getContent(responseUpdate.getFilePath(), new AccLookupWrapper(AccLookup.getNone()));
 
             // check if loaded document
             if (itsDoc == null) {

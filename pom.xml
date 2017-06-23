@@ -5,7 +5,7 @@
     <artifactId>tds-exam</artifactId>
     <name>tds-exam</name>
     <packaging>pom</packaging>
-    <version>3.1.1-SNAPSHOT</version>
+    <version>3.1.2-SNAPSHOT</version>
 
     <modules>
         <module>client</module>
@@ -27,13 +27,13 @@
         <mysql.version>5.1.39</mysql.version>
         <joda-time.version>2.9.5</joda-time.version>
 
-        <tds-common.version>3.1.0.RELEASE</tds-common.version>
-        <tds-session.version>3.1.0.RELEASE</tds-session.version>
-        <tds-assessment-client.version>3.1.0.RELEASE</tds-assessment-client.version>
-        <tds-student-client.version>3.1.0.RELEASE</tds-student-client.version>
-        <tds-config-client.version>3.1.0.RELEASE</tds-config-client.version>
-        <tds-student-library.version>3.1.0.RELEASE</tds-student-library.version>
-        <tds-item-selection.version>3.1.0.RELEASE</tds-item-selection.version>
+        <tds-common.version>3.1.1.RELEASE</tds-common.version>
+        <tds-session.version>3.1.1.RELEASE</tds-session.version>
+        <tds-assessment-client.version>3.1.1</tds-assessment-client.version>
+        <tds-student-client.version>3.1.1.RELEASE</tds-student-client.version>
+        <tds-config-client.version>3.1.1.RELEASE</tds-config-client.version>
+        <tds-student-library.version>3.1.1.RELEASE</tds-student-library.version>
+        <tds-item-selection.version>3.1.1.RELEASE</tds-item-selection.version>
 
         <maven.compiler.plugin.version>3.5.1</maven.compiler.plugin.version>
         <maven.release.plugin.version>2.5.3</maven.release.plugin.version>

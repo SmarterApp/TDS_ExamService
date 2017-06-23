@@ -1,3 +1,16 @@
+/***************************************************************************************************
+ * Copyright 2017 Regents of the University of California. Licensed under the Educational
+ * Community License, Version 2.0 (the “license”); you may not use this file except in
+ * compliance with the License. You may obtain a copy of the license at
+ *
+ * https://opensource.org/licenses/ECL-2.0
+ *
+ * Unless required under applicable law or agreed to in writing, software distributed under the
+ * License is distributed in an “AS IS” BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for specific language governing permissions
+ * and limitations under the license.
+ **************************************************************************************************/
+
 package tds.exam.services.impl;
 
 import org.assertj.core.util.Lists;
@@ -975,7 +988,7 @@ public class ExamServiceImplTest {
 
     @Test
     public void shouldStartNewExam() throws InterruptedException {
-        final String browserUserAgent = "007";
+        final String browserUserAgent = "\"Mozilla\"";
         Session session = new SessionBuilder().build();
         Instant now = org.joda.time.Instant.now().minus(5000);
         Instant approvedStatusDate = now.minus(5000);
@@ -1042,7 +1055,7 @@ public class ExamServiceImplTest {
         assertThat(updatedExam.getStatus().getCode()).isEqualTo(ExamStatusCode.STATUS_STARTED);
         assertThat(updatedExam.getStatusChangedAt()).isGreaterThan(approvedStatusDate);
         assertThat(updatedExam.getWaitingForSegmentApprovalPosition()).isEqualTo(-1);
-        assertThat(updatedExam.getBrowserUserAgent()).isEqualTo(browserUserAgent);
+        assertThat(updatedExam.getBrowserUserAgent()).isEqualTo("Mozilla");
     }
 
     @Test
@@ -1901,6 +1914,34 @@ public class ExamServiceImplTest {
         verify(mockReviewExamStatusChangeValidator).validate(any(Exam.class), any(ExamStatusCode.class));
 
         assertThat(maybeValidationError).isNotPresent();
+        verify(mockExamCommandRepository).update(examArgumentCaptor.capture());
+        Exam updatedExam = examArgumentCaptor.getValue();
+        assertThat(updatedExam.getCompletedAt()).isNull();
+    }
+
+    @Test
+    public void shouldUpdateAnExamToCompletedStatus() {
+        final Exam exam = new ExamBuilder()
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_STARTED), Instant.now())
+            .build();
+        final ExamStatusCode completeStatus = new ExamStatusCode(ExamStatusCode.STATUS_COMPLETED);
+
+        when(examService.findExam(any(UUID.class)))
+            .thenReturn(Optional.of(exam));
+        when(mockDefaultExamStatusChangeValidator.validate(any(Exam.class), any(ExamStatusCode.class)))
+            .thenReturn(Optional.empty());
+        when(mockReviewExamStatusChangeValidator.validate(any(Exam.class), any(ExamStatusCode.class)))
+            .thenReturn(Optional.empty());
+
+        final Optional<ValidationError> maybeValidationError = examService.updateExamStatus(exam.getId(), completeStatus);
+
+        verify(mockDefaultExamStatusChangeValidator).validate(any(Exam.class), any(ExamStatusCode.class));
+        verify(mockReviewExamStatusChangeValidator).validate(any(Exam.class), any(ExamStatusCode.class));
+
+        assertThat(maybeValidationError).isNotPresent();
+        verify(mockExamCommandRepository).update(examArgumentCaptor.capture());
+        Exam updatedExam = examArgumentCaptor.getValue();
+        assertThat(updatedExam.getCompletedAt()).isNotNull();
     }
 
     @Test
