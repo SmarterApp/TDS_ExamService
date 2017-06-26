@@ -18,12 +18,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Optional;
 
+import tds.common.cache.CacheType;
 import tds.itemrenderer.data.AccLookup;
 import tds.itemrenderer.data.IITSDocument;
 import tds.itemrenderer.data.ITSContent;
@@ -51,18 +53,13 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public IITSDocument getContent(final String xmlFilePath, final AccLookup accommodations) throws ReturnStatusException {
-        return getContent(xmlFilePath, new AccLookupWrapper(accommodations));
-    }
-
-    @Override
     public IITSDocument getItemContent(final String clientName, final long bankKey, final long itemKey, final AccLookup accommodations) throws ReturnStatusException {
         try {
             Optional<Item> maybeItem = itemService.findItemByKey(clientName, bankKey, itemKey);
             if (!maybeItem.isPresent())
                 return null;
 
-            return getContent(maybeItem.get().getItemPath(), accommodations);
+            return getContent(maybeItem.get().getItemPath(), new AccLookupWrapper(accommodations));
         } catch (ReturnStatusException e) {
             _logger.error(e.getMessage());
             throw e;
@@ -75,15 +72,15 @@ public class ContentServiceImpl implements ContentService {
         if (!maybeItem.isPresent())
             return null;
 
-        return getContent(maybeItem.get().getStimulusPath(), accommodations);
+        return getContent(maybeItem.get().getStimulusPath(), new AccLookupWrapper(accommodations));
     }
 
     @Override
     public void loadPageGroupDocuments(final PageGroup pageGroup, final AccLookup accLookup) throws ReturnStatusException {
         try {
-            pageGroup.setDocument(getContent(pageGroup.getFilePath(), accLookup));
+            pageGroup.setDocument(getContent(pageGroup.getFilePath(),  new AccLookupWrapper(accLookup)));
             for (ItemResponse itemResponse : pageGroup) {
-                itemResponse.setDocument(getContent(itemResponse.getFilePath(), accLookup));
+                itemResponse.setDocument(getContent(itemResponse.getFilePath(), new AccLookupWrapper(accLookup)));
             }
         } catch (ReturnStatusException e) {
             _logger.error(e.getMessage());
@@ -116,7 +113,9 @@ public class ContentServiceImpl implements ContentService {
         return machineRubric;
     }
 
-    private IITSDocument getContent(String xmlFilePath, AccLookupWrapper accommodations) throws ReturnStatusException {
+    @Override
+    @Cacheable(CacheType.LONG_TERM)
+    public IITSDocument getContent(String xmlFilePath, AccLookupWrapper accommodations) throws ReturnStatusException {
         if (StringUtils.isEmpty(xmlFilePath)) {
             return null;
         }

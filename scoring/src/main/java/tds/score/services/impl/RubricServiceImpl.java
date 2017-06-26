@@ -14,7 +14,10 @@
 package tds.score.services.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+
+import tds.common.cache.CacheType;
 import tds.score.repositories.RubricRepository;
 import tds.score.services.RubricService;
 
@@ -34,6 +37,7 @@ public class RubricServiceImpl implements RubricService {
     }
 
     @Override
+    @Cacheable(CacheType.LONG_TERM)
     public String findOne(final String rubricPath) throws IOException {
         return rubricRepository.findOne(rubricPath);
     }

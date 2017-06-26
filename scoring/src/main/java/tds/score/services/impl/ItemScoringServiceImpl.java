@@ -36,6 +36,7 @@ import tds.itemscoringengine.ScorerInfo;
 import tds.itemscoringengine.ScoringStatus;
 import tds.itemscoringengine.WebProxyItemScorerCallback;
 import tds.score.configuration.ItemScoreSettings;
+import tds.score.model.AccLookupWrapper;
 import tds.score.model.ExamInstance;
 import tds.score.services.ContentService;
 import tds.score.services.ItemScoringService;
@@ -223,7 +224,7 @@ public class ItemScoringServiceImpl implements ItemScoringService {
             ItemResponseUpdateStatus updateStatus;
 
             // get its doc
-            IITSDocument itsDoc = contentService.getContent(responseUpdate.getFilePath(), AccLookup.getNone());
+            IITSDocument itsDoc = contentService.getContent(responseUpdate.getFilePath(), new AccLookupWrapper(AccLookup.getNone()));
 
             // check if loaded document
             if (itsDoc == null) {
