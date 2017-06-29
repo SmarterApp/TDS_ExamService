@@ -61,19 +61,26 @@ public class S3ItemDataRepository implements ItemDataRepository {
     }
 
     /**
-     * This is a fragile path trimmer that reduces resource paths from something like:
-     * /usr/local/tomcat/resources/tds/bank/items/Item-187-2501/item-187-2501.xml
-     * to
-     * items/Item-187-2501/item-187-2501.xml
+     * Get the item file name and its parent directory and prefix it with "items/".
+     * <p>
+     *     The {@code itemPath} has the full path to the item XML file on the filesystem, e.g.
+     *     /usr/local/tomcat/resources/tds/bank/items/Item-187-2501/item-187-2501.xml.  This method will convert that
+     *     path to items/Item-187-2501/item-187-2501.xml for retrieval from the S3 bucket.  Casing is preserved on the
+     *     expectation that the file path's case is consistent between the database, the filesystem and what has been
+     *     uploaded to S3.  For example if the path on the filesystem is
+     *     /usr/local/tomcat/resources/tds/bank/items/item-187-2501/item-187-2501.xml, this method will return
+     *     /items/item-187-2501/item-187-2501.xml.
+     * </p>
      *
      * @param itemDataPath The item resource path
      * @return The resource path relative to our S3 bucket and prefix
      */
     private String buildPath(final String itemDataPath) {
         final File file = new File(normalize(itemDataPath));
-        final String itemName = file.getName();
-        final String dirName = file.getParentFile().getName();
+        final String dirName = file.getParentFile() == null
+            ? ""
+            : file.getParentFile().getName();
 
-        return "items/" + dirName + "/" + itemName;
+        return normalize("items/" + dirName + "/" + file.getName());
     }
 }

@@ -93,4 +93,24 @@ public class S3ItemDataRepositoryTest {
         final ByteArrayInputStream delegate = new ByteArrayInputStream(body.getBytes(UTF_8));
         return new S3ObjectInputStream(delegate, mock(HttpRequestBase.class));
     }
+
+    @Test
+    public void itShouldPreserveCaseInFilePathName() throws Exception {
+        final String itemDataPath = "items/my-Item/My-Item.xml";
+
+        final S3Object response = mock(S3Object.class);
+        when(response.getObjectContent()).thenReturn(response("Response Data"));
+
+        when(mockAmazonS3.getObject(any(GetObjectRequest.class))).thenReturn(response);
+
+        final String value = itemReader.findOne(itemDataPath);
+        assertThat(value).isEqualTo("Response Data");
+
+        final ArgumentCaptor<GetObjectRequest> objectRequestArgumentCaptor = ArgumentCaptor.forClass(GetObjectRequest.class);
+        verify(mockAmazonS3).getObject(objectRequestArgumentCaptor.capture());
+
+        final GetObjectRequest request = objectRequestArgumentCaptor.getValue();
+        assertThat(request.getBucketName()).isEqualTo(scoringS3Properties.getBucketName());
+        assertThat(request.getKey()).isEqualTo(scoringS3Properties.getItemPrefix() + itemDataPath);
+    }
 }
