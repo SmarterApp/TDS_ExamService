@@ -36,7 +36,6 @@ import tds.itemscoringengine.ScorerInfo;
 import tds.itemscoringengine.ScoringStatus;
 import tds.itemscoringengine.WebProxyItemScorerCallback;
 import tds.score.configuration.ItemScoreSettings;
-import tds.score.model.AccLookupWrapper;
 import tds.score.model.ExamInstance;
 import tds.score.services.ContentService;
 import tds.score.services.ItemScoringService;
