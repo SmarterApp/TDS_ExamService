@@ -44,6 +44,8 @@ import tds.score.services.ItemService;
 import tds.student.services.data.ItemResponse;
 import tds.student.services.data.PageGroup;
 
+import static tds.score.configuration.SupportApplicationConfiguration.CONTENT_APP_CONTEXT;
+
 @Service
 public class ContentServiceImpl implements ContentService {
     private static final Logger _logger = LoggerFactory.getLogger(ContentService.class);
@@ -53,10 +55,10 @@ public class ContentServiceImpl implements ContentService {
     private final RestTemplate restTemplate;
 
     @Autowired
-    public ContentServiceImpl(final ItemService itemService, final RestTemplate restTemplate) {
+    public ContentServiceImpl(final ItemService itemService, final RestTemplate restTemplate, final String contentUrl) {
         this.itemService = itemService;
-        this.contentUrl = "http://localhost:32844";
         this.restTemplate = restTemplate;
+        this.contentUrl = contentUrl;
     }
 
     @Override
@@ -125,8 +127,9 @@ public class ContentServiceImpl implements ContentService {
     public IITSDocument getContent(String itemPath, AccLookup accommodations) throws ReturnStatusException {
         UriComponentsBuilder builder =
             UriComponentsBuilder
-                .fromHttpUrl(String.format("%s?itemPath=%s",
+                .fromHttpUrl(String.format("%s/%s/?itemPath=%s",
                     contentUrl,
+                    CONTENT_APP_CONTEXT,
                     itemPath));
 
         return restTemplate.postForObject(builder.build().toUri(), accommodations, ITSDocument.class);

@@ -13,6 +13,7 @@
 
 package tds.score.configuration;
 
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
@@ -35,6 +36,7 @@ import tds.score.services.impl.ContentServiceImpl;
 import tds.score.services.impl.ItemScoringServiceImpl;
 
 @Configuration
+@EnableConfigurationProperties(ScoringProperties.class)
 public class ScoringConfiguration {
 
     @Bean
@@ -54,8 +56,9 @@ public class ScoringConfiguration {
 
     @Bean
     public ContentService getContentService(final ItemService itemService,
-                                            final RestTemplate restTemplate) {
-        return new ContentServiceImpl(itemService, restTemplate);
+                                            final RestTemplate restTemplate,
+                                            final ScoringProperties properties) {
+        return new ContentServiceImpl(itemService, restTemplate, properties.getContentUrl());
     }
 
     @Bean
