@@ -19,7 +19,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -29,10 +33,12 @@ import tds.common.cache.CacheType;
 import tds.itemrenderer.data.AccLookup;
 import tds.itemrenderer.data.IITSDocument;
 import tds.itemrenderer.data.ITSContent;
+import tds.itemrenderer.data.ITSDocument;
 import tds.itemrenderer.data.ITSMachineRubric;
 import tds.itemrenderer.service.ItemDocumentService;
 import tds.itemscoringengine.RubricContentSource;
-import tds.score.model.AccLookupWrapper;
+import tds.score.configuration.ScoringConfiguration;
+import tds.score.configuration.ScoringServiceProperties;
 import tds.score.model.Item;
 import tds.score.services.ContentService;
 import tds.score.services.ItemService;
@@ -44,12 +50,14 @@ public class ContentServiceImpl implements ContentService {
     private static final Logger _logger = LoggerFactory.getLogger(ContentService.class);
 
     private final ItemService itemService;
-    private final ItemDocumentService itemDocumentService;
+    private final String contentUrl;
+    private final RestTemplate restTemplate;
 
     @Autowired
-    public ContentServiceImpl(final ItemService itemService, final ItemDocumentService itemDocumentService) {
+    public ContentServiceImpl(final ItemService itemService, final RestTemplate restTemplate) {
         this.itemService = itemService;
-        this.itemDocumentService = itemDocumentService;
+        this.contentUrl = "http://localhost:32844";
+        this.restTemplate = restTemplate;
     }
 
     @Override
@@ -59,7 +67,7 @@ public class ContentServiceImpl implements ContentService {
             if (!maybeItem.isPresent())
                 return null;
 
-            return getContent(maybeItem.get().getItemPath(), new AccLookupWrapper(accommodations));
+            return getContent(maybeItem.get().getItemPath(), accommodations);
         } catch (ReturnStatusException e) {
             _logger.error(e.getMessage());
             throw e;
@@ -72,15 +80,15 @@ public class ContentServiceImpl implements ContentService {
         if (!maybeItem.isPresent())
             return null;
 
-        return getContent(maybeItem.get().getStimulusPath(), new AccLookupWrapper(accommodations));
+        return getContent(maybeItem.get().getStimulusPath(), accommodations);
     }
 
     @Override
     public void loadPageGroupDocuments(final PageGroup pageGroup, final AccLookup accLookup) throws ReturnStatusException {
         try {
-            pageGroup.setDocument(getContent(pageGroup.getFilePath(),  new AccLookupWrapper(accLookup)));
+            pageGroup.setDocument(getContent(pageGroup.getFilePath(), accLookup));
             for (ItemResponse itemResponse : pageGroup) {
-                itemResponse.setDocument(getContent(itemResponse.getFilePath(), new AccLookupWrapper(accLookup)));
+                itemResponse.setDocument(getContent(itemResponse.getFilePath(), accLookup));
             }
         } catch (ReturnStatusException e) {
             _logger.error(e.getMessage());
@@ -114,18 +122,14 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    @Cacheable(CacheType.LONG_TERM)
-    public IITSDocument getContent(String xmlFilePath, AccLookupWrapper accommodations) throws ReturnStatusException {
-        if (StringUtils.isEmpty(xmlFilePath)) {
-            return null;
-        }
+//    @Cacheable(CacheType.LONG_TERM)
+    public IITSDocument getContent(String itemPath, AccLookup accommodations) throws ReturnStatusException {
+        UriComponentsBuilder builder =
+            UriComponentsBuilder
+                .fromHttpUrl(String.format("%s?itemPath=%s",
+                    contentUrl,
+                    itemPath));
 
-        try {
-            URI uri = new URI(xmlFilePath);
-            IITSDocument document = itemDocumentService.loadItemDocument(uri, accommodations.getValue(), true);
-            return document;
-        } catch (URISyntaxException e) {
-            throw new ReturnStatusException(e);
-        }
+        return restTemplate.postForObject(builder.build().toUri(), accommodations, ITSDocument.class);
     }
 }

@@ -224,7 +224,7 @@ public class ItemScoringServiceImpl implements ItemScoringService {
             ItemResponseUpdateStatus updateStatus;
 
             // get its doc
-            IITSDocument itsDoc = contentService.getContent(responseUpdate.getFilePath(), new AccLookupWrapper(AccLookup.getNone()));
+            IITSDocument itsDoc = contentService.getContent(responseUpdate.getFilePath(), AccLookup.getNone());
 
             // check if loaded document
             if (itsDoc == null) {

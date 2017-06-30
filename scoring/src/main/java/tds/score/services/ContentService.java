@@ -31,7 +31,7 @@ public interface ContentService {
      * @return {@link tds.itemrenderer.data.IITSDocument}
      * @throws ReturnStatusException if the document cannot be found or parsed
      */
-    IITSDocument getContent(final String path, final AccLookupWrapper accommodations) throws ReturnStatusException;
+    IITSDocument getContent(final String path, final AccLookup accommodations) throws ReturnStatusException;
 
     /**
      * Gets the item content

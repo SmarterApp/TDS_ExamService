@@ -15,6 +15,8 @@ package tds.score.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestTemplate;
+
 import tds.itemrenderer.configuration.ItemDocumentSettings;
 import tds.itemrenderer.data.ITSDocument;
 import tds.itemrenderer.processing.ITSDocumentParser;
@@ -52,8 +54,8 @@ public class ScoringConfiguration {
 
     @Bean
     public ContentService getContentService(final ItemService itemService,
-                                            final ItemDocumentService itemDocumentService) {
-        return new ContentServiceImpl(itemService, itemDocumentService);
+                                            final RestTemplate restTemplate) {
+        return new ContentServiceImpl(itemService, restTemplate);
     }
 
     @Bean
