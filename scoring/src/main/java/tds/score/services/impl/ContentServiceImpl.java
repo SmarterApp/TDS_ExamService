@@ -38,7 +38,6 @@ import tds.itemrenderer.data.ITSMachineRubric;
 import tds.itemrenderer.service.ItemDocumentService;
 import tds.itemscoringengine.RubricContentSource;
 import tds.score.configuration.ScoringConfiguration;
-import tds.score.configuration.ScoringServiceProperties;
 import tds.score.model.Item;
 import tds.score.services.ContentService;
 import tds.score.services.ItemService;
