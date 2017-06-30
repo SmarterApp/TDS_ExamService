@@ -65,13 +65,4 @@ public class ScoringConfiguration {
     public ITSDocumentParser<ITSDocument> documentParser(final RendererSpecService rendererSpecService) {
         return new ITSDocumentParser<>(rendererSpecService);
     }
-
-    @Bean
-    public ItemDocumentService getItemDocumentService(final ItemDataService itemDataService,
-                                                      final ItemScoreSettings itemScoreSettings,
-                                                      final ITSDocumentParser<ITSDocument> documentParser) {
-        ItemDocumentSettings itemDocumentSettings = new ItemDocumentSettings();
-        itemDocumentSettings.setEncryptionEnabled(itemScoreSettings.isEncryptionEnabled());
-        return new ITSDocumentService(itemDataService, documentParser, itemDocumentSettings);
-    }
 }
