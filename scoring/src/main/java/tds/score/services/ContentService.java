@@ -19,7 +19,6 @@ import tds.itemrenderer.data.AccLookup;
 import tds.itemrenderer.data.IITSDocument;
 import tds.itemrenderer.data.ITSMachineRubric;
 import tds.itemscoringengine.RubricContentSource;
-import tds.score.model.AccLookupWrapper;
 import tds.student.services.data.PageGroup;
 
 public interface ContentService {
