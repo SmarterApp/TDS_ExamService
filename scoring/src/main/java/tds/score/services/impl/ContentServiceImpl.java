@@ -123,7 +123,7 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-//    @Cacheable(CacheType.LONG_TERM)
+    @Cacheable(CacheType.LONG_TERM)
     public IITSDocument getContent(String itemPath, AccLookup accommodations) throws ReturnStatusException {
         UriComponentsBuilder builder =
             UriComponentsBuilder
