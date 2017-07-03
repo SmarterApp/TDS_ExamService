@@ -19,6 +19,11 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class ScoringProperties {
     private String contentUrl;
 
+    /**
+     * Get the URL for the content microservice.
+     *
+     * @return content microservice URL
+     */
     public String getContentUrl() {
         return contentUrl;
     }

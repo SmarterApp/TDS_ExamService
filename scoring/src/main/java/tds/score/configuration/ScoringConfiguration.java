@@ -13,18 +13,13 @@
 
 package tds.score.configuration;
 
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
 
-import tds.itemrenderer.configuration.ItemDocumentSettings;
 import tds.itemrenderer.data.ITSDocument;
 import tds.itemrenderer.processing.ITSDocumentParser;
-import tds.itemrenderer.processing.ItemDataService;
 import tds.itemrenderer.processing.RendererSpecService;
-import tds.itemrenderer.service.ItemDocumentService;
-import tds.itemrenderer.service.impl.ITSDocumentService;
 import tds.itemscoringengine.IItemScorerManager;
 import tds.score.services.ContentService;
 import tds.score.services.ItemScoringService;
@@ -36,7 +31,6 @@ import tds.score.services.impl.ContentServiceImpl;
 import tds.score.services.impl.ItemScoringServiceImpl;
 
 @Configuration
-@EnableConfigurationProperties(ScoringProperties.class)
 public class ScoringConfiguration {
 
     @Bean

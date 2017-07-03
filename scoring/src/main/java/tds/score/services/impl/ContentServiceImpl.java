@@ -37,10 +37,9 @@ import tds.score.services.ItemService;
 import tds.student.services.data.ItemResponse;
 import tds.student.services.data.PageGroup;
 
-import static tds.score.configuration.SupportApplicationConfiguration.CONTENT_APP_CONTEXT;
-
 @Service
 public class ContentServiceImpl implements ContentService {
+    public static final String CONTENT_APP_CONTEXT = "item";
     private static final Logger _logger = LoggerFactory.getLogger(ContentService.class);
 
     private final ItemService itemService;
