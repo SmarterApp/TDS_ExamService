@@ -124,8 +124,8 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     @Cacheable(CacheType.LONG_TERM)
-    public IITSDocument getContent(String itemPath, AccLookup accommodations) throws ReturnStatusException {
-        UriComponentsBuilder builder =
+    public IITSDocument getContent(final String itemPath, final AccLookup accommodations) throws ReturnStatusException {
+        final UriComponentsBuilder builder =
             UriComponentsBuilder
                 .fromHttpUrl(String.format("%s/%s/?itemPath=%s",
                     contentUrl,
