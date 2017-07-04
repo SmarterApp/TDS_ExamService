@@ -19,8 +19,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.Optional;
 
@@ -28,10 +26,10 @@ import tds.common.cache.CacheType;
 import tds.itemrenderer.data.AccLookup;
 import tds.itemrenderer.data.IITSDocument;
 import tds.itemrenderer.data.ITSContent;
-import tds.itemrenderer.data.ITSDocument;
 import tds.itemrenderer.data.ITSMachineRubric;
 import tds.itemscoringengine.RubricContentSource;
 import tds.score.model.Item;
+import tds.score.repositories.ContentRepository;
 import tds.score.services.ContentService;
 import tds.score.services.ItemService;
 import tds.student.services.data.ItemResponse;
@@ -39,18 +37,15 @@ import tds.student.services.data.PageGroup;
 
 @Service
 public class ContentServiceImpl implements ContentService {
-    public static final String CONTENT_APP_CONTEXT = "item";
     private static final Logger _logger = LoggerFactory.getLogger(ContentService.class);
 
     private final ItemService itemService;
-    private final String contentUrl;
-    private final RestTemplate restTemplate;
+    private final ContentRepository contentRepository;
 
     @Autowired
-    public ContentServiceImpl(final ItemService itemService, final RestTemplate restTemplate, final String contentUrl) {
+    public ContentServiceImpl(final ItemService itemService, final ContentRepository contentRepository) {
         this.itemService = itemService;
-        this.restTemplate = restTemplate;
-        this.contentUrl = contentUrl;
+        this.contentRepository = contentRepository;
     }
 
     @Override
@@ -117,13 +112,6 @@ public class ContentServiceImpl implements ContentService {
     @Override
     @Cacheable(CacheType.LONG_TERM)
     public IITSDocument getContent(final String itemPath, final AccLookup accommodations) throws ReturnStatusException {
-        final UriComponentsBuilder builder =
-            UriComponentsBuilder
-                .fromHttpUrl(String.format("%s/%s/?itemPath=%s",
-                    contentUrl,
-                    CONTENT_APP_CONTEXT,
-                    itemPath));
-
-        return restTemplate.postForObject(builder.build().toUri(), accommodations, ITSDocument.class);
+        return contentRepository.getContent(itemPath, accommodations);
     }
 }

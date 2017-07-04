@@ -15,12 +15,12 @@ package tds.score.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.client.RestTemplate;
 
 import tds.itemrenderer.data.ITSDocument;
 import tds.itemrenderer.processing.ITSDocumentParser;
 import tds.itemrenderer.processing.RendererSpecService;
 import tds.itemscoringengine.IItemScorerManager;
+import tds.score.repositories.ContentRepository;
 import tds.score.services.ContentService;
 import tds.score.services.ItemScoringService;
 import tds.score.services.ItemService;
@@ -50,9 +50,8 @@ public class ScoringConfiguration {
 
     @Bean
     public ContentService getContentService(final ItemService itemService,
-                                            final RestTemplate restTemplate,
-                                            final ScoringProperties properties) {
-        return new ContentServiceImpl(itemService, restTemplate, properties.getContentUrl());
+                                            final ContentRepository contentRepository) {
+        return new ContentServiceImpl(itemService, contentRepository);
     }
 
     @Bean
