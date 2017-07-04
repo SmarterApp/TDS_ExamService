@@ -110,7 +110,6 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    @Cacheable(CacheType.LONG_TERM)
     public IITSDocument getContent(final String itemPath, final AccLookup accommodations) throws ReturnStatusException {
         return contentRepository.getContent(itemPath, accommodations);
     }
