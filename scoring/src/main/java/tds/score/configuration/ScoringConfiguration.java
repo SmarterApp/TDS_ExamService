@@ -15,14 +15,12 @@ package tds.score.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import tds.itemrenderer.configuration.ItemDocumentSettings;
+
 import tds.itemrenderer.data.ITSDocument;
 import tds.itemrenderer.processing.ITSDocumentParser;
-import tds.itemrenderer.processing.ItemDataService;
 import tds.itemrenderer.processing.RendererSpecService;
-import tds.itemrenderer.service.ItemDocumentService;
-import tds.itemrenderer.service.impl.ITSDocumentService;
 import tds.itemscoringengine.IItemScorerManager;
+import tds.score.repositories.ContentRepository;
 import tds.score.services.ContentService;
 import tds.score.services.ItemScoringService;
 import tds.score.services.ItemService;
@@ -52,21 +50,12 @@ public class ScoringConfiguration {
 
     @Bean
     public ContentService getContentService(final ItemService itemService,
-                                            final ItemDocumentService itemDocumentService) {
-        return new ContentServiceImpl(itemService, itemDocumentService);
+                                            final ContentRepository contentRepository) {
+        return new ContentServiceImpl(itemService, contentRepository);
     }
 
     @Bean
     public ITSDocumentParser<ITSDocument> documentParser(final RendererSpecService rendererSpecService) {
         return new ITSDocumentParser<>(rendererSpecService);
-    }
-
-    @Bean
-    public ItemDocumentService getItemDocumentService(final ItemDataService itemDataService,
-                                                      final ItemScoreSettings itemScoreSettings,
-                                                      final ITSDocumentParser<ITSDocument> documentParser) {
-        ItemDocumentSettings itemDocumentSettings = new ItemDocumentSettings();
-        itemDocumentSettings.setEncryptionEnabled(itemScoreSettings.isEncryptionEnabled());
-        return new ITSDocumentService(itemDataService, documentParser, itemDocumentSettings);
     }
 }

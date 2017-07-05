@@ -14,24 +14,22 @@
 package tds.score.services.impl;
 
 import TDS.Shared.Exceptions.ReturnStatusException;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Optional;
 
+import tds.common.cache.CacheType;
 import tds.itemrenderer.data.AccLookup;
 import tds.itemrenderer.data.IITSDocument;
 import tds.itemrenderer.data.ITSContent;
 import tds.itemrenderer.data.ITSMachineRubric;
-import tds.itemrenderer.service.ItemDocumentService;
 import tds.itemscoringengine.RubricContentSource;
-import tds.score.model.AccLookupWrapper;
 import tds.score.model.Item;
+import tds.score.repositories.ContentRepository;
 import tds.score.services.ContentService;
 import tds.score.services.ItemService;
 import tds.student.services.data.ItemResponse;
@@ -42,17 +40,12 @@ public class ContentServiceImpl implements ContentService {
     private static final Logger _logger = LoggerFactory.getLogger(ContentService.class);
 
     private final ItemService itemService;
-    private final ItemDocumentService itemDocumentService;
+    private final ContentRepository contentRepository;
 
     @Autowired
-    public ContentServiceImpl(final ItemService itemService, final ItemDocumentService itemDocumentService) {
+    public ContentServiceImpl(final ItemService itemService, final ContentRepository contentRepository) {
         this.itemService = itemService;
-        this.itemDocumentService = itemDocumentService;
-    }
-
-    @Override
-    public IITSDocument getContent(final String xmlFilePath, final AccLookup accommodations) throws ReturnStatusException {
-        return getContent(xmlFilePath, new AccLookupWrapper(accommodations));
+        this.contentRepository = contentRepository;
     }
 
     @Override
@@ -116,17 +109,8 @@ public class ContentServiceImpl implements ContentService {
         return machineRubric;
     }
 
-    private IITSDocument getContent(String xmlFilePath, AccLookupWrapper accommodations) throws ReturnStatusException {
-        if (StringUtils.isEmpty(xmlFilePath)) {
-            return null;
-        }
-
-        try {
-            URI uri = new URI(xmlFilePath);
-            IITSDocument document = itemDocumentService.loadItemDocument(uri, accommodations.getValue(), true);
-            return document;
-        } catch (URISyntaxException e) {
-            throw new ReturnStatusException(e);
-        }
+    @Override
+    public IITSDocument getContent(final String itemPath, final AccLookup accommodations) throws ReturnStatusException {
+        return contentRepository.getContent(itemPath, accommodations);
     }
 }
