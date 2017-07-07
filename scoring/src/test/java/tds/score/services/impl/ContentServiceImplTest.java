@@ -27,7 +27,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 import tds.itemrenderer.data.AccLookup;
-import tds.itemrenderer.data.IITSDocument;
+import tds.itemrenderer.data.ITSDocument;
 import tds.itemrenderer.data.ITSDocument;
 import tds.score.repositories.ContentRepository;
 import tds.score.repositories.RubricRepository;
@@ -61,11 +61,11 @@ public class ContentServiceImplTest {
     @Test
     public void itShouldUseRepositoryToFindItemDocument() throws Exception {
         final String itemPath = "item/path.xml";
-        final IITSDocument itemDocument = new ITSDocument();
+        final ITSDocument itemDocument = new ITSDocument();
         itemDocument.setItemKey(1L);
 
         when(mockContentRepository.getContent(any(), any())).thenReturn(itemDocument);
-        final IITSDocument actualItemDocument = service.getContent(itemPath, AccLookup.getNone());
+        final ITSDocument actualItemDocument = service.getContent(itemPath, AccLookup.getNone());
         assertThat(actualItemDocument).isEqualTo(itemDocument);
     }
 

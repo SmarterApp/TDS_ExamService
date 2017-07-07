@@ -8,7 +8,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import tds.exam.configuration.ExamServiceProperties;
 import tds.itemrenderer.data.AccLookup;
-import tds.itemrenderer.data.IITSDocument;
 import tds.itemrenderer.data.ITSDocument;
 import tds.score.repositories.ContentRepository;
 
@@ -25,7 +24,7 @@ public class ContentRepositoryImpl implements ContentRepository {
     }
 
     @Override
-    public IITSDocument getContent(String itemPath, AccLookup accommodations) throws ReturnStatusException {
+    public ITSDocument getContent(String itemPath, AccLookup accommodations) throws ReturnStatusException {
         final UriComponentsBuilder builder =
             UriComponentsBuilder
                 .fromHttpUrl(String.format("%s/%s/?itemPath=%s",

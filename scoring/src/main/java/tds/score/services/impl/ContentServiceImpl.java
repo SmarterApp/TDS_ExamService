@@ -24,7 +24,7 @@ import java.util.Optional;
 
 import tds.common.cache.CacheType;
 import tds.itemrenderer.data.AccLookup;
-import tds.itemrenderer.data.IITSDocument;
+import tds.itemrenderer.data.ITSDocument;
 import tds.itemrenderer.data.ITSContent;
 import tds.itemrenderer.data.ITSMachineRubric;
 import tds.itemscoringengine.RubricContentSource;
@@ -49,7 +49,7 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public IITSDocument getItemContent(final String clientName, final long bankKey, final long itemKey, final AccLookup accommodations) throws ReturnStatusException {
+    public ITSDocument getItemContent(final String clientName, final long bankKey, final long itemKey, final AccLookup accommodations) throws ReturnStatusException {
         try {
             Optional<Item> maybeItem = itemService.findItemByKey(clientName, bankKey, itemKey);
             if (!maybeItem.isPresent())
@@ -63,7 +63,7 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public IITSDocument getStimulusContent(final String clientName, final long bankKey, final long stimulusKey, final AccLookup accommodations) throws ReturnStatusException {
+    public ITSDocument getStimulusContent(final String clientName, final long bankKey, final long stimulusKey, final AccLookup accommodations) throws ReturnStatusException {
         Optional<Item> maybeItem = itemService.findItemByStimulusKey(clientName, bankKey, stimulusKey);
         if (!maybeItem.isPresent())
             return null;
@@ -85,7 +85,7 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public ITSMachineRubric parseMachineRubric(final IITSDocument itsDocument, final String language, final RubricContentSource rubricContentSource) throws ReturnStatusException {
+    public ITSMachineRubric parseMachineRubric(final ITSDocument itsDocument, final String language, final RubricContentSource rubricContentSource) throws ReturnStatusException {
         ITSMachineRubric machineRubric = null;
         // if the source is item bank then parse the answer key attribute
         // NOTE: we use to get this from the response table
@@ -110,7 +110,7 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public IITSDocument getContent(final String itemPath, final AccLookup accommodations) throws ReturnStatusException {
+    public ITSDocument getContent(final String itemPath, final AccLookup accommodations) throws ReturnStatusException {
         return contentRepository.getContent(itemPath, accommodations);
     }
 }
