@@ -77,7 +77,7 @@ exam-service:
   student-url: http://localhost:32840
   assessment-url: http://localhost:32841
   config-url: http://localhost:32843
-  content-url: http://localhost:32846
+  content-url: http://localhost:32848
 
 exam:
   scoring:
