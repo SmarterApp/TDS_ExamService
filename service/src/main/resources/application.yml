@@ -19,6 +19,12 @@ spring:
   cloud:
     bus:
       enabled: false
+  datasource:
+    hikari:
+      maximum-pool-size: 32
+      minimum-idle: 8
+      idle-timeout: 10000
+      connectionTestQuery: "SELECT 1"
 
 #Port defined in TDS_Build:docker-compose.yml
   rabbitmq:
@@ -54,10 +60,9 @@ security:
 server:
   port: 8081
   undertow:
-    buffer-size: 16384
-    buffers-per-region: 20
-    io-threads: 64
-    worker-threads: 512
+    buffer-size: 8192
+    io-threads: 4
+    worker-threads: 32
     direct-buffers: true
 
 flyway:
