@@ -16,29 +16,17 @@ package tds.score.services.impl;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
 
 import tds.itemrenderer.data.AccLookup;
-import tds.itemrenderer.data.IITSDocument;
 import tds.itemrenderer.data.ITSDocument;
 import tds.score.repositories.ContentRepository;
-import tds.score.repositories.RubricRepository;
-import tds.score.services.ContentService;
 import tds.score.services.ItemService;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
-import static org.mockito.Matchers.eq;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ContentServiceImplTest {
@@ -51,8 +39,6 @@ public class ContentServiceImplTest {
 
     private ContentServiceImpl service;
 
-    private static final String contentUrl  = "http://contentUrl";
-
     @Before
     public void setup() {
         service = new ContentServiceImpl(mockItemService, mockContentRepository);
@@ -61,11 +47,11 @@ public class ContentServiceImplTest {
     @Test
     public void itShouldUseRepositoryToFindItemDocument() throws Exception {
         final String itemPath = "item/path.xml";
-        final IITSDocument itemDocument = new ITSDocument();
-        itemDocument.setItemKey(1L);
+        final ITSDocument itemDocument = new ITSDocument();
+        itemDocument.setId(1L);
 
         when(mockContentRepository.getContent(any(), any())).thenReturn(itemDocument);
-        final IITSDocument actualItemDocument = service.getContent(itemPath, AccLookup.getNone());
+        final ITSDocument actualItemDocument = service.getContent(itemPath, AccLookup.getNone());
         assertThat(actualItemDocument).isEqualTo(itemDocument);
     }
 

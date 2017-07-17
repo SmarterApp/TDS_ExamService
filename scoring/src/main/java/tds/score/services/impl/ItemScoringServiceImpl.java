@@ -23,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import tds.itemrenderer.data.AccLookup;
-import tds.itemrenderer.data.IITSDocument;
+import tds.itemrenderer.data.ITSDocument;
 import tds.itemrenderer.data.ITSMachineRubric;
 import tds.itemscoringengine.IItemScorerManager;
 import tds.itemscoringengine.ItemScore;
@@ -90,7 +90,7 @@ public class ItemScoringServiceImpl implements ItemScoringService {
      * response.
      */
     @Override
-    public ItemScore checkScoreability(IItemResponseScorable responseScorable, IITSDocument itsDoc) throws ReturnStatusException {
+    public ItemScore checkScoreability(IItemResponseScorable responseScorable, ITSDocument itsDoc) throws ReturnStatusException {
         // check if item scoring is disabled
         if (!itemScoreSettings.isEnabled()) {
             return createEmptyScore(ScoringStatus.NotScored, "Item scoring setting is disabled.");
@@ -223,7 +223,7 @@ public class ItemScoringServiceImpl implements ItemScoringService {
             ItemResponseUpdateStatus updateStatus;
 
             // get its doc
-            IITSDocument itsDoc = contentService.getContent(responseUpdate.getFilePath(), AccLookup.getNone());
+            ITSDocument itsDoc = contentService.getContent(responseUpdate.getFilePath(), AccLookup.getNone());
 
             // check if loaded document
             if (itsDoc == null) {
@@ -271,7 +271,7 @@ public class ItemScoringServiceImpl implements ItemScoringService {
      *
      * @throws ReturnStatusException
      */
-    private ItemScore scoreResponse(UUID oppKey, IItemResponseScorable responseScorable, IITSDocument itsDoc) throws ReturnStatusException {
+    private ItemScore scoreResponse(UUID oppKey, IItemResponseScorable responseScorable, ITSDocument itsDoc) throws ReturnStatusException {
         StopWatch stopwatch = new StopWatch();
         stopwatch.start();
 
@@ -350,7 +350,7 @@ public class ItemScoringServiceImpl implements ItemScoringService {
     }
 
     @Override
-    public ItemScore scoreItem(UUID oppKey, IItemResponseScorable responseScorable, IITSDocument itsDoc) throws ReturnStatusException {
+    public ItemScore scoreItem(UUID oppKey, IItemResponseScorable responseScorable, ITSDocument itsDoc) throws ReturnStatusException {
         final String itemID = getItemID(responseScorable);
         String itemFormat = itsDoc.getFormat();
 
@@ -471,7 +471,7 @@ public class ItemScoringServiceImpl implements ItemScoringService {
     /**
      * Is the scoring for this response asynchronous?
      */
-    private boolean isScoringAsynchronous(IITSDocument itsDoc) {
+    private boolean isScoringAsynchronous(ITSDocument itsDoc) {
         if (itsDoc != null && !StringUtils.isEmpty(itsDoc.getFormat())) {
             ScorerInfo scorerInfo = itemScorer.GetScorerInfo(itsDoc.getFormat());
 
