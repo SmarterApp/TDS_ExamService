@@ -15,9 +15,9 @@ import tds.score.repositories.ContentRepository;
 @Repository
 @Primary
 public class ContentRepositoryImpl implements ContentRepository {
-    public static final String CONTENT_APP_CONTEXT = "item";
-    final RestTemplate restTemplate;
-    final String contentUrl;
+    private static final String CONTENT_APP_CONTEXT = "item";
+    private final RestTemplate restTemplate;
+    private final String contentUrl;
 
     public ContentRepositoryImpl(final RestTemplate restTemplate, final ExamServiceProperties examServiceProperties) {
         this.restTemplate = restTemplate;
@@ -28,7 +28,7 @@ public class ContentRepositoryImpl implements ContentRepository {
     public IITSDocument getContent(String itemPath, AccLookup accommodations) throws ReturnStatusException {
         final UriComponentsBuilder builder =
             UriComponentsBuilder
-                .fromHttpUrl(String.format("%s/%s/?itemPath=%s",
+                .fromHttpUrl(String.format("%s/%s?itemPath=%s",
                     contentUrl,
                     CONTENT_APP_CONTEXT,
                     itemPath));
