@@ -28,8 +28,6 @@ import tds.itemscoringengine.itemscorers.QTIItemScorer;
 import tds.itemscoringengine.web.server.AppStatsRecorder;
 import tds.itemscoringengine.web.server.ScoringMaster;
 import tds.score.configuration.ScoringConfiguration;
-import tds.score.services.impl.ItemDataServiceImpl;
-import tds.score.services.impl.RendererSpecServiceImpl;
 import tds.score.services.impl.RubricServiceImpl;
 
 import java.util.HashMap;
@@ -39,8 +37,6 @@ import java.util.Map;
 @Import({
     ScoringConfiguration.class,
     RubricServiceImpl.class,
-    ItemDataServiceImpl.class,
-    RendererSpecServiceImpl.class
 })
 public class ExamScoringConfiguration {
     private static final IItemScorer mciScorer = new MCItemScorer();
