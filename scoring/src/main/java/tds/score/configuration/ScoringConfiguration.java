@@ -18,6 +18,7 @@ import org.springframework.context.annotation.Configuration;
 
 import tds.itemrenderer.data.ITSDocument;
 import tds.itemrenderer.processing.ITSDocumentParser;
+import tds.itemrenderer.processing.ItemDataService;
 import tds.itemrenderer.processing.RendererSpecService;
 import tds.itemscoringengine.IItemScorerManager;
 import tds.score.repositories.ContentRepository;
@@ -25,7 +26,6 @@ import tds.score.services.ContentService;
 import tds.score.services.ItemScoringService;
 import tds.score.services.ItemService;
 import tds.score.services.ResponseService;
-import tds.score.services.RubricService;
 import tds.score.services.ScoreConfigService;
 import tds.score.services.impl.ContentServiceImpl;
 import tds.score.services.impl.ItemScoringServiceImpl;
@@ -39,13 +39,13 @@ public class ScoringConfiguration {
                                                     final ScoreConfigService scoreConfigService,
                                                     final ContentService contentService,
                                                     final IItemScorerManager itemScorer,
-                                                    final RubricService rubricService) {
+                                                    final ItemDataService itemDataService) {
         return new ItemScoringServiceImpl(responseService,
             scoreConfigService,
             contentService,
             itemScorer,
             itemScoreSettings,
-            rubricService);
+            itemDataService);
     }
 
     @Bean

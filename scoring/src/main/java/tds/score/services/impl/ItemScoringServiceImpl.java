@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import tds.itemrenderer.data.AccLookup;
 import tds.itemrenderer.data.IITSDocument;
 import tds.itemrenderer.data.ITSMachineRubric;
+import tds.itemrenderer.processing.ItemDataService;
 import tds.itemscoringengine.IItemScorerManager;
 import tds.itemscoringengine.ItemScore;
 import tds.itemscoringengine.ItemScoreInfo;
@@ -40,7 +41,6 @@ import tds.score.model.ExamInstance;
 import tds.score.services.ContentService;
 import tds.score.services.ItemScoringService;
 import tds.score.services.ResponseService;
-import tds.score.services.RubricService;
 import tds.score.services.ScoreConfigService;
 import tds.student.sql.data.IItemResponseScorable;
 import tds.student.sql.data.IItemResponseUpdate;
@@ -51,6 +51,7 @@ import tds.student.sql.data.ItemScoringConfig;
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -67,20 +68,20 @@ public class ItemScoringServiceImpl implements ItemScoringService {
     private final IItemScorerManager itemScorer;
     private final ItemScoreSettings itemScoreSettings;
     private final ResponseService responseService;
-    private final RubricService rubricService;
+    private final ItemDataService itemDataService;
 
     public ItemScoringServiceImpl(final ResponseService responseService,
                                   final ScoreConfigService scoreConfigService,
                                   final ContentService contentService,
                                   final IItemScorerManager itemScorer,
                                   final ItemScoreSettings itemScoreSettings,
-                                  final RubricService rubricService) {
+                                  final ItemDataService itemDataService) {
         this.responseService = responseService;
         this.scoreConfigService = scoreConfigService;
         this.contentService = contentService;
         this.itemScorer = itemScorer;
         this.itemScoreSettings = itemScoreSettings;
-        this.rubricService = rubricService;
+        this.itemDataService = itemDataService;
     }
 
     /**
@@ -376,7 +377,7 @@ public class ItemScoringServiceImpl implements ItemScoringService {
             if (rubricContentType == RubricContentType.Uri) {
                 try {
                     rubricContentType = RubricContentType.ContentString;
-                    machineRubric.setData(rubricService.findOne(machineRubric.getData()));
+                    machineRubric.setData(itemDataService.readData(URI.create(machineRubric.getData())));
                 } catch (final IOException e) {
                     LOG.error("Failed to load scoring rubric for item: {}", itemID, e);
                     final ScoreRationale scoreRationale = new ScoreRationale();

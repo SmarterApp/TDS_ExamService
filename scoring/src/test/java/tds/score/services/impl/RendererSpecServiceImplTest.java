@@ -29,19 +29,19 @@ public class RendererSpecServiceImplTest {
     @Mock
     private RendererSpecRepository mockRepository;
 
-    private RendererSpecServiceImpl service;
+//    private RendererSpecServiceImpl service;
 
-    @Before
-    public void setup() {
-        service = new RendererSpecServiceImpl(mockRepository);
-    }
-
-    @Test
-    public void itShouldUseRepositoryToFindRendererSpec() throws Exception {
-        final String rendererSpecPath = "renderer/spec/path.xml";
-        final String rendererSpecContent = "renderer spec content";
-        when(mockRepository.findOne(rendererSpecPath)).thenReturn(rendererSpecContent);
-
-        assertThat(service.findOne(rendererSpecPath)).isEqualTo(rendererSpecContent);
-    }
+//    @Before
+//    public void setup() {
+//        service = new RendererSpecServiceImpl(mockRepository);
+//    }
+//
+//    @Test
+//    public void itShouldUseRepositoryToFindRendererSpec() throws Exception {
+//        final String rendererSpecPath = "renderer/spec/path.xml";
+//        final String rendererSpecContent = "renderer spec content";
+//        when(mockRepository.findOne(rendererSpecPath)).thenReturn(rendererSpecContent);
+//
+//        assertThat(service.findOne(rendererSpecPath)).isEqualTo(rendererSpecContent);
+//    }
 }
