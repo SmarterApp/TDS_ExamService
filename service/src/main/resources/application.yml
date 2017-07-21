@@ -11,20 +11,22 @@ spring:
     username: ${sbac.jdbc.user}
     password: ${sbac.jdbc.password}
     driver-class-name: 'com.mysql.jdbc.Driver'
+    maximum-pool-size: 32
+    minimum-idle: 8
+    idle-timeout: 10000
+    connectionTestQuery: "SELECT 1"
   ds_commands:
     jdbcUrl: ${sbac.jdbc.host}/exam
     username: ${sbac.jdbc.user}
     password: ${sbac.jdbc.password}
     driver-class-name: 'com.mysql.jdbc.Driver'
+    maximum-pool-size: 32
+    minimum-idle: 8
+    idle-timeout: 10000
+    connectionTestQuery: "SELECT 1"
   cloud:
     bus:
       enabled: false
-  datasource:
-    hikari:
-      maximum-pool-size: 32
-      minimum-idle: 8
-      idle-timeout: 10000
-      connectionTestQuery: "SELECT 1"
 
 #Port defined in TDS_Build:docker-compose.yml
   rabbitmq:
