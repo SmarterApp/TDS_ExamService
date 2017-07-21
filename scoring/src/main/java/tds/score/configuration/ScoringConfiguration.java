@@ -53,9 +53,4 @@ public class ScoringConfiguration {
                                             final ContentRepository contentRepository) {
         return new ContentServiceImpl(itemService, contentRepository);
     }
-
-    @Bean
-    public ITSDocumentParser<ITSDocument> documentParser(final RendererSpecService rendererSpecService) {
-        return new ITSDocumentParser<>(rendererSpecService);
-    }
 }
