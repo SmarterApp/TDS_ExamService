@@ -104,11 +104,6 @@
             <artifactId>spring-context</artifactId>
             <version>4.3.2.RELEASE</version>
         </dependency>
-        <dependency>
-            <groupId>com.amazonaws</groupId>
-            <artifactId>aws-java-sdk-s3</artifactId>
-            <version>1.11.103</version>
-        </dependency>
 
         <dependency>
             <groupId>com.google.auto.value</groupId>
