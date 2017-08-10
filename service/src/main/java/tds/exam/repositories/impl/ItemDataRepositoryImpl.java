@@ -13,8 +13,12 @@
 
 package tds.exam.repositories.impl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Primary;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -26,6 +30,7 @@ import tds.score.repositories.ItemDataRepository;
 @Repository
 @Primary
 public class ItemDataRepositoryImpl implements ItemDataRepository {
+    private static final Logger log = LoggerFactory.getLogger(ItemDataRepositoryImpl.class);
     private static final String CONTENT_SERVICE_PATH = "loadData";
     private final RestTemplate restTemplate;
     private final String contentUrl;
@@ -43,7 +48,18 @@ public class ItemDataRepositoryImpl implements ItemDataRepository {
                     contentUrl,
                     CONTENT_SERVICE_PATH,
                     itemDataPath));
+        String response;
 
-        return restTemplate.getForObject(builder.build().toUri(), String.class);
+        try {
+            response = restTemplate.getForObject(builder.build().toUri(), String.class);
+        } catch (HttpClientErrorException e) {
+            if (e.getStatusCode().equals(HttpStatus.NOT_FOUND) || e.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
+                log.warn("No item or resource data found at the path {}: Throwing IOException");
+                throw new IOException(e);
+            }
+            throw e;
+        }
+
+        return response;
     }
 }
