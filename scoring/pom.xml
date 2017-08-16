@@ -19,10 +19,16 @@
         <assertj.version>3.4.1</assertj.version>
         <ss-multijar.version>3.1.0.RELEASE</ss-multijar.version>
         <item-scoring.version>3.1.0.RELEASE</item-scoring.version>
-        <item-renderer.version>3.1.0.RELEASE</item-renderer.version>
+        <item-renderer.version>3.1.5</item-renderer.version>
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>org.opentestsystem.delivery</groupId>
+            <artifactId>tds-common</artifactId>
+            <version>${tds-common.version}</version>
+        </dependency>
+
         <!-- Legacy TDS -->
         <dependency>
             <groupId>org.opentestsystem.delivery</groupId>
@@ -97,11 +103,6 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
             <version>4.3.2.RELEASE</version>
-        </dependency>
-        <dependency>
-            <groupId>com.amazonaws</groupId>
-            <artifactId>aws-java-sdk-s3</artifactId>
-            <version>1.11.103</version>
         </dependency>
 
         <dependency>

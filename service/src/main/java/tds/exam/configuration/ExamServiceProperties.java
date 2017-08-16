@@ -23,6 +23,24 @@ public class ExamServiceProperties {
     private String studentUrl = "";
     private String assessmentUrl = "";
     private String configUrl = "";
+    private String contentUrl = "";
+
+    /**
+     * Get the URL for the content microservice.
+     *
+     * @return content microservice URL
+     */
+    public String getContentUrl() {
+        return contentUrl;
+    }
+
+    /**
+     * @param contentUrl not null content url without trailing slash
+     */
+    public void setContentUrl(String contentUrl) {
+        if (contentUrl == null) throw new IllegalArgumentException("contentUrl cannot be null");
+        this.contentUrl = removeTrailingSlash(contentUrl);
+    }
 
     /**
      * Get the URL for the config microservice.
