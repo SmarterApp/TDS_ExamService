@@ -13,7 +13,7 @@
 
 package tds.exam.wrapper;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import tds.exam.ExamItem;
@@ -24,7 +24,7 @@ import tds.exam.ExamPage;
  */
 public class ExamPageWrapper {
     private ExamPage examPage;
-    private List<ExamItem> examItems = new ArrayList<>();
+    private List<ExamItem> examItems;
 
     public ExamPageWrapper(final ExamPage examPage, final List<ExamItem> examItems) {
         this.examPage = examPage;
@@ -46,6 +46,8 @@ public class ExamPageWrapper {
      * @return the associated {@link tds.exam.ExamPage}'s {@link tds.exam.ExamItem}
      */
     public List<ExamItem> getExamItems() {
+        if(examItems == null) return Collections.emptyList();
+
         return examItems;
     }
 }
