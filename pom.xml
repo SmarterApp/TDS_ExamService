@@ -28,12 +28,12 @@
         <joda-time.version>2.9.5</joda-time.version>
 
         <tds-common.version>3.1.3</tds-common.version>
-        <tds-session.version>3.1.1.RELEASE</tds-session.version>
-        <tds-assessment-client.version>3.1.1</tds-assessment-client.version>
-        <tds-student-client.version>3.1.1.RELEASE</tds-student-client.version>
-        <tds-config-client.version>3.1.1.RELEASE</tds-config-client.version>
-        <tds-student-library.version>3.1.2</tds-student-library.version>
-        <tds-item-selection.version>3.1.1.RELEASE</tds-item-selection.version>
+        <tds-session.version>3.1.2</tds-session.version>
+        <tds-assessment-client.version>3.1.3</tds-assessment-client.version>
+        <tds-student-client.version>4.0.0</tds-student-client.version>
+        <tds-config-client.version>4.0.0</tds-config-client.version>
+        <tds-student-library.version>4.0.0</tds-student-library.version>
+        <tds-item-selection.version>4.0.0</tds-item-selection.version>
 
         <maven.compiler.plugin.version>3.5.1</maven.compiler.plugin.version>
         <maven.release.plugin.version>2.5.3</maven.release.plugin.version>

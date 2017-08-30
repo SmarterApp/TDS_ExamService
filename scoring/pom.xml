@@ -17,9 +17,9 @@
     <properties>
         <java.version>1.8</java.version>
         <assertj.version>3.4.1</assertj.version>
-        <ss-multijar.version>3.1.0.RELEASE</ss-multijar.version>
-        <item-scoring.version>3.1.0.RELEASE</item-scoring.version>
-        <item-renderer.version>3.1.5</item-renderer.version>
+        <ss-multijar.version>4.0.4</ss-multijar.version>
+        <item-scoring.version>4.0.0</item-scoring.version>
+        <item-renderer.version>4.0.2</item-renderer.version>
     </properties>
 
     <dependencies>
