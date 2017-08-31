@@ -19,7 +19,7 @@
         <assertj.version>3.4.1</assertj.version>
         <ss-multijar.version>4.0.4</ss-multijar.version>
         <item-scoring.version>4.0.0</item-scoring.version>
-        <item-renderer.version>4.0.2</item-renderer.version>
+        <item-renderer.version>4.0.3-SNAPSHOT</item-renderer.version>
     </properties>
 
     <dependencies>
