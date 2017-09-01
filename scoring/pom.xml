@@ -11,16 +11,8 @@
     <parent>
         <groupId>org.opentestsystem.delivery</groupId>
         <artifactId>tds-exam</artifactId>
-        <version>4.0.1-SNAPSHOT</version>
+        <version>4.0.2-SNAPSHOT</version>
     </parent>
-
-    <properties>
-        <java.version>1.8</java.version>
-        <assertj.version>3.4.1</assertj.version>
-        <ss-multijar.version>4.0.4</ss-multijar.version>
-        <item-scoring.version>4.0.0</item-scoring.version>
-        <item-renderer.version>4.0.3-SNAPSHOT</item-renderer.version>
-    </properties>
 
     <dependencies>
         <dependency>
