@@ -27,6 +27,7 @@ import tds.score.services.ItemService;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -50,7 +51,7 @@ public class ContentServiceImplTest {
         final IITSDocument itemDocument = new ITSDocument();
         itemDocument.setItemKey(1L);
 
-        when(mockContentRepository.getContent(any(), any())).thenReturn(itemDocument);
+        when(mockContentRepository.getContent(anyString(), any(AccLookup.class))).thenReturn(itemDocument);
         final IITSDocument actualItemDocument = service.getContent(itemPath, AccLookup.getNone());
         assertThat(actualItemDocument).isEqualTo(itemDocument);
     }
