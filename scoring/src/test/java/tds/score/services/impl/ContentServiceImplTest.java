@@ -49,7 +49,7 @@ public class ContentServiceImplTest {
     public void itShouldUseRepositoryToFindItemDocument() throws Exception {
         final String itemPath = "item/path.xml";
         final IITSDocument itemDocument = new ITSDocument();
-        itemDocument.setItemKey(1L);
+        itemDocument.setId(1L);
 
         when(mockContentRepository.getContent(anyString(), any(AccLookup.class))).thenReturn(itemDocument);
         final IITSDocument actualItemDocument = service.getContent(itemPath, AccLookup.getNone());
