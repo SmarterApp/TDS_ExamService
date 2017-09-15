@@ -34,11 +34,11 @@
         <tds-assessment-client.version>3.1.3</tds-assessment-client.version>
         <tds-student-client.version>4.0.2</tds-student-client.version>
         <tds-config-client.version>4.0.1</tds-config-client.version>
-        <tds-student-library.version>4.0.3</tds-student-library.version>
+        <tds-student-library.version>4.0.4</tds-student-library.version>
         <tds-item-selection.version>4.0.1</tds-item-selection.version>
         <ss-multijar.version>4.0.5</ss-multijar.version>
         <item-scoring.version>4.0.1</item-scoring.version>
-        <item-renderer.version>4.0.5</item-renderer.version>
+        <item-renderer.version>4.0.6</item-renderer.version>
 
         <maven.compiler.plugin.version>3.5.1</maven.compiler.plugin.version>
         <maven.release.plugin.version>2.5.3</maven.release.plugin.version>
