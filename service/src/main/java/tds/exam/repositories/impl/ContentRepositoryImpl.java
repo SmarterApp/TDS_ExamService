@@ -25,7 +25,7 @@ public class ContentRepositoryImpl implements ContentRepository {
     }
 
     @Override
-    public IITSDocument getContent(String itemPath, AccLookup accommodations) throws ReturnStatusException {
+    public ITSDocument getContent(String itemPath, AccLookup accommodations) throws ReturnStatusException {
         final UriComponentsBuilder builder =
             UriComponentsBuilder
                 .fromHttpUrl(String.format("%s/%s?itemPath=%s",
