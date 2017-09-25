@@ -18,31 +18,41 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import tds.score.repositories.RubricRepository;
+
+import tds.itemrenderer.data.AccLookup;
+import tds.itemrenderer.data.IITSDocument;
+import tds.itemrenderer.data.ITSDocument;
+import tds.score.repositories.ContentRepository;
+import tds.score.services.ItemService;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class RubricServiceImplTest {
+public class ContentServiceImplTest {
+    @Mock
+    private ItemService mockItemService;
 
     @Mock
-    private RubricRepository mockRepository;
+    private ContentRepository mockContentRepository;
 
-    private RubricServiceImpl service;
+    private ContentServiceImpl service;
 
     @Before
     public void setup() {
-        service = new RubricServiceImpl(mockRepository);
+        service = new ContentServiceImpl(mockItemService, mockContentRepository);
     }
 
     @Test
-    public void itShouldUseRepositoryToFindRubric() throws Exception {
-        final String rubricPath = "rubric/path.xml";
-        final String rubricContent = "rubric content";
-        when(mockRepository.findOne(rubricPath)).thenReturn(rubricContent);
+    public void itShouldUseRepositoryToFindItemDocument() throws Exception {
+        final String itemPath = "item/path.xml";
+        final IITSDocument itemDocument = new ITSDocument();
+        itemDocument.setItemKey(1L);
 
-        assertThat(service.findOne(rubricPath)).isEqualTo(rubricContent);
+        when(mockContentRepository.getContent(anyString(), any(AccLookup.class))).thenReturn(itemDocument);
+        final IITSDocument actualItemDocument = service.getContent(itemPath, AccLookup.getNone());
+        assertThat(actualItemDocument).isEqualTo(itemDocument);
     }
-
 }
