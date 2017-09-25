@@ -19,6 +19,7 @@ import tds.itemrenderer.processing.ItemDataService;
 import tds.score.repositories.ItemDataRepository;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 
 /**
@@ -37,5 +38,15 @@ public class ItemDataServiceImpl implements ItemDataService {
     @Override
     public String readData(final URI itemPath) throws IOException {
         return itemDataRepository.findOne(itemPath.toASCIIString());
+    }
+
+    @Override
+    public InputStream readResourceData(final URI uri) throws IOException {
+        return null;
+    }
+
+    @Override
+    public boolean dataExists(final URI uri) throws IOException {
+        return false;
     }
 }

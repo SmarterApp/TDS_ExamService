@@ -11,11 +11,19 @@ spring:
     username: ${sbac.jdbc.user}
     password: ${sbac.jdbc.password}
     driver-class-name: 'com.mysql.jdbc.Driver'
+    maximum-pool-size: 32
+    minimum-idle: 8
+    idle-timeout: 10000
+    connectionTestQuery: "SELECT 1"
   ds_commands:
     jdbcUrl: ${sbac.jdbc.host}/exam
     username: ${sbac.jdbc.user}
     password: ${sbac.jdbc.password}
     driver-class-name: 'com.mysql.jdbc.Driver'
+    maximum-pool-size: 32
+    minimum-idle: 8
+    idle-timeout: 10000
+    connectionTestQuery: "SELECT 1"
   cloud:
     bus:
       enabled: false
@@ -54,10 +62,9 @@ security:
 server:
   port: 8081
   undertow:
-    buffer-size: 16384
-    buffers-per-region: 20
-    io-threads: 64
-    worker-threads: 512
+    buffer-size: 8192
+    io-threads: 4
+    worker-threads: 32
     direct-buffers: true
 
 flyway:
@@ -72,6 +79,7 @@ exam-service:
   student-url: http://localhost:32840
   assessment-url: http://localhost:32841
   config-url: http://localhost:32843
+  content-url: http://localhost:32848
 
 exam:
   scoring:
@@ -85,8 +93,3 @@ exam:
       #For not this needs to always be disabled.  We're unsure if encryption is ever needed, but if it does
       #changes will need to be made in item-renderer
       encryptionEnabled: false
-    s3:
-      bucketName: tds-resources
-      accessKey: ${s3.key}
-      secretKey: ${s3.secret}
-      itemPrefix: item-content/bank/
