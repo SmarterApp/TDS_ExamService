@@ -25,7 +25,7 @@
         <dependency>
             <groupId>org.opentestsystem.delivery</groupId>
             <artifactId>student-library</artifactId>
-            <version>${tds-student-library.version}</version>
+            <version>${tds-student-common.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.opentestsystem.delivery</groupId>
