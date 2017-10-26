@@ -16,10 +16,7 @@ package tds.score.configuration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import tds.itemrenderer.data.ITSDocument;
-import tds.itemrenderer.processing.ITSDocumentParser;
 import tds.itemrenderer.processing.ItemDataService;
-import tds.itemrenderer.processing.RendererSpecService;
 import tds.itemscoringengine.IItemScorerManager;
 import tds.score.repositories.ContentRepository;
 import tds.score.services.ContentService;
