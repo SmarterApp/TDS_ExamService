@@ -5,7 +5,7 @@
     <artifactId>tds-exam</artifactId>
     <name>tds-exam</name>
     <packaging>pom</packaging>
-    <version>4.0.6-SNAPSHOT</version>
+    <version>4.0.6.RELEASE</version>
 
     <modules>
         <module>client</module>
@@ -34,11 +34,11 @@
         <tds-assessment-client.version>4.0.0.RELEASE</tds-assessment-client.version>
         <tds-student-client.version>4.0.3.RELEASE</tds-student-client.version>
         <tds-config-client.version>4.0.2.RELEASE</tds-config-client.version>
-        <tds-student-common.version>4.0.5</tds-student-common.version>
+        <tds-student-common.version>4.0.6.RELEASE</tds-student-common.version>
         <tds-item-selection.version>4.0.3.RELEASE</tds-item-selection.version>
         <ss-multijar.version>4.0.6.RELEASE</ss-multijar.version>
         <item-scoring.version>4.0.2.RELEASE</item-scoring.version>
-        <item-renderer.version>4.0.7</item-renderer.version>
+        <item-renderer.version>4.0.7.RELEASE</item-renderer.version>
 
         <maven.compiler.plugin.version>3.5.1</maven.compiler.plugin.version>
         <maven.release.plugin.version>2.5.3</maven.release.plugin.version>
