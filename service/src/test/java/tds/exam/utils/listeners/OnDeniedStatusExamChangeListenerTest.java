@@ -20,6 +20,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import tds.common.EntityUpdate;
 import tds.common.entity.utils.ChangeListener;
 import tds.exam.Exam;
 import tds.exam.ExamStatusCode;
@@ -49,7 +50,7 @@ public class OnDeniedStatusExamChangeListenerTest {
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_DENIED), Instant.now())
             .build();
 
-        onDeniedStatusExamChangeListener.accept(exam, deniedExam);
+        onDeniedStatusExamChangeListener.accept(new EntityUpdate<>(exam, deniedExam));
         verify(mockExamAccommodationService).denyAccommodations(exam.getId(), deniedExam.getChangedAt());
     }
 
@@ -61,7 +62,7 @@ public class OnDeniedStatusExamChangeListenerTest {
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED), Instant.now())
             .build();
 
-        onDeniedStatusExamChangeListener.accept(exam, deniedExam);
+        onDeniedStatusExamChangeListener.accept(new EntityUpdate<>(exam, deniedExam));
         verify(mockExamAccommodationService, never()).denyAccommodations(exam.getId(), deniedExam.getChangedAt());
     }
 }

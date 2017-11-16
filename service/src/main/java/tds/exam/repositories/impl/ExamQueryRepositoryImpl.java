@@ -22,13 +22,6 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
-import tds.common.data.mapping.ResultSetMapperUtility;
-import tds.common.data.mysql.UuidAdapter;
-import tds.exam.Exam;
-import tds.exam.ExamStatusCode;
-import tds.exam.ExamStatusStage;
-import tds.exam.models.Ability;
-import tds.exam.repositories.ExamQueryRepository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -40,6 +33,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+
+import tds.common.data.mapping.ResultSetMapperUtility;
+import tds.common.data.mysql.UuidAdapter;
+import tds.exam.Exam;
+import tds.exam.ExamStatusCode;
+import tds.exam.ExamStatusStage;
+import tds.exam.models.Ability;
+import tds.exam.repositories.ExamQueryRepository;
 
 import static tds.common.data.mapping.ResultSetMapperUtility.mapTimestampToJodaInstant;
 import static tds.exam.ExamStatusCode.STATUS_PENDING;

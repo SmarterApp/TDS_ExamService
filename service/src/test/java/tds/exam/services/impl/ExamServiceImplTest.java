@@ -40,6 +40,7 @@ import tds.accommodation.Accommodation;
 import tds.assessment.Assessment;
 import tds.assessment.AssessmentInfo;
 import tds.assessment.AssessmentWindow;
+import tds.common.EntityUpdate;
 import tds.common.Response;
 import tds.common.ValidationError;
 import tds.common.entity.utils.ChangeListener;
@@ -100,7 +101,6 @@ import static io.github.benas.randombeans.api.EnhancedRandom.random;
 import static io.github.benas.randombeans.api.EnhancedRandom.randomListOf;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyVararg;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.never;
@@ -876,7 +876,7 @@ public class ExamServiceImplTest {
 
         Optional<ValidationError> maybeStatusTransitionFailure = examService.updateExamStatus(examId,
             new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.INACTIVE));
-        verify(mockOnCompletedExamChangeListener).accept(any(Exam.class), any(Exam.class)); // gets called; will do nothing (because status is "paused")
+        verify(mockOnCompletedExamChangeListener).accept(any()); // gets called; will do nothing (because status is "paused")
 
         assertThat(maybeStatusTransitionFailure).isNotPresent();
     }
@@ -1316,6 +1316,7 @@ public class ExamServiceImplTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void shouldPauseAllExamsInASession() {
         UUID mockSessionId = UUID.randomUUID();
         Set<String> mockStatusTransitionSet = new HashSet<>(Arrays.asList(ExamStatusCode.STATUS_PAUSED,
@@ -1342,7 +1343,7 @@ public class ExamServiceImplTest {
         examService.pauseAllExamsInSession(mockSessionId);
 
         verify(mockExamCommandRepository, times(3)).update(any(Exam.class));
-        verify(mockOnCompletedExamChangeListener, times(3)).accept(any(Exam.class), any(Exam.class));
+        verify(mockOnCompletedExamChangeListener, times(3)).accept(any(EntityUpdate.class));
     }
 
     @Test
@@ -1670,7 +1671,7 @@ public class ExamServiceImplTest {
             .build();
 
         when(mockStudentService.findStudentPackageAttributes(eq(studentId), eq(currentSession.getClientName()), Matchers.<String>anyVararg()))
-            .thenReturn(Arrays.asList(new RtsStudentPackageAttribute(RtsStudentPackageAttribute.ELIGIBLE_ASSESSMENTS,
+            .thenReturn(Collections.singletonList(new RtsStudentPackageAttribute(RtsStudentPackageAttribute.ELIGIBLE_ASSESSMENTS,
                 "some key")));
 
         when(mockTimeLimitConfigurationService.findTimeLimitConfiguration(any(), any()))
@@ -1687,7 +1688,7 @@ public class ExamServiceImplTest {
 
         final Response<List<ExamAssessmentMetadata>> response = examService.findExamAssessmentMetadata(studentId, sessionId, grade);
 
-        final List<ExamAssessmentMetadata> assessmentMetadata = response.getData().or(Collections.EMPTY_LIST);
+        final List<ExamAssessmentMetadata> assessmentMetadata = response.getData().or(Collections.emptyList());
 
         assertThat(assessmentMetadata.size()).isEqualTo(1);
         assertThat(assessmentMetadata.get(0).getStatus()).isEqualTo(STATUS_DENIED);
