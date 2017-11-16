@@ -448,6 +448,55 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
         return jdbcTemplate.query(SQL, parameters, examRowMapper);
     }
 
+    @Override
+    public List<Exam> findExamsToExpire(List<String> statusCodesToIgnore, int daysFromLastChangeEvent) {
+        // For the SQL math need to flip it to negative since we want to find exams in the past
+        int daysForExpiration = -(daysFromLastChangeEvent);
+
+        final SqlParameterSource parameters = new MapSqlParameterSource("daysForExpiration", daysForExpiration)
+            .addValue("statusCodesToIgnore", statusCodesToIgnore);
+        /*
+        This query is a bit complex and is pulled from DmDll._DM_ExpireOpportunities_SP line 77
+
+        It is finding all exams:
+        1. That have been started (hence the join to page)
+        2. Do not have the status codes passed in
+        3. n days have passed since the last change event
+         */
+        String SQL = "SELECT " + EXAM_QUERY_COLUMN_LIST +
+            "from exam e\n" +
+            "join (\n" +
+            "   select a.* from exam.exam_event a\n" +
+            "   JOIN (\n" +
+            "   select b.exam_id, max(id) as id\n" +
+            "   from exam_event b\n" +
+            "   group by b.exam_id\n" +
+            "   ) last_event on last_event.id = a.id\n" +
+            "   WHERE \n" +
+            "       a.status not in(:statusCodesToIgnore) \n" +
+            "       and a.completed_at is null \n" +
+            "       and a.deleted_at is null \n" +
+            "       and a.changed_at < DATE_ADD(CURDATE(), INTERVAL :daysForExpiration DAY)\n" +
+            ") ee on e.id = ee.exam_id \n" +
+            "JOIN exam.exam_status_codes esc \n" +
+            "   ON esc.status = ee.status\n" +
+            "JOIN exam.exam_page page on e.id = page.exam_id\n" +
+            "LEFT JOIN exam.exam_accommodation lang \n" +
+            "   ON lang.exam_id = e.id \n" +
+            "   AND lang.id = ( \n" +
+            "       SELECT \n" +
+            "           id \n" +
+            "       FROM \n" +
+            "           exam.exam_accommodation \n" +
+            "       WHERE \n" +
+            "           exam_id = e.id \n" +
+            "           AND type = 'Language' \n" +
+            "       ORDER BY created_at DESC \n" +
+            "       LIMIT 1); ";
+
+        return jdbcTemplate.query(SQL, parameters, examRowMapper);
+    }
+
     private static class AbilityRowMapper implements RowMapper<Ability> {
         @Override
         public Ability mapRow(ResultSet rs, int rowNum) throws SQLException {
