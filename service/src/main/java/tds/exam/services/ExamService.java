@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import tds.common.EntityUpdate;
 import tds.common.Response;
 import tds.common.ValidationError;
 import tds.exam.ApproveAccommodationsRequest;
@@ -122,4 +123,11 @@ public interface ExamService {
      * @return The list of {@link tds.exam.Exam}s the student has taken
      */
     List<Exam> findAllExamsForStudent(final long studentId);
+
+    /**
+     * Updates exams
+     *
+     * @param examUpdates update exams
+     */
+    void updateExams(final List<EntityUpdate<Exam>> examUpdates);
 }

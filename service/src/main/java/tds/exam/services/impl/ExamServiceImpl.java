@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 import tds.assessment.Assessment;
 import tds.assessment.AssessmentInfo;
 import tds.assessment.AssessmentWindow;
+import tds.common.EntityUpdate;
 import tds.common.Response;
 import tds.common.ValidationError;
 import tds.common.data.legacy.LegacyComparer;
@@ -278,7 +279,7 @@ class ExamServiceImpl implements ExamService {
             .withCompletedAt(newStatus.getCode().equalsIgnoreCase(ExamStatusCode.STATUS_COMPLETED) ? org.joda.time.Instant.now() : null)
             .build();
 
-        updateExam(exam, updatedExam);
+        updateExam(new EntityUpdate<>(exam, updatedExam));
 
         return Optional.empty();
     }
@@ -300,7 +301,7 @@ class ExamServiceImpl implements ExamService {
                 .withStatusChangeReason("paused by session")
                 .build();
 
-            updateExam(exam, pausedExam);
+            updateExam(new EntityUpdate<>(exam, pausedExam));
         }
     }
 
@@ -503,7 +504,7 @@ class ExamServiceImpl implements ExamService {
                 .withBrowserUserAgent(browserUserAgent)
                 .build();
 
-            updateExam(exam, restartedExam);
+            updateExam(new EntityUpdate<>(exam, restartedExam));
 
             updateFinishedPages(examSegmentWrappers, isGracePeriodResume);
             /* Skip restart increment on [209] because we are already incrementing earlier in this method */
@@ -642,7 +643,7 @@ class ExamServiceImpl implements ExamService {
             .withBrowserUserAgent(browserUserAgent)
             .build();
 
-        updateExam(exam, initializedExam);
+        updateExam(new EntityUpdate<>(exam, initializedExam));
 
         return initializedExam;
     }
@@ -803,7 +804,7 @@ class ExamServiceImpl implements ExamService {
             .withAbnormalStarts(previousExam.getAbnormalStarts() + abnormalIncrement)
             .build();
 
-        updateExam(previousExam, currentExam);
+        updateExam(new EntityUpdate<>(previousExam, currentExam));
 
         //The next block replaces OpenTestServiceImpl lines 194-202 fetching the guest accommodations if not a guest student
         //Fetches the client system flag for restoring accommodations StudentDLL._RestoreRTSAccommodations_FN
@@ -942,24 +943,12 @@ class ExamServiceImpl implements ExamService {
                 .withCustomAccommodation(maybeCustomExamAccommodation.isPresent())
                 .build();
 
-            updateExam(exam, updatedExam);
+            EntityUpdate<Exam> entityUpdate = new EntityUpdate<>(exam, updatedExam);
+            updateExam(entityUpdate);
             return updatedExam;
         }
 
         return exam;
-    }
-
-    /**
-     * Perform the update to the new {@link tds.exam.Exam} then execute the
-     * {@link tds.common.entity.utils.ChangeListener}s to apply any rules/business logic as a result of the update.
-     *
-     * @param exam        The {@link tds.exam.Exam} in its original state
-     * @param updatedExam The {@link tds.exam.Exam} with new values to persist
-     */
-    private void updateExam(final Exam exam, final Exam updatedExam) {
-        examCommandRepository.update(updatedExam);
-
-        examStatusChangeListeners.forEach(listener -> listener.accept(exam, updatedExam));
     }
 
     private List<ExamAssessmentMetadata> findEligibleExamAssessmentsForStudent(final long studentId, final Session session, final String grade) {
@@ -1123,5 +1112,20 @@ class ExamServiceImpl implements ExamService {
         Optional<ValidationError> getValidationError() {
             return Optional.ofNullable(validationError);
         }
+    }
+
+    private void updateExam(final EntityUpdate<Exam> examUpdate) {
+        updateExams(Collections.singletonList(examUpdate));
+    }
+
+    @Override
+    public void updateExams(final List<EntityUpdate<Exam>> examUpdates) {
+        List<Exam> examsToUpdate = examUpdates.stream()
+            .map(EntityUpdate::getUpdatedEntity)
+            .collect(Collectors.toList());
+
+        examCommandRepository.update(examsToUpdate.toArray(new Exam[examsToUpdate.size()]));
+
+        examUpdates.forEach(examUpdate -> examStatusChangeListeners.forEach(listener -> listener.accept(examUpdate)));
     }
 }

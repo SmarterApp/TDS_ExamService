@@ -29,6 +29,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+import tds.common.EntityUpdate;
 import tds.common.entity.utils.ChangeListener;
 import tds.exam.Exam;
 import tds.exam.ExamSegment;
@@ -132,7 +133,7 @@ public class OnCompletedStatusExamChangeListenerTest {
         when(mockFieldTestService.findUsageInExam(newExam.getId()))
             .thenReturn(Arrays.asList(mockFirstFtItemGroup, mockSecondFtItemGroup));
 
-        onCompletedExamStatusChangeListener.accept(oldExam, newExam);
+        onCompletedExamStatusChangeListener.accept(new EntityUpdate<>(oldExam, newExam));
         verify(mockExamSegmentService).findExamSegments(newExam.getId());
         verify(mockFieldTestService).findUsageInExam(newExam.getId());
         verify(mockExamSegmentService).update(examSegmentsArgumentCaptor.capture());
@@ -162,7 +163,7 @@ public class OnCompletedStatusExamChangeListenerTest {
         when(mockFieldTestService.findUsageInExam(newExam.getId()))
             .thenReturn(Collections.emptyList());
 
-        onCompletedExamStatusChangeListener.accept(oldExam, newExam);
+        onCompletedExamStatusChangeListener.accept(new EntityUpdate<>(oldExam, newExam));
         verify(mockExamSegmentService).findExamSegments(newExam.getId());
         verify(mockFieldTestService).findUsageInExam(newExam.getId());
     }
@@ -172,7 +173,7 @@ public class OnCompletedStatusExamChangeListenerTest {
         final Exam oldExam = new ExamBuilder().build();
         final Exam newExam = new ExamBuilder().build();
 
-        onCompletedExamStatusChangeListener.accept(oldExam, newExam);
+        onCompletedExamStatusChangeListener.accept(new EntityUpdate<>(oldExam, newExam));
         verifyZeroInteractions(mockExamSegmentService);
         verifyZeroInteractions(mockExamineeService);
         verifyZeroInteractions(mockFieldTestService);
@@ -187,7 +188,7 @@ public class OnCompletedStatusExamChangeListenerTest {
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_STARTED, ExamStatusStage.IN_PROGRESS), Instant.now())
             .build();
 
-        onCompletedExamStatusChangeListener.accept(oldExam, newExam);
+        onCompletedExamStatusChangeListener.accept(new EntityUpdate<>(oldExam, newExam));
         verifyZeroInteractions(mockExamSegmentService);
         verifyZeroInteractions(mockExamineeService);
         verifyZeroInteractions(mockFieldTestService);
@@ -203,7 +204,7 @@ public class OnCompletedStatusExamChangeListenerTest {
         when(mockExamSegmentService.findExamSegments(newExam.getId()))
             .thenReturn(new ArrayList<>());
 
-        onCompletedExamStatusChangeListener.accept(oldExam, newExam);
+        onCompletedExamStatusChangeListener.accept(new EntityUpdate<>(oldExam, newExam));
         verify(mockExamSegmentService).findExamSegments(any(UUID.class));
     }
 
@@ -215,7 +216,7 @@ public class OnCompletedStatusExamChangeListenerTest {
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_COMPLETED, ExamStatusStage.IN_PROGRESS), Instant.now())
             .build();
 
-        onCompletedExamStatusChangeListener.accept(oldExam, newExam);
+        onCompletedExamStatusChangeListener.accept(new EntityUpdate<>(oldExam, newExam));
         verify(mockMessagingService).sendExamCompletion(eq(oldExam.getId()));
     }
 
@@ -228,7 +229,7 @@ public class OnCompletedStatusExamChangeListenerTest {
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_COMPLETED, ExamStatusStage.IN_PROGRESS), Instant.now())
             .build();
 
-        onCompletedExamStatusChangeListener.accept(oldExam, newExam);
+        onCompletedExamStatusChangeListener.accept(new EntityUpdate<>(oldExam, newExam));
         verifyZeroInteractions(mockMessagingService);
     }
 }
