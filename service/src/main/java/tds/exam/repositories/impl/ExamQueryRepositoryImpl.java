@@ -448,14 +448,6 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
         return jdbcTemplate.query(SQL, parameters, examRowMapper);
     }
 
-    public void findExamsToExpire() {
-        String QUERY_TO_GET_LATEST = "select * from exam.exam_event\n" +
-            "JOIN (select exam_id, max(id) as id\n" +
-            "from exam.exam_event \n" +
-            "group by exam_id) last_event on last_event.id = exam.exam_event.id\n" +
-            "where status != 'completed'";
-    }
-
     private static class AbilityRowMapper implements RowMapper<Ability> {
         @Override
         public Ability mapRow(ResultSet rs, int rowNum) throws SQLException {
