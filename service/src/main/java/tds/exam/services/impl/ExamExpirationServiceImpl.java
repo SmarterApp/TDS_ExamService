@@ -3,6 +3,7 @@ package tds.exam.services.impl;
 import org.joda.time.Days;
 import org.joda.time.Instant;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -26,6 +27,7 @@ import tds.exam.services.ExamExpirationService;
 import tds.exam.services.ExamService;
 import tds.exam.services.TimeLimitConfigurationService;
 
+@Service
 public class ExamExpirationServiceImpl implements ExamExpirationService {
     /**
      * This was pulled from the original expiration logic within DmDll
