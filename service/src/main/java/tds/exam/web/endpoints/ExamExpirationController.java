@@ -14,7 +14,7 @@ import tds.exam.ExpiredExamInformation;
 import tds.exam.services.ExamExpirationService;
 
 @RestController
-@RequestMapping("/exam")
+@RequestMapping("/exams")
 public class ExamExpirationController {
     private final ExamExpirationService examExpirationService;
 
