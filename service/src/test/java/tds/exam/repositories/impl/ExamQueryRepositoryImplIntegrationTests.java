@@ -223,7 +223,7 @@ public class ExamQueryRepositoryImplIntegrationTests {
     }
 
     @Test
-    public void shouldFindExamsToExpire() {
+    public void shouldFindExamsToExpireByStatusCodesAndDaysPassed() {
         UUID deletedAtExamId = UUID.randomUUID();
         UUID completedExamId = UUID.randomUUID();
         UUID pausedExamWithRecentChangeDateId = UUID.randomUUID();
@@ -254,6 +254,80 @@ public class ExamQueryRepositoryImplIntegrationTests {
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.OPEN), Instant.now())
             .withCompletedAt(Instant.now())
             .withChangedAt(Instant.now())
+            .build());
+
+        Exam examStarted = new ExamBuilder()
+            .withId(pausedExamWithLongAgoChangeDateId)
+            .withAssessmentId("assementId2")
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.OPEN), Instant.now())
+            .withChangedAt(Instant.now().minus(Days.days(5).toStandardDuration()))
+            .build();
+
+        examsForExpire.add(examStarted);
+
+        ExamSegment examSegment = new ExamSegmentBuilder().withExamId(pausedExamWithLongAgoChangeDateId).build();
+        ExamPage examPage = new ExamPageBuilder().withExamId(pausedExamWithLongAgoChangeDateId).withSegmentKey(examSegment.getSegmentKey()).build();
+
+        examsForExpire.forEach(exam -> {
+            Instant changedAtDate = exam.getChangedAt();
+            examCommandRepository.insert(exam);
+            examAccommodationCommandRepository.insert(Collections.singletonList(
+                new ExamAccommodationBuilder()
+                    .withType("Language")
+                    .withCode("ENU")
+                    .withExamId(exam.getId())
+                    .withSegmentPosition(0)
+                    .build()
+            ));
+
+            updateEventCreatedAt(exam.getId(), changedAtDate);
+        });
+
+        examSegmentCommandRepository.insert(Collections.singletonList(examSegment));
+        examPageCommandRepository.insert(examPage);
+
+        List<Exam> examsToExpire = examQueryRepository.findExamsToExpire(Arrays.asList(ExamStatusCode.STATUS_APPROVED, ExamStatusCode.STATUS_CLOSED), 1);
+
+        boolean foundStarted = false;
+
+        for(Exam exam : examsToExpire) {
+            if(exam.getId().equals(pausedExamWithLongAgoChangeDateId)) {
+                foundStarted = true;
+                continue;
+            }
+
+            if(examIdsThatShouldNotExpire.contains(exam.getId())) {
+                fail("Found an exam id that should not be expired " + exam.getId());
+            }
+        }
+
+        assertThat(foundStarted).isTrue();
+    }
+
+    @Test
+    public void shouldFindExamsToExpireByStatusCodes() {
+        UUID deletedAtExamId = UUID.randomUUID();
+        UUID completedExamId = UUID.randomUUID();
+        UUID pausedExamWithRecentChangeDateId = UUID.randomUUID();
+        UUID pausedExamWithLongAgoChangeDateId = UUID.randomUUID();
+
+        List<UUID> examIdsThatShouldNotExpire = Arrays.asList(deletedAtExamId, completedExamId, pausedExamWithLongAgoChangeDateId);
+
+        List<Exam> examsForExpire = new ArrayList<>();
+        examsForExpire.add(new ExamBuilder()
+            .withId(deletedAtExamId)
+            .withAssessmentId("assementId2")
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.OPEN), Instant.now())
+            .withDeletedAt(Instant.now().minus(Minutes.minutes(5).toStandardDuration()))
+            .withChangedAt(Instant.now().minus(Days.days(5).toStandardDuration()))
+            .build());
+
+        examsForExpire.add(new ExamBuilder()
+            .withId(completedExamId)
+            .withAssessmentId("assementId2")
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_COMPLETED, ExamStatusStage.CLOSED), Instant.now())
+            .withCompletedAt(Instant.now())
+            .withChangedAt(Instant.now().minus(Days.days(5).toStandardDuration()))
             .build());
 
         Exam examStarted = new ExamBuilder()

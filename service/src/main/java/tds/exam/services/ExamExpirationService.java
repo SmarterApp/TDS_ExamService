@@ -1,6 +1,8 @@
 package tds.exam.services;
 
-import tds.exam.ExpireExamsResult;
+import java.util.Collection;
+
+import tds.exam.ExpiredExamInformation;
 
 /**
  * Expires exams
@@ -8,7 +10,9 @@ import tds.exam.ExpireExamsResult;
 public interface ExamExpirationService {
     /**
      * Expire all exams that fit criteria
-     * @return the {@link tds.exam.ExpireExamsResult}
+     * @param clientName the client name associated with the exam
+     *
+     * @return collection of {@link tds.exam.ExpiredExamInformation}
      */
-    ExpireExamsResult expireExams();
+    Collection<ExpiredExamInformation> expireExams(final String clientName);
 }
