@@ -507,7 +507,6 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
         It is finding all exams:
         1. That have been started (hence the join to page)
         2. Do not have the status codes passed in
-        3. n days have passed since the last change event
          */
         String SQL = "SELECT " + EXAM_QUERY_COLUMN_LIST +
             "from exam e\n" +
