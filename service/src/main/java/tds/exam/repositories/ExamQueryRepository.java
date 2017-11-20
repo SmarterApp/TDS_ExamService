@@ -100,4 +100,12 @@ public interface ExamQueryRepository {
      * @return The list of {@link tds.exam.Exam}s the student has taken
      */
     List<Exam> findAllExamsForStudent(final long studentId);
+
+    /**
+     * Find all the exams to expire based on the status codes
+     *
+     * @param statusCodesToIgnore     the status codes to ignore
+     * @return the list of {@link tds.exam.Exam} to expire
+     */
+    List<Exam> findExamsToExpire(List<String> statusCodesToIgnore);
 }

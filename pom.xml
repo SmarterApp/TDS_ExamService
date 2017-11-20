@@ -31,9 +31,9 @@
 
         <tds-common.version>4.0.2</tds-common.version>
         <tds-session.version>3.1.3.RELEASE</tds-session.version>
-        <tds-assessment-client.version>4.0.0.RELEASE</tds-assessment-client.version>
+        <tds-assessment-client.version>4.0.1</tds-assessment-client.version>
         <tds-student-client.version>4.0.3.RELEASE</tds-student-client.version>
-        <tds-config-client.version>4.0.2.RELEASE</tds-config-client.version>
+        <tds-config-client.version>4.0.3</tds-config-client.version>
         <tds-student-common.version>4.0.6.RELEASE</tds-student-common.version>
         <tds-item-selection.version>4.0.3.RELEASE</tds-item-selection.version>
         <ss-multijar.version>4.0.6.RELEASE</ss-multijar.version>

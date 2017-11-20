@@ -14,6 +14,7 @@
 package tds.exam.repositories.impl;
 
 import com.google.common.collect.ImmutableList;
+import org.joda.time.Days;
 import org.joda.time.Instant;
 import org.joda.time.Minutes;
 import org.junit.Before;
@@ -27,17 +28,6 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
-import tds.accommodation.Accommodation;
-import tds.exam.Exam;
-import tds.exam.ExamAccommodation;
-import tds.exam.ExamStatusCode;
-import tds.exam.ExamStatusStage;
-import tds.exam.builder.ExamAccommodationBuilder;
-import tds.exam.builder.ExamBuilder;
-import tds.exam.models.Ability;
-import tds.exam.repositories.ExamAccommodationCommandRepository;
-import tds.exam.repositories.ExamCommandRepository;
-import tds.exam.repositories.ExamQueryRepository;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -49,8 +39,28 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import tds.accommodation.Accommodation;
+import tds.exam.Exam;
+import tds.exam.ExamAccommodation;
+import tds.exam.ExamPage;
+import tds.exam.ExamSegment;
+import tds.exam.ExamStatusCode;
+import tds.exam.ExamStatusStage;
+import tds.exam.builder.ExamAccommodationBuilder;
+import tds.exam.builder.ExamBuilder;
+import tds.exam.builder.ExamPageBuilder;
+import tds.exam.builder.ExamSegmentBuilder;
+import tds.exam.models.Ability;
+import tds.exam.repositories.ExamAccommodationCommandRepository;
+import tds.exam.repositories.ExamCommandRepository;
+import tds.exam.repositories.ExamPageCommandRepository;
+import tds.exam.repositories.ExamQueryRepository;
+import tds.exam.repositories.ExamSegmentCommandRepository;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.joda.time.Duration.standardDays;
+import static tds.common.data.mapping.ResultSetMapperUtility.mapJodaInstantToTimestamp;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest
@@ -59,6 +69,8 @@ public class ExamQueryRepositoryImplIntegrationTests {
     private ExamQueryRepository examQueryRepository;
     private ExamCommandRepository examCommandRepository;
     private ExamAccommodationCommandRepository examAccommodationCommandRepository;
+    private ExamSegmentCommandRepository examSegmentCommandRepository;
+    private ExamPageCommandRepository examPageCommandRepository;
 
     @Autowired
     @Qualifier("commandJdbcTemplate")
@@ -75,6 +87,9 @@ public class ExamQueryRepositoryImplIntegrationTests {
         examQueryRepository = new ExamQueryRepositoryImpl(jdbcTemplate);
         examCommandRepository = new ExamCommandRepositoryImpl(jdbcTemplate);
         examAccommodationCommandRepository = new ExamAccommodationCommandRepositoryImpl(jdbcTemplate);
+        examPageCommandRepository = new ExamPageCommandRepositoryImpl(jdbcTemplate);
+        examSegmentCommandRepository = new ExamSegmentCommandRepositoryImpl(jdbcTemplate);
+
         List<Exam> exams = new ArrayList<>();
         // Build a basic exam record
         exams.add(new ExamBuilder().build());
@@ -205,6 +220,89 @@ public class ExamQueryRepositoryImplIntegrationTests {
         List<Ability> noAbilities = examQueryRepository.findAbilities(UUID.fromString("12345678-d1d2-4c24-805c-0dfdb45a0999"),
             "otherclient", "ELA", 9999L);
         assertThat(noAbilities).isEmpty();
+    }
+
+    @Test
+    public void shouldFindExamsToExpireByStatusCodes() {
+        UUID deletedAtExamId = UUID.randomUUID();
+        UUID completedExamId = UUID.randomUUID();
+        UUID pausedExamWithLongAgoChangeDateId = UUID.randomUUID();
+
+        List<UUID> examIdsThatShouldNotExpire = Arrays.asList(deletedAtExamId, completedExamId, pausedExamWithLongAgoChangeDateId);
+
+        List<Exam> examsForExpire = new ArrayList<>();
+        examsForExpire.add(new ExamBuilder()
+            .withId(deletedAtExamId)
+            .withAssessmentId("assementId2")
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.OPEN), Instant.now())
+            .withDeletedAt(Instant.now().minus(Minutes.minutes(5).toStandardDuration()))
+            .withChangedAt(Instant.now().minus(Days.days(5).toStandardDuration()))
+            .build());
+
+        examsForExpire.add(new ExamBuilder()
+            .withId(completedExamId)
+            .withAssessmentId("assementId2")
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_COMPLETED, ExamStatusStage.CLOSED), Instant.now())
+            .withCompletedAt(Instant.now())
+            .withChangedAt(Instant.now().minus(Days.days(5).toStandardDuration()))
+            .build());
+
+        Exam examStarted = new ExamBuilder()
+            .withId(pausedExamWithLongAgoChangeDateId)
+            .withAssessmentId("assementId2")
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.OPEN), Instant.now())
+            .withChangedAt(Instant.now().minus(Days.days(5).toStandardDuration()))
+            .build();
+
+        examsForExpire.add(examStarted);
+
+        ExamSegment examSegment = new ExamSegmentBuilder().withExamId(pausedExamWithLongAgoChangeDateId).build();
+        ExamPage examPage = new ExamPageBuilder().withExamId(pausedExamWithLongAgoChangeDateId).withSegmentKey(examSegment.getSegmentKey()).build();
+
+        examsForExpire.forEach(exam -> {
+            Instant changedAtDate = exam.getChangedAt();
+            examCommandRepository.insert(exam);
+            examAccommodationCommandRepository.insert(Collections.singletonList(
+                new ExamAccommodationBuilder()
+                    .withType("Language")
+                    .withCode("ENU")
+                    .withExamId(exam.getId())
+                    .withSegmentPosition(0)
+                    .build()
+            ));
+
+            updateEventCreatedAt(exam.getId(), changedAtDate);
+        });
+
+        examSegmentCommandRepository.insert(Collections.singletonList(examSegment));
+        examPageCommandRepository.insert(examPage);
+
+        List<Exam> examsToExpire = examQueryRepository.findExamsToExpire(Arrays.asList(ExamStatusCode.STATUS_APPROVED, ExamStatusCode.STATUS_CLOSED));
+
+        boolean foundStarted = false;
+
+        for(Exam exam : examsToExpire) {
+            if(exam.getId().equals(pausedExamWithLongAgoChangeDateId)) {
+                foundStarted = true;
+                continue;
+            }
+
+            if(examIdsThatShouldNotExpire.contains(exam.getId())) {
+                fail("Found an exam id that should not be expired " + exam.getId());
+            }
+        }
+
+        assertThat(foundStarted).isTrue();
+    }
+
+    private void updateEventCreatedAt(UUID examId, Instant changedAt) {
+        MapSqlParameterSource parameterSource = new MapSqlParameterSource("changedAt", mapJodaInstantToTimestamp(changedAt))
+            .addValue("examId", examId.toString());
+
+
+        String SQL = "update exam.exam_event set changed_at = :changedAt where exam_id = :examId";
+
+        assertThat(jdbcTemplate.update(SQL, parameterSource)).isEqualTo(1);
     }
 
     @Test

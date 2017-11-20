@@ -33,7 +33,7 @@ class TimeLimitConfigurationServiceImpl implements TimeLimitConfigurationService
     private final RestTemplate restTemplate;
     private final ExamServiceProperties examServiceProperties;
 
-    public TimeLimitConfigurationServiceImpl(final RestTemplate restTemplate, final ExamServiceProperties examServiceProperties) {
+    TimeLimitConfigurationServiceImpl(final RestTemplate restTemplate, final ExamServiceProperties examServiceProperties) {
         this.restTemplate = restTemplate;
         this.examServiceProperties = examServiceProperties;
     }
@@ -48,17 +48,32 @@ class TimeLimitConfigurationServiceImpl implements TimeLimitConfigurationService
                         clientName,
                         assessmentId));
 
+        return getTimeLimitConfiguration(uriBuilder);
+    }
+
+    @Override
+    public Optional<TimeLimitConfiguration> findTimeLimitConfiguration(final String clientName) {
+        UriComponentsBuilder uriBuilder =
+            UriComponentsBuilder
+                .fromHttpUrl(String.format("%s/%s/time-limits/%s",
+                    examServiceProperties.getConfigUrl(),
+                    CONFIG_APP_CONTEXT,
+                    clientName));
+
+        return getTimeLimitConfiguration(uriBuilder);
+    }
+
+    private Optional<TimeLimitConfiguration> getTimeLimitConfiguration(final UriComponentsBuilder uriBuilder) {
         Optional<TimeLimitConfiguration> maybeTimeLimitConfig = Optional.empty();
         try {
             final TimeLimitConfiguration timeLimitConfiguration =
-                    restTemplate.getForObject(uriBuilder.build().toUri(), TimeLimitConfiguration.class);
+                restTemplate.getForObject(uriBuilder.build().toUri(), TimeLimitConfiguration.class);
             maybeTimeLimitConfig = Optional.of(timeLimitConfiguration);
         } catch (HttpClientErrorException e) {
             if (e.getStatusCode() != HttpStatus.NOT_FOUND) {
                 throw e;
             }
         }
-
         return maybeTimeLimitConfig;
     }
 }

@@ -75,4 +75,15 @@ public class TimeLimitConfigurationServiceImplTest {
 
         assertThat(maybeTimeLimit.isPresent()).isFalse();
     }
+
+    @Test
+    public void shouldFindTimeLimitConfigurationByClient() throws URISyntaxException {
+        TimeLimitConfiguration timeLimitConfiguration = new TimeLimitConfiguration.Builder().build();
+        URI url = new URI(String.format("%s/%s/time-limits/%s", BASE_URL, CONFIG_APP_CONTEXT, "client"));
+        when(restTemplate.getForObject(url, TimeLimitConfiguration.class)).thenReturn(timeLimitConfiguration);
+        Optional<TimeLimitConfiguration> maybeTimeLimit = timeLimitConfigurationService.findTimeLimitConfiguration("client");
+        verify(restTemplate).getForObject(url, TimeLimitConfiguration.class);
+
+        assertThat(maybeTimeLimit.get()).isEqualTo(timeLimitConfiguration);
+    }
 }

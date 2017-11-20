@@ -22,11 +22,19 @@ import tds.config.TimeLimitConfiguration;
  */
 public interface TimeLimitConfigurationService {
     /**
-     * Get {@link TimeLimitConfiguration} from the configuration service.
+     * Get {@link TimeLimitConfiguration} for the client and assessment
      *
      * @param clientName The name of the client that owns the {@link TimeLimitConfiguration}
      * @param assessmentId The id of the assessment that might have specific time limit settings.
      * @return An optional containing the {@link TimeLimitConfiguration} for the client name; otherwise empty.
      */
     Optional<TimeLimitConfiguration> findTimeLimitConfiguration(final String clientName, final String assessmentId);
+
+    /**
+     * Get {@link TimeLimitConfiguration} for the client and assessment
+     *
+     * @param clientName The name of the client that owns the {@link TimeLimitConfiguration}
+     * @return An optional containing the {@link TimeLimitConfiguration} for the client name; otherwise empty.
+     */
+    Optional<TimeLimitConfiguration> findTimeLimitConfiguration(final String clientName);
 }
