@@ -102,15 +102,6 @@ public interface ExamQueryRepository {
     List<Exam> findAllExamsForStudent(final long studentId);
 
     /**
-     * Find all the exams to expire based on the status codes and the number of days since the last change event
-     *
-     * @param statusCodesToIgnore     the status codes to ignore
-     * @param daysFromLastChangeEvent the number of days since the last change event for a given exam
-     * @return the list of {@link tds.exam.Exam} to expire
-     */
-    List<Exam> findExamsToExpire(List<String> statusCodesToIgnore, int daysFromLastChangeEvent);
-
-    /**
      * Find all the exams to expire based on the status codes
      *
      * @param statusCodesToIgnore     the status codes to ignore
