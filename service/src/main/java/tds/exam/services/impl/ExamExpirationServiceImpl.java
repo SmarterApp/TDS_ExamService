@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import tds.assessment.Assessment;
@@ -75,6 +76,7 @@ public class ExamExpirationServiceImpl implements ExamExpirationService {
             .map(assessmentId -> timeLimitConfigurationService.findTimeLimitConfiguration(clientName, assessmentId))
             .filter(Optional::isPresent)
             .map(Optional::get)
+            .filter(timeLimitConfiguration -> timeLimitConfiguration.getAssessmentId() != null)
             .collect(Collectors.toMap(TimeLimitConfiguration::getAssessmentId, Function.identity()));
 
         /*
