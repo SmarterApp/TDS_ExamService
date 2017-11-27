@@ -58,12 +58,14 @@ public class ExamExpirationServiceImpl implements ExamExpirationService {
         List<Exam> examsToExpire = examQueryRepository.findExamsToExpire(STATUSES_TO_IGNORE_FOR_EXPIRATION);
 
         //None to expire return
-        if(examsToExpire.isEmpty()) {
+        if (examsToExpire.isEmpty()) {
             return new HashSet<>();
         }
 
         //Get all the assessments for the exams to be expired since the "forceComplete" must be true
-       final  Map<String, Assessment> assessmentsByKey = examsToExpire.stream().map(Exam::getAssessmentKey)
+        final Map<String, Assessment> assessmentsByKey = examsToExpire.stream()
+            .map(Exam::getAssessmentKey)
+            .distinct()
             .map(assessmentKey -> assessmentService.findAssessment(clientName, assessmentKey).get())
             .collect(Collectors.toMap(Assessment::getKey, Function.identity()));
 
@@ -85,21 +87,21 @@ public class ExamExpirationServiceImpl implements ExamExpirationService {
             .filter(exam -> {
                 Assessment assessment = assessmentsByKey.get(exam.getAssessmentKey());
                 return assessment.isForceComplete();
-        }).filter(exam -> {
-            TimeLimitConfiguration timeLimitConfiguration = assessmentIdToTimeLimits.getOrDefault(exam.getAssessmentId(), clientTimeLimitConfiguration);
-            return Days.daysBetween(exam.getChangedAt(), Instant.now()).isGreaterThan(Days.days(timeLimitConfiguration.getExamExpireDays()));
-        }).map(exam -> {
-            //Complete the exam
-            Exam completedExam = new Exam.Builder().fromExam(exam)
-                .withCompletedAt(now)
-                .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_COMPLETED), now)
-                .withStatusChangeReason("Completing exam via the force submit process")
-                .build();
+            }).filter(exam -> {
+                TimeLimitConfiguration timeLimitConfiguration = assessmentIdToTimeLimits.getOrDefault(exam.getAssessmentId(), clientTimeLimitConfiguration);
+                return Days.daysBetween(exam.getChangedAt(), Instant.now()).isGreaterThan(Days.days(timeLimitConfiguration.getExamExpireDays()));
+            }).map(exam -> {
+                //Complete the exam
+                Exam completedExam = new Exam.Builder().fromExam(exam)
+                    .withCompletedAt(now)
+                    .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_COMPLETED), now)
+                    .withStatusChangeReason("Completing exam via the force submit process")
+                    .build();
 
-            return new EntityUpdate<>(exam, completedExam);
-        }).collect(Collectors.toList());
+                return new EntityUpdate<>(exam, completedExam);
+            }).collect(Collectors.toList());
 
-        if(examUpdates.isEmpty()) {
+        if (examUpdates.isEmpty()) {
             return Collections.emptySet();
         }
 
