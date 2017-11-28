@@ -8,11 +8,11 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.UUID;
 
 import tds.exam.ExpiredExamInformation;
+import tds.exam.ExpiredExamResponse;
 import tds.exam.services.ExamExpirationService;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,10 +33,10 @@ public class ExamExpirationControllerTest {
     @Test
     public void shouldExpireExams() {
         ExpiredExamInformation info = new ExpiredExamInformation(1L, "key", "id", UUID.randomUUID());
-        when(mockExamExpirationService.expireExams("SBAC")).thenReturn(Collections.singletonList(info));
-        ResponseEntity<Collection<ExpiredExamInformation>> response = examExpirationController.expireExams("SBAC");
+        when(mockExamExpirationService.expireExams("SBAC")).thenReturn(new ExpiredExamResponse(false, Collections.singletonList(info)));
+        ResponseEntity<ExpiredExamResponse> response = examExpirationController.expireExams("SBAC");
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).containsExactly(info);
+        assertThat(response.getBody().getExpiredExams()).containsExactly(info);
     }
 }

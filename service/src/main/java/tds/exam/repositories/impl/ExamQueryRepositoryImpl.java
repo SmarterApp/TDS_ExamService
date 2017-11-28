@@ -27,6 +27,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -449,8 +450,10 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
     }
 
     @Override
-    public List<Exam> findExamsToExpire(List<String> statusCodesToIgnore) {
-        final SqlParameterSource parameters = new MapSqlParameterSource("statusCodesToIgnore", statusCodesToIgnore);
+    public List<Exam> findExamsToExpire(final List<String> statusCodesToIgnore, final int expireExamLimit, Collection<String> assessmentIds) {
+        final SqlParameterSource parameters = new MapSqlParameterSource("statusCodesToIgnore", statusCodesToIgnore)
+            .addValue("assessmentIds", assessmentIds)
+            .addValue("expireExamLimit", expireExamLimit);
 
         /*
         This query is a bit complex and is pulled from DmDll._DM_ExpireOpportunities_SP line 77
@@ -487,7 +490,11 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
             "           exam_id = e.id \n" +
             "           AND type = 'Language' \n" +
             "       ORDER BY created_at DESC \n" +
-            "       LIMIT 1); \n ";
+            "       LIMIT 1) \n " +
+            "WHERE \n" +
+            "  e.assessment_id IN (:assessmentIds) \n" +
+            "ORDER BY e.created_at ASC \n" +
+            "LIMIT :expireExamLimit;";
 
         return jdbcTemplate.query(SQL, parameters, examRowMapper);
     }

@@ -24,6 +24,7 @@ public class ExamServiceProperties {
     private String assessmentUrl = "";
     private String configUrl = "";
     private String contentUrl = "";
+    private int expireExamLimit = 100;
 
     /**
      * Get the URL for the content microservice.
@@ -102,6 +103,17 @@ public class ExamServiceProperties {
     public void setAssessmentUrl(String assessmentUrl) {
         if (assessmentUrl == null) throw new IllegalArgumentException("asssessmentUrl cannot be null");
         this.assessmentUrl = removeTrailingSlash(assessmentUrl);
+    }
+
+    /**
+     * @return the expire exam limit
+     */
+    public int getExpireExamLimit() {
+        return expireExamLimit;
+    }
+
+    public void setExpireExamLimit(final int expireExamLimit) {
+        this.expireExamLimit = expireExamLimit;
     }
 
     private String removeTrailingSlash(String url) {

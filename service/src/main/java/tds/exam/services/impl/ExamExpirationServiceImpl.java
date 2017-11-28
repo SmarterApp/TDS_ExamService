@@ -5,15 +5,14 @@ import org.joda.time.Instant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import tds.assessment.Assessment;
@@ -22,8 +21,11 @@ import tds.config.TimeLimitConfiguration;
 import tds.exam.Exam;
 import tds.exam.ExamStatusCode;
 import tds.exam.ExpiredExamInformation;
+import tds.exam.ExpiredExamResponse;
+import tds.exam.configuration.ExamServiceProperties;
 import tds.exam.repositories.ExamQueryRepository;
 import tds.exam.services.AssessmentService;
+import tds.exam.services.ConfigService;
 import tds.exam.services.ExamExpirationService;
 import tds.exam.services.ExamService;
 import tds.exam.services.TimeLimitConfigurationService;
@@ -39,28 +41,48 @@ public class ExamExpirationServiceImpl implements ExamExpirationService {
     private final ExamQueryRepository examQueryRepository;
     private final TimeLimitConfigurationService timeLimitConfigurationService;
     private final AssessmentService assessmentService;
+    private final ExamServiceProperties examServiceProperties;
+    private final ConfigService configService;
 
     @Autowired
-    ExamExpirationServiceImpl(final ExamService examService, final ExamQueryRepository examQueryRepository, final TimeLimitConfigurationService timeLimitConfigurationService, final AssessmentService assessmentService) {
+    ExamExpirationServiceImpl(final ExamService examService,
+                              final ExamQueryRepository examQueryRepository,
+                              final TimeLimitConfigurationService timeLimitConfigurationService,
+                              final AssessmentService assessmentService,
+                              final ExamServiceProperties examServiceProperties,
+                              final ConfigService configService) {
         this.examService = examService;
         this.examQueryRepository = examQueryRepository;
         this.timeLimitConfigurationService = timeLimitConfigurationService;
         this.assessmentService = assessmentService;
+        this.examServiceProperties = examServiceProperties;
+        this.configService = configService;
     }
 
     @Override
-    public Collection<ExpiredExamInformation> expireExams(final String clientName) {
-        //Retrieve the timelimits so we know how many days need to pass before expiration.  The system will be misconfigured
+    public ExpiredExamResponse expireExams(final String clientName) {
+        boolean moreExamsToExpire = false;
+        //Retrieve the time limits so we know how many days need to pass before expiration.  The system will be misconfigured
         //if this is missing hence why it throws
         TimeLimitConfiguration clientTimeLimitConfiguration = timeLimitConfigurationService.findTimeLimitConfiguration(clientName)
             .orElseThrow(() -> new IllegalStateException("Could not find time limit configuration for client " + clientName));
 
+        Collection<String> forceCompleteAssessmentIds = configService.findForceCompleteAssessmentIds(clientName);
+
         //Find the exams to to expire
-        List<Exam> examsToExpire = examQueryRepository.findExamsToExpire(STATUSES_TO_IGNORE_FOR_EXPIRATION);
+        List<Exam> examsToExpire = examQueryRepository.findExamsToExpire(STATUSES_TO_IGNORE_FOR_EXPIRATION, (examServiceProperties.getExpireExamLimit() + 1), forceCompleteAssessmentIds);
+
+        //If there are more than the expire limit it means that the caller needs to call again to expire the rest of the exams
+        if(examsToExpire.size() > examServiceProperties.getExpireExamLimit()) {
+            moreExamsToExpire = true;
+
+            //Remove the extra expire exam
+            examsToExpire = new ArrayList<>(examsToExpire.subList(0, examServiceProperties.getExpireExamLimit()));
+        }
 
         //None to expire return
         if (examsToExpire.isEmpty()) {
-            return new HashSet<>();
+            return new ExpiredExamResponse(false, Collections.emptyList());
         }
 
         //Get all the assessments for the exams to be expired since the "forceComplete" must be true
@@ -104,7 +126,7 @@ public class ExamExpirationServiceImpl implements ExamExpirationService {
             }).collect(Collectors.toList());
 
         if (examUpdates.isEmpty()) {
-            return Collections.emptySet();
+            return new ExpiredExamResponse(moreExamsToExpire, Collections.emptyList());
         }
 
         //Update the exams for completion
@@ -126,7 +148,7 @@ public class ExamExpirationServiceImpl implements ExamExpirationService {
         //Update the exams and set them to expired
         examService.updateExams(expiringExams);
 
-        return expiringExams.stream().map(examEntityUpdate -> {
+        Collection<ExpiredExamInformation> expiredExamInformations = expiringExams.stream().map(examEntityUpdate -> {
             Exam exam = examEntityUpdate.getUpdatedEntity();
             return new ExpiredExamInformation(
                 exam.getStudentId(),
@@ -134,5 +156,7 @@ public class ExamExpirationServiceImpl implements ExamExpirationService {
                 exam.getAssessmentId(),
                 exam.getId());
         }).collect(Collectors.toSet());
+
+        return new ExpiredExamResponse(moreExamsToExpire, expiredExamInformations);
     }
 }
