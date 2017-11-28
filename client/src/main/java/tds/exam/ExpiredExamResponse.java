@@ -3,7 +3,7 @@ package tds.exam;
 import java.util.Collection;
 
 /**
- * Represents
+ * Contains information about the exams that were expired and also whether there are additional exams that need to be expired.
  */
 public class ExpiredExamResponse {
     private boolean additionalExamsToExpire;
@@ -18,10 +18,16 @@ public class ExpiredExamResponse {
         this.expiredExams = expiredExams;
     }
 
+    /**
+     * @return {@code true} if there are more exams to expire
+     */
     public boolean isAdditionalExamsToExpire() {
         return additionalExamsToExpire;
     }
 
+    /**
+     * @return the collection of {@link tds.exam.ExpiredExamInformation} for expired exams
+     */
     public Collection<ExpiredExamInformation> getExpiredExams() {
         return expiredExams;
     }
