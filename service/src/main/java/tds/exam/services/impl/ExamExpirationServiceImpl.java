@@ -15,7 +15,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import tds.assessment.Assessment;
 import tds.common.EntityUpdate;
 import tds.config.TimeLimitConfiguration;
 import tds.exam.Exam;
@@ -24,7 +23,6 @@ import tds.exam.ExpiredExamInformation;
 import tds.exam.ExpiredExamResponse;
 import tds.exam.configuration.ExamServiceProperties;
 import tds.exam.repositories.ExamQueryRepository;
-import tds.exam.services.AssessmentService;
 import tds.exam.services.ConfigService;
 import tds.exam.services.ExamExpirationService;
 import tds.exam.services.ExamService;
@@ -40,7 +38,6 @@ public class ExamExpirationServiceImpl implements ExamExpirationService {
     private final ExamService examService;
     private final ExamQueryRepository examQueryRepository;
     private final TimeLimitConfigurationService timeLimitConfigurationService;
-    private final AssessmentService assessmentService;
     private final ExamServiceProperties examServiceProperties;
     private final ConfigService configService;
 
@@ -48,13 +45,11 @@ public class ExamExpirationServiceImpl implements ExamExpirationService {
     ExamExpirationServiceImpl(final ExamService examService,
                               final ExamQueryRepository examQueryRepository,
                               final TimeLimitConfigurationService timeLimitConfigurationService,
-                              final AssessmentService assessmentService,
                               final ExamServiceProperties examServiceProperties,
                               final ConfigService configService) {
         this.examService = examService;
         this.examQueryRepository = examQueryRepository;
         this.timeLimitConfigurationService = timeLimitConfigurationService;
-        this.assessmentService = assessmentService;
         this.examServiceProperties = examServiceProperties;
         this.configService = configService;
     }
@@ -85,16 +80,9 @@ public class ExamExpirationServiceImpl implements ExamExpirationService {
             return new ExpiredExamResponse(false, Collections.emptyList());
         }
 
-        //Get all the assessments for the exams to be expired since the "forceComplete" must be true
-        final Map<String, Assessment> assessmentsByKey = examsToExpire.stream()
-            .map(Exam::getAssessmentKey)
-            .distinct()
-            .map(assessmentKey -> assessmentService.findAssessment(clientName, assessmentKey).get())
-            .collect(Collectors.toMap(Assessment::getKey, Function.identity()));
-
-        //Take the assessment ids from assessmentsByKey and get the timelimit configurations
-        final Map<String, TimeLimitConfiguration> assessmentIdToTimeLimits = assessmentsByKey.values().stream()
-            .map(Assessment::getAssessmentId)
+        //Take the assessment ids from assessmentsByKey and get the timelimit configurations.  The filter with null check is
+        //to remove the overall client time limits since the configuration service returns it regardless.
+        final Map<String, TimeLimitConfiguration> assessmentIdToTimeLimits = forceCompleteAssessmentIds.stream()
             .map(assessmentId -> timeLimitConfigurationService.findTimeLimitConfiguration(clientName, assessmentId))
             .filter(Optional::isPresent)
             .map(Optional::get)
@@ -109,9 +97,6 @@ public class ExamExpirationServiceImpl implements ExamExpirationService {
         final Instant now = Instant.now();
         List<EntityUpdate<Exam>> examUpdates = examsToExpire.stream()
             .filter(exam -> {
-                Assessment assessment = assessmentsByKey.get(exam.getAssessmentKey());
-                return assessment.isForceComplete();
-            }).filter(exam -> {
                 TimeLimitConfiguration timeLimitConfiguration = assessmentIdToTimeLimits.getOrDefault(exam.getAssessmentId(), clientTimeLimitConfiguration);
                 return Days.daysBetween(exam.getChangedAt(), Instant.now()).isGreaterThan(Days.days(timeLimitConfiguration.getExamExpireDays()));
             }).map(exam -> {
