@@ -257,7 +257,8 @@ public class ExamQueryRepositoryImplIntegrationTests {
         examsForExpire.add(examStarted);
 
         ExamSegment examSegment = new ExamSegmentBuilder().withExamId(pausedExamWithLongAgoChangeDateId).build();
-        ExamPage examPage = new ExamPageBuilder().withExamId(pausedExamWithLongAgoChangeDateId).withSegmentKey(examSegment.getSegmentKey()).build();
+        ExamPage examPage = new ExamPageBuilder().withId(UUID.randomUUID()).withExamId(pausedExamWithLongAgoChangeDateId).withPagePosition(1).withSegmentKey(examSegment.getSegmentKey()).build();
+        ExamPage examPage2 = new ExamPageBuilder().withId(UUID.randomUUID()).withExamId(pausedExamWithLongAgoChangeDateId).withPagePosition(2).withSegmentKey(examSegment.getSegmentKey()).build();
 
         examsForExpire.forEach(exam -> {
             Instant changedAtDate = exam.getChangedAt();
@@ -275,7 +276,7 @@ public class ExamQueryRepositoryImplIntegrationTests {
         });
 
         examSegmentCommandRepository.insert(Collections.singletonList(examSegment));
-        examPageCommandRepository.insert(examPage);
+        examPageCommandRepository.insert(examPage, examPage2);
 
         List<Exam> examsToExpire = examQueryRepository.findExamsToExpire(Arrays.asList(ExamStatusCode.STATUS_APPROVED, ExamStatusCode.STATUS_CLOSED));
 
