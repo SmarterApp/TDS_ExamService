@@ -13,6 +13,7 @@
 
 package tds.exam.services;
 
+import java.util.Collection;
 import java.util.Optional;
 
 import tds.config.ClientSystemFlag;
@@ -66,4 +67,12 @@ public interface ConfigService {
      * @return The message string with placeholders included
      */
     String getFormattedMessage(final String clientName, final String context, final String messageKey, final String languageCode, final String subject, final String grade, final Object... replacements);
+
+    /**
+     * Finds assessment ids that have force complete enabled
+     *
+     * @param clientName the client name
+     * @return collection of assessment ids
+     */
+    Collection<String> findForceCompleteAssessmentIds(final String clientName);
 }

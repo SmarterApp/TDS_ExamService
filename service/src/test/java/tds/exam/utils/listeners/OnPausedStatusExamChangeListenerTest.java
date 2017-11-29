@@ -22,9 +22,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Optional;
 
-import tds.common.Response;
+import tds.common.EntityUpdate;
 import tds.common.entity.utils.ChangeListener;
-import tds.common.web.exceptions.NotFoundException;
 import tds.exam.Exam;
 import tds.exam.ExamSegment;
 import tds.exam.ExamStatusCode;
@@ -68,7 +67,7 @@ public class OnPausedStatusExamChangeListenerTest {
             newExam.getCurrentSegmentPosition()))
             .thenReturn(Optional.of(mockSegment));
 
-        onPausedStatusExamChangeListener.accept(oldExam, newExam);
+        onPausedStatusExamChangeListener.accept(new EntityUpdate<>(oldExam, newExam));
         verify(mockExamSegmentService).findByExamIdAndSegmentPosition(newExam.getId(),
             newExam.getCurrentSegmentPosition());
         verify(mockExamSegmentService).update(any(ExamSegment.class));
@@ -79,7 +78,7 @@ public class OnPausedStatusExamChangeListenerTest {
         Exam oldExam = new ExamBuilder().build();
         Exam newExam = new ExamBuilder().build();
 
-        onPausedStatusExamChangeListener.accept(oldExam, newExam);
+        onPausedStatusExamChangeListener.accept(new EntityUpdate<>(oldExam, newExam));
         verifyZeroInteractions(mockExamSegmentService);
     }
 
@@ -92,7 +91,7 @@ public class OnPausedStatusExamChangeListenerTest {
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_STARTED, ExamStatusStage.IN_PROGRESS), Instant.now())
             .build();
 
-        onPausedStatusExamChangeListener.accept(oldExam, newExam);
+        onPausedStatusExamChangeListener.accept(new EntityUpdate<>(oldExam, newExam));
         verifyZeroInteractions(mockExamSegmentService);
     }
 
@@ -111,7 +110,7 @@ public class OnPausedStatusExamChangeListenerTest {
             newExam.getCurrentSegmentPosition()))
             .thenReturn(Optional.of(mockSegment));
 
-        onPausedStatusExamChangeListener.accept(oldExam, newExam);
+        onPausedStatusExamChangeListener.accept(new EntityUpdate<>(oldExam, newExam));
         verify(mockExamSegmentService).findByExamIdAndSegmentPosition(newExam.getId(),
             newExam.getCurrentSegmentPosition());
         verify(mockExamSegmentService, never()).update(anyVararg());
@@ -133,7 +132,7 @@ public class OnPausedStatusExamChangeListenerTest {
             newExam.getCurrentSegmentPosition()))
             .thenReturn(Optional.of(mockSegment));
 
-        onPausedStatusExamChangeListener.accept(oldExam, newExam);
+        onPausedStatusExamChangeListener.accept(new EntityUpdate<>(oldExam, newExam));
         verify(mockExamSegmentService).findByExamIdAndSegmentPosition(newExam.getId(),
             newExam.getCurrentSegmentPosition());
         verify(mockExamSegmentService, never()).update(anyVararg());
@@ -150,7 +149,7 @@ public class OnPausedStatusExamChangeListenerTest {
             newExam.getCurrentSegmentPosition()))
             .thenReturn(Optional.empty());
 
-        onPausedStatusExamChangeListener.accept(oldExam, newExam);
+        onPausedStatusExamChangeListener.accept(new EntityUpdate<>(oldExam, newExam));
         verify(mockExamSegmentService, never()).update(anyVararg());
     }
 }

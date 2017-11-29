@@ -22,6 +22,19 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+
 import tds.common.data.mapping.ResultSetMapperUtility;
 import tds.common.data.mysql.UuidAdapter;
 import tds.exam.Exam;
@@ -29,17 +42,6 @@ import tds.exam.ExamStatusCode;
 import tds.exam.ExamStatusStage;
 import tds.exam.models.Ability;
 import tds.exam.repositories.ExamQueryRepository;
-
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
 
 import static tds.common.data.mapping.ResultSetMapperUtility.mapTimestampToJodaInstant;
 import static tds.exam.ExamStatusCode.STATUS_PENDING;
@@ -443,6 +445,56 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
                 "WHERE e.student_id = :studentId \n" +
                 "   AND lang.type = 'Language' \n" +
                 "   AND ee.deleted_at IS NULL";
+
+        return jdbcTemplate.query(SQL, parameters, examRowMapper);
+    }
+
+    @Override
+    public List<Exam> findExamsToExpire(final List<String> statusCodesToIgnore, final int expireExamLimit, Collection<String> assessmentIds) {
+        final SqlParameterSource parameters = new MapSqlParameterSource("statusCodesToIgnore", statusCodesToIgnore)
+            .addValue("assessmentIds", assessmentIds)
+            .addValue("expireExamLimit", expireExamLimit);
+
+        /*
+        This query is a bit complex and is pulled from DmDll._DM_ExpireOpportunities_SP line 77
+
+        It is finding all exams:
+        1. That have been started (hence the join to page)
+        2. Do not have the status codes passed in
+         */
+        String SQL = "SELECT " + EXAM_QUERY_COLUMN_LIST +
+            "from exam.exam e\n" +
+            "join (\n" +
+            "   select a.* from exam.exam_event a\n" +
+            "   JOIN (\n" +
+            "   select b.exam_id, max(id) as id\n" +
+            "   from exam.exam_event b\n" +
+            "   group by b.exam_id\n" +
+            "   ) last_event on last_event.id = a.id\n" +
+            "   WHERE \n" +
+            "       a.status not in (:statusCodesToIgnore) \n" +
+            "       and a.completed_at is null \n" +
+            "       and a.deleted_at is null \n" +
+            ") ee on e.id = ee.exam_id\n" +
+            "JOIN exam.exam_status_codes esc \n" +
+            "   ON esc.status = ee.status \n" +
+            "JOIN (select exam_id from exam.exam_page group by exam_id) page on page.exam_id = e.id\n" +
+            "LEFT JOIN exam.exam_accommodation lang \n" +
+            "   ON lang.exam_id = e.id \n" +
+            "   AND lang.id = ( \n" +
+            "       SELECT \n" +
+            "           id \n" +
+            "       FROM \n" +
+            "           exam.exam_accommodation \n" +
+            "       WHERE \n" +
+            "           exam_id = e.id \n" +
+            "           AND type = 'Language' \n" +
+            "       ORDER BY created_at DESC \n" +
+            "       LIMIT 1) \n " +
+            "WHERE \n" +
+            "  e.assessment_id IN (:assessmentIds) \n" +
+            "ORDER BY e.created_at ASC \n" +
+            "LIMIT :expireExamLimit;";
 
         return jdbcTemplate.query(SQL, parameters, examRowMapper);
     }

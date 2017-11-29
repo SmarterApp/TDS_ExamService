@@ -19,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
-import tds.common.Response;
+import tds.common.EntityUpdate;
 import tds.common.entity.utils.ChangeListener;
 import tds.common.util.Preconditions;
 import tds.exam.Exam;
@@ -41,7 +41,10 @@ public class OnPausedStatusExamChangeListener implements ChangeListener<Exam> {
 
     @Override
     @Transactional
-    public void accept(final Exam oldExam, final Exam newExam) {
+    public void accept(EntityUpdate<Exam> examEntityUpdate) {
+        Exam oldExam = examEntityUpdate.getExistingEntity();
+        Exam newExam = examEntityUpdate.getUpdatedEntity();
+
         Preconditions.checkNotNull(oldExam, "oldExam cannot be null");
         Preconditions.checkNotNull(newExam, "newExam cannot be null");
 
