@@ -8,9 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Collection;
-
-import tds.exam.ExpiredExamInformation;
+import tds.exam.ExpiredExamResponse;
 import tds.exam.services.ExamExpirationService;
 
 @RestController
@@ -24,7 +22,7 @@ public class ExamExpirationController {
     }
 
     @PostMapping(value = "expire/{clientName}", produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<Collection<ExpiredExamInformation>> expireExams(@PathVariable  final String clientName) {
+    ResponseEntity<ExpiredExamResponse> expireExams(@PathVariable  final String clientName) {
         return ResponseEntity.ok(examExpirationService.expireExams(clientName));
     }
 }

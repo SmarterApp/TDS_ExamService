@@ -15,6 +15,7 @@ package tds.exam.repositories;
 
 import org.joda.time.Instant;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -104,8 +105,10 @@ public interface ExamQueryRepository {
     /**
      * Find all the exams to expire based on the status codes
      *
-     * @param statusCodesToIgnore     the status codes to ignore
+     * @param statusCodesToIgnore the status codes to ignore
+     * @param expireExamLimit     the max number of exams to find
+     * @param assessmentIds       the assessment ids to include in the query
      * @return the list of {@link tds.exam.Exam} to expire
      */
-    List<Exam> findExamsToExpire(List<String> statusCodesToIgnore);
+    List<Exam> findExamsToExpire(final List<String> statusCodesToIgnore, final int expireExamLimit, Collection<String> assessmentIds);
 }
