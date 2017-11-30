@@ -124,16 +124,10 @@ public class ExamExpirationServiceImplTest {
             .withChangedAt(Instant.now().toDateTime().minusDays(5).toInstant())
             .build();
 
-        Assessment assessment = new AssessmentBuilder()
-            .withAssessmentId(exam.getAssessmentId())
-            .withKey(exam.getAssessmentKey())
-            .withForceComplete(false)
-            .build();
-
         when(mockConfigService.findForceCompleteAssessmentIds("SBAC")).thenReturn(Collections.singletonList("assessmentId1"));
         when(mockTimeLimitConfigurationService.findTimeLimitConfiguration("SBAC")).thenReturn(Optional.of(clientTimeLimitConfiguration));
         when(mockExamQueryRepository.findExamsToExpire(ExamExpirationServiceImpl.STATUSES_TO_IGNORE_FOR_EXPIRATION, examServiceProperties.getExpireExamLimit() + 1, Collections.singletonList("assessmentId"))).thenReturn(Collections.singletonList(exam));
-        when(mockTimeLimitConfigurationService.findTimeLimitConfiguration("SBAC", assessment.getAssessmentId())).thenReturn(Optional.empty());
+        when(mockTimeLimitConfigurationService.findTimeLimitConfiguration("SBAC", exam.getAssessmentId())).thenReturn(Optional.empty());
 
         ExpiredExamResponse expireExamResponse = examExpirationService.expireExams("SBAC");
         Collection<ExpiredExamInformation> expireExams = expireExamResponse.getExpiredExams();
@@ -150,21 +144,15 @@ public class ExamExpirationServiceImplTest {
             .withChangedAt(Instant.now().toDateTime().minusDays(5).toInstant())
             .build();
 
-        Assessment assessment = new AssessmentBuilder()
-            .withAssessmentId(exam.getAssessmentId())
-            .withKey(exam.getAssessmentKey())
-            .withForceComplete(true)
-            .build();
-
         TimeLimitConfiguration assessmentTimeLimitConfiguration = new TimeLimitConfiguration.Builder()
-            .withAssessmentId(assessment.getAssessmentId())
+            .withAssessmentId(exam.getAssessmentId())
             .withExamExpireDays(99)
             .build();
 
         when(mockConfigService.findForceCompleteAssessmentIds("SBAC")).thenReturn(Collections.singletonList("assessmentId1"));
         when(mockTimeLimitConfigurationService.findTimeLimitConfiguration("SBAC")).thenReturn(Optional.of(clientTimeLimitConfiguration));
         when(mockExamQueryRepository.findExamsToExpire(ExamExpirationServiceImpl.STATUSES_TO_IGNORE_FOR_EXPIRATION, examServiceProperties.getExpireExamLimit() + 1, Collections.singletonList("assessmentId"))).thenReturn(Collections.singletonList(exam));
-        when(mockTimeLimitConfigurationService.findTimeLimitConfiguration("SBAC", assessment.getAssessmentId())).thenReturn(Optional.of(assessmentTimeLimitConfiguration));
+        when(mockTimeLimitConfigurationService.findTimeLimitConfiguration("SBAC", exam.getAssessmentId())).thenReturn(Optional.of(assessmentTimeLimitConfiguration));
 
         ExpiredExamResponse expireExamResponse = examExpirationService.expireExams("SBAC");
         Collection<ExpiredExamInformation> expireExams = expireExamResponse.getExpiredExams();

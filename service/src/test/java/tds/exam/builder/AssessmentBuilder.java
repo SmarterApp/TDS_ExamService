@@ -42,7 +42,6 @@ public class AssessmentBuilder {
     private Instant fieldTestEndDate;
     private String accommodationFamily = "ELA";
     private boolean multiStageBraille = false;
-    private boolean forceComplete = false;
 
     public AssessmentBuilder() {
         segments = Collections.singletonList(new SegmentBuilder().build());
@@ -64,7 +63,6 @@ public class AssessmentBuilder {
         assessment.setAccommodationFamily(accommodationFamily);
         assessment.setItemConstraints(itemConstraints);
         assessment.setMultiStageBraille(multiStageBraille);
-        assessment.setForceComplete(forceComplete);
         return assessment;
     }
 
@@ -130,11 +128,6 @@ public class AssessmentBuilder {
 
     public AssessmentBuilder withMultiStageBraille(final boolean multiStageBraille) {
         this.multiStageBraille = multiStageBraille;
-        return this;
-    }
-
-    public AssessmentBuilder withForceComplete(final boolean forceComplete) {
-        this.forceComplete = forceComplete;
         return this;
     }
 }
