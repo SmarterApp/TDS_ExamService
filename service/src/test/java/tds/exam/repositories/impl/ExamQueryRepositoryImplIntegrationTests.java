@@ -288,7 +288,7 @@ public class ExamQueryRepositoryImplIntegrationTests {
         examSegmentCommandRepository.insert(Collections.singletonList(examSegment));
         examPageCommandRepository.insert(examPage, examPage2);
 
-        List<Exam> examsToExpire = examQueryRepository.findExamsToExpire(Arrays.asList(ExamStatusCode.STATUS_APPROVED, ExamStatusCode.STATUS_CLOSED), 5, Collections.singletonList("assementId2"));
+        List<Exam> examsToExpire = examQueryRepository.findExamsToExpire(Arrays.asList(ExamStatusCode.STATUS_APPROVED, ExamStatusCode.STATUS_CLOSED), 5);
 
         boolean foundStarted = false;
 
@@ -305,59 +305,6 @@ public class ExamQueryRepositoryImplIntegrationTests {
 
         assertThat(foundStarted).isTrue();
     }
-
-    @Test
-    public void shouldFindExamsToExpireByStatusCodesAndAssessmentId() {
-        UUID pausedExamWithLongAgoChangeDateId = UUID.randomUUID();
-        UUID examStartedButShouldNotExpire = UUID.randomUUID();
-
-        List<Exam> examsForExpire = new ArrayList<>();
-
-        Exam examStarted = new ExamBuilder()
-            .withId(pausedExamWithLongAgoChangeDateId)
-            .withAssessmentId("assementId1")
-            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.OPEN), Instant.now())
-            .withChangedAt(Instant.now().minus(Days.days(5).toStandardDuration()))
-            .build();
-
-        Exam examStarted2 = new ExamBuilder()
-            .withId(examStartedButShouldNotExpire)
-            .withAssessmentId("assementId2")
-            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.OPEN), Instant.now())
-            .withChangedAt(Instant.now().minus(Days.days(5).toStandardDuration()))
-            .build();
-
-        examsForExpire.add(examStarted);
-        examsForExpire.add(examStarted2);
-
-        ExamSegment examSegment = new ExamSegmentBuilder().withExamId(pausedExamWithLongAgoChangeDateId).build();
-        ExamPage examPage = new ExamPageBuilder().withId(UUID.randomUUID()).withExamId(pausedExamWithLongAgoChangeDateId).withPagePosition(1).withSegmentKey(examSegment.getSegmentKey()).build();
-        ExamPage examPage2 = new ExamPageBuilder().withId(UUID.randomUUID()).withExamId(pausedExamWithLongAgoChangeDateId).withPagePosition(2).withSegmentKey(examSegment.getSegmentKey()).build();
-
-        examsForExpire.forEach(exam -> {
-            Instant changedAtDate = exam.getChangedAt();
-            examCommandRepository.insert(exam);
-            examAccommodationCommandRepository.insert(Collections.singletonList(
-                new ExamAccommodationBuilder()
-                    .withType("Language")
-                    .withCode("ENU")
-                    .withExamId(exam.getId())
-                    .withSegmentPosition(0)
-                    .build()
-            ));
-
-            updateEventCreatedAt(exam.getId(), changedAtDate);
-        });
-
-        examSegmentCommandRepository.insert(Collections.singletonList(examSegment));
-        examPageCommandRepository.insert(examPage, examPage2);
-
-        List<Exam> examsToExpire = examQueryRepository.findExamsToExpire(Arrays.asList(ExamStatusCode.STATUS_APPROVED, ExamStatusCode.STATUS_CLOSED), 5, Collections.singletonList("assementId1"));
-
-        assertThat(examsToExpire).hasSize(1);
-        assertThat(examsToExpire.get(0).getId()).isEqualTo(examStarted.getId());
-    }
-
 
     private void updateEventCreatedAt(UUID examId, Instant changedAt) {
         MapSqlParameterSource parameterSource = new MapSqlParameterSource("changedAt", mapJodaInstantToTimestamp(changedAt))
@@ -392,7 +339,7 @@ public class ExamQueryRepositoryImplIntegrationTests {
     }
 
     @Test
-    public void shouldFindExamWithLatestLanguage() throws InterruptedException {
+    public void shouldFindExamWithLatestLanguage() {
         final Exam exam = new ExamBuilder().build();
         examCommandRepository.insert(exam);
 

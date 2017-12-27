@@ -10,16 +10,18 @@ public class ExpiredExamInformation {
     private String assessmentKey;
     private String assessmentId;
     private UUID examId;
+    private String updatedExamStatus;
 
     //For frameworks
     ExpiredExamInformation() {
     }
 
-    public ExpiredExamInformation(final long studentId, final String assessmentKey, final String assessmentId, final UUID examId) {
+    public ExpiredExamInformation(final long studentId, final String assessmentKey, final String assessmentId, final UUID examId, final String updatedExamStatus) {
         this.studentId = studentId;
         this.assessmentKey = assessmentKey;
         this.assessmentId = assessmentId;
         this.examId = examId;
+        this.updatedExamStatus = updatedExamStatus;
     }
 
     /**
@@ -48,5 +50,12 @@ public class ExpiredExamInformation {
      */
     public UUID getExamId() {
         return examId;
+    }
+
+    /**
+     * @return the updated exam status after the process ran
+     */
+    public String getUpdatedExamStatus() {
+        return updatedExamStatus;
     }
 }
