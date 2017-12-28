@@ -47,7 +47,7 @@ import static org.mockito.Mockito.when;
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest
 @Transactional
-public class ExamAccommodationServiceIntegrationTest {
+public class ExamAccommodationServiceIntegrationTests {
     private ExamAccommodationServiceImpl examAccommodationService;
 
     @Mock
