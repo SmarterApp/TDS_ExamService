@@ -32,7 +32,7 @@ public class ExamExpirationControllerTest {
 
     @Test
     public void shouldExpireExams() {
-        ExpiredExamInformation info = new ExpiredExamInformation(1L, "key", "id", UUID.randomUUID());
+        ExpiredExamInformation info = new ExpiredExamInformation(1L, "key", "id", UUID.randomUUID(), "status");
         when(mockExamExpirationService.expireExams("SBAC")).thenReturn(new ExpiredExamResponse(false, Collections.singletonList(info)));
         ResponseEntity<ExpiredExamResponse> response = examExpirationController.expireExams("SBAC");
 
