@@ -231,7 +231,6 @@ public class ExamQueryRepositoryImplIntegrationTests {
         UUID pausedExamWithLongAgoChangeDateId = UUID.randomUUID();
         UUID examStartedButShouldNotExpire = UUID.randomUUID();
 
-
         List<UUID> examIdsThatShouldNotExpire = Arrays.asList(deletedAtExamId, completedExamId, pausedExamWithLongAgoChangeDateId, examStartedButShouldNotExpire);
 
         List<Exam> examsForExpire = new ArrayList<>();
@@ -240,7 +239,7 @@ public class ExamQueryRepositoryImplIntegrationTests {
             .withAssessmentId("assementId2")
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.OPEN), Instant.now())
             .withDeletedAt(Instant.now().minus(Minutes.minutes(5).toStandardDuration()))
-            .withChangedAt(Instant.now().minus(Days.days(5).toStandardDuration()))
+            .withExpiresAt(Instant.now().minus(Days.days(5).toStandardDuration()))
             .build());
 
         examsForExpire.add(new ExamBuilder()
@@ -248,21 +247,21 @@ public class ExamQueryRepositoryImplIntegrationTests {
             .withAssessmentId("assementId2")
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_COMPLETED, ExamStatusStage.CLOSED), Instant.now())
             .withCompletedAt(Instant.now())
-            .withChangedAt(Instant.now().minus(Days.days(5).toStandardDuration()))
+            .withExpiresAt(Instant.now().minus(Days.days(5).toStandardDuration()))
             .build());
 
         Exam examStarted = new ExamBuilder()
             .withId(pausedExamWithLongAgoChangeDateId)
             .withAssessmentId("assementId2")
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.OPEN), Instant.now())
-            .withChangedAt(Instant.now().minus(Days.days(5).toStandardDuration()))
+            .withExpiresAt(Instant.now().minus(Days.days(5).toStandardDuration()))
             .build();
 
         Exam examStarted2 = new ExamBuilder()
             .withId(examStartedButShouldNotExpire)
             .withAssessmentId("assementId2")
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.OPEN), Instant.now())
-            .withChangedAt(Instant.now().minus(Days.days(5).toStandardDuration()))
+            .withExpiresAt(Instant.now().minus(Days.days(5).toStandardDuration()))
             .build();
 
         examsForExpire.add(examStarted);
