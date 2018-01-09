@@ -326,17 +326,24 @@ class ExamAccommodationServiceImpl implements ExamAccommodationService {
                     filter(examAccommodation -> examAccommodation.getCode().startsWith(OTHER_ACCOMMODATION_VALUE))
                     .collect(Collectors.toSet());
 
-                accommodationsToAdd.add(new ExamAccommodation.Builder(UUID.randomUUID())
-                    .withExamId(exam.getId())
-                    .withType(OTHER_ACCOMMODATION_NAME)
-                    .withCode(OTHER_ACCOMMODATION_CODE)
-                    .withValue(getOtherAccommodationValue(code))
-                    .withAllowChange(false)
-                    .withSelectable(false)
-                    .withSegmentPosition(segmentPosition)
-                    .withCreatedAt(now)
-                    .build()
-                );
+                Optional<ExamAccommodation> maybeExistingOtherAccommodation = existingExamAccommodations.stream().
+                    filter(existingExamAccommodation -> existingExamAccommodation.getCode().startsWith(OTHER_ACCOMMODATION_VALUE)).findFirst();
+
+                if (maybeExistingOtherAccommodation.isPresent()) {
+                    ExamAccommodation existingOtherAccommodation = maybeExistingOtherAccommodation.get();
+                    accommodationsToAdd.add(new ExamAccommodation.Builder(UUID.randomUUID())
+                        .withExamId(exam.getId())
+                        .withSegmentKey(existingOtherAccommodation.getSegmentKey())
+                        .withDescription(existingOtherAccommodation.getDescription())
+                        .withType(OTHER_ACCOMMODATION_NAME)
+                        .withCode(OTHER_ACCOMMODATION_CODE)
+                        .withValue(getOtherAccommodationValue(code))
+                        .withAllowChange(false)
+                        .withSelectable(false)
+                        .withSegmentPosition(segmentPosition)
+                        .withCreatedAt(now)
+                        .build());
+                }
 
                 break;
             }

@@ -27,7 +27,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -450,9 +449,8 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
     }
 
     @Override
-    public List<Exam> findExamsToExpire(final List<String> statusCodesToIgnore, final int expireExamLimit, Collection<String> assessmentIds) {
+    public List<Exam> findExamsToExpire(final List<String> statusCodesToIgnore, final int expireExamLimit) {
         final SqlParameterSource parameters = new MapSqlParameterSource("statusCodesToIgnore", statusCodesToIgnore)
-            .addValue("assessmentIds", assessmentIds)
             .addValue("expireExamLimit", expireExamLimit);
 
         /*
@@ -464,21 +462,22 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
          */
         String SQL = "SELECT " + EXAM_QUERY_COLUMN_LIST +
             "from exam.exam e\n" +
-            "join (\n" +
-            "   select a.* from exam.exam_event a\n" +
+            "JOIN (\n" +
+            "   SELECT a.* FROM exam.exam_event a\n" +
             "   JOIN (\n" +
-            "   select b.exam_id, max(id) as id\n" +
-            "   from exam.exam_event b\n" +
-            "   group by b.exam_id\n" +
-            "   ) last_event on last_event.id = a.id\n" +
+            "   SELECT b.exam_id, max(id) AS id\n" +
+            "   FROM exam.exam_event b\n" +
+            "   GROUP BY b.exam_id\n" +
+            "   ) last_event ON last_event.id = a.id\n" +
             "   WHERE \n" +
-            "       a.status not in (:statusCodesToIgnore) \n" +
-            "       and a.completed_at is null \n" +
-            "       and a.deleted_at is null \n" +
-            ") ee on e.id = ee.exam_id\n" +
+            "       a.status NOT IN (:statusCodesToIgnore) \n" +
+            "       AND a.completed_at IS NULL \n" +
+            "       AND a.deleted_at IS NULL \n" +
+            "       AND a.expires_at IS NOT NULL" +
+            ") ee ON e.id = ee.exam_id\n" +
             "JOIN exam.exam_status_codes esc \n" +
             "   ON esc.status = ee.status \n" +
-            "JOIN (select exam_id from exam.exam_page group by exam_id) page on page.exam_id = e.id\n" +
+            "JOIN (SELECT exam_id FROM exam.exam_page GROUP BY exam_id) page ON page.exam_id = e.id\n" +
             "LEFT JOIN exam.exam_accommodation lang \n" +
             "   ON lang.exam_id = e.id \n" +
             "   AND lang.id = ( \n" +
@@ -491,8 +490,6 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
             "           AND type = 'Language' \n" +
             "       ORDER BY created_at DESC \n" +
             "       LIMIT 1) \n " +
-            "WHERE \n" +
-            "  e.assessment_id IN (:assessmentIds) \n" +
             "ORDER BY e.created_at ASC \n" +
             "LIMIT :expireExamLimit;";
 
