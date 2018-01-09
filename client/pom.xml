@@ -11,7 +11,7 @@
     <parent>
         <groupId>org.opentestsystem.delivery</groupId>
         <artifactId>tds-exam</artifactId>
-        <version>4.1.3-SNAPSHOT</version>
+        <version>4.1.3.RELEASE</version>
     </parent>
 
     <properties>
