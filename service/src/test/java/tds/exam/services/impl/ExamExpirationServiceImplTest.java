@@ -81,7 +81,8 @@ public class ExamExpirationServiceImplTest {
     public void shouldExpireExamUsingClientTimeLimitConfiguration() {
         Exam exam = new ExamBuilder()
             .withClientName("SBAC")
-            .withChangedAt(Instant.now().toDateTime().minusDays(5).toInstant())
+            .withExpiresAt(Instant.now().toDateTime().minusDays(5).toInstant())
+            .withChangedAt(Instant.now())
             .build();
 
         when(mockConfigService.findForceCompleteAssessmentIds("SBAC")).thenReturn(Collections.singletonList(exam.getAssessmentId()));
@@ -113,7 +114,8 @@ public class ExamExpirationServiceImplTest {
     public void shouldNotExpireExamsIfAssessmentIsNotForceComplete() {
         Exam exam = new ExamBuilder()
             .withClientName("SBAC")
-            .withChangedAt(Instant.now().toDateTime().minusDays(5).toInstant())
+            .withExpiresAt(Instant.now().toDateTime().minusDays(5).toInstant())
+            .withChangedAt(Instant.now())
             .build();
 
         when(mockConfigService.findForceCompleteAssessmentIds("SBAC")).thenReturn(Collections.singletonList("assessmentId1"));
@@ -138,7 +140,8 @@ public class ExamExpirationServiceImplTest {
     public void shouldNotExpireExamsIfAssessmentIfAssessmentTimeLimitExpireDaysNotMet() {
         Exam exam = new ExamBuilder()
             .withClientName("SBAC")
-            .withChangedAt(Instant.now().toDateTime().minusDays(5).toInstant())
+            .withExpiresAt(Instant.now().toDateTime().minusDays(5).toInstant())
+            .withChangedAt(Instant.now())
             .build();
 
         TimeLimitConfiguration assessmentTimeLimitConfiguration = new TimeLimitConfiguration.Builder()
@@ -165,14 +168,16 @@ public class ExamExpirationServiceImplTest {
             .withClientName("SBAC")
             .withId(UUID.randomUUID())
             .withAssessmentId("(SBAC) MATH-3")
-            .withChangedAt(Instant.now().toDateTime().minusDays(5).toInstant())
+            .withExpiresAt(Instant.now().toDateTime().minusDays(5).toInstant())
+            .withChangedAt(Instant.now())
             .build();
 
         Exam exam2 = new ExamBuilder()
             .withId(UUID.randomUUID())
             .withClientName("SBAC")
             .withAssessmentId("(SBAC) MATH-3")
-            .withChangedAt(Instant.now().toDateTime().minusDays(5).toInstant())
+            .withChangedAt(Instant.now())
+            .withExpiresAt(Instant.now().toDateTime().minusDays(5).toInstant())
             .build();
 
         TimeLimitConfiguration assessmentTimeLimitConfiguration = new TimeLimitConfiguration.Builder()

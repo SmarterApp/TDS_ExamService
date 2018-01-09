@@ -473,6 +473,7 @@ public class ExamQueryRepositoryImpl implements ExamQueryRepository {
             "       a.status NOT IN (:statusCodesToIgnore) \n" +
             "       AND a.completed_at IS NULL \n" +
             "       AND a.deleted_at IS NULL \n" +
+            "       AND a.expires_at IS NOT NULL" +
             ") ee ON e.id = ee.exam_id\n" +
             "JOIN exam.exam_status_codes esc \n" +
             "   ON esc.status = ee.status \n" +

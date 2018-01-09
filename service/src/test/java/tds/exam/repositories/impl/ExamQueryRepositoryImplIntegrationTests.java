@@ -78,7 +78,13 @@ public class ExamQueryRepositoryImplIntegrationTests {
 
     private UUID currentExamId = UUID.fromString("af880054-d1d2-4c24-805c-1f0dfdb45980");
     private UUID mockSessionId = UUID.fromString("7595f73d-c0d2-4298-b7c8-045bacf1fe89");
-    private Set<String> statusesThatCanTransitionToPaused;
+    private static final Set<String> statusesThatCanTransitionToPaused = new HashSet<>(Arrays.asList(ExamStatusCode.STATUS_PAUSED,
+        ExamStatusCode.STATUS_PENDING,
+        ExamStatusCode.STATUS_SUSPENDED,
+        ExamStatusCode.STATUS_STARTED,
+        ExamStatusCode.STATUS_APPROVED,
+        ExamStatusCode.STATUS_REVIEW,
+        ExamStatusCode.STATUS_INITIALIZING));
 
     private List<Exam> examsInSession;
 
@@ -89,7 +95,9 @@ public class ExamQueryRepositoryImplIntegrationTests {
         examAccommodationCommandRepository = new ExamAccommodationCommandRepositoryImpl(jdbcTemplate);
         examPageCommandRepository = new ExamPageCommandRepositoryImpl(jdbcTemplate);
         examSegmentCommandRepository = new ExamSegmentCommandRepositoryImpl(jdbcTemplate);
+    }
 
+    private void loadExams() {
         List<Exam> exams = new ArrayList<>();
         // Build a basic exam record
         exams.add(new ExamBuilder().build());
@@ -175,18 +183,11 @@ public class ExamQueryRepositoryImplIntegrationTests {
                     .build()
             ));
         });
-
-        statusesThatCanTransitionToPaused = new HashSet<>(Arrays.asList(ExamStatusCode.STATUS_PAUSED,
-            ExamStatusCode.STATUS_PENDING,
-            ExamStatusCode.STATUS_SUSPENDED,
-            ExamStatusCode.STATUS_STARTED,
-            ExamStatusCode.STATUS_APPROVED,
-            ExamStatusCode.STATUS_REVIEW,
-            ExamStatusCode.STATUS_INITIALIZING));
     }
 
     @Test
     public void shouldRetrieveExamForUniqueKey() {
+        loadExams();
         Optional<Exam> examOptional = examQueryRepository.getExamById(currentExamId);
         assertThat(examOptional.isPresent()).isTrue();
         assertThat(examOptional.get().getRestartsAndResumptions()).isEqualTo(3);
@@ -202,6 +203,7 @@ public class ExamQueryRepositoryImplIntegrationTests {
 
     @Test
     public void shouldRetrieveLatestExam() {
+        loadExams();
         Optional<Exam> examOptional = examQueryRepository.getLastAvailableExam(1L, "assessmentId", "clientName");
         assertThat(examOptional.isPresent()).isTrue();
         Exam exam = examOptional.get();
@@ -229,7 +231,6 @@ public class ExamQueryRepositoryImplIntegrationTests {
         UUID pausedExamWithLongAgoChangeDateId = UUID.randomUUID();
         UUID examStartedButShouldNotExpire = UUID.randomUUID();
 
-
         List<UUID> examIdsThatShouldNotExpire = Arrays.asList(deletedAtExamId, completedExamId, pausedExamWithLongAgoChangeDateId, examStartedButShouldNotExpire);
 
         List<Exam> examsForExpire = new ArrayList<>();
@@ -238,7 +239,7 @@ public class ExamQueryRepositoryImplIntegrationTests {
             .withAssessmentId("assementId2")
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_APPROVED, ExamStatusStage.OPEN), Instant.now())
             .withDeletedAt(Instant.now().minus(Minutes.minutes(5).toStandardDuration()))
-            .withChangedAt(Instant.now().minus(Days.days(5).toStandardDuration()))
+            .withExpiresAt(Instant.now().minus(Days.days(5).toStandardDuration()))
             .build());
 
         examsForExpire.add(new ExamBuilder()
@@ -246,21 +247,21 @@ public class ExamQueryRepositoryImplIntegrationTests {
             .withAssessmentId("assementId2")
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_COMPLETED, ExamStatusStage.CLOSED), Instant.now())
             .withCompletedAt(Instant.now())
-            .withChangedAt(Instant.now().minus(Days.days(5).toStandardDuration()))
+            .withExpiresAt(Instant.now().minus(Days.days(5).toStandardDuration()))
             .build());
 
         Exam examStarted = new ExamBuilder()
             .withId(pausedExamWithLongAgoChangeDateId)
             .withAssessmentId("assementId2")
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.OPEN), Instant.now())
-            .withChangedAt(Instant.now().minus(Days.days(5).toStandardDuration()))
+            .withExpiresAt(Instant.now().minus(Days.days(5).toStandardDuration()))
             .build();
 
         Exam examStarted2 = new ExamBuilder()
             .withId(examStartedButShouldNotExpire)
             .withAssessmentId("assementId2")
             .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_PAUSED, ExamStatusStage.OPEN), Instant.now())
-            .withChangedAt(Instant.now().minus(Days.days(5).toStandardDuration()))
+            .withExpiresAt(Instant.now().minus(Days.days(5).toStandardDuration()))
             .build();
 
         examsForExpire.add(examStarted);
@@ -292,13 +293,13 @@ public class ExamQueryRepositoryImplIntegrationTests {
 
         boolean foundStarted = false;
 
-        for(Exam exam : examsToExpire) {
-            if(exam.getId().equals(pausedExamWithLongAgoChangeDateId)) {
+        for (Exam exam : examsToExpire) {
+            if (exam.getId().equals(pausedExamWithLongAgoChangeDateId)) {
                 foundStarted = true;
                 continue;
             }
 
-            if(examIdsThatShouldNotExpire.contains(exam.getId())) {
+            if (examIdsThatShouldNotExpire.contains(exam.getId())) {
                 fail("Found an exam id that should not be expired " + exam.getId());
             }
         }
@@ -311,7 +312,7 @@ public class ExamQueryRepositoryImplIntegrationTests {
             .addValue("examId", examId.toString());
 
 
-        String SQL = "update exam.exam_event set changed_at = :changedAt where exam_id = :examId";
+        String SQL = "UPDATE exam.exam_event SET changed_at = :changedAt WHERE exam_id = :examId";
 
         assertThat(jdbcTemplate.update(SQL, parameterSource)).isEqualTo(1);
     }
@@ -412,8 +413,8 @@ public class ExamQueryRepositoryImplIntegrationTests {
     @Test
     public void shouldReturnEmptyForNullLastActivity() {
         Exam exam = new ExamBuilder()
-          .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_STARTED), Instant.now())
-          .build();
+            .withStatus(new ExamStatusCode(ExamStatusCode.STATUS_STARTED), Instant.now())
+            .build();
         examCommandRepository.insert(exam);
 
         Optional<Instant> maybeLastTimeStudentResponded = examQueryRepository.findLastStudentActivity(exam.getId());
@@ -452,6 +453,7 @@ public class ExamQueryRepositoryImplIntegrationTests {
 
     @Test
     public void shouldReturnSingleAbility() {
+        loadExams();
         UUID examId = UUID.randomUUID();
         List<Ability> oneAbility = examQueryRepository.findAbilities(examId,
             "clientName", "ELA", 9999L);
@@ -466,6 +468,7 @@ public class ExamQueryRepositoryImplIntegrationTests {
 
     @Test
     public void shouldGetAllExamsInASession() {
+        loadExams();
         List<Exam> exams = examQueryRepository.findAllExamsInSessionWithStatus(mockSessionId, statusesThatCanTransitionToPaused);
 
         assertThat(exams).hasSize(3);
@@ -496,12 +499,14 @@ public class ExamQueryRepositoryImplIntegrationTests {
 
     @Test
     public void shouldReturnListOfExamsPendingApproval() {
+        loadExams();
         List<Exam> examsPendingApproval = examQueryRepository.getExamsPendingApproval(mockSessionId);
         assertThat(examsPendingApproval.size()).isEqualTo(1);
     }
 
     @Test
     public void shouldReturnListOfExamsForStudent() {
+        loadExams();
         final long studentId = 10;
         List<Exam> exams = examQueryRepository.findAllExamsForStudent(studentId);
         assertThat(exams).hasSize(2);
