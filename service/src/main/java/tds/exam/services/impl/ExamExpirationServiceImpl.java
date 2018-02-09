@@ -104,7 +104,7 @@ public class ExamExpirationServiceImpl implements ExamExpirationService {
          */
         Map<Boolean, List<Exam>> submitAndExpireExams = examsToExpire.stream().filter(exam -> {
             TimeLimitConfiguration timeLimitConfiguration = assessmentIdToTimeLimits.getOrDefault(exam.getAssessmentId(), clientTimeLimitConfiguration);
-            return Days.daysBetween(exam.getExpiresAt(), Instant.now()).isGreaterThan(Days.days(timeLimitConfiguration.getExamExpireDays()));
+            return Days.daysBetween(exam.getExpiresAt(), Instant.now()).getDays() >= timeLimitConfiguration.getExamExpireDays();
         }).collect(Collectors.partitioningBy(exam -> forceCompleteAssessmentIds.contains(exam.getAssessmentId())));
 
         List<Exam> examsToSubmit = submitAndExpireExams.get(true);
