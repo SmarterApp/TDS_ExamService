@@ -183,7 +183,7 @@ class AssessmentServiceImpl implements AssessmentService {
     }
 
     @Override
-    @Cacheable(CacheType.LONG_TERM)
+//    @Cacheable(CacheType.LONG_TERM)
     public List<AssessmentInfo> findAssessmentInfosForGrade(final String clientName, final String grade) {
         final UriComponentsBuilder builder =
             UriComponentsBuilder
