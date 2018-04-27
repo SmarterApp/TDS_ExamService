@@ -16,6 +16,7 @@ package tds.exam.web.endpoints;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,7 +31,9 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import tds.common.Response;
@@ -51,6 +54,7 @@ import tds.exam.services.ExamService;
 import tds.exam.web.interceptors.VerifyAccessInterceptor;
 
 import static io.github.benas.randombeans.api.EnhancedRandom.random;
+import static io.github.benas.randombeans.api.EnhancedRandom.randomSetOf;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.Matchers.any;
@@ -243,7 +247,8 @@ public class ExamControllerIntegrationTests {
         final UUID examId = UUID.randomUUID();
         final UUID sessionId = UUID.randomUUID();
         final UUID browserId = UUID.randomUUID();
-        ApproveAccommodationsRequest request = new ApproveAccommodationsRequest(sessionId, browserId, new HashMap<>());
+        Map<Integer, Set<String>> mockMap = ImmutableMap.of(0, randomSetOf(2, String.class));
+        ApproveAccommodationsRequest request = new ApproveAccommodationsRequest(sessionId, browserId, mockMap);
 
         when(mockExamService.updateExamAccommodationsAndExam(examId, request)).thenReturn(Optional.empty());
 
@@ -262,7 +267,8 @@ public class ExamControllerIntegrationTests {
         final UUID browserId = UUID.randomUUID();
         final String errorCode = "ErrorCode";
         final String errorMsg = "Error!";
-        ApproveAccommodationsRequest request = new ApproveAccommodationsRequest(sessionId, browserId, new HashMap<>());
+        Map<Integer, Set<String>> mockMap = ImmutableMap.of(0, randomSetOf(2, String.class));
+        ApproveAccommodationsRequest request = new ApproveAccommodationsRequest(sessionId, browserId, mockMap);
 
         when(mockExamService.updateExamAccommodationsAndExam(examId, request)).thenReturn(Optional.of(new ValidationError(errorCode, errorMsg)));
 
