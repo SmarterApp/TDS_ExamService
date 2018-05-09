@@ -574,8 +574,12 @@ class ExamServiceImpl implements ExamService {
         /* StudentDLL.ResumeItemPosition_FN [5193] */
         // If all items had a response, find the highest item position regardless of whether it has a response or not
         ExamSegmentWrapper lastSegment = examSegmentWrappers.get(examSegmentWrappers.size() - 1);
-        ExamPageWrapper lastPage = lastSegment.getExamPages().get(lastSegment.getExamPages().size() - 1);
-        return lastPage.getExamItems().get(lastPage.getExamItems().size() - 1).getPosition();
+        final int lastSegmentExamPagesSize = lastSegment.getExamPages().size();
+        if (lastSegmentExamPagesSize > 0) {
+            ExamPageWrapper lastPage = lastSegment.getExamPages().get(lastSegmentExamPagesSize - 1);
+            return lastPage.getExamItems().get(lastPage.getExamItems().size() - 1).getPosition();
+        }
+        return 0;
     }
 
     private Optional<ExamItem> findExamItemFromResumableSegment(final List<ExamSegmentWrapper> examSegmentWrappers) {
