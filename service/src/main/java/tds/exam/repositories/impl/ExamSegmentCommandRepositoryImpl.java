@@ -14,6 +14,8 @@
 package tds.exam.repositories.impl;
 
 import org.joda.time.Instant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -24,7 +26,10 @@ import org.springframework.stereotype.Repository;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import tds.common.data.mapping.ResultSetMapperUtility;
@@ -38,6 +43,8 @@ import static tds.common.data.mapping.ResultSetMapperUtility.mapJodaInstantToTim
  */
 @Repository
 public class ExamSegmentCommandRepositoryImpl implements ExamSegmentCommandRepository {
+    private static final Logger log = LoggerFactory.getLogger(ExamSegmentCommandRepositoryImpl.class);
+
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     @Autowired
@@ -108,6 +115,27 @@ public class ExamSegmentCommandRepositoryImpl implements ExamSegmentCommandRepos
     @Override
     public void update(final ExamSegment segment) {
         update(Collections.singletonList(segment));
+    }
+
+    @Override
+    public void delete(final UUID examId) {
+        final Map<String, Object> parameters = new HashMap<>();
+        parameters.put("examId", examId.toString());
+
+        final String SQL_DELETE_EXAM_SEGMENT_EVENT =
+            "DELETE \n" +
+                "FROM \n" +
+                "   exam_segment_event \n" +
+                "WHERE exam_id = :examId";
+
+        final String SQL_DELETE_EXAM_SEGMENT =
+            "DELETE \n" +
+                "FROM \n" +
+                "   exam_segment \n" +
+                "WHERE exam_id = :examId";
+
+        jdbcTemplate.update(SQL_DELETE_EXAM_SEGMENT_EVENT, parameters);
+        jdbcTemplate.update(SQL_DELETE_EXAM_SEGMENT, parameters);
     }
 
     @Override
