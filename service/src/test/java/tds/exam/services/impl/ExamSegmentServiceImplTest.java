@@ -209,6 +209,7 @@ public class ExamSegmentServiceImplTest {
         when(mockFieldTestService.selectItemGroups(exam, assessment, segment1.getKey()))
             .thenReturn(2);
         when(mockFormSelector.selectForm(segment2, language)).thenReturn(Optional.of(enuForm));
+        when(mockExamSegmentQueryRepository.findByExamIdAndSegmentKey(any(UUID.class), any(String.class))).thenReturn(Optional.empty());
         int totalItems = examSegmentService.initializeExamSegments(exam, assessment);
         assertThat(totalItems).isEqualTo(5);
         // ExamSeg 1
@@ -296,6 +297,7 @@ public class ExamSegmentServiceImplTest {
         when(mockFieldTestService.isFieldTestEligible(exam, assessment, segment2.getKey()))
             .thenReturn(false);
 
+        when(mockExamSegmentQueryRepository.findByExamIdAndSegmentKey(any(UUID.class), any(String.class))).thenReturn(Optional.empty());
         int totalItems = examSegmentService.initializeExamSegments(exam, assessment);
         assertThat(totalItems).isEqualTo(3);
         // ExamSeg 1
@@ -351,6 +353,7 @@ public class ExamSegmentServiceImplTest {
             .build();
 
         when(mockFormSelector.selectForm(segment, language)).thenReturn(Optional.of(enuForm));
+        when(mockExamSegmentQueryRepository.findByExamIdAndSegmentKey(any(UUID.class), any(String.class))).thenReturn(Optional.empty());
         int totalItems = examSegmentService.initializeExamSegments(exam, assessment);
         assertThat(totalItems).isEqualTo(enuForm.getLength());
         verify(mockExamSegmentCommandRepository).insert(examSegmentsCaptor.capture());
@@ -394,6 +397,8 @@ public class ExamSegmentServiceImplTest {
             .thenReturn(segmentPoolInfo);
         when(mockFieldTestService.isFieldTestEligible(exam, assessment, segment.getKey()))
             .thenReturn(false);
+        when(mockExamSegmentQueryRepository.findByExamIdAndSegmentKey(any(UUID.class), any(String.class))).thenReturn(Optional.empty());
+        when(mockExamSegmentQueryRepository.findByExamIdAndSegmentKey(any(UUID.class), any(String.class))).thenReturn(Optional.empty());
         int totalItems = examSegmentService.initializeExamSegments(exam, assessment);
         assertThat(totalItems).isEqualTo(3);
         verify(mockSegmentPoolService).computeSegmentPool(exam.getId(), segment, assessment.getItemConstraints(),
@@ -441,6 +446,7 @@ public class ExamSegmentServiceImplTest {
             .thenReturn(segmentPoolInfo);
         when(mockFieldTestService.isFieldTestEligible(exam, assessment, segment.getKey()))
             .thenReturn(true);
+        when(mockExamSegmentQueryRepository.findByExamIdAndSegmentKey(any(UUID.class), any(String.class))).thenReturn(Optional.empty());
         int totalItems = examSegmentService.initializeExamSegments(exam, assessment);
         assertThat(totalItems).isEqualTo(5);
         verify(mockSegmentPoolService).computeSegmentPool(exam.getId(), segment, assessment.getItemConstraints(),
@@ -517,6 +523,7 @@ public class ExamSegmentServiceImplTest {
             .build();
 
         when(mockFormSelector.selectForm(segment1, language)).thenReturn(Optional.of(enuForm1Seg1));
+        when(mockExamSegmentQueryRepository.findByExamIdAndSegmentKey(any(UUID.class), any(String.class))).thenReturn(Optional.empty());
         int totalItems = examSegmentService.initializeExamSegments(exam, assessment);
         assertThat(totalItems).isEqualTo(enuForm1Seg1.getLength() + enuForm1Seg2.getLength());
         verify(mockFormSelector).selectForm(segment1, language);
@@ -581,6 +588,7 @@ public class ExamSegmentServiceImplTest {
             .thenReturn(true);
         when(mockFieldTestService.selectItemGroups(exam, assessment, segment.getKey()))
             .thenReturn(2);
+        when(mockExamSegmentQueryRepository.findByExamIdAndSegmentKey(any(UUID.class), any(String.class))).thenReturn(Optional.empty());
         int totalItems = examSegmentService.initializeExamSegments(exam, assessment);
         assertThat(totalItems).isEqualTo(5);
         verify(mockSegmentPoolService).computeSegmentPool(exam.getId(), segment, assessment.getItemConstraints(),

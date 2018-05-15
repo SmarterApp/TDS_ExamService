@@ -14,6 +14,7 @@
 package tds.exam.repositories;
 
 import java.util.List;
+import java.util.UUID;
 
 import tds.exam.ExamSegment;
 
@@ -28,6 +29,20 @@ public interface ExamSegmentCommandRepository {
      * @param segment the segment to insert
      */
     void insert(final List<ExamSegment> segment);
+
+    /**
+     * Deletes list of {@link ExamSegment}s from the exam_segment table.
+     *
+     * Note: The ExamSegmentCommandRepository is an eventing table and
+     * built for inserts only.  This method exists for recovering from
+     * an unusual state of an exam. This happens for a given exam when
+     * there are not rows in the exam_page table, but there are rows
+     * in the exam table.
+     *
+     * @param examId segments to delete with the examId
+     */
+    void delete(final UUID examId);
+
 
     /**
      * Inserts an exam segment event into the exam_segment_event table.
