@@ -625,8 +625,6 @@ public class ItemScoringServiceImpl implements ItemScoringService {
             tokenData.put("itsBank", item.getBankKey());
             tokenData.put("itsItem", item.getKey());
             tokenData.put("segmentID", item.getSegmentId());
-//            tokenData.put("sequence", item.get);
-//            tokenData.put("scoremark", responseScorable.getScoreMark());
 
             // encrypt token (do not url encode)
             String encryptedToken = EncryptionHelper.EncryptToBase64(tokenData.toString(false));
