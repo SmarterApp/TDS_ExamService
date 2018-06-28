@@ -13,6 +13,7 @@
 
 package tds.score.services;
 
+import TDS.Shared.Data.ReturnStatus;
 import TDS.Shared.Exceptions.ReturnStatusException;
 
 import java.util.List;
@@ -24,22 +25,38 @@ import tds.score.model.ExamInstance;
 import tds.student.sql.data.IItemResponseScorable;
 import tds.student.sql.data.ItemResponseUpdate;
 import tds.student.sql.data.ItemResponseUpdateStatus;
+import tds.trt.model.TDSReport;
 
 public interface ItemScoringService {
-    ItemScore checkScoreability (IItemResponseScorable responseScorable, IITSDocument itsDoc) throws ReturnStatusException;
+    ItemScore checkScoreability(final IItemResponseScorable responseScorable, final IITSDocument itsDoc) throws ReturnStatusException;
 
-    boolean updateItemScore (UUID oppKey, IItemResponseScorable response, ItemScore score) throws ReturnStatusException;
+    ItemScore checkScoreability(final TDSReport testResults, final IITSDocument itsDoc, final String languageCode) throws ReturnStatusException;
+
+    boolean updateItemScore(final UUID oppKey, final IItemResponseScorable response, final ItemScore score) throws ReturnStatusException;
 
     /**
      * Updates the responses based on scores
      *
-     * @param examInstance basic exam information
+     * @param examInstance     basic exam information
      * @param responsesUpdated responses updated
-     * @param pageDuration the duration the
+     * @param pageDuration     the duration the
      * @return
      * @throws ReturnStatusException
      */
-    List<ItemResponseUpdateStatus> updateResponses(ExamInstance examInstance, List<ItemResponseUpdate> responsesUpdated, Float pageDuration) throws ReturnStatusException;
+    List<ItemResponseUpdateStatus> updateResponses(final ExamInstance examInstance, final List<ItemResponseUpdate> responsesUpdated, final Float pageDuration) throws ReturnStatusException;
 
-    ItemScore scoreItem (UUID oppKey, IItemResponseScorable responseScorable, IITSDocument itsDoc) throws ReturnStatusException;
+    ItemScore scoreItem(final UUID oppKey, final IItemResponseScorable responseScorable, final IITSDocument itsDoc) throws ReturnStatusException;
+
+    ItemScore scoreItem(final TDSReport testResults, final TDSReport.Opportunity.Item item,
+                        final IITSDocument itsDoc, final String languageCode) throws ReturnStatusException;
+
+    /**
+     * Rescores test results and forwards the TRT to ERT for processing
+     *
+     * @param examId      The id of the exam being rescored
+     * @param testResults The test results to rescore
+     * @return A status indicating whether or not the rescore was successful
+     * @throws ReturnStatusException
+     */
+    ReturnStatus rescoreTestResults(final UUID examId, final TDSReport testResults) throws ReturnStatusException;
 }

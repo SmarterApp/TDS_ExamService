@@ -13,8 +13,10 @@
 
 package tds.exam.web.endpoints;
 
+import TDS.Shared.Data.ReturnStatus;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,12 +25,19 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Unmarshaller;
+
 import tds.exam.WebMvcControllerIntegrationTest;
+import tds.exam.services.MessagingService;
 import tds.score.model.ExamInstance;
 import tds.score.services.ItemScoringService;
 import tds.student.sql.data.ItemResponseUpdate;
 import tds.student.sql.data.ItemResponseUpdateStatus;
+import tds.trt.model.TDSReport;
 
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
@@ -41,8 +50,12 @@ import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyListOf;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -56,6 +69,9 @@ public class ExamScoringControllerIntegrationTests {
 
     @MockBean
     private ItemScoringService mockItemScoringService;
+
+    @MockBean
+    private MessagingService mockMessagingService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -95,5 +111,63 @@ public class ExamScoringControllerIntegrationTests {
             result.getResponse().getContentAsString(),
             new TypeReference<List<ItemResponseUpdateStatus>>() {});
         assertThat(deserializedResponse).hasSize(1);
+    }
+
+    @Test
+    public void itShouldRescoreExam() throws Exception {
+        final UUID examId = UUID.randomUUID();
+        final JAXBContext context = JAXBContext.newInstance(TDSReport.class);
+        final Unmarshaller unmarshaller = context.createUnmarshaller();
+        final TDSReport mockReport = (TDSReport) unmarshaller.unmarshal(new InputStreamReader(
+            this.getClass().getResourceAsStream("/sample-trt-file.xml")));
+
+
+        when(mockItemScoringService.rescoreTestResults(isA(UUID.class), isA(TDSReport.class)))
+            .thenReturn(new ReturnStatus("SUCCESS", "Rescored!"));
+
+        final MvcResult result = http.perform(MockMvcRequestBuilders.put(new URI("/exam/" + examId.toString() + "/scores/rescore"))
+            .contentType(APPLICATION_JSON)
+            .content(new XmlMapper().writeValueAsString(mockReport)))
+
+            .andExpect(status().is(OK.value()))
+            .andExpect(jsonPath("$.status", equalTo("SUCCESS")))
+            .andExpect(jsonPath("$.reason", equalTo("Rescored!")))
+            .andReturn();
+
+        final ReturnStatus deserializedResponse = objectMapper.readValue(result.getResponse().getContentAsString(), ReturnStatus.class);
+        assertThat(deserializedResponse.getStatus()).isEqualTo("SUCCESS");
+        assertThat(deserializedResponse.getReason()).isEqualTo("Rescored!");
+
+        verify(mockMessagingService).sendExamRescore(isA(UUID.class), isA(TDSReport.class));
+        verify(mockItemScoringService).rescoreTestResults(isA(UUID.class), isA(TDSReport.class));
+    }
+
+    @Test
+    public void itShouldFailToRescoreExam() throws Exception {
+        final UUID examId = UUID.randomUUID();
+        final JAXBContext context = JAXBContext.newInstance(TDSReport.class);
+        final Unmarshaller unmarshaller = context.createUnmarshaller();
+        final TDSReport mockReport = (TDSReport) unmarshaller.unmarshal(new InputStreamReader(
+            this.getClass().getResourceAsStream("/sample-trt-file.xml")));
+
+
+        when(mockItemScoringService.rescoreTestResults(isA(UUID.class), isA(TDSReport.class)))
+            .thenReturn(new ReturnStatus("FAILED", "Failed to rescore!"));
+
+        final MvcResult result = http.perform(MockMvcRequestBuilders.put(new URI("/exam/" + examId.toString() + "/scores/rescore"))
+            .contentType(APPLICATION_JSON)
+            .content(new XmlMapper().writeValueAsString(mockReport)))
+
+            .andExpect(status().is(UNPROCESSABLE_ENTITY.value()))
+            .andExpect(jsonPath("$.status", equalTo("FAILED")))
+            .andExpect(jsonPath("$.reason", equalTo("Failed to rescore!")))
+            .andReturn();
+
+        final ReturnStatus deserializedResponse = objectMapper.readValue(result.getResponse().getContentAsString(), ReturnStatus.class);
+        assertThat(deserializedResponse.getStatus()).isEqualTo("FAILED");
+        assertThat(deserializedResponse.getReason()).isEqualTo("Failed to rescore!");
+
+        verify(mockMessagingService, never()).sendExamRescore(isA(UUID.class), isA(TDSReport.class));
+        verify(mockItemScoringService).rescoreTestResults(isA(UUID.class), isA(TDSReport.class));
     }
 }

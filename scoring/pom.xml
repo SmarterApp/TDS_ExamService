@@ -89,7 +89,12 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
+        <dependency>
+            <groupId>io.github.benas</groupId>
+            <artifactId>random-beans</artifactId>
+            <version>3.5.0</version>
+            <scope>test</scope>
+        </dependency>
         <!--Open Source -->
         <dependency>
             <groupId>org.springframework</groupId>
@@ -120,6 +125,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-test</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.opentestsystem.delivery</groupId>
+            <artifactId>tds-support-tool-client</artifactId>
+            <version>${tds-support-tool-client.version}</version>
         </dependency>
     </dependencies>
 

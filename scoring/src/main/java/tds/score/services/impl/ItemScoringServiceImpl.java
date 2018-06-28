@@ -22,6 +22,19 @@ import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+
+import javax.xml.bind.JAXBException;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
+import java.util.Random;
+import java.util.UUID;
+
 import tds.itemrenderer.data.AccLookup;
 import tds.itemrenderer.data.IITSDocument;
 import tds.itemrenderer.data.ITSMachineRubric;
@@ -47,21 +60,12 @@ import tds.student.sql.data.IItemResponseUpdate;
 import tds.student.sql.data.ItemResponseUpdate;
 import tds.student.sql.data.ItemResponseUpdateStatus;
 import tds.student.sql.data.ItemScoringConfig;
-
-import javax.xml.bind.JAXBException;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
+import tds.trt.model.TDSReport;
 
 @Service
 public class ItemScoringServiceImpl implements ItemScoringService {
     private static final Logger LOG = LoggerFactory.getLogger(ItemScoringService.class);
+    private final String ITEM_CONTENT_PATH_FORMAT = "/tds/bank/items/Item-%1$s-%2$s/item-%1$s-%2$s.xml";
 
     private final ScoreConfigService scoreConfigService;
     private final ContentService contentService;
@@ -91,7 +95,7 @@ public class ItemScoringServiceImpl implements ItemScoringService {
      * response.
      */
     @Override
-    public ItemScore checkScoreability(IItemResponseScorable responseScorable, IITSDocument itsDoc) throws ReturnStatusException {
+    public ItemScore checkScoreability(final IItemResponseScorable responseScorable, final IITSDocument itsDoc) throws ReturnStatusException {
         // check if item scoring is disabled
         if (!itemScoreSettings.isEnabled()) {
             return createEmptyScore(ScoringStatus.NotScored, "Item scoring setting is disabled.");
@@ -138,6 +142,63 @@ public class ItemScoringServiceImpl implements ItemScoringService {
 
         // check if item scoring config is enabled for this format
         ItemScoringConfig itemScoringConfig = getItemScoringConfig(responseScorable.getClientName(), itemFormat, responseScorable.getTestID());
+
+        // check if item scoring config exists (there should always be a default
+        // configured)
+        if (itemScoringConfig == null) {
+            return createEmptyScore(ScoringStatus.ScoringError, "Item scoring config was not found.");
+        }
+
+        // check if the item format is disabled
+        if (!itemScoringConfig.isEnabled()) {
+            return createEmptyScore(ScoringStatus.NotScored, "Item scoring config for this item format is disabled.");
+        }
+
+        return null;
+    }
+
+    @Override
+    public ItemScore checkScoreability(final TDSReport testResults, final IITSDocument itsDoc, final String languageCode)
+        throws ReturnStatusException {
+        // check if item scoring is disabled
+        if (!itemScoreSettings.isEnabled()) {
+            return createEmptyScore(ScoringStatus.NotScored, "Item scoring setting is disabled.");
+        }
+
+        // check if doc exists
+        if (itsDoc == null) {
+            return createEmptyScore(ScoringStatus.ScoringError, "ITS document was not found.");
+        }
+
+        String itemFormat = itsDoc.getFormat();
+
+        // get the scorer information for this item type
+        ScorerInfo scorerInfo = itemScorer.GetScorerInfo(itemFormat);
+
+        // if there is no scorer info then this item type is not registered to a
+        // scorer and cannot be scored
+        if (scorerInfo == null) {
+            return createEmptyScore(ScoringStatus.NotScored, "TDS does not score " + itemFormat);
+        }
+
+        // check if we should parse the xml for the rubric
+        if (scorerInfo.getRubricContentSource() != RubricContentSource.None) {
+            ITSMachineRubric machineRubric = contentService.parseMachineRubric(itsDoc, languageCode, scorerInfo.getRubricContentSource());
+
+            // make sure this item has a machine rubric
+            if (machineRubric == null) {
+                return createEmptyScore(ScoringStatus.ScoringError, "Machine rubric was not found.");
+            }
+
+            // check if rubric has any data
+            if (!machineRubric.getIsValid()) {
+                return createEmptyScore(ScoringStatus.ScoringError, "Machine rubric was empty.");
+            }
+        }
+
+        // check if item scoring config is enabled for this format
+        final ItemScoringConfig itemScoringConfig = getItemScoringConfig(testResults.getTest().getContract(),
+            itemFormat, testResults.getTest().getTestId());
 
         // check if item scoring config exists (there should always be a default
         // configured)
@@ -290,6 +351,24 @@ public class ItemScoringServiceImpl implements ItemScoringService {
     }
 
     /**
+     * Score a response for an instance of a test opportunity.
+     *
+     * @throws ReturnStatusException
+     */
+    private ItemScore scoreResponse(final TDSReport testResults, final TDSReport.Opportunity.Item item,
+                                    final IITSDocument itsDoc, final String languageCode) throws ReturnStatusException {
+
+        ItemScore score = scoreItem(testResults, item, itsDoc, languageCode);
+
+        // if there is no score then create a not scored
+        if (score == null) {
+            score = new ItemScore(-1, -1, ScoringStatus.NotScored, null, null, null, null);
+        }
+
+        return score;
+    }
+
+    /**
      * Get the server url for proxy server.
      *
      * @throws ReturnStatusException
@@ -350,6 +429,12 @@ public class ItemScoringServiceImpl implements ItemScoringService {
         LOG.error(error, ex);
     }
 
+    // function for logging item scorer errors and use TDSLogger
+    private void log(TDSReport.Opportunity.Item item, String message, String methodName, Exception ex) {
+        String error = String.format("Method: %s - ITEM SCORER (%s): %s", methodName, getItemID(item), message);
+        LOG.error(error, ex);
+    }
+
     @Override
     public ItemScore scoreItem(UUID oppKey, IItemResponseScorable responseScorable, IITSDocument itsDoc) throws ReturnStatusException {
         final String itemID = getItemID(responseScorable);
@@ -382,7 +467,7 @@ public class ItemScoringServiceImpl implements ItemScoringService {
                     LOG.error("Failed to load scoring rubric for item: {}", itemID, e);
                     final ScoreRationale scoreRationale = new ScoreRationale();
                     scoreRationale.setMsg("Exception loading rubric for item " + itemID);
-                    return new ItemScore (-1, -1, ScoringStatus.ScoringError, null, scoreRationale, null);
+                    return new ItemScore(-1, -1, ScoringStatus.ScoringError, null, scoreRationale, null);
                 }
             }
         }
@@ -469,6 +554,191 @@ public class ItemScoringServiceImpl implements ItemScoringService {
         return scoreItem;
     }
 
+    @Override
+    public ItemScore scoreItem(final TDSReport testResults, final TDSReport.Opportunity.Item item,
+                               final IITSDocument itsDoc, final String languageCode) throws ReturnStatusException {
+        final String itemID = getItemID(item);
+        String itemFormat = itsDoc.getFormat();
+
+        // get the scorer information for this item type
+        ScorerInfo scorerInfo = itemScorer.GetScorerInfo(itemFormat);
+
+        ITSMachineRubric machineRubric = new ITSMachineRubric(ITSMachineRubric.ITSMachineRubricType.Text, null);
+        RubricContentType rubricContentType = RubricContentType.ContentString;
+
+        if (scorerInfo.getRubricContentSource() != RubricContentSource.None) {
+            // get items rubric
+            //TODO: Get language
+            machineRubric = contentService.parseMachineRubric(itsDoc, languageCode, scorerInfo.getRubricContentSource());
+            if (machineRubric == null)
+                return null;
+
+            // create response info to pass to item scorer
+            if (machineRubric.getType().equals(ITSMachineRubric.ITSMachineRubricType.Uri))
+                rubricContentType = RubricContentType.Uri;
+            else
+                rubricContentType = RubricContentType.ContentString;
+
+            // if this is true then load the rubric manually for the scoring engine
+            if (rubricContentType == RubricContentType.Uri) {
+                try {
+                    rubricContentType = RubricContentType.ContentString;
+                    machineRubric.setData(itemDataService.readData(URI.create(machineRubric.getData())));
+                } catch (final IOException e) {
+                    LOG.error("Failed to load scoring rubric for item: {}", itemID, e);
+                    final ScoreRationale scoreRationale = new ScoreRationale();
+                    scoreRationale.setMsg("Exception loading rubric for item " + itemID);
+                    return new ItemScore(-1, -1, ScoringStatus.ScoringError, null, scoreRationale, null);
+                }
+            }
+        }
+
+        // create rubric object
+        final Object rubricContent = machineRubric.getData(); // xml
+
+        ResponseInfo responseInfo = new ResponseInfo(itemFormat, itemID, item.getResponse().getContent(), rubricContent,
+            rubricContentType, null, true);
+
+        // perform sync item scoring
+        if (!isScoringAsynchronous(itsDoc)) {
+            try {
+                return itemScorer.ScoreItem(responseInfo, null);
+            } catch (final Exception ex) {
+                LOG.warn("Problem scoring item: {}", itemID, ex);
+                return new ItemScore(-1, -1, ScoringStatus.ScoringError, null, new ScoreRationale() {
+                    {
+                        setMsg("Exception scoring item " + itemID + ": " + ex);
+                    }
+                }, null, null);
+            }
+        }
+
+        // create callback token if there is a callback url
+        if (!StringUtils.isEmpty(itemScoreSettings.getCallbackUrl())) {
+            // Create the token
+            WebValueCollectionCorrect tokenData = new WebValueCollectionCorrect();
+            tokenData.put("oppKey", testResults.getOpportunity().getKey());
+            tokenData.put("testKey", testResults.getTest().getName());
+            tokenData.put("testID", testResults.getTest().getTestId());
+            tokenData.put("language", "ENU");
+            tokenData.put("position", item.getPosition());
+            tokenData.put("itsBank", item.getBankKey());
+            tokenData.put("itsItem", item.getKey());
+            tokenData.put("segmentID", item.getSegmentId());
+//            tokenData.put("sequence", item.get);
+//            tokenData.put("scoremark", responseScorable.getScoreMark());
+
+            // encrypt token (do not url encode)
+            String encryptedToken = EncryptionHelper.EncryptToBase64(tokenData.toString(false));
+
+            // save token
+            responseInfo.setContextToken(encryptedToken);
+        }
+
+        ItemScore scoreItem = null;
+
+        // perform scoring
+        String message = null;
+        try {
+            WebProxyItemScorerCallback webProxyCallback = null;
+
+            // check if there is a URL which will make this call asynchronous
+            URL serverUri = getServerUri(testResults.getTest().getContract(), itemFormat, testResults.getTest().getTestId());
+            URL callbackUri = getCallbackUri();
+
+            if (serverUri != null && callbackUri != null) {
+                webProxyCallback = new WebProxyItemScorerCallback(serverUri.toString(), callbackUri.toString());
+            }
+
+            // call web proxy scorer
+            scoreItem = itemScorer.ScoreItem(responseInfo, webProxyCallback);
+
+            // validate results
+            if (scoreItem == null) {
+                log(item, "Web proxy returned NULL score.", "scoreItem", null);
+            } else if (scoreItem.getScoreInfo().getStatus() == ScoringStatus.ScoringError) {
+                message = String.format("Web proxy returned a scoring error status: '%s'.", (scoreItem.getScoreInfo().getRationale() != null ? scoreItem.getScoreInfo().getRationale() : ""));
+                log(item, message, "scoreItem", null);
+            } else if (webProxyCallback != null && scoreItem.getScoreInfo().getStatus() != ScoringStatus.WaitingForMachineScore) {
+                message = String.format("Web proxy is in asynchronous mode and returned a score status of %s. It should return %s.", scoreItem.getScoreInfo().getStatus().toString(),
+                    ScoringStatus.WaitingForMachineScore.toString());
+                log(item, message, "scoreItem", null);
+            } else if (webProxyCallback == null && scoreItem.getScoreInfo().getStatus() == ScoringStatus.WaitingForMachineScore) {
+                message = String.format("Web proxy is in synchronous mode but returned incorrect status of %s.", scoreItem.getScoreInfo().getStatus().toString());
+                log(item, message, "scoreItem", null);
+            }
+        } catch (Exception ex) {
+            message = String.format("EXCEPTION = '%s'.", ex.getMessage());
+            log(item, message, "scoreItem", ex);
+        }
+
+        return scoreItem;
+    }
+
+    @Override
+    public ReturnStatus rescoreTestResults(final UUID examId, final TDSReport testResults) throws ReturnStatusException {
+        List<TDSReport.Opportunity.Item> items = testResults.getOpportunity().getItem();
+
+        for (TDSReport.Opportunity.Item item : items) {
+
+            final String itemContentPath = String.format(ITEM_CONTENT_PATH_FORMAT, item.getBankKey(), item.getKey());
+
+            // Fetch the item content of the item
+            final IITSDocument itsDoc = contentService.getContent(itemContentPath, AccLookup.getNone());
+
+            // check if loaded document
+            if (itsDoc == null) {
+                throw new ReturnStatusException(String.format("When updating item id '%s-%s' could not load the file '%s'.",
+                    item.getBankKey(), item.getKey(), itemContentPath));
+            }
+
+            final Optional<String> maybeLanguageCode = getLanguageCodeFromAccommodations(testResults.getOpportunity());
+
+            if (!maybeLanguageCode.isPresent()) {
+                return new ReturnStatus("FAILED", "No language accommodation found in the provided Test Results");
+            }
+
+            // check for any score errors
+            ItemScore score = checkScoreability(testResults, itsDoc, maybeLanguageCode.get());
+
+            // if there was a score returned from score errors check then there was a
+            // problem
+            if (score != null) {
+                return new ReturnStatus("FAILED", String.format("A scoring rubric was not found for the item '%s-%s'",
+                    item.getBankKey(), item.getKey()));
+            } else {
+                // for asynchronous we need to save the score first indicating it
+                // is machine scorable and then submit to the scoring web site
+                if (isScoringAsynchronous(itsDoc)) {
+                    score = new ItemScore(-1, -1, ScoringStatus.WaitingForMachineScore, null, new ScoreRationale() {
+                        {
+                            setMsg("Waiting for machine score.");
+                        }
+                    }, new ArrayList<>(), null);
+                    ItemScoreInfo scoreInfoObj = score.getScoreInfo();
+                    item.setScore(String.valueOf(scoreInfoObj.getPoints()));
+                    item.setScoreStatus(scoreInfoObj.getStatus().toString());
+                    scoreResponse(testResults, item, itsDoc, maybeLanguageCode.get());
+                } else { // for synchronous we need to score first and then save
+                    score = scoreResponse(testResults, item, itsDoc, maybeLanguageCode.get());
+                    ItemScoreInfo scoreInfoObj = score.getScoreInfo();
+                    item.setScore(String.valueOf(scoreInfoObj.getPoints()));
+                    item.setScoreStatus(scoreInfoObj.getStatus().toString());
+                }
+            }
+
+        }
+
+        return new ReturnStatus("SUCCESS", "The TRT was successfully rescored by the Test Delivery System");
+    }
+
+    private Optional<String> getLanguageCodeFromAccommodations(final TDSReport.Opportunity opportunity) {
+        return opportunity.getAccommodation().stream()
+            .filter(accommodation -> accommodation.getType().equalsIgnoreCase("Language"))
+            .map(accommodation -> accommodation.getCode())
+            .findFirst();
+    }
+
     /**
      * Is the scoring for this response asynchronous?
      */
@@ -487,6 +757,10 @@ public class ItemScoringServiceImpl implements ItemScoringService {
 
     private static String getItemID(IItemResponseScorable responseScorable) {
         return String.format("I-%s-%s", responseScorable.getBankKey(), responseScorable.getItemKey());
+    }
+
+    private static String getItemID(TDSReport.Opportunity.Item item) {
+        return String.format("I-%s-%s", item.getBankKey(), item.getKey());
     }
 
     /**

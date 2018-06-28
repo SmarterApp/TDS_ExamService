@@ -48,6 +48,11 @@
         </dependency>
         <dependency>
             <groupId>org.opentestsystem.delivery</groupId>
+            <artifactId>tds-support-tool-client</artifactId>
+            <version>${tds-support-tool-client.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.opentestsystem.delivery</groupId>
             <artifactId>tds-config-client</artifactId>
             <version>${tds-config-client.version}</version>
         </dependency>
