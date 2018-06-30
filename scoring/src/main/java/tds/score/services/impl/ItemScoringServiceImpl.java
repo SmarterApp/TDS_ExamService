@@ -35,6 +35,7 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
 
+import tds.common.ValidationError;
 import tds.itemrenderer.data.AccLookup;
 import tds.itemrenderer.data.IITSDocument;
 import tds.itemrenderer.data.ITSMachineRubric;
@@ -674,7 +675,7 @@ public class ItemScoringServiceImpl implements ItemScoringService {
     }
 
     @Override
-    public ReturnStatus rescoreTestResults(final UUID examId, final TDSReport testResults) throws ReturnStatusException {
+    public Optional<ValidationError> rescoreTestResults(final UUID examId, final TDSReport testResults) throws ReturnStatusException {
         List<TDSReport.Opportunity.Item> items = testResults.getOpportunity().getItem();
 
         for (TDSReport.Opportunity.Item item : items) {
@@ -693,7 +694,7 @@ public class ItemScoringServiceImpl implements ItemScoringService {
             final Optional<String> maybeLanguageCode = getLanguageCodeFromAccommodations(testResults.getOpportunity());
 
             if (!maybeLanguageCode.isPresent()) {
-                return new ReturnStatus("FAILED", "No language accommodation found in the provided Test Results");
+                return Optional.of(new ValidationError("EXAM",  "No language accommodation found in the provided Test Results"));
             }
 
             // check for any score errors
@@ -702,8 +703,8 @@ public class ItemScoringServiceImpl implements ItemScoringService {
             // if there was a score returned from score errors check then there was a
             // problem
             if (score != null) {
-                return new ReturnStatus("FAILED", String.format("A scoring rubric was not found for the item '%s-%s'",
-                    item.getBankKey(), item.getKey()));
+                return Optional.of(new ValidationError("EXAM",  String.format("A scoring rubric was not found for the item '%s-%s'",
+                    item.getBankKey(), item.getKey())));
             } else {
                 // for asynchronous we need to save the score first indicating it
                 // is machine scorable and then submit to the scoring web site
@@ -727,7 +728,7 @@ public class ItemScoringServiceImpl implements ItemScoringService {
 
         }
 
-        return new ReturnStatus("SUCCESS", "The TRT was successfully rescored by the Test Delivery System");
+        return Optional.empty();
     }
 
     private Optional<String> getLanguageCodeFromAccommodations(final TDSReport.Opportunity opportunity) {

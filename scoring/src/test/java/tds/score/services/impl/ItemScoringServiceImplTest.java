@@ -30,8 +30,10 @@ import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.net.URI;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.UUID;
 
+import tds.common.ValidationError;
 import tds.itemrenderer.data.AccLookup;
 import tds.itemrenderer.data.IITSDocument;
 import tds.itemrenderer.data.ITSAttribute;
@@ -152,11 +154,9 @@ public class ItemScoringServiceImplTest {
 
         assertThat(itemBeforeRescore.getScore()).isEqualTo("0");
 
-        final ReturnStatus status = itemScoringService.rescoreTestResults(examId, mockTestResults);
+        final Optional<ValidationError> maybeError = itemScoringService.rescoreTestResults(examId, mockTestResults);
 
-        assertThat(status.getStatus()).isEqualTo("SUCCESS");
-        assertThat(status.getReason()).isNotNull();
-        assertThat(status.getHttpStatusCode()).isEqualTo(200);
+        assertThat(maybeError).isNotPresent();
 
         TDSReport.Opportunity.Item itemAfterRescore = mockTestResults.getOpportunity().getItem().stream()
             .filter(item -> item.getKey() == 3238)
@@ -228,11 +228,9 @@ public class ItemScoringServiceImplTest {
 
         assertThat(itemBeforeRescore.getScore()).isEqualTo("0");
 
-        final ReturnStatus status = itemScoringService.rescoreTestResults(examId, mockTestResults);
+        final Optional<ValidationError> maybeError = itemScoringService.rescoreTestResults(examId, mockTestResults);
 
-        assertThat(status.getStatus()).isEqualTo("SUCCESS");
-        assertThat(status.getReason()).isNotNull();
-        assertThat(status.getHttpStatusCode()).isEqualTo(200);
+        assertThat(maybeError).isNotPresent();
 
         TDSReport.Opportunity.Item itemAfterRescore = mockTestResults.getOpportunity().getItem().stream()
             .filter(item -> item.getKey() == 3238)
@@ -287,12 +285,10 @@ public class ItemScoringServiceImplTest {
 
         final UUID examId = UUID.randomUUID();
 
-        final ReturnStatus status = itemScoringService.rescoreTestResults(examId, mockTestResults);
+        final Optional<ValidationError> maybeError = itemScoringService.rescoreTestResults(examId, mockTestResults);
 
-        assertThat(status.getStatus()).isEqualTo("FAILED");
-        assertThat(status.getReason()).isNotNull();
-        assertThat(status.getHttpStatusCode()).isEqualTo(200);
-
+        assertThat(maybeError.get().getCode()).isEqualTo("EXAM");
+        assertThat(maybeError.get().getMessage()).isNotNull();
         verify(mockItemScoreSettings, atLeastOnce()).isEnabled();
         verify(mockItemScorer, atLeastOnce()).GetScorerInfo(any());
     }
@@ -311,7 +307,7 @@ public class ItemScoringServiceImplTest {
 
         assertThat(itemBeforeRescore.getScore()).isEqualTo("0");
 
-        final ReturnStatus status = itemScoringService.rescoreTestResults(examId, mockTestResults);
+        itemScoringService.rescoreTestResults(examId, mockTestResults);
     }
 
     @Test(expected = ReturnStatusException.class)
@@ -327,6 +323,6 @@ public class ItemScoringServiceImplTest {
 
         assertThat(itemBeforeRescore.getScore()).isEqualTo("0");
 
-        final ReturnStatus status = itemScoringService.rescoreTestResults(examId, mockTestResults);
+         itemScoringService.rescoreTestResults(examId, mockTestResults);
     }
 }

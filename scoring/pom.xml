@@ -131,6 +131,11 @@
             <artifactId>tds-support-tool-client</artifactId>
             <version>${tds-support-tool-client.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.opentestsystem.delivery</groupId>
+            <artifactId>tds-common-legacy</artifactId>
+            <version>5.0.5-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
     <profiles>

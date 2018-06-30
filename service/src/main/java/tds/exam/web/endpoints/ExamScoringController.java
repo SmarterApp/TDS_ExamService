@@ -31,8 +31,11 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.io.StringReader;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
+import tds.common.ValidationError;
+import tds.common.web.resources.NoContentResponseResource;
 import tds.exam.services.MessagingService;
 import tds.exam.web.annotations.VerifyAccess;
 import tds.score.model.ExamInstance;
@@ -71,21 +74,21 @@ public class ExamScoringController {
     }
 
     @RequestMapping(value = "/rescore", method = RequestMethod.PUT)
-    public ResponseEntity<ReturnStatus> rescoreTestResultsTransmission(@PathVariable final UUID examId,
-                                                                       @RequestBody final String trtXml) throws ReturnStatusException, JAXBException {
+    public ResponseEntity<NoContentResponseResource> rescoreTestResultsTransmission(@PathVariable final UUID examId,
+                                                                                    @RequestBody final String trtXml) throws ReturnStatusException, JAXBException {
         final JAXBContext context = JAXBContext.newInstance(TDSReport.class);
         final Unmarshaller unmarshaller = context.createUnmarshaller();
         final TDSReport testResults = (TDSReport) unmarshaller.unmarshal(new StringReader(trtXml));
-        final ReturnStatus status = itemScoringService.rescoreTestResults(examId, testResults);
+        final Optional<ValidationError> maybeError = itemScoringService.rescoreTestResults(examId, testResults);
 
-        final boolean isSuccessful = status.getStatus().equalsIgnoreCase("SUCCESS");
+        final boolean isSuccessful = !maybeError.isPresent();
 
         if (isSuccessful) {
             messagingService.sendExamRescore(examId, testResults);
         }
 
         return isSuccessful
-            ? new ResponseEntity<>(status, HttpStatus.OK)
-            : new ResponseEntity<>(status, HttpStatus.UNPROCESSABLE_ENTITY);
+            ? new ResponseEntity<>(new NoContentResponseResource(), HttpStatus.OK)
+            : new ResponseEntity<>(new NoContentResponseResource(maybeError.get()), HttpStatus.UNPROCESSABLE_ENTITY);
     }
 }

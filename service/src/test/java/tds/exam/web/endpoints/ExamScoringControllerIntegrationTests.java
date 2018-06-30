@@ -29,6 +29,8 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
 
+import tds.common.ValidationError;
+import tds.common.web.resources.NoContentResponseResource;
 import tds.exam.WebMvcControllerIntegrationTest;
 import tds.exam.services.MessagingService;
 import tds.score.model.ExamInstance;
@@ -40,6 +42,7 @@ import tds.trt.model.TDSReport;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static io.github.benas.randombeans.api.EnhancedRandom.random;
@@ -123,20 +126,13 @@ public class ExamScoringControllerIntegrationTests {
 
 
         when(mockItemScoringService.rescoreTestResults(isA(UUID.class), isA(TDSReport.class)))
-            .thenReturn(new ReturnStatus("SUCCESS", "Rescored!"));
+            .thenReturn(Optional.empty());
 
         final MvcResult result = http.perform(MockMvcRequestBuilders.put(new URI("/exam/" + examId.toString() + "/scores/rescore"))
             .contentType(APPLICATION_JSON)
             .content(new XmlMapper().writeValueAsString(mockReport)))
-
             .andExpect(status().is(OK.value()))
-            .andExpect(jsonPath("$.status", equalTo("SUCCESS")))
-            .andExpect(jsonPath("$.reason", equalTo("Rescored!")))
             .andReturn();
-
-        final ReturnStatus deserializedResponse = objectMapper.readValue(result.getResponse().getContentAsString(), ReturnStatus.class);
-        assertThat(deserializedResponse.getStatus()).isEqualTo("SUCCESS");
-        assertThat(deserializedResponse.getReason()).isEqualTo("Rescored!");
 
         verify(mockMessagingService).sendExamRescore(isA(UUID.class), isA(TDSReport.class));
         verify(mockItemScoringService).rescoreTestResults(isA(UUID.class), isA(TDSReport.class));
@@ -152,20 +148,21 @@ public class ExamScoringControllerIntegrationTests {
 
 
         when(mockItemScoringService.rescoreTestResults(isA(UUID.class), isA(TDSReport.class)))
-            .thenReturn(new ReturnStatus("FAILED", "Failed to rescore!"));
+            .thenReturn(Optional.of(new ValidationError("EXAM", "Failed to rescore!")));
 
         final MvcResult result = http.perform(MockMvcRequestBuilders.put(new URI("/exam/" + examId.toString() + "/scores/rescore"))
             .contentType(APPLICATION_JSON)
             .content(new XmlMapper().writeValueAsString(mockReport)))
-
             .andExpect(status().is(UNPROCESSABLE_ENTITY.value()))
-            .andExpect(jsonPath("$.status", equalTo("FAILED")))
-            .andExpect(jsonPath("$.reason", equalTo("Failed to rescore!")))
+            .andExpect(jsonPath("$.errors[0].code", equalTo("EXAM")))
+            .andExpect(jsonPath("$.errors[0].message", equalTo("Failed to rescore!")))
             .andReturn();
 
-        final ReturnStatus deserializedResponse = objectMapper.readValue(result.getResponse().getContentAsString(), ReturnStatus.class);
-        assertThat(deserializedResponse.getStatus()).isEqualTo("FAILED");
-        assertThat(deserializedResponse.getReason()).isEqualTo("Failed to rescore!");
+        final NoContentResponseResource deserializedResponse = objectMapper.readValue(result.getResponse().getContentAsString(),
+            NoContentResponseResource.class);
+        assertThat(deserializedResponse.getErrors()).hasSize(1);
+        assertThat(deserializedResponse.getErrors()[0].getCode()).isEqualTo("EXAM");
+        assertThat(deserializedResponse.getErrors()[0].getMessage()).isEqualTo("Failed to rescore!");
 
         verify(mockMessagingService, never()).sendExamRescore(isA(UUID.class), isA(TDSReport.class));
         verify(mockItemScoringService).rescoreTestResults(isA(UUID.class), isA(TDSReport.class));

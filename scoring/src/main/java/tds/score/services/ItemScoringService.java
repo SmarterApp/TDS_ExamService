@@ -17,8 +17,10 @@ import TDS.Shared.Data.ReturnStatus;
 import TDS.Shared.Exceptions.ReturnStatusException;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
+import tds.common.ValidationError;
 import tds.itemrenderer.data.IITSDocument;
 import tds.itemscoringengine.ItemScore;
 import tds.score.model.ExamInstance;
@@ -58,5 +60,5 @@ public interface ItemScoringService {
      * @return A status indicating whether or not the rescore was successful
      * @throws ReturnStatusException
      */
-    ReturnStatus rescoreTestResults(final UUID examId, final TDSReport testResults) throws ReturnStatusException;
+    Optional<ValidationError> rescoreTestResults(final UUID examId, final TDSReport testResults) throws ReturnStatusException;
 }
