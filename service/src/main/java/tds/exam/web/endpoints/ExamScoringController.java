@@ -13,7 +13,6 @@
 
 package tds.exam.web.endpoints;
 
-import TDS.Shared.Data.ReturnStatus;
 import TDS.Shared.Exceptions.ReturnStatusException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -73,8 +72,9 @@ public class ExamScoringController {
         return new ResponseEntity<>(responses, HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/rescore", method = RequestMethod.PUT)
+    @RequestMapping(value = "/rescore/{jobId}", method = RequestMethod.PUT)
     public ResponseEntity<NoContentResponseResource> rescoreTestResultsTransmission(@PathVariable final UUID examId,
+                                                                                    @PathVariable final UUID jobId,
                                                                                     @RequestBody final String trtXml) throws ReturnStatusException, JAXBException {
         final JAXBContext context = JAXBContext.newInstance(TDSReport.class);
         final Unmarshaller unmarshaller = context.createUnmarshaller();
@@ -84,7 +84,7 @@ public class ExamScoringController {
         final boolean isSuccessful = !maybeError.isPresent();
 
         if (isSuccessful) {
-            messagingService.sendExamRescore(examId, testResults);
+            messagingService.sendExamRescore(examId, jobId, testResults);
         }
 
         return isSuccessful
