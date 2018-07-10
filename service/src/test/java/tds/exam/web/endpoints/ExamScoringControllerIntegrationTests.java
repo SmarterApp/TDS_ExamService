@@ -13,7 +13,6 @@
 
 package tds.exam.web.endpoints;
 
-import TDS.Shared.Data.ReturnStatus;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
@@ -28,6 +27,11 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
+import java.io.InputStreamReader;
+import java.net.URI;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import tds.common.ValidationError;
 import tds.common.web.resources.NoContentResponseResource;
@@ -38,12 +42,6 @@ import tds.score.services.ItemScoringService;
 import tds.student.sql.data.ItemResponseUpdate;
 import tds.student.sql.data.ItemResponseUpdateStatus;
 import tds.trt.model.TDSReport;
-
-import java.io.InputStreamReader;
-import java.net.URI;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 import static io.github.benas.randombeans.api.EnhancedRandom.random;
 import static java.util.Collections.singletonList;
@@ -112,13 +110,15 @@ public class ExamScoringControllerIntegrationTests {
 
         final List<ItemResponseUpdateStatus> deserializedResponse = objectMapper.readValue(
             result.getResponse().getContentAsString(),
-            new TypeReference<List<ItemResponseUpdateStatus>>() {});
+            new TypeReference<List<ItemResponseUpdateStatus>>() {
+            });
         assertThat(deserializedResponse).hasSize(1);
     }
 
     @Test
     public void itShouldRescoreExam() throws Exception {
         final UUID examId = UUID.randomUUID();
+        final UUID jobId = UUID.randomUUID();
         final JAXBContext context = JAXBContext.newInstance(TDSReport.class);
         final Unmarshaller unmarshaller = context.createUnmarshaller();
         final TDSReport mockReport = (TDSReport) unmarshaller.unmarshal(new InputStreamReader(
@@ -128,7 +128,7 @@ public class ExamScoringControllerIntegrationTests {
         when(mockItemScoringService.rescoreTestResults(isA(UUID.class), isA(TDSReport.class)))
             .thenReturn(Optional.empty());
 
-        final MvcResult result = http.perform(MockMvcRequestBuilders.put(new URI("/exam/" + examId.toString() + "/scores/rescore"))
+        final MvcResult result = http.perform(MockMvcRequestBuilders.put(new URI("/exam/" + examId.toString() + "/scores/rescore/" + jobId.toString()))
             .contentType(APPLICATION_JSON)
             .content(new XmlMapper().writeValueAsString(mockReport)))
             .andExpect(status().is(OK.value()))
@@ -141,6 +141,7 @@ public class ExamScoringControllerIntegrationTests {
     @Test
     public void itShouldFailToRescoreExam() throws Exception {
         final UUID examId = UUID.randomUUID();
+        final UUID jobId = UUID.randomUUID();
         final JAXBContext context = JAXBContext.newInstance(TDSReport.class);
         final Unmarshaller unmarshaller = context.createUnmarshaller();
         final TDSReport mockReport = (TDSReport) unmarshaller.unmarshal(new InputStreamReader(
@@ -150,7 +151,7 @@ public class ExamScoringControllerIntegrationTests {
         when(mockItemScoringService.rescoreTestResults(isA(UUID.class), isA(TDSReport.class)))
             .thenReturn(Optional.of(new ValidationError("EXAM", "Failed to rescore!")));
 
-        final MvcResult result = http.perform(MockMvcRequestBuilders.put(new URI("/exam/" + examId.toString() + "/scores/rescore"))
+        final MvcResult result = http.perform(MockMvcRequestBuilders.put(new URI("/exam/" + examId.toString() + "/scores/rescore/" + jobId.toString()))
             .contentType(APPLICATION_JSON)
             .content(new XmlMapper().writeValueAsString(mockReport)))
             .andExpect(status().is(UNPROCESSABLE_ENTITY.value()))
