@@ -24,14 +24,24 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+import java.io.StringReader;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import tds.common.ValidationError;
+import tds.common.web.resources.NoContentResponseResource;
+import tds.exam.services.MessagingService;
 import tds.exam.web.annotations.VerifyAccess;
 import tds.score.model.ExamInstance;
 import tds.score.services.ItemScoringService;
 import tds.student.sql.data.ItemResponseUpdate;
 import tds.student.sql.data.ItemResponseUpdateStatus;
-
-import java.util.List;
-import java.util.UUID;
+import tds.trt.model.TDSReport;
 
 /**
  * This controller is responsible for providing scoring information for exams.
@@ -41,10 +51,12 @@ import java.util.UUID;
 public class ExamScoringController {
 
     private final ItemScoringService itemScoringService;
+    private final MessagingService messagingService;
 
     @Autowired
-    ExamScoringController(final ItemScoringService itemScoringService) {
+    ExamScoringController(final ItemScoringService itemScoringService, final MessagingService messagingService) {
         this.itemScoringService = itemScoringService;
+        this.messagingService = messagingService;
     }
 
     @RequestMapping(value = "/responses", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -58,5 +70,25 @@ public class ExamScoringController {
         final ExamInstance examInstance = ExamInstance.create(examId, sessionId, browserId, clientName);
         final List<ItemResponseUpdateStatus> responses = itemScoringService.updateResponses(examInstance, responseUpdates, pageDuration);
         return new ResponseEntity<>(responses, HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/rescore/{jobId}", method = RequestMethod.PUT)
+    public ResponseEntity<NoContentResponseResource> rescoreTestResultsTransmission(@PathVariable final UUID examId,
+                                                                                    @PathVariable final UUID jobId,
+                                                                                    @RequestBody final String trtXml) throws ReturnStatusException, JAXBException {
+        final JAXBContext context = JAXBContext.newInstance(TDSReport.class);
+        final Unmarshaller unmarshaller = context.createUnmarshaller();
+        final TDSReport testResults = (TDSReport) unmarshaller.unmarshal(new StringReader(trtXml));
+        final Optional<ValidationError> maybeError = itemScoringService.rescoreTestResults(examId, testResults);
+
+        final boolean isSuccessful = !maybeError.isPresent();
+
+        if (isSuccessful) {
+            messagingService.sendExamRescore(examId, jobId, testResults);
+        }
+
+        return isSuccessful
+            ? new ResponseEntity<>(new NoContentResponseResource(), HttpStatus.OK)
+            : new ResponseEntity<>(new NoContentResponseResource(maybeError.get()), HttpStatus.UNPROCESSABLE_ENTITY);
     }
 }
