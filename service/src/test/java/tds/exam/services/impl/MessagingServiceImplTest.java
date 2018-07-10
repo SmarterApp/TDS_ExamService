@@ -24,10 +24,12 @@ import org.springframework.amqp.rabbit.support.CorrelationData;
 
 import java.util.UUID;
 
+import tds.support.job.TestResultsWrapper;
 import tds.trt.model.TDSReport;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.verify;
 import static tds.exam.ExamTopics.TOPIC_EXAM_COMPLETED;
 import static tds.exam.ExamTopics.TOPIC_EXCHANGE;
@@ -63,7 +65,7 @@ public class MessagingServiceImplTest {
         messagingService.sendExamRescore(examId, jobId, tdsReport);
 
         final ArgumentCaptor<CorrelationData> correlationDataCaptor = ArgumentCaptor.forClass(CorrelationData.class);
-        verify(mockRabbitTemplate).convertAndSend(eq(TOPIC_EXCHANGE), eq(TOPIC_EXAM_COMPLETED), eq(tdsReport), correlationDataCaptor.capture());
+        verify(mockRabbitTemplate).convertAndSend(eq(TOPIC_EXCHANGE), eq(TOPIC_EXAM_COMPLETED), isA(TestResultsWrapper.class), correlationDataCaptor.capture());
         assertThat(correlationDataCaptor.getValue().getId()).isEqualTo("exam.rescore-" + examId.toString());
     }
 
