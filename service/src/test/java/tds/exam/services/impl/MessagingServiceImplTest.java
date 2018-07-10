@@ -58,8 +58,9 @@ public class MessagingServiceImplTest {
     @Test
     public void itShouldSubmitAExamToRescoreToTheExpectedTopic() {
         final UUID examId = UUID.randomUUID();
+        final UUID jobId = UUID.randomUUID();
         final TDSReport tdsReport = new TDSReport();
-        messagingService.sendExamRescore(examId, tdsReport);
+        messagingService.sendExamRescore(examId, jobId, tdsReport);
 
         final ArgumentCaptor<CorrelationData> correlationDataCaptor = ArgumentCaptor.forClass(CorrelationData.class);
         verify(mockRabbitTemplate).convertAndSend(eq(TOPIC_EXCHANGE), eq(TOPIC_EXAM_COMPLETED), eq(tdsReport), correlationDataCaptor.capture());
