@@ -25,6 +25,11 @@ public class ExamTopics {
     public static final String TOPIC_EXCHANGE = "tds.exam.exchange";
 
     /**
+     * This is the topic exchange for all TRT re-score topics.
+     */
+    public static final String RESCORE_TOPIC_EXCHANGE = "tds.exam.exchange.rescore";
+
+    /**
      * This topic is published to when an exam is completed.
      * The message body is a String containing the exam id.
      */
@@ -35,4 +40,10 @@ public class ExamTopics {
      * Test Integration System acknowledging that it has successfully processed a TRT request.
      */
     public static final String TOPIC_EXAM_REPORTED = "exam.reported";
+
+    /**
+     * This topic is published to when the ExamResultsTransmitter receives a response from the
+     * Test Integration System acknowledging that it has successfully processed a TRT request.
+     */
+    public static final String TOPIC_EXAM_RESCORED = "exam.rescored";
 }

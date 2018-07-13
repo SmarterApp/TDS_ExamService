@@ -27,8 +27,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -41,6 +45,7 @@ import tds.score.model.ExamInstance;
 import tds.score.services.ItemScoringService;
 import tds.student.sql.data.ItemResponseUpdate;
 import tds.student.sql.data.ItemResponseUpdateStatus;
+import tds.support.job.TestResultsWrapper;
 import tds.trt.model.TDSReport;
 
 /**
@@ -52,11 +57,18 @@ public class ExamScoringController {
 
     private final ItemScoringService itemScoringService;
     private final MessagingService messagingService;
+    private final Marshaller marshaller;
+    private final Unmarshaller unmarshaller;
 
     @Autowired
-    ExamScoringController(final ItemScoringService itemScoringService, final MessagingService messagingService) {
+    ExamScoringController(final ItemScoringService itemScoringService, final MessagingService messagingService) throws JAXBException {
         this.itemScoringService = itemScoringService;
         this.messagingService = messagingService;
+
+        final JAXBContext wrapperContext = JAXBContext.newInstance(TestResultsWrapper.class);
+        this.marshaller = wrapperContext.createMarshaller();
+        final JAXBContext context = JAXBContext.newInstance(TDSReport.class);
+        this.unmarshaller = context.createUnmarshaller();
     }
 
     @RequestMapping(value = "/responses", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -76,15 +88,16 @@ public class ExamScoringController {
     public ResponseEntity<NoContentResponseResource> rescoreTestResultsTransmission(@PathVariable final UUID examId,
                                                                                     @PathVariable final UUID jobId,
                                                                                     @RequestBody final String trtXml) throws ReturnStatusException, JAXBException {
-        final JAXBContext context = JAXBContext.newInstance(TDSReport.class);
-        final Unmarshaller unmarshaller = context.createUnmarshaller();
         final TDSReport testResults = (TDSReport) unmarshaller.unmarshal(new StringReader(trtXml));
         final Optional<ValidationError> maybeError = itemScoringService.rescoreTestResults(examId, testResults);
+        final TestResultsWrapper wrapper = new TestResultsWrapper(jobId.toString(), testResults);
 
         final boolean isSuccessful = !maybeError.isPresent();
 
         if (isSuccessful) {
-            messagingService.sendExamRescore(examId, jobId, testResults);
+            final ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            marshaller.marshal(wrapper, stream);
+            messagingService.sendExamRescore(examId, stream.toByteArray());
         }
 
         return isSuccessful

@@ -32,6 +32,7 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.verify;
 import static tds.exam.ExamTopics.TOPIC_EXAM_COMPLETED;
+import static tds.exam.ExamTopics.TOPIC_EXAM_RESCORED;
 import static tds.exam.ExamTopics.TOPIC_EXCHANGE;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -60,12 +61,11 @@ public class MessagingServiceImplTest {
     @Test
     public void itShouldSubmitAExamToRescoreToTheExpectedTopic() {
         final UUID examId = UUID.randomUUID();
-        final UUID jobId = UUID.randomUUID();
-        final TDSReport tdsReport = new TDSReport();
-        messagingService.sendExamRescore(examId, jobId, tdsReport);
+        final byte[] tdsReport = new byte[30];
+        messagingService.sendExamRescore(examId, tdsReport);
 
         final ArgumentCaptor<CorrelationData> correlationDataCaptor = ArgumentCaptor.forClass(CorrelationData.class);
-        verify(mockRabbitTemplate).convertAndSend(eq(TOPIC_EXCHANGE), eq(TOPIC_EXAM_COMPLETED), isA(TestResultsWrapper.class), correlationDataCaptor.capture());
+        verify(mockRabbitTemplate).convertAndSend(eq(TOPIC_EXCHANGE), eq(TOPIC_EXAM_RESCORED), isA(byte[].class), correlationDataCaptor.capture());
         assertThat(correlationDataCaptor.getValue().getId()).isEqualTo("exam.rescore-" + examId.toString());
     }
 

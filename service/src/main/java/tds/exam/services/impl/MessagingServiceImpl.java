@@ -19,13 +19,14 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import tds.exam.services.MessagingService;
-import tds.support.job.TestResultsWrapper;
-import tds.trt.model.TDSReport;
 
 import java.util.UUID;
 
+import tds.exam.services.MessagingService;
+
+import static tds.exam.ExamTopics.RESCORE_TOPIC_EXCHANGE;
 import static tds.exam.ExamTopics.TOPIC_EXAM_COMPLETED;
+import static tds.exam.ExamTopics.TOPIC_EXAM_RESCORED;
 import static tds.exam.ExamTopics.TOPIC_EXCHANGE;
 
 /**
@@ -50,10 +51,10 @@ public class MessagingServiceImpl implements MessagingService {
     }
 
     @Override
-    public void sendExamRescore(final UUID examId, final UUID jobId, final TDSReport testResults) {
+    public void sendExamRescore(final UUID examId, final byte[] testResults) {
         final String stringId = examId.toString();
         final CorrelationData correlationData = new CorrelationData("exam.rescore-" + stringId);
-        this.rabbitTemplate.convertAndSend(TOPIC_EXCHANGE, TOPIC_EXAM_COMPLETED,
-            new TestResultsWrapper(jobId.toString(), testResults), correlationData);
+        this.rabbitTemplate.convertAndSend(RESCORE_TOPIC_EXCHANGE, TOPIC_EXAM_RESCORED,
+            testResults, correlationData);
     }
 }
