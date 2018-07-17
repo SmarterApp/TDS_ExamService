@@ -134,7 +134,7 @@ public class ExamScoringControllerIntegrationTests {
             .andExpect(status().is(OK.value()))
             .andReturn();
 
-        verify(mockMessagingService).sendExamRescore(isA(UUID.class), isA(UUID.class), isA(TDSReport.class));
+        verify(mockMessagingService).sendExamRescore(isA(UUID.class), isA(byte[].class));
         verify(mockItemScoringService).rescoreTestResults(isA(UUID.class), isA(TDSReport.class));
     }
 
@@ -165,7 +165,7 @@ public class ExamScoringControllerIntegrationTests {
         assertThat(deserializedResponse.getErrors()[0].getCode()).isEqualTo("EXAM");
         assertThat(deserializedResponse.getErrors()[0].getMessage()).isEqualTo("Failed to rescore!");
 
-        verify(mockMessagingService, never()).sendExamRescore(isA(UUID.class), isA(UUID.class), isA(TDSReport.class));
+        verify(mockMessagingService, never()).sendExamRescore(isA(UUID.class), isA(byte[].class));
         verify(mockItemScoringService).rescoreTestResults(isA(UUID.class), isA(TDSReport.class));
     }
 }

@@ -15,8 +15,6 @@ package tds.exam.services;
 
 import java.util.UUID;
 
-import tds.trt.model.TDSReport;
-
 /**
  * Implementations of this interface are responsible for publishing messages to the ecosystem messaging framework.
  */
@@ -36,5 +34,5 @@ public interface MessagingService {
      * @param examId      The id of the exam to rescore
      * @param testResults The TRT of the exam to rescore
      */
-    void sendExamRescore(final UUID examId, final UUID jobId, final TDSReport testResults);
+    void sendExamRescore(final UUID examId, final byte[] testResults);
 }

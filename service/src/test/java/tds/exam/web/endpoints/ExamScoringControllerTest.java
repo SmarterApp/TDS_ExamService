@@ -60,7 +60,7 @@ public class ExamScoringControllerTest {
     private ExamScoringController controller;
 
     @Before
-    public void setup() {
+    public void setup() throws JAXBException {
         controller = new ExamScoringController(mockItemScoringService, mockMessagingService);
     }
 
