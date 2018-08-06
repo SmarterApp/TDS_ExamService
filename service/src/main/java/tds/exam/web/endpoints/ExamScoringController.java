@@ -18,21 +18,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
 import java.io.StringReader;
-import java.io.StringWriter;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -86,11 +79,11 @@ public class ExamScoringController {
 
     @RequestMapping(value = "/rescore/{jobId}", method = RequestMethod.PUT)
     public ResponseEntity<NoContentResponseResource> rescoreTestResultsTransmission(@PathVariable final UUID examId,
-                                                                                    @PathVariable final UUID jobId,
+                                                                                    @PathVariable final String jobId,
                                                                                     @RequestBody final String trtXml) throws ReturnStatusException, JAXBException {
         final TDSReport testResults = (TDSReport) unmarshaller.unmarshal(new StringReader(trtXml));
         final Optional<ValidationError> maybeError = itemScoringService.rescoreTestResults(examId, testResults);
-        final TestResultsWrapper wrapper = new TestResultsWrapper(jobId.toString(), testResults);
+        final TestResultsWrapper wrapper = new TestResultsWrapper(jobId, testResults);
 
         final boolean isSuccessful = !maybeError.isPresent();
 
