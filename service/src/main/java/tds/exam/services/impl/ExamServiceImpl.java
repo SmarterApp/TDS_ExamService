@@ -464,8 +464,11 @@ class ExamServiceImpl implements ExamService {
                         exam.getClientName(), assessment.getAssessmentId())));
 
         /* StudentDLL [5344] Skipping getInitialAbility() call here - the ability is retrieved in legacy but never set on TestConfig */
-
-        if (exam.getStartedAt() == null) { // Start a new exam
+        List<ExamSegmentWrapper> examSegmentWrappers = examSegmentWrapperService.findAllExamSegments(examId);
+        // If the exam is not started or exam segments are not present it means the exam needs to be initialized
+        // If exam segments are not present, this signifies a bug and we are re-running the initialization routine
+        if (exam.getStartedAt() == null || examSegmentWrappers.stream().allMatch(sw -> sw.getExamPages().isEmpty())) {
+            // Start a new exam
             // Initialize the segments in the exam and get the testlength and trim the quotes off the user agent string
             String unquotedUserAgent = browserUserAgent.replaceAll("^\"|\"$", "");
             Exam initializedExam = initializeExam(exam, assessment, unquotedUserAgent);
@@ -480,8 +483,7 @@ class ExamServiceImpl implements ExamService {
             /* [178] In the legacy app, if lastActivity = null, then DbComparator.lessThan(null, <not-null>) = false */
             boolean isGracePeriodResume = maybeLastActivity.isPresent()
                 && Minutes.minutesBetween(maybeLastActivity.get(), now).getMinutes() < timeLimitConfiguration.getExamRestartWindowMinutes();
-
-            List<ExamSegmentWrapper> examSegmentWrappers = examSegmentWrapperService.findAllExamSegments(examId);
+            
             /* [186 - 191] Move the resume/grace period restart increment and the exam update down in the flow of this code */
             /* Skip TestOpportunityAudit code [193] */
             int startPosition = findExamStartPosition(examSegmentWrappers);
@@ -574,8 +576,12 @@ class ExamServiceImpl implements ExamService {
         /* StudentDLL.ResumeItemPosition_FN [5193] */
         // If all items had a response, find the highest item position regardless of whether it has a response or not
         ExamSegmentWrapper lastSegment = examSegmentWrappers.get(examSegmentWrappers.size() - 1);
-        ExamPageWrapper lastPage = lastSegment.getExamPages().get(lastSegment.getExamPages().size() - 1);
-        return lastPage.getExamItems().get(lastPage.getExamItems().size() - 1).getPosition();
+        final int lastSegmentExamPagesSize = lastSegment.getExamPages().size();
+        if (lastSegmentExamPagesSize > 0) {
+            ExamPageWrapper lastPage = lastSegment.getExamPages().get(lastSegmentExamPagesSize - 1);
+            return lastPage.getExamItems().get(lastPage.getExamItems().size() - 1).getPosition();
+        }
+        return 1;
     }
 
     private Optional<ExamItem> findExamItemFromResumableSegment(final List<ExamSegmentWrapper> examSegmentWrappers) {
