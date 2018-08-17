@@ -11,7 +11,7 @@
     <parent>
         <groupId>org.opentestsystem.delivery</groupId>
         <artifactId>tds-exam</artifactId>
-        <version>4.2.0.RELEASE</version>
+        <version>4.2.2.RELEASE</version>
     </parent>
 
     <dependencies>
@@ -45,6 +45,11 @@
             <groupId>org.opentestsystem.delivery</groupId>
             <artifactId>tds-assessment-client</artifactId>
             <version>${tds-assessment-client.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.opentestsystem.delivery</groupId>
+            <artifactId>tds-support-tool-client</artifactId>
+            <version>${tds-support-tool-client.version}</version>
         </dependency>
         <dependency>
             <groupId>org.opentestsystem.delivery</groupId>

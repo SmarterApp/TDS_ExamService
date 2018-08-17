@@ -14,6 +14,8 @@
 package tds.exam.services.impl;
 
 import org.joda.time.Instant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,6 +49,8 @@ import tds.exam.services.SegmentPoolService;
 
 @Service
 public class ExamSegmentServiceImpl implements ExamSegmentService {
+    private static final Logger log = LoggerFactory.getLogger(ExamSegmentServiceImpl.class);
+
     private final ExamSegmentCommandRepository examSegmentCommandRepository;
     private final ExamSegmentQueryRepository examSegmentQueryRepository;
     private final SegmentPoolService segmentPoolService;
@@ -172,6 +176,19 @@ public class ExamSegmentServiceImpl implements ExamSegmentService {
         if (totalItems == 0) {
             throw new IllegalStateException("There are no items available in the item pool for any segment.");
         }
+
+        // There exists a bug where exams may be in an invalid state.
+        // There may be exams without entries in the exam_page table.
+        // If that state was detected, this exam initialization routine is executed a second time.
+        // We are removing the exam segments that were added during the first exam initialization execution.
+        final boolean existingExamSegments = examSegments.stream().
+            anyMatch(segment ->
+                examSegmentQueryRepository.findByExamIdAndSegmentKey(exam.getId(), segment.getSegmentKey()).isPresent());
+
+        if (existingExamSegments) {
+            examSegmentCommandRepository.delete(exam.getId());
+        }
+
         /* Lines [4753-4764] */
         examSegmentCommandRepository.insert(examSegments);
 

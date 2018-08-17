@@ -26,4 +26,13 @@ public interface MessagingService {
      * @param examId The completed exam's id
      */
     void sendExamCompletion(final UUID examId);
+
+
+    /**
+     * Sends an exam rescore message to the transmission topic
+     *
+     * @param examId      The id of the exam to rescore
+     * @param testResults The TRT of the exam to rescore
+     */
+    void sendExamRescore(final UUID examId, final byte[] testResults);
 }
